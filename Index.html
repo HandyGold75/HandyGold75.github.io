@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <title>HandyGold75</title>
+    <link href="Assets/Icons/;D.ico" rel="icon" type="image/x-icon">
+    <link href="Assets/style.css" type="text/css" rel="stylesheet">
+</head>
+
+<body id="body">
+    <div id="main">
+        <div id="nav"></div>
+        <div id="page"></div>
+        <div id="footer"></div>
+        <div id="debug"></div>
+    </div>
+    <py-env>
+        - rsa
+        - paths:
+            - Modules/wsRelay.py
+            - Modules/Main_AssetManager.py
+    </py-env>
+    <script src="Modules/wsClient.js"></script>
+    <py-script src="Modules/Main.py"></py-script>
+</body>
+
+</html>
