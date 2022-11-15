@@ -33,7 +33,7 @@ class setup:
 
     def navigation():
         element = document.getElementById(f'nav')
-        element.innerHTML += f'<img src="Assets/;D.png" id="nav_logo" align="left"><h1 id="nav_title" align="center">HandyGold75 - {pages.currentPage}</h1><div id="nav_buttons" align="center"></div>'
+        element.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left"><h1 id="nav_title" align="center">HandyGold75 - {pages.currentPage}</h1><div id="nav_buttons" align="center"></div>'
 
         element = document.getElementById(f'nav_buttons')
 
@@ -234,7 +234,7 @@ class pages:
         }
 
         for i in contactData:
-            element.innerHTML += f'<div class=page_contact_list align="center"><img src="Assets/Icons/{i}"><p><u><a href="{contactData[i]["url"]}">{contactData[i]["text"]}</a></u></p></div>'
+            element.innerHTML += f'<div class=page_contact_list align="center"><img src="docs/assets/Icons/{i}"><p><u><a href="{contactData[i]["url"]}">{contactData[i]["text"]}</a></u></p></div>'
 
     def main(args=None, page=None):
         element = document.getElementById(f'page')
