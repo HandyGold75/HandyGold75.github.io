@@ -36,7 +36,7 @@ class obj {
 function wsStart() {
     if (obj.ws === undefined) {
         obj.ws = null;
-        obj.IP = "127.0.0.1";
+        obj.IP = "139.162.141.79";
         obj.PORT = 6900;
         obj.AUTHTOKEN = "89UibZOFCKmPObSBnBxSNcorbp4eUYAKPX5V5qepEYw7tVwO0nZ3wwXGK48VXBjc";
         obj.lastCom = "";
