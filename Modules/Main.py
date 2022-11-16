@@ -49,19 +49,11 @@ class setup:
 
         func.addEvent(f'footer_toTop', footer_scripts.toTop)
 
-    def debug():
-        element = document.getElementById(f'debug')
-        element.innerHTML += (f'<div id="debug_buttons" align="right"><button id="debug_button1" type="button">Show debug</button><button id="debug_button2" type="button">Run debug</button></div><div id="debug_output"></div>')
-
-        func.addEvent(f'debug_button1', debug.css)
-        func.addEvent(f'debug_button2', debug.dir)
-
     def main():
         setup.general()
         setup.navigation()
         pages.main(page=pages.currentPage)
         setup.footer()
-        setup.debug()
 
 
 class pages:
@@ -108,7 +100,6 @@ class pages:
         def checkLogin(args=None): #ALSO FIRES WHEN MOVING TO HOME OR CONTACT
             if pages.currentPage != "Scripts":
                 return None
-            
 
             try:
                 msg = ws.msg()
@@ -127,7 +118,7 @@ class pages:
             elif msg.startswith(f'<LOGIN_SUCCESS> '):
                 setup.loggedIn = True
                 window.localStorage.setItem("token", f'{msg.split("<LOGIN_SUCCESS> ")[1]}')
-                
+
             elif msg == " ":
                 setup.loggedIn = True
 
@@ -153,7 +144,7 @@ class pages:
 
             window.localStorage.setItem("token", "")
             setup.loggedIn = False
-            
+
             window.location.reload()
 
         if not setup.loggedIn:
@@ -291,73 +282,6 @@ class pages_scripts:
 class footer_scripts:
     def toTop(*args):
         document.getElementById(f'body').scrollIntoView()
-
-
-class debug:
-    def css(*args):
-        element = document.getElementById(f'nav')
-        element.style.background = f'#F00'
-
-        element = document.getElementById(f'nav_logo')
-        element.style.background = f'#FFF'
-
-        element = document.getElementById(f'nav_title')
-        element.style.background = f'#F44'
-
-        element = document.getElementById(f'nav_buttons')
-        element.style.background = f'#F99'
-
-        element = document.getElementById(f'footer')
-        element.style.background = f'#F00'
-
-        element = document.getElementById(f'footer_note')
-        element.style.background = f'#F44'
-
-        element = document.getElementById(f'footer_buttons')
-        element.style.background = f'#F99'
-
-        element = document.getElementById(f'page')
-        element.style.background = f'#F00'
-
-        if pages.currentPage == f'Contact':
-            element = document.getElementById(f'page_contact')
-            element.style.background = f'#F44'
-
-            element = document.getElementsByClassName(f'page_contact_list')
-
-            for i in range(0, element.length):
-                element.item(i).style.background = f'#F99'
-
-        elif pages.currentPage == f'Scripts':
-            element = document.getElementById(f'page_scripts')
-            element.style.background = f'#F44'
-
-            element = document.getElementById(f'page_scripts_buttons')
-            element.style.background = f'#F99'
-
-            element = document.getElementById(f'page_scripts_body')
-            element.style.background = f'#F99'
-
-            if pages_scripts.currentPage == f'Asset Manager':
-                element = document.getElementById(f'Asset Manager')
-                element.style.background = f'#F00'
-
-                element = document.getElementById(f'Asset Manager_nav')
-                element.style.background = f'#F44'
-
-                element = document.getElementById(f'Asset Manager_page')
-                element.style.background = f'#F44'
-
-                element = document.getElementsByClassName(f'Asset Manager_page_records')
-
-                for i in range(0, element.length):
-                    element.item(i).style.background = f'#F99'
-
-    def dir(*args):
-        element = document.getElementById(f'debug_output')
-
-        for path, files, folders in walk(f'/'):
-            element.innerHTML += f'PATH: {path} | FILES: {files} | FOLDERS: {folders}<br>'
 
 
 if __name__ == "__main__":
