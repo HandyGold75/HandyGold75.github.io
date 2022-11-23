@@ -79,26 +79,33 @@ body {
     padding: 0px;
     margin: 3px;
     border-radius: 4px;
+    height: 27px;
     outline: none;
     overflow-y: hidden;
+    scrollbar-width: none;
+    transition: 0.25s;
 }
 
 #main select:hover {
     z-index: 122;
     color: #fff;
     background: #444;
-    margin-bottom: -100px;
+    margin-bottom: -108px;
     height: 108px;
     overflow-y: scroll;
+    scrollbar-width: auto;
+    transition: 0.25s;
 }
 
 #main select:focus {
     z-index: 121;
     color: #fff;
     background: #444;
-    margin-bottom: -100px;
+    margin-bottom: -108px;
     height: 108px;
     overflow-y: scroll;
+    scrollbar-width: auto;
+    transition: 0.25s;
 }
 
 
@@ -181,6 +188,7 @@ body {
 #page_scripts_body_login_txt {
     width: 25%;
 }
+
 #page_scripts_body_login_inp {
     width: 75%;
 }
