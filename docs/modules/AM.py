@@ -1,3 +1,4 @@
+from WS import ws
 from datetime import datetime, timedelta
 from js import document, window, console
 from pyodide.ffi import create_proxy
@@ -19,28 +20,6 @@ class func:
 
         element = document.getElementById(f'page_scripts_body_error')
         element.innerHTML = f'<h1>WARNING!</h1><p>Connection lost to the server! The server is probably not running!<br>Please refresh the page to try again.</p><br>'
-
-class ws:
-    def start():
-        return wsStart()
-
-    def send(com):
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsSend(com)
-
-    def msg():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsMsg()
-
-    def msgDict():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return loads(wsMsgDict())
 
 
 class AM:
@@ -466,11 +445,11 @@ class AM:
                 if element.item(i).localName == "select" and element.item(i).name in AM.halfView:
                     element.item(i).style.width = f'{(110 / (colC * 2)) + 0.645}%'
                     continue
-                
+
                 elif element.item(i).localName == "select":
                     element.item(i).style.width = f'{(110 / colC) + 0.645}%'
                     continue
-                
+
                 elif element.item(i).name in AM.halfView:
                     element.item(i).style.width = f'{110 / (colC * 2)}%'
                     continue

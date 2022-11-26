@@ -1,32 +1,10 @@
-from json import loads
+from WS import ws
 from rsa import encrypt, PublicKey
-from js import document, window, wsStart, wsUpState, wsSend, wsMsg, wsMsgDict, console
+from js import document, window, console
 from pyodide.ffi import create_proxy
 from AM import AM
 from AP import AP
 
-
-class ws:
-    def start():
-        return wsStart()
-
-    def send(com):
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsSend(com)
-
-    def msg():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsMsg()
-
-    def msgDict():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return loads(wsMsgDict())
 
 class func:
     def addEvent(id: str, func, action="click"):

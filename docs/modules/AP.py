@@ -1,6 +1,8 @@
+from WS import ws
 from datetime import datetime, timedelta
-from js import document, window, console
+from js import document, console
 from pyodide.ffi import create_proxy
+
 
 class func:
     def addEvent(id: str, func, action="click", isClass=False):
@@ -19,33 +21,12 @@ class func:
         element = document.getElementById(f'page_scripts_body_error')
         element.innerHTML = f'<h1>WARNING!</h1><p>Connection lost to the server! The server is probably not running!<br>Please refresh the page to try again.</p><br>'
 
-class ws:
-    def start():
-        return wsStart()
-
-    def send(com):
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsSend(com)
-
-    def msg():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return wsMsg()
-
-    def msgDict():
-        if not wsUpState():
-            raise ConnectionError(f"Unable to verify healty connection!")
-
-        return loads(wsMsgDict())
 
 class AP:
     currentPage = "Admin Portal"
 
     lastUpdate = 0
-    
+
     def getData(args=None):
         if (datetime.now() - timedelta(seconds=5)).timestamp() > AP.lastUpdate:
             try:
