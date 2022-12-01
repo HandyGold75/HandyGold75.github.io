@@ -44,7 +44,7 @@ body {
 #main button:disabled {
     z-index: 100;
     color: #88B;
-    background: #333;
+    background: #222;
 }
 
 #main input {
@@ -71,6 +71,12 @@ body {
     background: #444;
 }
 
+#main input:disabled {
+    z-index: 110;
+    color: #88B;
+    background: #222;
+}
+
 #main select {
     z-index: 120;
     color: #bbf;
@@ -90,7 +96,7 @@ body {
     z-index: 122;
     color: #fff;
     background: #444;
-    margin-bottom: -108px;
+    margin-bottom: -80px;
     height: 108px;
     overflow-y: scroll;
     scrollbar-width: auto;
@@ -101,13 +107,18 @@ body {
     z-index: 121;
     color: #fff;
     background: #444;
-    margin-bottom: -108px;
+    margin-bottom: -80px;
     height: 108px;
     overflow-y: scroll;
     scrollbar-width: auto;
     transition: 0.25s;
 }
 
+#main select:disabled {
+    z-index: 120;
+    color: #88B;
+    background: #222;
+}
 
 /* Navigation */
 
@@ -204,8 +215,6 @@ body {
 
 
 /* Page - Scripts - Asset Manager */
-
-#Asset\ Manager {}
 
 #Asset\ Manager_nav {
     width: 95%;
