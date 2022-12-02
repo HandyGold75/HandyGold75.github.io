@@ -332,6 +332,13 @@ class AM:
                     if not value == "Tag":
                         data[" "][value] = AM.knownValues[AM.currentSub][value]()
 
+            element = document.getElementById(f'{AP.currentPage}_nav_options_bulkadd')
+            element.disabled = False
+            element = document.getElementById(f'{AP.currentPage}_nav_options_active')
+            element.disabled = False
+            element = document.getElementById(f'{AP.currentPage}_nav_options_compact')
+            element.disabled = False
+                
             return data
 
         def newRow(rowC, form: bool = False):
