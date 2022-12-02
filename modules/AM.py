@@ -332,11 +332,11 @@ class AM:
                     if not value == "Tag":
                         data[" "][value] = AM.knownValues[AM.currentSub][value]()
 
-            element = document.getElementById(f'{AP.currentPage}_nav_options_bulkadd')
+            element = document.getElementById(f'{AM.currentPage}_nav_options_bulkadd')
             element.disabled = False
-            element = document.getElementById(f'{AP.currentPage}_nav_options_active')
+            element = document.getElementById(f'{AM.currentPage}_nav_options_active')
             element.disabled = False
-            element = document.getElementById(f'{AP.currentPage}_nav_options_compact')
+            element = document.getElementById(f'{AM.currentPage}_nav_options_compact')
             element.disabled = False
                 
             return data
