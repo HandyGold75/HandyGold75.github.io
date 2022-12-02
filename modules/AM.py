@@ -78,6 +78,8 @@ class AM:
     }
     knownFiles = ["/Assignments.json", "/Devices.json", "/Assets.json", "/Servers.json"]
 
+    dates = ["DOP", "EOL", "Modified"]
+
     halfView = ["Tag", "Brand", "Series", "Active", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Action"]
     compactView = False
     excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified"]
