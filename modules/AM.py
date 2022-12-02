@@ -76,9 +76,9 @@ class AM:
             "Notes": str
         }
     }
-    knownFiles = []
+    knownFiles = ["/Assignments.json", "/Devices.json", "/Assets.json", "/Servers.json"]
 
-    halfView = ["Tag", "Brand", "Series", "Active", "Action", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified"]
+    halfView = ["Tag", "Brand", "Series", "Active", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Action"]
     compactView = False
     excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified"]
     hideInactive = False
@@ -86,10 +86,8 @@ class AM:
     def getData(args=None):
         if (datetime.now() - timedelta(seconds=5)).timestamp() > AM.lastUpdate:
             try:
-                ws.send(f'am read /Assignments.json')
-                ws.send(f'am read /Devices.json')
-                ws.send(f'am read /Assets.json')
-                ws.send(f'am read /Servers.json')
+                for file in AM.knownFiles:
+                    ws.send(f'am read {file}')
             except ConnectionError:
                 func.connectionError()
 
@@ -285,7 +283,7 @@ class AM:
                 ws.send(f'am add /{AM.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
     def pageSub(args, extraData: dict = {}):
-        def setup(args, data={}):
+        def setup(args, extraData={}):
             try:
                 data = ws.msgDict()
             except ConnectionError:
@@ -394,7 +392,12 @@ class AM:
                         continue
 
                     if value in knownValues:
-                        if knownValues[value] is bool:
+                        if knownValues[value] is int:
+                            if value in AM.dates:
+                                element.innerHTML += f'<input class="{AM.currentPage}_page_new" name="{value}" type="date">'
+                                continue
+
+                        elif knownValues[value] is bool:
                             element.innerHTML += f'<input class="{AM.currentPage}_page_new" name="{value}" type="checkbox" checked>'
                             continue
 
@@ -425,10 +428,6 @@ class AM:
                             element.innerHTML += f'<select class="{AM.currentPage}_page_new" name="{value}_{len(data)}" size="1" multiple>{optionsHtml}</select>'
                             continue
 
-                        elif knownValues[value] is int:
-                            element.innerHTML += f'<input class="{AM.currentPage}_page_new" name="{value}" type="date">'
-                            continue
-
                     element.innerHTML += f'<input class="{AM.currentPage}_page_new" name="{value}" type="text">'
 
                 element.innerHTML += f'<button id="{AM.currentPage}_page_add" type="submit">Add</button>'
@@ -456,7 +455,7 @@ class AM:
 
                 element.item(i).style.width = f'{110 / colC}%'
 
-            return rowC, colC
+            return rowC
 
         def addRows(data, rowC, colC):
             knownValues = AM.knownValues[AM.currentSub]
@@ -504,7 +503,7 @@ class AM:
 
                 element.item(i).style.width = f'{110 / colC}%'
 
-            return rowC, colC, buttons
+            return rowC, buttons
 
         def addEvents(buttons, colC):
             func.addEvent(f'{AM.currentPage}_page_add', AM.addRecord)
@@ -533,8 +532,8 @@ class AM:
         colC = 0
 
         rowC, colC = addHeader(data, rowC, colC)
-        rowC, colC = addInputRow(data, rowC, colC)
-        rowC, colC, buttons = addRows(data, rowC, colC)
+        rowC = addInputRow(data, rowC, colC)
+        rowC, buttons = addRows(data, rowC, colC)
 
         addEvents(buttons, colC)
 
@@ -559,20 +558,21 @@ class AM:
             element.innerHTML += f'<h2>Unauthorized!</h2>'
 
         for file in data:
-            AM.knownFiles.append(file)
-            element.innerHTML += f'<button id="{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}" type="button">{file.replace("/", "").replace(".json", "")}</button>'
+            if file in AM.knownFiles:
+                element.innerHTML += f'<button id="{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}" type="button">{file.replace("/", "").replace(".json", "")}</button>'
 
         AM.hideInactive = True
         AM.compactView = True
 
         element = document.getElementById(f'{AM.currentPage}_nav_options')
-        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_bulkadd" type="button" align=right>Bulk Add</button>'
-        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_active" type="button" align=right>Inactive</button>'
-        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_compact" type="button" align=right>Expand</button>'
+        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_bulkadd" type="button" align=right disabled>Bulk Add</button>'
+        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_active" type="button" align=right disabled>Inactive</button>'
+        element.innerHTML += f'<button id="{AM.currentPage}_nav_options_compact" type="button" align=right disabled>Expand</button>'
 
         for file in data:
-            func.addEvent(f'{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', AM.pageSub)
-            func.addEvent(f'{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', AM.getData, f'mousedown')
+            if file in AM.knownFiles:
+                func.addEvent(f'{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', AM.pageSub)
+                func.addEvent(f'{AM.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', AM.getData, f'mousedown')
 
         func.addEvent(f'{AM.currentPage}_nav_options_bulkadd', AM.bulkAdd)
         func.addEvent(f'{AM.currentPage}_nav_options_active', AM.pageSub)

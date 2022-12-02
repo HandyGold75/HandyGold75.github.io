@@ -305,6 +305,97 @@ body {
 }
 
 
+/* Page - Scripts - Asset Manager */
+
+#Admin_nav {
+    width: 95%;
+    padding: 6px 0px;
+    margin: 0px auto;
+    border-bottom: 4px dotted #111;
+    margin-bottom: 10px;
+    display: flex;
+}
+
+#Admin_nav button {
+    border: 2px solid #44F;
+    font-size: 75%;
+}
+
+#Admin_nav_main {
+    width: 60%;
+}
+
+#Admin_nav_main h2 {
+    margin: 10px auto;
+    text-align: center;
+}
+
+#Admin_nav_options {
+    width: 40%;
+}
+
+#Admin_page {
+    margin: 10px 10px 10px 0px;
+}
+
+#Admin_page p {
+    margin: -1px -1px;
+    padding: 0px 1px;
+    border: 2px solid #111;
+    text-align: center;
+    font-size: 75%;
+    word-wrap: break-word;
+    background: #1F1F1F;
+    color: #44F;
+}
+
+#Admin_page button {
+    padding: 1px 3px;
+    font-size: 75%;
+    word-wrap: break-word;
+    background: #333;
+    border: 2px solid #44F;
+}
+
+#Admin_page select {
+    margin: -1px -1px;
+    padding: 0px 1px 3px 1px;
+    font-size: 75%;
+    border-radius: 0px;
+    border: 2px solid #111;
+    background: #333;
+}
+
+#Admin_page_row1 select {
+    margin: 1px -1px;
+    padding: 0px 1x 3px 1px;
+    border: 2px solid #44F;
+}
+
+#Admin_page input {
+    margin: -1px -1px;
+    padding: 1px 1px 4px 1px;
+    font-size: 75%;
+    border-radius: 0px;
+    border: 2px solid #111;
+}
+
+#Admin_page input[type=checkbox] {
+    margin: 5px 2px;
+    padding: 0px 0px;
+}
+
+#Admin_page_row1 input {
+    margin: 1px -1px;
+    padding: 0px 1px 3px 1px;
+    border: 2px solid #44F;
+}
+
+#Admin_page_row0 {
+    font-size: 125%;
+}
+
+
 /* Page - Contact */
 
 .page_contact_list {
