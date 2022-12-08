@@ -140,7 +140,7 @@ class func:
 
         SP.optionsList = []
 
-        SP.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete"}
+        SP.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
 
         SP.getData()
 
