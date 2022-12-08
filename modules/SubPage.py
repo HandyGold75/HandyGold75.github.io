@@ -20,10 +20,10 @@ class func:
         document.getElementById(id).addEventListener(action, proxy)
 
     def connectionError():
-        element = document.getElementById(f'page_scripts_body')
-        element.innerHTML = f'<div id="page_scripts_body_error" align="center"></div>'
+        element = document.getElementById(f'page_portal_body')
+        element.innerHTML = f'<div id="page_portal_body_error" align="center"></div>'
 
-        element = document.getElementById(f'page_scripts_body_error')
+        element = document.getElementById(f'page_portal_body_error')
         element.innerHTML = f'<h1>WARNING!</h1><p>Connection lost to the server! The server is probably not running!<br>Please refresh the page to try again.</p><br>'
 
     def invoke_AP(args=None):
@@ -59,10 +59,10 @@ class func:
         SP.excludeView = ["Expires", "Modified"]
         SP.hideInactive = False
 
-        SP.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Notes"]
+        SP.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "Notes"]
         SP.invokePasswordOnChange = ["User"]
 
-        SP.optionsList = ["Admin", "Asset Manager"]
+        SP.optionsList = ["Admin", "Asset Manager", "License Manager"]
 
         SP.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete"}
 
@@ -135,12 +135,67 @@ class func:
         SP.excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified"]
         SP.hideInactive = False
 
-        SP.disabledInputs = []
+        SP.disabledInputs = ["Modified"]
         SP.invokePasswordOnChange = []
 
         SP.optionsList = []
 
         SP.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
+
+        SP.getData()
+
+    def invoke_LM(args=None):
+        SP.currentPage = "License Manager"
+        SP.currentSub = ""
+
+        SP.knownFiles = {
+            "/Assignments.json": {
+                "Tag": {
+                    "Licenses": list,
+                    "Devices": list,
+                    "Modified": int,
+                    "Active": bool,
+                    "Notes": str
+                }
+            },
+            "/Devices.json": {
+                "Tag": {
+                    "Device": str,
+                    "Modified": int,
+                    "Active": bool,
+                    "Notes": str
+                }
+            },
+            "/Licenses.json": {
+                "Tag": {
+                    "Product": str,
+                    "Key": str,
+                    "URL": str,
+                    "DOP": int,
+                    "EOL": int,
+                    "Cost": int,
+                    "Auto Renew": bool,
+                    "Modified": int,
+                    "Active": bool,
+                    "Notes": str
+                }
+            }
+        }
+
+        SP.dates = ["DOP", "EOL", "Modified"]
+
+        SP.halfView = ["Tag", "DOP", "EOL", "Cost", "Auto Renew", "Modified", "Active", "Action"]
+        SP.compactView = False
+
+        SP.excludeView = ["DOP", "EOL", "Cost", "Auto Renew", "Modified"]
+        SP.hideInactive = False
+
+        SP.disabledInputs = ["Modified"]
+        SP.invokePasswordOnChange = []
+
+        SP.optionsList = []
+
+        SP.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
 
         SP.getData()
 
@@ -168,7 +223,7 @@ class SP:
     svcoms = {}
 
     def getData(args=None):
-        if (datetime.now() - timedelta(seconds=5)).timestamp() > SP.lastUpdate:
+        if (datetime.now() - timedelta(seconds=1)).timestamp() > SP.lastUpdate:
             try:
                 for file in SP.knownFiles:
                     ws.send(f'{SP.svcoms["main"]} {SP.svcoms["read"]} {file}')
@@ -206,6 +261,9 @@ class SP:
 
             if name in knownValues:
                 if knownValues[name] is int:
+                    if value == "":
+                        value = 0
+
                     value = int(value)
 
                     if name in SP.dates:

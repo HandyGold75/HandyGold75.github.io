@@ -29,7 +29,7 @@ class setup:
         element = document.getElementById(f'footer')
         element.innerHTML = (f'<div id="footer_note"><p><b>HandyGold75 - 2022</b></p></div><div id="footer_buttons" align="right"><button id="footer_toTop" type="button">Back to top</button></div></div>')
 
-        func.addEvent(f'footer_toTop', footer_scripts.toTop)
+        func.addEvent(f'footer_toTop', footer_portal.toTop)
 
     def main():
         setup.general()
@@ -45,19 +45,19 @@ class pages:
         element = document.getElementById(f'page')
         element.innerHTML = f'<p>Page content for home.</p>'
 
-    def scripts():
+    def portal():
         ws.start()
 
         element = document.getElementById(f'page')
-        element.innerHTML = f'<div id="page_scripts" align="left"></div>'
+        element.innerHTML = f'<div id="page_portal" align="left"></div>'
 
-        element = document.getElementById("page_scripts")
-        element.innerHTML += f'<div id="page_scripts_buttons" align="left"></div>'
-        element.innerHTML += f'<div id="page_scripts_body" align="left"></div>'
+        element = document.getElementById("page_portal")
+        element.innerHTML += f'<div id="page_portal_buttons" align="left"></div>'
+        element.innerHTML += f'<div id="page_portal_body" align="left"></div>'
 
-        element = document.getElementById(f'page_scripts_buttons')
-        for page in pages_scripts.allPages:
-            element.innerHTML += f'<button id="page_scripts_{page}" type="button" disabled>{page}</button>'
+        element = document.getElementById(f'page_portal_buttons')
+        for page in pages_portal.allPages:
+            element.innerHTML += f'<button id="page_portal_{page}" type="button" disabled>{page}</button>'
 
         def login(args):
             if args.key != "Enter":
@@ -66,10 +66,10 @@ class pages:
             if checkLogin() is True:
                 return None
 
-            element = document.getElementById("page_scripts_body_login_usr")
+            element = document.getElementById("page_portal_body_login_usr")
             usr = element.value
 
-            element = document.getElementById("page_scripts_body_login_psw")
+            element = document.getElementById("page_portal_body_login_psw")
             psw = element.value
 
             crypt = str(encrypt(usr.encode() + psw.encode(), func.pk))
@@ -80,7 +80,7 @@ class pages:
                 func.connectionError()
 
         def checkLogin(args=None):
-            if pages.currentPage != "Scripts":
+            if pages.currentPage != "Portal":
                 return None
 
             try:
@@ -130,41 +130,41 @@ class pages:
             window.location.reload()
 
         if not setup.loggedIn:
-            element = document.getElementById("page_scripts_body")
+            element = document.getElementById("page_portal_body")
             element.innerHTML += f'<h1>Login</h1>'
-            element.innerHTML += f'<form id="page_scripts_body_login" onsubmit="return false"></form>'
-            element.innerHTML += f'<div id="page_scripts_body_buttons" align="center"></div>'
+            element.innerHTML += f'<form id="page_portal_body_login" onsubmit="return false"></form>'
+            element.innerHTML += f'<div id="page_portal_body_buttons" align="center"></div>'
 
-            element = document.getElementById("page_scripts_body_login")
-            element.innerHTML += f'<div id="page_scripts_body_login_txt" align="center"></div>'
-            element.innerHTML += f'<div id="page_scripts_body_login_inp" align="center"></div>'
+            element = document.getElementById("page_portal_body_login")
+            element.innerHTML += f'<div id="page_portal_body_login_txt" align="center"></div>'
+            element.innerHTML += f'<div id="page_portal_body_login_inp" align="center"></div>'
 
-            element = document.getElementById("page_scripts_body_login_txt")
+            element = document.getElementById("page_portal_body_login_txt")
             element.innerHTML += f'<p>Username</p>'
             element.innerHTML += f'<p>Password</p>'
 
-            element = document.getElementById("page_scripts_body_login_inp")
-            element.innerHTML += f'<input id="page_scripts_body_login_usr"></input>'
-            element.innerHTML += f'<input id="page_scripts_body_login_psw" type="password"></input>'
+            element = document.getElementById("page_portal_body_login_inp")
+            element.innerHTML += f'<input id="page_portal_body_login_usr"></input>'
+            element.innerHTML += f'<input id="page_portal_body_login_psw" type="password"></input>'
 
             func.addEvent(f'page', checkLogin, f'mouseover')
-            func.addEvent(f'page_scripts_body_login_usr', login, f'keyup')
-            func.addEvent(f'page_scripts_body_login_psw', login, f'keyup')
+            func.addEvent(f'page_portal_body_login_usr', login, f'keyup')
+            func.addEvent(f'page_portal_body_login_psw', login, f'keyup')
 
             return None
 
-        for page in pages_scripts.allPages:
-            element = document.getElementById(f'page_scripts_body')
-            element.innerHTML = f'<div id="page_scripts_body_logout" align="center"></div>'
+        for page in pages_portal.allPages:
+            element = document.getElementById(f'page_portal_body')
+            element.innerHTML = f'<div id="page_portal_body_logout" align="center"></div>'
 
-            element = document.getElementById(f'page_scripts_body_logout')
-            element.innerHTML += f'<button id="page_scripts_body_logout_submit" type="button">Logout</button>'
+            element = document.getElementById(f'page_portal_body_logout')
+            element.innerHTML += f'<button id="page_portal_body_logout_submit" type="button">Logout</button>'
 
-            func.addEvent(f'page_scripts_{page}', pages_scripts.main)
-            func.addEvent(f'page_scripts_{page}', pages.scriptFunctions[page], f'mousedown')
-            func.addEvent(f'page_scripts_body_logout_submit', logout)
+            func.addEvent(f'page_portal_{page}', pages_portal.main)
+            func.addEvent(f'page_portal_{page}', pages.scriptFunctions[page], f'mousedown')
+            func.addEvent(f'page_portal_body_logout_submit', logout)
 
-            element = document.getElementById(f'page_scripts_{page}')
+            element = document.getElementById(f'page_portal_{page}')
             element.disabled = False
 
     def contact():
@@ -229,39 +229,39 @@ class pages:
 
         pages.allPages[pages.currentPage]()
 
-    allPages = {"Home": home, "Scripts": scripts, "Contact": contact}
-    scriptFunctions = {"Admin": func.invoke_AP, "Asset Manager": func.invoke_AM}
+    allPages = {"Home": home, "Portal": portal, "Contact": contact}
+    scriptFunctions = {"Admin": func.invoke_AP, "Asset Manager": func.invoke_AM, "License Manager": func.invoke_LM}
 
 
-class pages_scripts:
+class pages_portal:
     currentPage = ""
 
     def main(args=None, page=None):
-        element = document.getElementById(f'page_scripts_body')
+        element = document.getElementById(f'page_portal_body')
         element.innerHTML = f''
 
-        if page in pages_scripts.allPages:
-            pages_scripts.currentPage = page
+        if page in pages_portal.allPages:
+            pages_portal.currentPage = page
 
-        elif args.target.id.split("_")[-1] in pages_scripts.allPages:
-            pages_scripts.currentPage = args.target.id.split("_")[-1]
+        elif args.target.id.split("_")[-1] in pages_portal.allPages:
+            pages_portal.currentPage = args.target.id.split("_")[-1]
 
         else:
             return None
 
-        element.innerHTML = f'<div id="{pages_scripts.currentPage}" align="left"></div>'
+        element.innerHTML = f'<div id="{pages_portal.currentPage}" align="left"></div>'
 
-        document.title = f'HandyGold75 - {pages.currentPage} - {pages_scripts.currentPage}'
+        document.title = f'HandyGold75 - {pages.currentPage} - {pages_portal.currentPage}'
 
         element = document.getElementById(f'nav_title')
-        element.innerHTML = f'<h1>HandyGold75 - {pages.currentPage} - {pages_scripts.currentPage}</h1>'
+        element.innerHTML = f'<h1>HandyGold75 - {pages.currentPage} - {pages_portal.currentPage}</h1>'
 
-        pages_scripts.allPages[pages_scripts.currentPage]()
+        pages_portal.allPages[pages_portal.currentPage]()
 
-    allPages = {"Admin": SP.page, "Asset Manager": SP.page}
+    allPages = {"Admin": SP.page, "Asset Manager": SP.page, "License Manager": SP.page}
 
 
-class footer_scripts:
+class footer_portal:
     def toTop(*args):
         document.getElementById(f'body').scrollIntoView()
 
