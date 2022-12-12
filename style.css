@@ -213,10 +213,19 @@ body {
     width: 90%;
 }
 
+#page_portal_body_logout {
+    height: 100%;
+}
+
+#page_portal_body_logout button {
+    position: relative;
+    top: 50%;
+}
+
 
 /* Page - Portal - Admin */
 
-#Admin_nav {
+#SubPage_nav {
     width: 95%;
     padding: 6px 0px;
     margin: 0px auto;
@@ -225,29 +234,29 @@ body {
     display: flex;
 }
 
-#Admin_nav button {
+#SubPage_nav button {
     border: 2px solid #44F;
     font-size: 75%;
 }
 
-#Admin_nav_main {
+#SubPage_nav_main {
     width: 60%;
 }
 
-#Admin_nav_main h2 {
+#SubPage_nav_main h2 {
     margin: 10px auto;
     text-align: center;
 }
 
-#Admin_nav_options {
+#SubPage_nav_options {
     width: 40%;
 }
 
-#Admin_page {
+#SubPage_page {
     margin: 10px 10px 10px 0px;
 }
 
-#Admin_page p {
+#SubPage_page p {
     margin: -1px -1px;
     padding: 0px 1px;
     border: 2px solid #111;
@@ -258,7 +267,7 @@ body {
     color: #44F;
 }
 
-#Admin_page button {
+#SubPage_page button {
     padding: 1px 3px;
     font-size: 75%;
     word-wrap: break-word;
@@ -266,7 +275,7 @@ body {
     border: 2px solid #44F;
 }
 
-#Admin_page select {
+#SubPage_page select {
     margin: -1px -1px;
     padding: 0px 1px 3px 1px;
     font-size: 75%;
@@ -275,13 +284,13 @@ body {
     background: #333;
 }
 
-#Admin_page_row1 select {
+#SubPage_page_row1 select {
     margin: 1px -1px;
     padding: 0px 1x 3px 1px;
     border: 2px solid #44F;
 }
 
-#Admin_page input {
+#SubPage_page input {
     margin: -1px -1px;
     padding: 1px 1px 4px 1px;
     font-size: 75%;
@@ -289,200 +298,18 @@ body {
     border: 2px solid #111;
 }
 
-#Admin_page input[type=checkbox] {
+#SubPage_page input[type=checkbox] {
     margin: 5px 2px;
     padding: 0px 0px;
 }
 
-#Admin_page_row1 input {
+#SubPage_page_row1 input {
     margin: 1px -1px;
     padding: 0px 1px 3px 1px;
     border: 2px solid #44F;
 }
 
-#Admin_page_row0 {
-    font-size: 125%;
-}
-
-
-/* Page - Portal - Asset Manager */
-
-#Asset\ Manager_nav {
-    width: 95%;
-    padding: 6px 0px;
-    margin: 0px auto;
-    border-bottom: 4px dotted #111;
-    margin-bottom: 10px;
-    display: flex;
-}
-
-#Asset\ Manager_nav button {
-    border: 2px solid #44F;
-    font-size: 75%;
-}
-
-#Asset\ Manager_nav_main {
-    width: 60%;
-}
-
-#Asset\ Manager_nav_main h2 {
-    margin: 10px auto;
-    text-align: center;
-}
-
-#Asset\ Manager_nav_options {
-    width: 40%;
-}
-
-#Asset\ Manager_page {
-    margin: 10px 10px 10px 0px;
-}
-
-#Asset\ Manager_page p {
-    margin: -1px -1px;
-    padding: 0px 1px;
-    border: 2px solid #111;
-    text-align: center;
-    font-size: 75%;
-    word-wrap: break-word;
-    background: #1F1F1F;
-    color: #44F;
-}
-
-#Asset\ Manager_page button {
-    padding: 1px 3px;
-    font-size: 75%;
-    word-wrap: break-word;
-    background: #333;
-    border: 2px solid #44F;
-}
-
-#Asset\ Manager_page select {
-    margin: -1px -1px;
-    padding: 0px 1px 3px 1px;
-    font-size: 75%;
-    border-radius: 0px;
-    border: 2px solid #111;
-    background: #333;
-}
-
-#Asset\ Manager_page_row1 select {
-    margin: 1px -1px;
-    padding: 0px 1x 3px 1px;
-    border: 2px solid #44F;
-}
-
-#Asset\ Manager_page input {
-    margin: -1px -1px;
-    padding: 1px 1px 4px 1px;
-    font-size: 75%;
-    border-radius: 0px;
-    border: 2px solid #111;
-}
-
-#Asset\ Manager_page input[type=checkbox] {
-    margin: 5px 2px;
-    padding: 0px 0px;
-}
-
-#Asset\ Manager_page_row1 input {
-    margin: 1px -1px;
-    padding: 0px 1px 3px 1px;
-    border: 2px solid #44F;
-}
-
-#Asset\ Manager_page_row0 {
-    font-size: 125%;
-}
-
-
-/* Page - Portal - License Manager */
-
-#License\ Manager_nav {
-    width: 95%;
-    padding: 6px 0px;
-    margin: 0px auto;
-    border-bottom: 4px dotted #111;
-    margin-bottom: 10px;
-    display: flex;
-}
-
-#License\ Manager_nav button {
-    border: 2px solid #44F;
-    font-size: 75%;
-}
-
-#License\ Manager_nav_main {
-    width: 60%;
-}
-
-#License\ Manager_nav_main h2 {
-    margin: 10px auto;
-    text-align: center;
-}
-
-#License\ Manager_nav_options {
-    width: 40%;
-}
-
-#License\ Manager_page {
-    margin: 10px 10px 10px 0px;
-}
-
-#License\ Manager_page p {
-    margin: -1px -1px;
-    padding: 0px 1px;
-    border: 2px solid #111;
-    text-align: center;
-    font-size: 75%;
-    word-wrap: break-word;
-    background: #1F1F1F;
-    color: #44F;
-}
-
-#License\ Manager_page button {
-    padding: 1px 3px;
-    font-size: 75%;
-    word-wrap: break-word;
-    background: #333;
-    border: 2px solid #44F;
-}
-
-#License\ Manager_page select {
-    margin: -1px -1px;
-    padding: 0px 1px 3px 1px;
-    font-size: 75%;
-    border-radius: 0px;
-    border: 2px solid #111;
-    background: #333;
-}
-
-#License\ Manager_page_row1 select {
-    margin: 1px -1px;
-    padding: 0px 1x 3px 1px;
-    border: 2px solid #44F;
-}
-
-#License\ Manager_page input {
-    margin: -1px -1px;
-    padding: 1px 1px 4px 1px;
-    font-size: 75%;
-    border-radius: 0px;
-    border: 2px solid #111;
-}
-
-#License\ Manager_page input[type=checkbox] {
-    margin: 5px 2px;
-    padding: 0px 0px;
-}
-
-#License\ Manager_page_row1 input {
-    margin: 1px -1px;
-    padding: 0px 1px 3px 1px;
-    border: 2px solid #44F;
-}
-
-#License\ Manager_page_row0 {
+#SubPage_page_row0 {
     font-size: 125%;
 }
 
@@ -555,18 +382,4 @@ body {
 
 #footer_buttons button:hover {
     background: #66F;
-}
-
-
-/* Debug */
-
-#debug {
-    background: #030;
-    padding: 5px;
-    margin: 5px auto;
-    border-radius: 10px;
-}
-
-#debug_buttons {
-    font-size: 75%;
 }

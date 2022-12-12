@@ -56,7 +56,7 @@ class pages:
         element.innerHTML += f'<div id="page_portal_body" align="left"></div>'
 
         element = document.getElementById(f'page_portal_buttons')
-        for page in pages_portal.allPages:
+        for page in subPage.allPages:
             element.innerHTML += f'<button id="page_portal_{page}" type="button" disabled>{page}</button>'
 
         def login(args):
@@ -153,14 +153,14 @@ class pages:
 
             return None
 
-        for page in pages_portal.allPages:
+        for page in subPage.allPages:
             element = document.getElementById(f'page_portal_body')
             element.innerHTML = f'<div id="page_portal_body_logout" align="center"></div>'
 
             element = document.getElementById(f'page_portal_body_logout')
             element.innerHTML += f'<button id="page_portal_body_logout_submit" type="button">Logout</button>'
 
-            func.addEvent(f'page_portal_{page}', pages_portal.main)
+            func.addEvent(f'page_portal_{page}', subPage.main)
             func.addEvent(f'page_portal_{page}', pages.scriptFunctions[page], f'mousedown')
             func.addEvent(f'page_portal_body_logout_submit', logout)
 
@@ -233,30 +233,30 @@ class pages:
     scriptFunctions = {"Admin": func.invoke_AP, "Asset Manager": func.invoke_AM, "License Manager": func.invoke_LM}
 
 
-class pages_portal:
+class subPage:
     currentPage = ""
 
     def main(args=None, page=None):
         element = document.getElementById(f'page_portal_body')
         element.innerHTML = f''
 
-        if page in pages_portal.allPages:
-            pages_portal.currentPage = page
+        if page in subPage.allPages:
+            subPage.currentPage = page
 
-        elif args.target.id.split("_")[-1] in pages_portal.allPages:
-            pages_portal.currentPage = args.target.id.split("_")[-1]
+        elif args.target.id.split("_")[-1] in subPage.allPages:
+            subPage.currentPage = args.target.id.split("_")[-1]
 
         else:
             return None
 
-        element.innerHTML = f'<div id="{pages_portal.currentPage}" align="left"></div>'
+        element.innerHTML = f'<div id="SubPage" align="left"></div>'
 
-        document.title = f'HandyGold75 - {pages.currentPage} - {pages_portal.currentPage}'
+        document.title = f'HandyGold75 - {pages.currentPage} - {subPage.currentPage}'
 
         element = document.getElementById(f'nav_title')
-        element.innerHTML = f'<h1>HandyGold75 - {pages.currentPage} - {pages_portal.currentPage}</h1>'
+        element.innerHTML = f'<h1>HandyGold75 - {pages.currentPage} - {subPage.currentPage}</h1>'
 
-        pages_portal.allPages[pages_portal.currentPage]()
+        subPage.allPages[subPage.currentPage]()
 
     allPages = {"Admin": SP.page, "Asset Manager": SP.page, "License Manager": SP.page}
 
