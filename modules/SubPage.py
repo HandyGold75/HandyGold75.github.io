@@ -243,7 +243,7 @@ class SP:
 
             return None
 
-        element = document.getElementsByClassName(f'{SP.currentPage}_page_new')
+        element = document.getElementsByClassName(f'SubPage_page_new')
 
         token = ""
         data = {}
@@ -505,7 +505,7 @@ class SP:
                 else:
                     element.innerHTML = "Compact"
 
-            if args.target.id.split("_")[-1] == "active":
+            elif args.target.id.split("_")[-1] == "active":
                 SP.hideInactive = not SP.hideInactive
 
                 element = document.getElementById(args.target.id)
@@ -519,6 +519,10 @@ class SP:
                 file = f'/{args.target.id.split("_")[-1]}.json'
                 SP.currentSub = args.target.id.split("_")[-1]
 
+            elif f'/{args.target.id.split("_")[-1]}' in SP.knownFiles:
+                file = f'/{args.target.id.split("_")[-1]}'
+                SP.currentSub = args.target.id.split("_")[-1]
+
             if not file in data:
                 return None
 
@@ -526,39 +530,42 @@ class SP:
 
             if data == {}:
                 data[" "] = {}
-                mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+                mainValue = list(SP.knownFiles[file])[-1]
                 data[" "] = {}
 
-                for value in SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]:
-                    data[" "][value] = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue][value]()
+                for value in SP.knownFiles[file][mainValue]:
+                    data[" "][value] = SP.knownFiles[file][mainValue][value]()
 
-            element = document.getElementById(f'{SP.currentPage}_nav_options_bulkadd')
+            element = document.getElementById(f'SubPage_nav_options_bulkadd')
             element.disabled = True
-            element = document.getElementById(f'{SP.currentPage}_nav_options_active')
+            element = document.getElementById(f'SubPage_nav_options_active')
             element.disabled = True
-            element = document.getElementById(f'{SP.currentPage}_nav_options_compact')
+            element = document.getElementById(f'SubPage_nav_options_compact')
             element.disabled = True
 
-            if type(SP.knownFiles[f'/{SP.currentSub}.json'][list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]]) is dict:
-                element = document.getElementById(f'{SP.currentPage}_nav_options_bulkadd')
+            if SP.knownFiles[file] is str:
+                return data
+
+            elif type(SP.knownFiles[file][list(SP.knownFiles[file])[-1]]) is dict:
+                element = document.getElementById(f'SubPage_nav_options_bulkadd')
                 element.disabled = False
-                element = document.getElementById(f'{SP.currentPage}_nav_options_active')
+                element = document.getElementById(f'SubPage_nav_options_active')
                 element.disabled = False
-                element = document.getElementById(f'{SP.currentPage}_nav_options_compact')
+                element = document.getElementById(f'SubPage_nav_options_compact')
                 element.disabled = False
 
             return data
 
         def newRow(rowC, form: bool = False):
-            element = document.getElementById(f'{SP.currentPage}_page')
+            element = document.getElementById(f'SubPage_page')
 
             if form:
-                element.innerHTML += f'<form id="{SP.currentPage}_page_row{rowC}" align="left" onsubmit="return false"></form>'
+                element.innerHTML += f'<form id="SubPage_page_row{rowC}" align="left" onsubmit="return false"></form>'
 
             else:
-                element.innerHTML += f'<div id="{SP.currentPage}_page_row{rowC}" align="left"></div>'
+                element.innerHTML += f'<div id="SubPage_page_row{rowC}" align="left"></div>'
 
-            element = document.getElementById(f'{SP.currentPage}_page_row{rowC}')
+            element = document.getElementById(f'SubPage_page_row{rowC}')
             element.style.display = "flex"
 
             return element, rowC + 1
@@ -570,7 +577,7 @@ class SP:
                 element, rowC = newRow(rowC)
                 colC += 0.5
 
-                element.innerHTML += f'<p class="{SP.currentPage}_page_header" id="header_{mainValue}"><b>{mainValue}</b></p>'
+                element.innerHTML += f'<p class="SubPage_page_header" id="header_{mainValue}"><b>{mainValue}</b></p>'
 
                 if mainValue in SP.halfView:
                     colC += 0.5
@@ -581,7 +588,7 @@ class SP:
                     if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
                         continue
 
-                    element.innerHTML += f'<p class="{SP.currentPage}_page_header" id="header_{value}"><b>{value}</b></p>'
+                    element.innerHTML += f'<p class="SubPage_page_header" id="header_{value}"><b>{value}</b></p>'
 
                     if value in SP.halfView:
                         colC += 0.5
@@ -589,10 +596,10 @@ class SP:
 
                     colC += 1
 
-                element.innerHTML += f'<p class="{SP.currentPage}_page_header" id="header_Action"><b>Action</b></p>'
+                element.innerHTML += f'<p class="SubPage_page_header" id="header_Action"><b>Action</b></p>'
                 colC += 0.5
 
-                element = document.getElementsByClassName(f'{SP.currentPage}_page_header')
+                element = document.getElementsByClassName(f'SubPage_page_header')
 
                 for i in range(0, element.length):
                     if element.item(i).id.split("_")[1] in SP.halfView:
@@ -609,7 +616,7 @@ class SP:
 
             for record in data:
                 element, rowC = newRow(rowC, form=True)
-                element.innerHTML += f'<input class="{SP.currentPage}_page_new" name={mainValue} type="text">'
+                element.innerHTML += f'<input class="SubPage_page_new" name={mainValue} type="text">'
 
                 for value in data[record]:
                     if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
@@ -618,11 +625,11 @@ class SP:
                     if value in knownValues:
                         if knownValues[value] is int:
                             if value in SP.dates:
-                                element.innerHTML += f'<input class="{SP.currentPage}_page_new" name="{value}" type="date">'
+                                element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="date">'
                                 continue
 
                         elif knownValues[value] is bool:
-                            element.innerHTML += f'<input class="{SP.currentPage}_page_new" name="{value}" type="checkbox" checked>'
+                            element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="checkbox" checked>'
                             continue
 
                         elif knownValues[value] is list:
@@ -640,19 +647,19 @@ class SP:
                             for option in allData:
                                 optionsHtml += f'<option value="{option}">{option}</option>'
 
-                            element.innerHTML += f'<select class="{SP.currentPage}_page_new" name="{value}_{len(allData)}" size="1" multiple>{optionsHtml}</select>'
+                            element.innerHTML += f'<select class="SubPage_page_new" name="{value}_{len(allData)}" size="1" multiple>{optionsHtml}</select>'
                             continue
 
-                    element.innerHTML += f'<input class="{SP.currentPage}_page_new" name="{value}" type="text">'
+                    element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="text">'
 
-                element.innerHTML += f'<button id="{SP.currentPage}_page_add" type="submit">Add</button>'
+                element.innerHTML += f'<button id="SubPage_page_add" type="submit">Add</button>'
 
-                element = document.getElementById(f'{SP.currentPage}_page_add')
+                element = document.getElementById(f'SubPage_page_add')
                 element.style.width = f'{110 / (colC * 2)}%'
 
                 break
 
-            element = document.getElementsByClassName(f'{SP.currentPage}_page_new')
+            element = document.getElementsByClassName(f'SubPage_page_new')
 
             for i in range(0, element.length):
                 name = element.item(i).name.split("_")[0]
@@ -687,7 +694,7 @@ class SP:
                     continue
 
                 element, rowC = newRow(rowC)
-                element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{mainValue}">{record}</p>'
+                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{mainValue}">{record}</p>'
 
                 for value in data[record]:
                     if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
@@ -696,30 +703,30 @@ class SP:
                     if value in knownValues:
                         if knownValues[value] is int:
                             if value in SP.dates:
-                                element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}</p>'
+                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}</p>'
                                 continue
 
-                            element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">{data[record][value]}</p>'
+                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
                             continue
 
                         if knownValues[value] is bool:
                             if data[record][value]:
-                                element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">Yes</p>'
+                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">Yes</p>'
                                 continue
 
-                            element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">No</p>'
+                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">No</p>'
                             continue
 
                         if knownValues[value] is list:
-                            element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">{", ".join(data[record][value])}</p>'
+                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{", ".join(data[record][value])}</p>'
                             continue
 
-                    element.innerHTML += f'<p class="{SP.currentPage}_page_records" id="{record}_{value}">{data[record][value]}</p>'
+                    element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
 
-                element.innerHTML += f'<button id="{SP.currentPage}_page_del_{record}" type="button">Del</button>'
-                buttons.append(f'{SP.currentPage}_page_del_{record}')
+                element.innerHTML += f'<button id="SubPage_page_del_{record}" type="button">Del</button>'
+                buttons.append(f'SubPage_page_del_{record}')
 
-            element = document.getElementsByClassName(f'{SP.currentPage}_page_records')
+            element = document.getElementsByClassName(f'SubPage_page_records')
 
             for i in range(0, element.length):
                 if element.item(i).id.split("_")[1] in SP.halfView:
@@ -731,7 +738,7 @@ class SP:
             return rowC, buttons
 
         def addEvents(buttons, colC):
-            func.addEvent(f'{SP.currentPage}_page_add', SP.addRecord)
+            func.addEvent(f'SubPage_page_add', SP.addRecord)
 
             for button in buttons:
                 element = document.getElementById(button)
@@ -740,22 +747,57 @@ class SP:
                 func.addEvent(button, SP.delRecord)
 
             mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
-            element = document.getElementsByClassName(f'{SP.currentPage}_page_records')
+            elements = document.getElementsByClassName(f'SubPage_page_records')
 
-            for i in range(0, element.length):
-                if not element.item(i).id.split("_")[1] == mainValue:
-                    func.addEvent(element.item(i), SP.editRecord, "dblclick", True)
+            for i in range(0, elements.length):
+                if not elements.item(i).id.split("_")[1] == mainValue:
+                    func.addEvent(elements.item(i), SP.editRecord, "dblclick", True)
 
-        element = document.getElementById(f'{SP.currentPage}_page')
+        def addStr(data, rowC):
+            element, rowC = newRow(rowC)
+
+            sizeDict = {"0": "10%", "1": "10%", "2": "10%", "3": "60%", "4": "10%"}
+
+            for i, header in enumerate(["Date/ Time", "IP", "Log Level", "Command", "Status"]):
+                element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_{i}"><b>{header}</b></p>'
+
+            for line in reversed(data.split("\n")):
+                element, rowC = newRow(rowC)
+
+                noExtraInfo = True
+
+                if " (" in line:
+                    noExtraInfo = False
+
+                splitLine = line.replace("] ", "]<SPLIT>", 1).replace(" >>> ", "<SPLIT>Input<SPLIT>", 1).replace(" >> ", "<SPLIT>Client<SPLIT>", 1).replace(" > ", "<SPLIT>Server<SPLIT>", 1).replace(" (", "<SPLIT>(", 1).split("<SPLIT>")
+
+                for i, item in enumerate(splitLine):
+                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_{i}">{item}</p>'
+
+                if noExtraInfo:
+                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_4"></p>'
+
+            elements = document.getElementsByClassName(f'SubPage_page_lines')
+
+            for i in range(0, elements.length):
+                elements.item(i).style.width = sizeDict[elements.item(i).id.split("_")[-1]]
+
+            return rowC
+
+        element = document.getElementById(f'SubPage_page')
         element.innerHTML = f''
 
         data = setup(args, extraData)
 
+        rowC = 0
+        colC = 0
+
         if data is None:
             return None
 
-        rowC = 0
-        colC = 0
+        elif type(data) is str:
+            rowC = addStr(data, rowC)
+            return None
 
         rowC, colC = addHeader(data, rowC, colC)
         rowC = addInputRow(data, rowC, colC)
@@ -764,15 +806,15 @@ class SP:
         addEvents(buttons, colC)
 
     def page(args=None, sub=None):
-        element = document.getElementById(f'{SP.currentPage}')
-        element.innerHTML = f'<div id="{SP.currentPage}_nav" align="center"></div>'
-        element.innerHTML += f'<div id="{SP.currentPage}_page" align="center"></div>'
+        element = document.getElementById(f'SubPage')
+        element.innerHTML = f'<div id="SubPage_nav" align="center"></div>'
+        element.innerHTML += f'<div id="SubPage_page" align="center"></div>'
 
-        element = document.getElementById(f'{SP.currentPage}_nav')
-        element.innerHTML += f'<div id="{SP.currentPage}_nav_main" align="left"></div>'
-        element.innerHTML += f'<div id="{SP.currentPage}_nav_options" align="right"></div>'
+        element = document.getElementById(f'SubPage_nav')
+        element.innerHTML += f'<div id="SubPage_nav_main" align="left"></div>'
+        element.innerHTML += f'<div id="SubPage_nav_options" align="right"></div>'
 
-        element = document.getElementById(f'{SP.currentPage}_nav_main')
+        element = document.getElementById(f'SubPage_nav_main')
 
         try:
             data = ws.msgDict()
@@ -785,24 +827,24 @@ class SP:
 
         for file in data:
             if file in SP.knownFiles:
-                element.innerHTML += f'<button id="{SP.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}" type="button">{file.replace("/", "").replace(".json", "").replace(".dmp", "")}</button>'
+                element.innerHTML += f'<button id="SubPage_nav_main_{file.replace("/", "").replace(".json", "")}" type="button">{file.replace("/", "").replace(".json", "").replace(".dmp", "")}</button>'
 
         SP.hideInactive = True
         SP.compactView = True
 
-        element = document.getElementById(f'{SP.currentPage}_nav_options')
-        element.innerHTML += f'<button id="{SP.currentPage}_nav_options_bulkadd" type="button" align=right disabled>Bulk Add</button>'
-        element.innerHTML += f'<button id="{SP.currentPage}_nav_options_active" type="button" align=right disabled>Inactive</button>'
-        element.innerHTML += f'<button id="{SP.currentPage}_nav_options_compact" type="button" align=right disabled>Expand</button>'
+        element = document.getElementById(f'SubPage_nav_options')
+        element.innerHTML += f'<button id="SubPage_nav_options_bulkadd" type="button" align=right disabled>Bulk Add</button>'
+        element.innerHTML += f'<button id="SubPage_nav_options_active" type="button" align=right disabled>Inactive</button>'
+        element.innerHTML += f'<button id="SubPage_nav_options_compact" type="button" align=right disabled>Expand</button>'
 
         for file in data:
             if file in SP.knownFiles:
-                func.addEvent(f'{SP.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', SP.pageSub)
-                func.addEvent(f'{SP.currentPage}_nav_main_{file.replace("/", "").replace(".json", "")}', SP.getData, f'mousedown')
+                func.addEvent(f'SubPage_nav_main_{file.replace("/", "").replace(".json", "")}', SP.pageSub)
+                func.addEvent(f'SubPage_nav_main_{file.replace("/", "").replace(".json", "")}', SP.getData, f'mousedown')
 
-        func.addEvent(f'{SP.currentPage}_nav_options_bulkadd', SP.bulkAdd)
-        func.addEvent(f'{SP.currentPage}_nav_options_active', SP.pageSub)
-        func.addEvent(f'{SP.currentPage}_nav_options_compact', SP.pageSub)
+        func.addEvent(f'SubPage_nav_options_bulkadd', SP.bulkAdd)
+        func.addEvent(f'SubPage_nav_options_active', SP.pageSub)
+        func.addEvent(f'SubPage_nav_options_compact', SP.pageSub)
 
         if sub is not None:
             SP.currentSub = sub
