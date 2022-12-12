@@ -836,7 +836,7 @@ class SP:
         def addLogs(data):
             element, rowC = newRow(0)
 
-            sizeDict = {"col0": "10%", "col1": "10%", "col2": "10%", "col3": "60%", "col4": "10%"}
+            sizeDict = {"col0": "10%", "col1": "12.5%", "col2": "7.5%", "col3": "60%", "col4": "10%"}
 
             for i, header in enumerate(["Date/ Time", "IP", "Log Level", "Command", "Status"]):
                 element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}"><b>{header}</b></p>'
@@ -849,7 +849,8 @@ class SP:
                 if " (" in line:
                     noExtraInfo = False
 
-                splitLine = line.replace("] ", "]<SPLIT>", 1).replace(" >>> ", "<SPLIT>Input<SPLIT>", 1).replace(" >> ", "<SPLIT>Client<SPLIT>", 1).replace(" > ", "<SPLIT>Server<SPLIT>", 1).replace(" (", "<SPLIT>(", 1).split("<SPLIT>")
+                splitLine = line.replace("[", "", 1).replace("] ", "<SPLIT>", 1).replace(" >>> ", "<SPLIT>Input<SPLIT>", 1).replace(" >> ", "<SPLIT>Client<SPLIT>", 1).replace(" > ", "<SPLIT>Server<SPLIT>", 1).replace(" (", "<SPLIT>",
+                                                                                                                                                                                                                         1).replace(")", "", 1).split("<SPLIT>")
 
                 for i, item in enumerate(splitLine):
                     element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}">{item}</p>'
