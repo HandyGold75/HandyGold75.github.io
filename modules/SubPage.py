@@ -264,13 +264,14 @@ class SP:
                     if value == "":
                         value = 0
 
-                    value = int(value)
-
                     if name in SP.dates:
                         value = int(datetime.now().timestamp())
 
                         if element.item(i).value != "":
                             value = int(datetime.strptime(element.item(i).value, "%Y-%m-%d").timestamp())
+
+                    else:
+                        value = int(value)
 
                 elif knownValues[name] is bool:
                     value = bool(element.item(i).checked)
@@ -318,15 +319,17 @@ class SP:
             if not args.key in ["Enter", "Escape"]:
                 return None
 
-            mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
-            knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
-
             element = document.getElementById(args.target.id)
-            value = element.id.split("_")[1]
 
-            if args.key == "s" and value.replace(" ", "%20") in knownValues:
-                if not knownValues[value.replace(" ", "%20")] is list:
-                    return None
+            if "_" in element.id:
+                mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+                knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
+                value = element.id.split("_")[1]
+
+            else:
+                mainValue = None
+                knownValues = SP.knownFiles[f'/{SP.currentSub}.json']
+                value = element.id
 
             data = element.value.replace(" ", "%20")
             width = element.style.width
@@ -341,11 +344,12 @@ class SP:
 
             if value in knownValues:
                 if knownValues[value] is int:
-                    data = int(data)
-
                     if value in SP.dates:
                         data = int(datetime.strptime(data, "%Y-%m-%d").timestamp())
                         html = f'<p class="{element.className}" id="{element.id}">{datetime.fromtimestamp(data).strftime("%d %b %y")}</p>'
+
+                    else:
+                        data = int(data)
 
                 elif knownValues[value] is list:
                     data = []
@@ -365,12 +369,18 @@ class SP:
 
                 password = str(encrypt(data.encode() + password.encode(), func.pk)).replace(" ", "%20")
                 try:
-                    ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} Password {password}')
+                    if not mainValue is None:
+                        ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} Password {password}')
+                    else:
+                        ws.send(f'{SP.svcoms["main"]} {SP.svcoms["kmodify"]} /{SP.currentSub.replace(" ", "%20")}.json Password {password}')
                 except ConnectionError:
                     func.connectionError()
 
             try:
-                ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
+                if not mainValue is None:
+                    ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
+                else:
+                    ws.send(f'{SP.svcoms["main"]} {SP.svcoms["kmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} {data}')
             except ConnectionError:
                 func.connectionError()
 
@@ -383,10 +393,15 @@ class SP:
 
         element = document.getElementById(args.target.id)
         width = element.style.width
-        value = element.id.split("_")[1]
+        if "_" in element.id:
+            value = element.id.split("_")[1]
+            mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+            knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
 
-        mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
-        knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
+        else:
+            value = element.id
+            mainValue = None
+            knownValues = SP.knownFiles[f'/{SP.currentSub}.json']
 
         if element.innerHTML == " ":
             element.innerHTML = ""
@@ -403,7 +418,10 @@ class SP:
             elif knownValues[value] is bool:
                 if element.innerHTML == "No":
                     try:
-                        ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                        if not mainValue is None:
+                            ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                        else:
+                            ws.send(f'{SP.svcoms["main"]} {SP.svcoms["kmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
                     except ConnectionError:
                         func.connectionError()
 
@@ -411,7 +429,10 @@ class SP:
                     return None
 
                 try:
-                    ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
+                    if not mainValue is None:
+                        ws.send(f'{SP.svcoms["main"]} {SP.svcoms["rmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {element.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
+                    else:
+                        ws.send(f'{SP.svcoms["main"]} {SP.svcoms["kmodify"]} /{SP.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} False')
                 except ConnectionError:
                     func.connectionError()
 
@@ -546,7 +567,7 @@ class SP:
             if SP.knownFiles[file] is str:
                 return data
 
-            elif type(SP.knownFiles[file][list(SP.knownFiles[file])[-1]]) is dict:
+            if type(SP.knownFiles[file][list(SP.knownFiles[file])[-1]]) is dict:
                 element = document.getElementById(f'SubPage_nav_options_bulkadd')
                 element.disabled = False
                 element = document.getElementById(f'SubPage_nav_options_active')
@@ -570,36 +591,164 @@ class SP:
 
             return element, rowC + 1
 
-        def addHeader(data, rowC, colC):
-            mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+        def addFull(data):
+            def addHeader(data, rowC, colC):
+                mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
 
-            for record in data:
-                element, rowC = newRow(rowC)
-                colC += 0.5
-
-                element.innerHTML += f'<p class="SubPage_page_header" id="header_{mainValue}"><b>{mainValue}</b></p>'
-
-                if mainValue in SP.halfView:
+                for record in data:
+                    element, rowC = newRow(rowC)
                     colC += 0.5
-                else:
-                    colC += 1
 
-                for value in data[record]:
-                    if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
-                        continue
+                    element.innerHTML += f'<p class="SubPage_page_header" id="header_{mainValue}"><b>{mainValue}</b></p>'
 
-                    element.innerHTML += f'<p class="SubPage_page_header" id="header_{value}"><b>{value}</b></p>'
-
-                    if value in SP.halfView:
+                    if mainValue in SP.halfView:
                         colC += 0.5
+                    else:
+                        colC += 1
+
+                    for value in data[record]:
+                        if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
+                            continue
+
+                        element.innerHTML += f'<p class="SubPage_page_header" id="header_{value}"><b>{value}</b></p>'
+
+                        if value in SP.halfView:
+                            colC += 0.5
+                            continue
+
+                        colC += 1
+
+                    element.innerHTML += f'<p class="SubPage_page_header" id="header_Action"><b>Action</b></p>'
+                    colC += 0.5
+
+                    element = document.getElementsByClassName(f'SubPage_page_header')
+
+                    for i in range(0, element.length):
+                        if element.item(i).id.split("_")[1] in SP.halfView:
+                            element.item(i).style.width = f'{110 / (colC * 2)}%'
+                            continue
+
+                        element.item(i).style.width = f'{110 / colC}%'
+
+                    return rowC, colC
+
+            def addInputRow(data, rowC, colC):
+                mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+                knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
+
+                for record in data:
+                    element, rowC = newRow(rowC, form=True)
+                    element.innerHTML += f'<input class="SubPage_page_new" name={mainValue} type="text">'
+
+                    for value in data[record]:
+                        if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
+                            continue
+
+                        elif value in knownValues:
+                            if knownValues[value] is int:
+                                if value in SP.dates:
+                                    element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="date">'
+                                    continue
+
+                            elif knownValues[value] is bool:
+                                element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="checkbox" checked>'
+                                continue
+
+                            elif knownValues[value] is list:
+                                if SP.optionsList == []:
+                                    try:
+                                        allData = ws.msgDict()[f'/{value}.json']
+                                    except ConnectionError:
+                                        func.connectionError()
+                                        return None
+                                else:
+                                    allData = SP.optionsList
+
+                                optionsHtml = f''
+
+                                for option in allData:
+                                    optionsHtml += f'<option value="{option}">{option}</option>'
+
+                                element.innerHTML += f'<select class="SubPage_page_new" name="{value}_{len(allData)}" size="1" multiple>{optionsHtml}</select>'
+                                continue
+
+                        element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="text">'
+
+                    element.innerHTML += f'<button id="SubPage_page_add" type="submit">Add</button>'
+
+                    element = document.getElementById(f'SubPage_page_add')
+                    element.style.width = f'{110 / (colC * 2)}%'
+
+                    break
+
+                element = document.getElementsByClassName(f'SubPage_page_new')
+
+                for i in range(0, element.length):
+                    name = element.item(i).name.split("_")[0]
+                    localName = element.item(i).localName
+
+                    if name in SP.disabledInputs:
+                        element.item(i).disabled = True
+
+                    if localName == "select" and name in SP.halfView:
+                        element.item(i).style.width = f'{(110 / (colC * 2)) + 0.645}%'
                         continue
 
-                    colC += 1
+                    elif localName == "select":
+                        element.item(i).style.width = f'{(110 / colC) + 0.645}%'
+                        continue
 
-                element.innerHTML += f'<p class="SubPage_page_header" id="header_Action"><b>Action</b></p>'
-                colC += 0.5
+                    elif name in SP.halfView:
+                        element.item(i).style.width = f'{110 / (colC * 2)}%'
+                        continue
 
-                element = document.getElementsByClassName(f'SubPage_page_header')
+                    element.item(i).style.width = f'{110 / colC}%'
+
+                return rowC
+
+            def addRows(data, rowC, colC):
+                mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
+                knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
+                buttons = []
+
+                for record in data:
+                    if SP.hideInactive and not data[record]["Active"]:
+                        continue
+
+                    element, rowC = newRow(rowC)
+                    element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{mainValue}">{record}</p>'
+
+                    for value in data[record]:
+                        if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
+                            continue
+
+                        elif value in knownValues:
+                            if knownValues[value] is int:
+                                if value in SP.dates:
+                                    element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}</p>'
+                                    continue
+
+                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
+                                continue
+
+                            elif knownValues[value] is bool:
+                                if data[record][value]:
+                                    element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">Yes</p>'
+                                    continue
+
+                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">No</p>'
+                                continue
+
+                            elif knownValues[value] is list:
+                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{", ".join(data[record][value])}</p>'
+                                continue
+
+                        element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
+
+                    element.innerHTML += f'<button id="SubPage_page_del_{record}" type="button">Del</button>'
+                    buttons.append(f'SubPage_page_del_{record}')
+
+                element = document.getElementsByClassName(f'SubPage_page_records')
 
                 for i in range(0, element.length):
                     if element.item(i).id.split("_")[1] in SP.halfView:
@@ -608,136 +757,12 @@ class SP:
 
                     element.item(i).style.width = f'{110 / colC}%'
 
-                return rowC, colC
+                return rowC, buttons
 
-        def addInputRow(data, rowC, colC):
-            mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
-            knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
+            rowC, colC = addHeader(data, 0, 0)
+            rowC = addInputRow(data, rowC, colC)
+            rowC, buttons = addRows(data, rowC, colC)
 
-            for record in data:
-                element, rowC = newRow(rowC, form=True)
-                element.innerHTML += f'<input class="SubPage_page_new" name={mainValue} type="text">'
-
-                for value in data[record]:
-                    if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
-                        continue
-
-                    if value in knownValues:
-                        if knownValues[value] is int:
-                            if value in SP.dates:
-                                element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="date">'
-                                continue
-
-                        elif knownValues[value] is bool:
-                            element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="checkbox" checked>'
-                            continue
-
-                        elif knownValues[value] is list:
-                            if SP.optionsList == []:
-                                try:
-                                    allData = ws.msgDict()[f'/{value}.json']
-                                except ConnectionError:
-                                    func.connectionError()
-                                    return None
-                            else:
-                                allData = SP.optionsList
-
-                            optionsHtml = f''
-
-                            for option in allData:
-                                optionsHtml += f'<option value="{option}">{option}</option>'
-
-                            element.innerHTML += f'<select class="SubPage_page_new" name="{value}_{len(allData)}" size="1" multiple>{optionsHtml}</select>'
-                            continue
-
-                    element.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="text">'
-
-                element.innerHTML += f'<button id="SubPage_page_add" type="submit">Add</button>'
-
-                element = document.getElementById(f'SubPage_page_add')
-                element.style.width = f'{110 / (colC * 2)}%'
-
-                break
-
-            element = document.getElementsByClassName(f'SubPage_page_new')
-
-            for i in range(0, element.length):
-                name = element.item(i).name.split("_")[0]
-                localName = element.item(i).localName
-
-                if name in SP.disabledInputs:
-                    element.item(i).disabled = True
-
-                if localName == "select" and name in SP.halfView:
-                    element.item(i).style.width = f'{(110 / (colC * 2)) + 0.645}%'
-                    continue
-
-                elif localName == "select":
-                    element.item(i).style.width = f'{(110 / colC) + 0.645}%'
-                    continue
-
-                elif name in SP.halfView:
-                    element.item(i).style.width = f'{110 / (colC * 2)}%'
-                    continue
-
-                element.item(i).style.width = f'{110 / colC}%'
-
-            return rowC
-
-        def addRows(data, rowC, colC):
-            mainValue = list(SP.knownFiles[f'/{SP.currentSub}.json'])[-1]
-            knownValues = SP.knownFiles[f'/{SP.currentSub}.json'][mainValue]
-            buttons = []
-
-            for record in data:
-                if SP.hideInactive and not data[record]["Active"]:
-                    continue
-
-                element, rowC = newRow(rowC)
-                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{mainValue}">{record}</p>'
-
-                for value in data[record]:
-                    if (SP.compactView and value in SP.excludeView) or (SP.hideInactive and value == "Active"):
-                        continue
-
-                    if value in knownValues:
-                        if knownValues[value] is int:
-                            if value in SP.dates:
-                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}</p>'
-                                continue
-
-                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
-                            continue
-
-                        if knownValues[value] is bool:
-                            if data[record][value]:
-                                element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">Yes</p>'
-                                continue
-
-                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">No</p>'
-                            continue
-
-                        if knownValues[value] is list:
-                            element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{", ".join(data[record][value])}</p>'
-                            continue
-
-                    element.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}">{data[record][value]}</p>'
-
-                element.innerHTML += f'<button id="SubPage_page_del_{record}" type="button">Del</button>'
-                buttons.append(f'SubPage_page_del_{record}')
-
-            element = document.getElementsByClassName(f'SubPage_page_records')
-
-            for i in range(0, element.length):
-                if element.item(i).id.split("_")[1] in SP.halfView:
-                    element.item(i).style.width = f'{110 / (colC * 2)}%'
-                    continue
-
-                element.item(i).style.width = f'{110 / colC}%'
-
-            return rowC, buttons
-
-        def addEvents(buttons, colC):
             func.addEvent(f'SubPage_page_add', SP.addRecord)
 
             for button in buttons:
@@ -753,13 +778,68 @@ class SP:
                 if not elements.item(i).id.split("_")[1] == mainValue:
                     func.addEvent(elements.item(i), SP.editRecord, "dblclick", True)
 
-        def addStr(data, rowC):
-            element, rowC = newRow(rowC)
+        def addMinimal(data):
+            def addHeader(rowC):
+                element, rowC = newRow(0)
 
-            sizeDict = {"0": "10%", "1": "10%", "2": "10%", "3": "60%", "4": "10%"}
+                for i, header in enumerate(["Key", "Value"]):
+                    element.innerHTML += f'<p class="SubPage_page_keys"><b>{header}</b></p>'
+
+                return rowC
+
+            def addRows(data, rowC):
+                knownValues = SP.knownFiles[f'/{SP.currentSub}.json']
+
+                for key in data:
+                    element, rowC = newRow(rowC)
+                    element.innerHTML += f'<p class="SubPage_page_keys">{key}</p>'
+                    value = data[key]
+
+                    if knownValues[key] is int:
+                        if key in SP.dates:
+                            element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">{datetime.fromtimestamp(value).strftime("%d %b %y")}</p>'
+                            continue
+
+                        element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">{value}</p>'
+                        continue
+
+                    elif knownValues[key] is bool:
+                        if value:
+                            element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">Yes</p>'
+                            continue
+
+                        element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">No</p>'
+                        continue
+
+                    elif knownValues[key] is list:
+                        element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">{", ".join(value)}</p>'
+                        continue
+
+                    element.innerHTML += f'<p class="SubPage_page_keys" id="{key}">{value}</p>'
+
+                return rowC
+
+            rowC = addHeader(0)
+            rowC = addRows(data, rowC)
+
+            elements = document.getElementsByClassName(f'SubPage_page_keys')
+
+            for i in range(0, elements.length):
+                elements.item(i).style.width = "50%"
+
+            elements = document.getElementsByClassName(f'SubPage_page_keys')
+
+            for i in range(0, elements.length):
+                if elements.item(i).id != "":
+                    func.addEvent(elements.item(i), SP.editRecord, "dblclick", True)
+
+        def addLogs(data):
+            element, rowC = newRow(0)
+
+            sizeDict = {"col0": "10%", "col1": "10%", "col2": "10%", "col3": "60%", "col4": "10%"}
 
             for i, header in enumerate(["Date/ Time", "IP", "Log Level", "Command", "Status"]):
-                element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_{i}"><b>{header}</b></p>'
+                element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}"><b>{header}</b></p>'
 
             for line in reversed(data.split("\n")):
                 element, rowC = newRow(rowC)
@@ -772,38 +852,40 @@ class SP:
                 splitLine = line.replace("] ", "]<SPLIT>", 1).replace(" >>> ", "<SPLIT>Input<SPLIT>", 1).replace(" >> ", "<SPLIT>Client<SPLIT>", 1).replace(" > ", "<SPLIT>Server<SPLIT>", 1).replace(" (", "<SPLIT>(", 1).split("<SPLIT>")
 
                 for i, item in enumerate(splitLine):
-                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_{i}">{item}</p>'
+                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}">{item}</p>'
 
                 if noExtraInfo:
-                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_col_4"></p>'
+                    element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col4"></p>'
 
             elements = document.getElementsByClassName(f'SubPage_page_lines')
 
             for i in range(0, elements.length):
                 elements.item(i).style.width = sizeDict[elements.item(i).id.split("_")[-1]]
 
-            return rowC
+                if elements.item(i).id.split("_")[-1] == "col3":
+                    if elements.item(i).id == "SubPage_page_row0_col3":
+                        pass
+
+                    elements.item(i).style.textAlign = "left"
 
         element = document.getElementById(f'SubPage_page')
         element.innerHTML = f''
 
         data = setup(args, extraData)
 
-        rowC = 0
-        colC = 0
-
         if data is None:
             return None
 
         elif type(data) is str:
-            rowC = addStr(data, rowC)
+            addLogs(data)
             return None
 
-        rowC, colC = addHeader(data, rowC, colC)
-        rowC = addInputRow(data, rowC, colC)
-        rowC, buttons = addRows(data, rowC, colC)
+        elif type(data[list(data)[-1]]) is not dict:
+            addMinimal(data)
+            return None
 
-        addEvents(buttons, colC)
+        else:
+            addFull(data)
 
     def page(args=None, sub=None):
         element = document.getElementById(f'SubPage')
