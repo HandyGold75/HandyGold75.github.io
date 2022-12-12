@@ -838,7 +838,7 @@ class SP:
 
             sizeDict = {"col0": "10%", "col1": "12.5%", "col2": "7.5%", "col3": "60%", "col4": "10%"}
 
-            for i, header in enumerate(["Date/ Time", "IP", "Log Level", "Command", "Status"]):
+            for i, header in enumerate(["Date/ Time", "IP/ Port", "Log Level", "Command", "Status"]):
                 element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}"><b>{header}</b></p>'
 
             for line in reversed(data.split("\n")):
