@@ -1,5 +1,5 @@
-from WS import ws
-from SubPage import SP, func
+from modules.WS import ws
+from modules.SubPage import SP, func
 from rsa import encrypt
 from js import document, window, console
 
