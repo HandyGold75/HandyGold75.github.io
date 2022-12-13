@@ -1,4 +1,4 @@
-from WS import ws
+from modules.WS import ws
 from rsa import encrypt, PublicKey
 from datetime import datetime, timedelta
 from js import document, window, console
