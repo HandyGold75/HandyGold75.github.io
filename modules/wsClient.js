@@ -36,8 +36,8 @@ class obj {
 function wsStart() {
     if (obj.ws === undefined) {
         obj.ws = null;
-        obj.IP = "139.162.141.79";
-        // obj.IP = "127.0.0.1";
+        // obj.IP = "wss.HandyGold75.ga";
+        obj.IP = "127.0.0.1";
         obj.PORT = 6900;
         obj.AUTHTOKEN = "89UibZOFCKmPObSBnBxSNcorbp4eUYAKPX5V5qepEYw7tVwO0nZ3wwXGK48VXBjc";
         obj.lastCom = "";
@@ -50,12 +50,11 @@ function wsStart() {
             "<SHUTDOWN>": CLOSE
         };
 
-        obj.ws = new WebSocket("ws://" + obj.IP + ":" + obj.PORT);
+        obj.ws = new WebSocket("wss://" + obj.IP + ":" + obj.PORT);
 
         obj.ws.onopen = (event) => {
-            console.log("Opened connection to ws://" + obj.IP + ":" + obj.PORT)
+            console.log("Opened connection to wss://" + obj.IP + ":" + obj.PORT)
         };
-
 
         obj.ws.onmessage = (event) => {
             // console.log(event);
