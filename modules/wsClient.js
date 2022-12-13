@@ -36,8 +36,8 @@ class obj {
 function wsStart() {
     if (obj.ws === undefined) {
         obj.ws = null;
-        // obj.IP = "wss.HandyGold75.ga";
-        obj.IP = "127.0.0.1";
+        obj.IP = "wss.HandyGold75.ga";
+        // obj.IP = "127.0.0.1";
         obj.PORT = 6900;
         obj.AUTHTOKEN = "89UibZOFCKmPObSBnBxSNcorbp4eUYAKPX5V5qepEYw7tVwO0nZ3wwXGK48VXBjc";
         obj.lastCom = "";
