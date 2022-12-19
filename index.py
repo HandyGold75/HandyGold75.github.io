@@ -35,6 +35,54 @@ class links:
         "UniFi.png": {
             "url": "https://unifi.ui.com/",
             "text": "UniFi Portal"
+        },
+        "FreeNom.png": {
+            "url": "https://my.freenom.com/",
+            "text": "FreeNom"
+        },
+        "Sophos.png": {
+            "url": "https://my.sophos.com/",
+            "text": "Sophos Home"
+        },
+        "GitHub.png": {
+            "url": "https://github.com/",
+            "text": "GitHub"
+        },
+        "Nord.png": {
+            "url": "https://my.nordaccount.com/",
+            "text": "Nord Account"
+        },
+        "OneTimeSecret.png": {
+            "url": "https://onetimesecret.com/",
+            "text": "One Time Secret"
+        },
+        "NS.png": {
+            "url": "https://www.ns.nl/",
+            "text": "NS"
+        },
+        "LinusTechTips.png": {
+            "url": "https://www.lttstore.com/",
+            "text": "Linus Tech Tips"
+        },
+        "Megekko.png": {
+            "url": "https://www.megekko.nl/",
+            "text": "Megekko"
+        },
+        "Bol.png": {
+            "url": "https://www.bol.com/",
+            "text": "Bol"
+        },
+        "Zwoofs.png": {
+            "url": "https://www.zwoofs.nl/",
+            "text": "Zwoofs"
+        },
+        "SokPop.png": {
+            "url": "https://sokpop.co/patreon",
+            "text": "SokPop"
+        },
+        "RockStar.png": {
+            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
+            "text": "RockStar GTA V Events"
         }
     }
 
@@ -50,17 +98,9 @@ class links:
                 element.innerHTML += f'<div id=page_links_row{int(i / links.columns)} align="center" style="display: flex;"></div>'
                 element = document.getElementById(f'page_links_row{int(i / links.columns)}')
 
-            img = f'<a href="{links.allLinks[link]["url"]}" target="_blank"><img id="Image_{links.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{links.allLinks[link]["text"]}" style="width: 30%; margin-top: 15px;"></a>'
+            img = f'<a href="{links.allLinks[link]["url"]}" target="_blank"><img id="Image_{links.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{links.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto;"></a>'
             txt = f'<p><u><a href="{links.allLinks[link]["url"]}" target="_blank">{links.allLinks[link]["text"]}</a></u></p>'
             element.innerHTML += f'<div style="width: {100 / links.columns}%;">{img}{txt}</div>'
-
-            img = document.getElementById(f'Image_{links.allLinks[link]["text"]}')
-
-            if img.clientHeight == 0:
-                img.style.marginBottom = f'{-3.25 * (8 - links.columns)}px'
-                continue
-
-            img.style.marginBottom = f'{110 - img.clientHeight - (links.columns * 10)}px'
 
 
 class portal:
