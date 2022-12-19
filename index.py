@@ -28,6 +28,22 @@ class links:
             "url": "https://calendar.google.com/",
             "text": "Google Calendar"
         },
+        "YouTube.png": {
+            "url": "https://www.youtube.com/",
+            "text": "YouTube"
+        },
+        "YouTubeMusic.png": {
+            "url": "https://music.youtube.com/",
+            "text": "YouTube Music"
+        },
+        "Spotify.png": {
+            "url": "https://open.spotify.com/",
+            "text": "Spotify"
+        },
+        "GitHub.png": {
+            "url": "https://github.com/",
+            "text": "GitHub"
+        },
         "Linode.png": {
             "url": "https://cloud.linode.com/",
             "text": "Linode Cloud"
@@ -44,10 +60,6 @@ class links:
             "url": "https://my.sophos.com/",
             "text": "Sophos Home"
         },
-        "GitHub.png": {
-            "url": "https://github.com/",
-            "text": "GitHub"
-        },
         "Nord.png": {
             "url": "https://my.nordaccount.com/",
             "text": "Nord Account"
@@ -56,9 +68,17 @@ class links:
             "url": "https://onetimesecret.com/",
             "text": "One Time Secret"
         },
+        "RockStar.png": {
+            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
+            "text": "RockStar GTA V Events"
+        },
         "NS.png": {
             "url": "https://www.ns.nl/",
             "text": "NS"
+        },
+        "SokPop.png": {
+            "url": "https://sokpop.co/patreon",
+            "text": "SokPop"
         },
         "LinusTechTips.png": {
             "url": "https://www.lttstore.com/",
@@ -75,14 +95,6 @@ class links:
         "Zwoofs.png": {
             "url": "https://www.zwoofs.nl/",
             "text": "Zwoofs"
-        },
-        "SokPop.png": {
-            "url": "https://sokpop.co/patreon",
-            "text": "SokPop"
-        },
-        "RockStar.png": {
-            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
-            "text": "RockStar GTA V Events"
         }
     }
 
