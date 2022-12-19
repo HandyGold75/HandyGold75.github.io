@@ -120,6 +120,7 @@ body {
     background: #222;
 }
 
+
 /* Navigation */
 
 #nav {
@@ -158,10 +159,6 @@ body {
     margin: 15px auto;
     border-radius: 10px;
 }
-
-
-/* Page - Home */
-
 
 
 /* Page - Portal */
@@ -223,7 +220,7 @@ body {
 }
 
 
-/* Page - Portal - Admin */
+/* Page - Portal - SubPage */
 
 #SubPage_nav {
     width: 95%;
@@ -311,38 +308,6 @@ body {
 
 #SubPage_page_row0 {
     font-size: 125%;
-}
-
-
-/* Page - Contact */
-
-.page_contact_list {
-    width: 50%;
-    margin: 0px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 2px dashed #111;
-}
-
-.page_contact_list img {
-    width: 10%;
-    margin: 10px;
-}
-
-.page_contact_list h1 {
-    width: 50%;
-    min-width: 250px;
-    font-size: 150%;
-    text-align: center;
-    margin: 10px auto;
-}
-
-.page_contact_list p {
-    width: 50%;
-    max-width: 150px;
-    text-align: left;
-    margin: auto 15px;
 }
 
 

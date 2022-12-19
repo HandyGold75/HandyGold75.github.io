@@ -27,7 +27,6 @@ class func:
         element.innerHTML = f'<h1>WARNING!</h1><p>Connection lost to the server! The server is probably not running!<br>Please refresh the page to try again.</p><br>'
 
     def invoke_AP(args=None):
-        SP.currentPage = "Admin"
         SP.currentSub = ""
 
         SP.knownFiles = {
@@ -69,7 +68,6 @@ class func:
         SP.getData()
 
     def invoke_AM(args=None):
-        SP.currentPage = "Asset Manager"
         SP.currentSub = ""
 
         SP.knownFiles = {
@@ -145,7 +143,6 @@ class func:
         SP.getData()
 
     def invoke_LM(args=None):
-        SP.currentPage = "License Manager"
         SP.currentSub = ""
 
         SP.knownFiles = {
@@ -201,7 +198,6 @@ class func:
 
 
 class SP:
-    currentPage = ""
     currentSub = ""
 
     lastUpdate = 0
