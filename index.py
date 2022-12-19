@@ -27,6 +27,14 @@ class links:
         "G-Calendar.png": {
             "url": "https://calendar.google.com/",
             "text": "Google Calendar"
+        },
+        "Linode.png": {
+            "url": "https://cloud.linode.com/",
+            "text": "Linode Cloud"
+        },
+        "UniFi.png": {
+            "url": "https://unifi.ui.com/",
+            "text": "UniFi Portal"
         }
     }
 
@@ -52,7 +60,7 @@ class links:
                 img.style.marginBottom = f'{-3.25 * (8 - links.columns)}px'
                 continue
 
-            img.style.marginBottom = f'{80 - img.clientHeight - (links.columns * 10)}px'
+            img.style.marginBottom = f'{110 - img.clientHeight - (links.columns * 10)}px'
 
 
 class portal:
