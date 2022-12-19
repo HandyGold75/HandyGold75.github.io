@@ -8,24 +8,19 @@
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <title>HandyGold75</title>
-    <link href="docs/assets/Icons/;D.ico" rel="icon" type="image/x-icon">
+    <link href="docs/assets/;D.ico" rel="icon" type="image/x-icon">
     <link href="style.css" type="text/css" rel="stylesheet">
 </head>
 
 <body id="body">
-    <div id="main">
-        <div id="nav"></div>
-        <div id="page"></div>
-        <div id="footer"></div>
-    </div>
     <py-config>
         packages = ["rsa"]
 
         [[fetch]]
-        files = ["modules/WS.py", "modules/SubPage.py"]
+        files = ["modules/WS.py", "modules/SubPortal.py"]
     </py-config>
     <script src="modules/wsClient.js"></script>
-    <py-script src="modules/index.py"></py-script>
+    <py-script src="index.py"></py-script>
 </body>
 
 </html>
