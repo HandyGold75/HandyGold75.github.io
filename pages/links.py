@@ -63,6 +63,10 @@ class glb:
             "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
             "text": "RockStar GTA V Events"
         },
+        "DownDetector.png": {
+            "url": "https://downdetector.com/",
+            "text": "Down Detector"
+        },
         "NS.png": {
             "url": "https://www.ns.nl/",
             "text": "NS"
