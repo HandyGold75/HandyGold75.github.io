@@ -17,9 +17,14 @@
         packages = ["rsa"]
 
         [[fetch]]
-        files = ["modules/WS.py", "modules/SubPortal.py"]
+        files = [
+        "index.py",
+        "mod/func.py", "mod/ws.py",
+        "pages/home.py", "pages/links.py", "pages/portal.py", "pages/contact.py",
+        "subs/portal_sheets.py"
+        ]
     </py-config>
-    <script src="modules/wsClient.js"></script>
+    <script src="mod/wsClient.js"></script>
     <py-script src="index.py"></py-script>
 </body>
 
