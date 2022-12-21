@@ -62,7 +62,7 @@ def main():
         element = document.getElementById("page_portal_body_login_psw")
         psw = element.value
 
-        crypt = str(encrypt(usr.encode() + psw.encode(), func.pk))
+        crypt = str(encrypt(usr.encode() + psw.encode(), ps.glb.pk))
 
         try:
             ws.send(crypt)
