@@ -14,6 +14,9 @@ for item in ["token", "page_index", "page_portal"]:
     if window.localStorage.getItem(item) is None:
         window.localStorage.setItem(item, "")
 
+if window.localStorage.getItem("page_index") == "":
+    window.localStorage.setItem("page_index", "Home")
+
 
 def general():
     document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
