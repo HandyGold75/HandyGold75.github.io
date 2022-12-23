@@ -3,7 +3,7 @@ async function CLOSE(args) {
 };
 
 async function NEWMESSAGE(data) {
-    console.log("Got msg: " + data)
+    // console.log("Got msg: " + data)
     if (data.startsWith("{") && data.endsWith("}")) {
         obj.msgDict = { ...obj.msgDict, ...JSON.parse(data) }
     }
