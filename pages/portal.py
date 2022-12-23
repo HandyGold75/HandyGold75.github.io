@@ -65,7 +65,7 @@ def main():
         crypt = str(encrypt(usr.encode() + psw.encode(), ps.glb.pk))
 
         try:
-            ws.send(crypt)
+            ws.send(f'<LOGIN> {crypt}')
         except ConnectionError:
             func.connectionError()
 
