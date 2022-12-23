@@ -1,13 +1,9 @@
-async function LOGIN_SAVE(arg) {
-    obj.AUTHTOKEN = arg
-};
-
 async function CLOSE(args) {
     obj.ws.close()
 };
 
 async function NEWMESSAGE(data) {
-    // console.log("Got msg: " + data)
+    console.log("Got msg: " + data)
     if (data.startsWith("{") && data.endsWith("}")) {
         obj.msgDict = { ...obj.msgDict, ...JSON.parse(data) }
     }
@@ -26,7 +22,6 @@ class obj {
     ws;
     IP;
     PORT;
-    AUTHTOKEN;
     lastCom;
     lastMsg;
     msgDict;
@@ -39,25 +34,24 @@ function wsStart() {
         obj.IP = "wss.HandyGold75.ga";
         // obj.IP = "127.0.0.1";
         obj.PORT = 6900;
-        obj.AUTHTOKEN = "89UibZOFCKmPObSBnBxSNcorbp4eUYAKPX5V5qepEYw7tVwO0nZ3wwXGK48VXBjc";
         obj.lastCom = "";
         obj.lastMsg = "";
         obj.msgDict = {};
         obj.fmap = {
-            // "<LOGIN_SUCCESS>": LOGIN_SAVE,
             "<LOGIN_CANCEL>": CLOSE,
             "<LOGOUT>": CLOSE,
             "<SHUTDOWN>": CLOSE
         };
 
         obj.ws = new WebSocket("wss://" + obj.IP + ":" + obj.PORT);
+        // obj.ws = new WebSocket("ws://" + obj.IP + ":" + obj.PORT);
 
         obj.ws.onopen = (event) => {
             console.log("Opened connection to wss://" + obj.IP + ":" + obj.PORT)
+            // console.log("Opened connection to ws://" + obj.IP + ":" + obj.PORT)
         };
 
         obj.ws.onmessage = (event) => {
-            // console.log(event);
             NEWMESSAGE(event.data)
         }
     }
