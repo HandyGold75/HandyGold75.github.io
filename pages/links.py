@@ -59,13 +59,17 @@ class glb:
             "url": "https://onetimesecret.com/",
             "text": "One Time Secret"
         },
-        "RockStar.png": {
-            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
-            "text": "RockStar GTA V Events"
-        },
         "DownDetector.png": {
             "url": "https://downdetector.com/",
             "text": "Down Detector"
+        },
+        "CloudConvert.png": {
+            "url": "https://cloudconvert.com/",
+            "text": "Cloud Convert"
+        },
+        "RockStar.png": {
+            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
+            "text": "RockStar GTA V Events"
         },
         "NS.png": {
             "url": "https://www.ns.nl/",
