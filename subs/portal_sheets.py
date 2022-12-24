@@ -821,37 +821,29 @@ def pageSub(args, extraData: dict = {}):
 
     def addLogs(data):
         element, rowC = newRow(0)
+        sizeDict = {"col0": "10%", "col1": "10%", "col2": "72.5%", "col3": "7.5%"}
 
-        sizeDict = {"col0": "10%", "col1": "12.5%", "col2": "7.5%", "col3": "60%", "col4": "10%"}
-
-        for i, header in enumerate(["Date/ Time", "IP/ Port", "Log Level", "Command", "Status"]):
+        for i, header in enumerate(["Date/ Time", "IP/ Port", "Command", "Status"]):
             element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}"><b>{header}</b></p>'
 
         for line in reversed(data.split("\n")):
+            if line == "":
+                continue
+
             element, rowC = newRow(rowC)
-
-            noExtraInfo = True
-
-            if " (" in line:
-                noExtraInfo = False
-
-            splitLine = line.replace("[", "", 1).replace("] ", "<SPLIT>", 1).replace(" >>> ", "<SPLIT>Input<SPLIT>", 1).replace(" >> ", "<SPLIT>Client<SPLIT>", 1).replace(" > ", "<SPLIT>Server<SPLIT>", 1).replace(" (", "<SPLIT>",
-                                                                                                                                                                                                                     1).replace(")", "", 1).split("<SPLIT>")
+            splitLine = line.split("%S%")
 
             for i, item in enumerate(splitLine):
                 element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}">{item}</p>'
-
-            if noExtraInfo:
-                element.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col4"></p>'
 
         elements = document.getElementsByClassName(f'SubPage_page_lines')
 
         for i in range(0, elements.length):
             elements.item(i).style.width = sizeDict[elements.item(i).id.split("_")[-1]]
 
-            if elements.item(i).id.split("_")[-1] == "col3":
-                if elements.item(i).id == "SubPage_page_row0_col3":
-                    pass
+            if elements.item(i).id.split("_")[-1] == "col2":
+                if elements.item(i).id == "SubPage_page_row0_col2":
+                    continue
 
                 elements.item(i).style.textAlign = "left"
 
