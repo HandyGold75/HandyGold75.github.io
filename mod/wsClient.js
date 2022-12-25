@@ -4,16 +4,15 @@ async function CLOSE(args) {
 
 async function NEWMESSAGE(data) {
     // console.log("Got msg: " + data)
+    obj.lastMsg = data;
+
     if (data.startsWith("{") && data.endsWith("}")) {
         obj.msgDict = { ...obj.msgDict, ...JSON.parse(data) }
     }
+    else if (data in obj.fmap) {
+        arg = data.split(">")[1];
+        data = data.split(">")[0] + ">";
 
-    obj.lastMsg = data;
-
-    arg = data.split("> ")[1]
-    data = data.split(">")[0] + ">"
-
-    if (data in obj.fmap) {
         obj.fmap[data](arg)
     }
 };
@@ -30,7 +29,6 @@ class obj {
 
 function wsStart() {
     if (obj.ws === undefined) {
-        obj.ws = null;
         obj.IP = "wss.HandyGold75.ga";
         // obj.IP = "127.0.0.1";
         obj.PORT = 6900;
@@ -39,8 +37,7 @@ function wsStart() {
         obj.msgDict = {};
         obj.fmap = {
             "<LOGIN_CANCEL>": CLOSE,
-            "<LOGOUT>": CLOSE,
-            "<SHUTDOWN>": CLOSE
+            "<LOGOUT>": CLOSE
         };
 
         obj.ws = new WebSocket("wss://" + obj.IP + ":" + obj.PORT);
