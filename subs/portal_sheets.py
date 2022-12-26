@@ -834,6 +834,8 @@ def pageSub(args, extraData: dict = {}):
                 func.addEvent(els.item(i), editRecord, "dblclick", True)
 
     def addLogs(data):
+        endTime = (datetime.now() + timedelta(seconds=10)).timestamp()
+
         el, rowC = newRow(0)
         sizeDict = {"col0": "10%", "col1": "10%", "col2": "72.5%", "col3": "7.5%"}
         styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
@@ -850,6 +852,10 @@ def pageSub(args, extraData: dict = {}):
 
             for i, item in enumerate(splitLine):
                 el.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}" style="{styleP}">{item}</p>'
+
+            if endTime < datetime.now().timestamp():
+                window.alert(f'Timmed out loading logs!\nLoaded logs: {rowC}')
+                break
 
         els = document.getElementsByClassName(f'SubPage_page_lines')
 
