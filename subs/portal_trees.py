@@ -105,10 +105,6 @@ def pageSub(args):
                     if record == list(data)[-1]:
                         prtSpc[f'{layer}'] = ""
 
-                    console.log(f'record: {layer}')
-                    console.log(f'record: {record}')
-                    console.log(f'lastKey: {list(data)[-1]}')
-
                 spacer = ""
 
                 if layer > 1:
