@@ -89,14 +89,14 @@ def pageSub(args):
         return el, rowC + 1
 
     def addTree(data):
-        def recursive(data, rowC, colC, layer, prtSpc={"1": "|1", "2": "|2", "3": "|3", "4": "|4", "5": "|5", "6": "|6"}):
+        def recursive(data, rowC, colC, layer, prtSpc={"1": "|", "2": "|", "": "|", "": "|", "": "|", "": "|"}):
             if layer + 2 > colC:
                 colC = layer + 2
 
-            styleP = f'margin: -1px 0px; padding: 0px; text-align: left; font-size: 75%; white-space: nowrap; background: #1F1F1F;'
+            styleP = f'margin: 0px; padding: 0px; text-align: left; font-size: 75%; white-space: nowrap;'
 
             prtChar = "├──────────────"
-            prtSpc[f'{layer}'] = f'|{layer}'
+            prtSpc[f'{layer}'] = f'|'
 
             for i, record in enumerate(data):
                 if len(data) - 1 == i:
@@ -109,10 +109,18 @@ def pageSub(args):
 
                 if layer > 1:
                     for i1 in range(1, layer):
-                        spacer += f'<p class="SubPage_page_rows_p2" style="{styleP}">{prtSpc[str(i1)]}</p>'
+                        if prtSpc[str(i1)] == "|":
+                            spacer += f'<p class="SubPage_page_bLeft" style="{styleP}"></p>'
+                        else:
+                            spacer += f'<p class="SubPage_page_rows_p1" style="{styleP}"></p>'
 
                 if layer > 0:
-                    spacer += f'<p class="SubPage_page_rows_p2" style="{styleP}">{prtChar}</p>'
+                    if prtChar == "├──────────────":
+                        spacer += f'<p class="SubPage_page_bCross" style="{styleP}">───────────────</p>'
+                    elif prtChar == "└──────────────":
+                        spacer += f'<p class="SubPage_page_bEnd" style="{styleP}"></p>'
+                    else:
+                        spacer += f'<p class="SubPage_page_rows_p1" style="{styleP}"></p>'
 
                 if type(data[record]) is dict:
 
@@ -125,36 +133,60 @@ def pageSub(args):
                 else:
                     el, rowC = addRow(rowC)
 
+                    value = data[record]
+
+                    if record in glb.dates:
+                        value = datetime.fromtimestamp(value).strftime("%d-%m-%y %H:%M")
+
                     if layer > 0:
-                        el.innerHTML += f'{spacer}<p class="SubPage_page_rows_p1" style="{styleP}">{record}:</p><p class="SubPage_page_rows_p1" style="{styleP}">{data[record]}</p>'
+                        el.innerHTML += f'{spacer}<p class="SubPage_page_rows_p1" style="{styleP}">{record}:</p><p class="SubPage_page_rows_p2" style="{styleP}">{value}</p>'
                         continue
 
-                    el.innerHTML += f'{spacer}<p class="SubPage_page_rows_p1" style="{styleP.replace("left", "center")}">{record}:</p><p class="SubPage_page_rows_p1" style="{styleP}">{data[record]}</p>'
+                    el.innerHTML += f'{spacer}<p class="SubPage_page_rows_p1" style="{styleP.replace("left", "center")}">{record}:</p><p class="SubPage_page_rows_p2" style="{styleP}">{value}</p>'
 
             return rowC, colC
 
         rowC, colC = recursive(data, 0, 0, 0)
 
         els = document.getElementsByClassName(f'SubPage_page_rows_p1')
-
         for i in range(0, els.length):
-            els.item(i).style.width = f'{100 / colC}%'
+            els.item(i).style.width = f'{80 / colC}%'
+            els.item(i).style.marginTop = f'3px'
 
         els = document.getElementsByClassName(f'SubPage_page_rows_p2')
-
         for i in range(0, els.length):
-            els.item(i).style.width = f'{50/ colC}%'
-            els.item(i).style.padding = f'0px 0px 0px {50 / colC}%'
+            els.item(i).style.width = f'{140 / colC}%'
+            els.item(i).style.marginTop = f'3px'
+            els.item(i).style.whiteSpace = f'normal'
+            els.item(i).style.wordWrap = f'break-word'
 
-        # els = document.getElementsByClassName(f'SubPage_page_bLeft')
+        els = document.getElementsByClassName(f'SubPage_page_bCross')
+        for i in range(0, els.length):
+            els.item(i).style.width = f'{40/ colC}%'
+            els.item(i).style.margin = f'0px 0px 0px {40 / colC}%'
+            els.item(i).style.fontSize = f'100%'
+            els.item(i).style.overflow = f'hidden'
+            els.item(i).style.borderLeft = f'2px solid #44F'
 
-        # for i in range(0, els.length):
-        #     els.item(i).style.borderLeft = f'2px solid #44F'
+        els = document.getElementsByClassName(f'SubPage_page_bEnd')
+        for i in range(0, els.length):
+            els.item(i).style.width = f'{40/ colC}%'
+            els.item(i).style.height = f'12px'
+            els.item(i).style.margin = f'0px 0px 0px {40 / colC}%'
+            els.item(i).style.borderLeft = f'2px solid #44F'
+            els.item(i).style.borderBottom = f'2px solid #44F'
 
-        # els = document.getElementsByClassName(f'SubPage_page_bBottom')
+        els = document.getElementsByClassName(f'SubPage_page_bLeft')
+        for i in range(0, els.length):
+            els.item(i).style.width = f'{40/ colC}%'
+            els.item(i).style.margin = f'0px 0px 0px {40 / colC}%'
+            els.item(i).style.borderLeft = f'2px solid #44F'
 
-        # for i in range(0, els.length):
-        #     els.item(i).style.borderLeft = f'2px solid #44F'
+        els = document.getElementsByClassName(f'SubPage_page_bBottom')
+        for i in range(0, els.length):
+            els.item(i).style.width = f'{80/ colC}%'
+            els.item(i).style.height = f'9px'
+            els.item(i).style.borderBottom = f'2px solid #44F'
 
     el = document.getElementById(f'SubPage_page')
     el.innerHTML = f''
