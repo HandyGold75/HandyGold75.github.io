@@ -7,7 +7,9 @@ async function NEWMESSAGE(data) {
     obj.lastMsg = data;
 
     if (data.startsWith("{") && data.endsWith("}")) {
-        obj.msgDict = { ...obj.msgDict, ...JSON.parse(data) }
+        for (dict in JSON.parse(data)) {
+            obj.msgDict[dict] = { ...obj.msgDict[dict], ...JSON.parse(data)[dict] }
+        }
     }
     else if (data in obj.fmap) {
         arg = data.split(">")[1];

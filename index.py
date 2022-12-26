@@ -21,44 +21,49 @@ if window.localStorage.getItem("page_index") == "":
 def general():
     document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
 
-    element = document.getElementById(f'body')
-    element.innerHTML = f'<div id="main"></div>'
+    el = document.getElementById(f'body')
+    el.innerHTML = f'<div id="main" style="background: #111; max-width: 1080px; min-width: 375px; margin: 0px auto;"></div>'
 
-    element = document.getElementById(f'main')
-    element.innerHTML = f'<div id="nav"></div><div id="page"></div><div id="footer"></div>'
+    el = document.getElementById(f'main')
+    el.innerHTML = f''
+    el.innerHTML += f'<div id="nav" style="background: #222; font-size: 150%; padding: 5px; margin: 15px auto; border-radius: 10px;"></div>'
+    el.innerHTML += f'<div id="page" style="background: #222; padding: 5px; margin: 15px auto; border-radius: 10px;"></div>'
+    el.innerHTML += f'<div id="footer" style="font-size: 75%; padding: 5px; margin: 15px auto; background: #55F; color: #111; display: flex; border-radius: 10px;"></div>'
 
 
 def navigation():
-    element = document.getElementById(f'nav')
-    element.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left"><h1 id="nav_title" align="center">HandyGold75 - {window.localStorage.getItem("page_index")}</h1><div id="nav_buttons" align="center"></div>'
+    el = document.getElementById(f'nav')
+    el.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left" style="width: 12%; min-width: 78px; position: relative;">'
+    el.innerHTML += f'<h1 id="nav_title" align="center" style="font-size: 50%; width: 80%; padding: 5px; margin: 0px auto;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
+    el.innerHTML += f'<div id="nav_buttons" align="center" style="width: 80%; padding: 4px; margin: 0px auto;"></div>'
 
-    element = document.getElementById(f'nav_buttons')
+    el = document.getElementById(f'nav_buttons')
 
     for page in glb.allPages:
-        element.innerHTML += f'<button id="page_{page}" type="button">{page}</button>'
+        el.innerHTML += f'<button id="page_{page}" type="button">{page}</button>'
 
     for page in glb.allPages:
         func.addEvent(f'page_{page}', pageIndex)
 
 
 def pageIndex(args=None, page=None):
-    element = document.getElementById(f'page')
-    element.innerHTML = f''
+    el = document.getElementById(f'page')
+    el.innerHTML = f''
 
     if page in glb.allPages:
         window.localStorage.setItem("page_index", page)
 
     elif args.target.id.split(f'_')[-1] in glb.allPages:
         window.localStorage.setItem("page_index", args.target.id.split(f'_')[-1])
+        window.localStorage.setItem("page_portal", "")
 
     else:
         return None
 
-    window.localStorage.setItem("page_portal", "")
     document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
 
-    element = document.getElementById(f'nav_title')
-    element.innerHTML = f'<h1>HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
+    el = document.getElementById(f'nav_title')
+    el.innerHTML = f'<h1>HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
 
     glb.allPages[window.localStorage.getItem("page_index")]()
 
@@ -67,8 +72,10 @@ def footer():
     def toTop(*args):
         document.getElementById(f'body').scrollIntoView()
 
-    element = document.getElementById(f'footer')
-    element.innerHTML = (f'<div id="footer_note"><p><b>HandyGold75 - 2022</b></p></div><div id="footer_buttons" align="right"><button id="footer_toTop" type="button">Back to top</button></div></div>')
+    el = document.getElementById(f'footer')
+    el.innerHTML = f''
+    el.innerHTML += f'<div id="footer_note" style="width: 50%; padding: 4px; margin: 0px auto;"><p style="padding: 3px; margin: 0px auto;"><b>HandyGold75 - 2022</b></p></div>'
+    el.innerHTML += f'<div id="footer_buttons" align="right" style="width: 50%; padding: 3px; margin: 0px auto;"><button id="footer_toTop" type="button">Back to top</button></div>'
 
     func.addEvent(f'footer_toTop', toTop)
 
