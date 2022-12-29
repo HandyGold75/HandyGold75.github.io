@@ -100,8 +100,8 @@ class glb:
             "text": "Zwoofs"
         }
     }
-
-    columns = 4
+    
+    columns = 5
 
 
 def main():
