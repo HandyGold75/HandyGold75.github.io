@@ -59,6 +59,10 @@ class glb:
             "url": "https://onetimesecret.com/",
             "text": "One Time Secret"
         },
+        "SpeedTest.png": {
+            "url": "https://www.speedtest.net/",
+            "text": "SpeedTest Ookla"
+        },
         "DownDetector.png": {
             "url": "https://downdetector.com/",
             "text": "Down Detector"
