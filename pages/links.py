@@ -1,119 +1,85 @@
+import mod.func as func
+from json import dumps, loads, load
 from js import document, window, console
 
 
 class glb:
-    allLinks = {
-        "G-Mail.png": {
-            "url": "https://mail.google.com/",
-            "text": "Google Mail"
-        },
-        "G-Drive.png": {
-            "url": "https://drive.google.com/",
-            "text": "Google Drive"
-        },
-        "G-Photos.png": {
-            "url": "https://photos.google.com/",
-            "text": "Google Photos"
-        },
-        "G-Calendar.png": {
-            "url": "https://calendar.google.com/",
-            "text": "Google Calendar"
-        },
-        "YouTube.png": {
-            "url": "https://www.youtube.com/",
-            "text": "YouTube"
-        },
-        "YouTubeMusic.png": {
-            "url": "https://music.youtube.com/",
-            "text": "YouTube Music"
-        },
-        "Spotify.png": {
-            "url": "https://open.spotify.com/",
-            "text": "Spotify"
-        },
-        "GitHub.png": {
-            "url": "https://github.com/",
-            "text": "GitHub"
-        },
-        "Linode.png": {
-            "url": "https://cloud.linode.com/",
-            "text": "Linode Cloud"
-        },
-        "UniFi.png": {
-            "url": "https://unifi.ui.com/",
-            "text": "UniFi Portal"
-        },
-        "FreeNom.png": {
-            "url": "https://my.freenom.com/",
-            "text": "FreeNom"
-        },
-        "Sophos.png": {
-            "url": "https://my.sophos.com/",
-            "text": "Sophos Home"
-        },
-        "Nord.png": {
-            "url": "https://my.nordaccount.com/",
-            "text": "Nord Account"
-        },
-        "OneTimeSecret.png": {
-            "url": "https://onetimesecret.com/",
-            "text": "One Time Secret"
-        },
-        "SpeedTest.png": {
-            "url": "https://www.speedtest.net/",
-            "text": "SpeedTest Ookla"
-        },
-        "DownDetector.png": {
-            "url": "https://downdetector.com/",
-            "text": "Down Detector"
-        },
-        "CloudConvert.png": {
-            "url": "https://cloudconvert.com/",
-            "text": "Cloud Convert"
-        },
-        "RockStar.png": {
-            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
-            "text": "RockStar GTA V Events"
-        },
-        "NS.png": {
-            "url": "https://www.ns.nl/",
-            "text": "NS"
-        },
-        "SokPop.png": {
-            "url": "https://sokpop.co/patreon",
-            "text": "SokPop"
-        },
-        "LinusTechTips.png": {
-            "url": "https://www.lttstore.com/",
-            "text": "Linus Tech Tips"
-        },
-        "Megekko.png": {
-            "url": "https://www.megekko.nl/",
-            "text": "Megekko"
-        },
-        "Bol.png": {
-            "url": "https://www.bol.com/",
-            "text": "Bol"
-        },
-        "Zwoofs.png": {
-            "url": "https://www.zwoofs.nl/",
-            "text": "Zwoofs"
-        }
-    }
-    
-    columns = 5
+    allLinks = {}
+
+    columns = 4
+
+
+def setup():
+    file_R = open(f'pages/links.json', "r", encoding="UTF-8")
+    glb.allLinks = load(file_R)
+    file_R.close()
+
+    if window.localStorage.getItem("page_links") is None:
+        window.localStorage.setItem("page_links", dumps({}))
+
+    el = document.getElementById(f'page')
+    el.innerHTML = f'<div id="page_links"></div>'
+
+
+def toggleCat(args: any):
+    cats = loads(window.localStorage.getItem("page_links"))
+    cats[args.target.id.split("_")[2]] = not cats[args.target.id.split("_")[2]]
+
+    el = document.getElementById(f'page_links_{args.target.id.split("_")[2]}')
+    el.style.display = ""
+
+    if not cats[args.target.id.split("_")[2]]:
+        el.style.display = "none"
+
+    window.localStorage.setItem("page_links", dumps(cats))
 
 
 def main():
-    el = document.getElementById(f'page')
-    el.innerHTML = f'<div id="page_links" align="left" style="justify-content: center;"></div>'
+    def newRow(cats: dict):
+        cats[glb.allLinks[link]["cat"]] += 1
 
-    for i, link in enumerate(glb.allLinks):
+        el = document.getElementById(f'page_links_{glb.allLinks[link]["cat"]}')
+        el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}_row{cats[glb.allLinks[link]["cat"]]}" align="center" style="display: flex;"></div>'
+
+        return cats
+
+    def newCat(cats: dict, visable: bool):
+        tmpCats[glb.allLinks[link]["cat"]] = 0
+
+        el = document.getElementById(f'page_links')
+        el.innerHTML += f'<h2 id="page_links_{glb.allLinks[link]["cat"]}_row0" align="center" style="color: #55F;">{glb.allLinks[link]["cat"]}</h2>'
+
+        if visable:
+            el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}" align="center"></div>'
+        else:
+            el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}" align="center" style="display: none;"></div>'
+
+        return cats
+
+    setup()
+
+    cats = loads(window.localStorage.getItem("page_links"))
+    tmpCats = {}
+
+    for link in glb.allLinks:
+        if not glb.allLinks[link]["cat"] in tmpCats:
+            if not glb.allLinks[link]["cat"] in cats:
+                cats[glb.allLinks[link]["cat"]] = True
+
+            i = 0
+            tmpCats = newCat(tmpCats, cats[glb.allLinks[link]["cat"]])
+
         if i % glb.columns == 0:
-            el = document.getElementById(f'page_links')
-            el.innerHTML += f'<div id=page_links_row{int(i / glb.columns)} align="center" style="display: flex;"></div>'
-            el = document.getElementById(f'page_links_row{int(i / glb.columns)}')
+            tmpCats = newRow(tmpCats)
 
+        i += 1
+
+        el = document.getElementById(f'page_links_{glb.allLinks[link]["cat"]}_row{tmpCats[glb.allLinks[link]["cat"]]}')
         img = f'<a href="{glb.allLinks[link]["url"]}" target="_blank"><img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto;"></a>'
-        txt = f'<p><u><a href="{glb.allLinks[link]["url"]}" target="_blank">{glb.allLinks[link]["text"]}</a></u></p>'
-        el.innerHTML += f'<div style="width: {100 / glb.columns}%;">{img}{txt}</div>'
+        txt = f'<p><u><a href="{glb.allLinks[link]["url"]}" target="_blank" style="color: #44F;">{glb.allLinks[link]["text"]}</a></u></p>'
+        el.innerHTML += f'<div style="width: {100 / glb.columns}%; margin: 0px auto;">{img}{txt}</div>'
+
+    for cat in tmpCats:
+        func.addEvent(f'page_links_{cat}_row0', toggleCat, "dblclick")
+
+    window.localStorage.setItem("page_links", dumps(cats))

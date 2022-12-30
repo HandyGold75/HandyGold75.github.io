@@ -1,0 +1,122 @@
+{
+    "G-Mail.png": {
+        "url": "https://mail.google.com/",
+        "text": "Google Mail",
+        "cat": "Google"
+    },
+    "G-Drive.png": {
+        "url": "https://drive.google.com/",
+        "text": "Google Drive",
+        "cat": "Google"
+    },
+    "G-Photos.png": {
+        "url": "https://photos.google.com/",
+        "text": "Google Photos",
+        "cat": "Google"
+    },
+    "G-Calendar.png": {
+        "url": "https://calendar.google.com/",
+        "text": "Google Calendar",
+        "cat": "Google"
+    },
+    "YouTube.png": {
+        "url": "https://www.youtube.com/",
+        "text": "YouTube",
+        "cat": "Media"
+    },
+    "YouTubeMusic.png": {
+        "url": "https://music.youtube.com/",
+        "text": "YouTube Music",
+        "cat": "Media"
+    },
+    "Spotify.png": {
+        "url": "https://open.spotify.com/",
+        "text": "Spotify",
+        "cat": "Media"
+    },
+    "GitHub.png": {
+        "url": "https://github.com/",
+        "text": "GitHub",
+        "cat": "Management"
+    },
+    "Linode.png": {
+        "url": "https://cloud.linode.com/",
+        "text": "Linode Cloud",
+        "cat": "Management"
+    },
+    "UniFi.png": {
+        "url": "https://unifi.ui.com/",
+        "text": "UniFi Portal",
+        "cat": "Management"
+    },
+    "FreeNom.png": {
+        "url": "https://my.freenom.com/",
+        "text": "FreeNom",
+        "cat": "Management"
+    },
+    "Sophos.png": {
+        "url": "https://my.sophos.com/",
+        "text": "Sophos Home",
+        "cat": "Management"
+    },
+    "Nord.png": {
+        "url": "https://my.nordaccount.com/",
+        "text": "Nord Account",
+        "cat": "Management"
+    },
+    "OneTimeSecret.png": {
+        "url": "https://onetimesecret.com/",
+        "text": "One Time Secret",
+        "cat": "Tools"
+    },
+    "SpeedTest.png": {
+        "url": "https://www.speedtest.net/",
+        "text": "SpeedTest Ookla",
+        "cat": "Tools"
+    },
+    "DownDetector.png": {
+        "url": "https://downdetector.com/",
+        "text": "Down Detector",
+        "cat": "Tools"
+    },
+    "CloudConvert.png": {
+        "url": "https://cloudconvert.com/",
+        "text": "Cloud Convert",
+        "cat": "Tools"
+    },
+    "NS.png": {
+        "url": "https://www.ns.nl/",
+        "text": "NS",
+        "cat": "Stores"
+    },
+    "SokPop.png": {
+        "url": "https://sokpop.co/patreon",
+        "text": "SokPop",
+        "cat": "Stores"
+    },
+    "LinusTechTips.png": {
+        "url": "https://www.lttstore.com/",
+        "text": "Linus Tech Tips",
+        "cat": "Stores"
+    },
+    "Megekko.png": {
+        "url": "https://www.megekko.nl/",
+        "text": "Megekko",
+        "cat": "Stores"
+    },
+    "Bol.png": {
+        "url": "https://www.bol.com/",
+        "text": "Bol",
+        "cat": "Stores"
+    },
+    "Zwoofs.png": {
+        "url": "https://www.zwoofs.nl/",
+        "text": "Zwoofs",
+        "cat": "Stores"
+    },
+    "RockStar.png": {
+        "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
+        "text": "RockStar GTA V Events",
+        "cat": "Other"
+    }
+}

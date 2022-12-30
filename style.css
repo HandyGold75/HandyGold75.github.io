@@ -2,7 +2,7 @@
 
 #main button {
     z-index: 100;
-    color: #bbf;
+    color: #BFF;
     background: #333;
     border: 2px solid #55F;
     padding: 1px 10px;
@@ -12,7 +12,7 @@
 
 #main button:hover {
     z-index: 102;
-    color: #fff;
+    color: #FFF;
     background: #444;
     transition: 0.25s;
 }
@@ -20,7 +20,7 @@
 #main button:active {
     z-index: 101;
     color: #55F;
-    background: #bbf;
+    background: #BFF;
     transition: 0.1s;
 }
 
@@ -32,7 +32,7 @@
 
 #main input {
     z-index: 110;
-    color: #bbf;
+    color: #BFF;
     background: #333;
     border: 2px solid #55F;
     padding: 1px 10px;
@@ -43,14 +43,14 @@
 
 #main input:not([type=checkbox]):hover {
     z-index: 112;
-    color: #fff;
+    color: #FFF;
     background: #444;
     transition: 0.25s;
 }
 
 #main input:not([type=checkbox]):focus {
     z-index: 111;
-    color: #fff;
+    color: #FFF;
     background: #444;
 }
 
@@ -62,7 +62,7 @@
 
 #main select {
     z-index: 120;
-    color: #bbf;
+    color: #BFF;
     background: #333;
     border: 2px solid #55F;
     padding: 0px;
@@ -76,7 +76,7 @@
 
 #main select:hover {
     z-index: 122;
-    color: #fff;
+    color: #FFF;
     background: #444;
     margin-bottom: -80px;
     height: 108px;
@@ -87,7 +87,7 @@
 
 #main select:focus {
     z-index: 121;
-    color: #fff;
+    color: #FFF;
     background: #444;
     margin-bottom: -80px;
     height: 108px;

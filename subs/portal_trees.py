@@ -46,10 +46,6 @@ def getData(args=None):
         glb.lastUpdate = datetime.now().timestamp()
 
 
-def refresh():
-    console.log("REFRESH")
-
-
 def pageSub(args):
     def setup(args):
         try:
@@ -74,9 +70,6 @@ def pageSub(args):
             for value in glb.knownTree[glb.currentSub][mainValue]:
                 data[" "][value] = glb.knownTree[glb.currentSub][mainValue][value]()
 
-        el = document.getElementById(f'SubPage_nav_options_refresh')
-        el.disabled = False
-
         return data
 
     def addRow(rowC):
@@ -89,35 +82,34 @@ def pageSub(args):
         return el, rowC + 1
 
     def addTree(data):
-        def recursive(data, rowC, colC, layer, prtSpc={"1": "|", "2": "|", "": "|", "": "|", "": "|", "": "|"}):
+        def recursive(data, rowC, colC, layer, prtSpc={}):
             if layer + 2 > colC:
                 colC = layer + 2
 
             styleP = f'margin: 0px; padding: 0px; text-align: left; font-size: 75%; white-space: nowrap;'
-
-            prtChar = "├──────────────"
-            prtSpc[f'{layer}'] = f'|'
+            prtChar = "bCross"
+            prtSpc[f'{layer}'] = True
 
             for i, record in enumerate(data):
                 if len(data) - 1 == i:
-                    prtChar = "└──────────────"
+                    prtChar = "bEnd"
 
                     if record == list(data)[-1]:
-                        prtSpc[f'{layer}'] = ""
+                        prtSpc[f'{layer}'] = False
 
                 spacer = ""
 
                 if layer > 1:
                     for i1 in range(1, layer):
-                        if prtSpc[str(i1)] == "|":
+                        if prtSpc[str(i1)]:
                             spacer += f'<p class="SubPage_page_bLeft" style="{styleP}"></p>'
                         else:
                             spacer += f'<p class="SubPage_page_rows_p1" style="{styleP}"></p>'
 
                 if layer > 0:
-                    if prtChar == "├──────────────":
+                    if prtChar == "bCross":
                         spacer += f'<p class="SubPage_page_bCross" style="{styleP}">───────────────</p>'
-                    elif prtChar == "└──────────────":
+                    elif prtChar == "bEnd":
                         spacer += f'<p class="SubPage_page_bEnd" style="{styleP}"></p>'
                     else:
                         spacer += f'<p class="SubPage_page_rows_p1" style="{styleP}"></p>'
@@ -125,14 +117,11 @@ def pageSub(args):
                 if type(data[record]) is dict:
 
                     el, rowC = addRow(rowC)
-
                     el.innerHTML += f'{spacer}<p class="SubPage_page_rows_p1" style="{styleP.replace("left", "center")}">{record}</p>'
-
                     rowC, colC = recursive(data[record], rowC, colC, layer + 1, prtSpc)
 
                 else:
                     el, rowC = addRow(rowC)
-
                     value = data[record]
 
                     if record in glb.dates:
@@ -230,20 +219,16 @@ def main(args=None, sub=None):
         el = document.getElementById(f'SubPage_nav_main')
         el.innerHTML += f'<h2 style="margin: 10px auto; text-align: center;">Unauthorized!</h2>'
 
-        el = document.getElementById(f'page_portal_{glb.mainPage}')
-        el.disabled = True
+        document.getElementById(f'page_portal_{glb.mainPage}').disabled = True
 
         return None
 
     el = document.getElementById(f'SubPage_nav_options')
-    el.innerHTML += f'<button id="SubPage_nav_options_refresh" type="button" align=right style="border: 2px solid #44F; font-size: 75%;" disabled>Refresh</button>'
 
     for tree in data:
         if tree in glb.knownTree:
             func.addEvent(f'SubPage_nav_main_{tree}', pageSub)
             func.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
-
-    func.addEvent(f'SubPage_nav_options_refresh', refresh)
 
     if sub is not None:
         glb.currentSub = sub

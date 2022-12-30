@@ -258,7 +258,6 @@ def addRecord(args):
 
                     if el.item(i).value != "":
                         value = int(datetime.strptime(el.item(i).value, "%Y-%m-%d").timestamp())
-
                 else:
                     value = int(value)
 
@@ -266,7 +265,6 @@ def addRecord(args):
                 value = bool(el.item(i).checked)
 
             elif knownValues[name] is list:
-
                 value = []
 
                 for i1 in range(0, int(el.item(i).name.split("_")[1])):
@@ -275,7 +273,6 @@ def addRecord(args):
 
             elif el.item(i).value == "":
                 value = knownValues[name]()
-
             else:
                 value = knownValues[name](el.item(i).value)
 
@@ -290,7 +287,6 @@ def addRecord(args):
                         continue
 
                     data[token][knownValue] = knownValues[knownValue]()
-
             continue
 
         data[token][name] = value
@@ -338,7 +334,6 @@ def editRecord(args):
                 if value in glb.dates:
                     data = int(datetime.strptime(data, "%Y-%m-%d").timestamp())
                     html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{datetime.fromtimestamp(data).strftime("%d %b %y")}</p>'
-
                 else:
                     data = int(data)
 
@@ -384,6 +379,7 @@ def editRecord(args):
 
     el = document.getElementById(args.target.id)
     width = el.style.width
+    
     if "_" in el.id:
         value = el.id.split("_")[1]
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
@@ -469,8 +465,7 @@ def delRecord(args):
         func.connectionError()
 
     el = document.getElementById(args.target.id)
-    el = document.getElementById(el.parentNode.id)
-    el.remove()
+    document.getElementById(el.parentNode.id).remove()
 
 
 def bulkAdd(args):
@@ -552,23 +547,17 @@ def pageSub(args, extraData: dict = {}):
             for value in glb.knownFiles[file][mainValue]:
                 data[" "][value] = glb.knownFiles[file][mainValue][value]()
 
-        el = document.getElementById(f'SubPage_nav_options_bulkadd')
-        el.disabled = True
-        el = document.getElementById(f'SubPage_nav_options_active')
-        el.disabled = True
-        el = document.getElementById(f'SubPage_nav_options_compact')
-        el.disabled = True
+        document.getElementById(f'SubPage_nav_options_bulkadd').disabled = True
+        document.getElementById(f'SubPage_nav_options_active').disabled = True
+        document.getElementById(f'SubPage_nav_options_compact').disabled = True
 
         if glb.knownFiles[file] is str:
             return data
 
         if type(glb.knownFiles[file][list(glb.knownFiles[file])[-1]]) is dict:
-            el = document.getElementById(f'SubPage_nav_options_bulkadd')
-            el.disabled = False
-            el = document.getElementById(f'SubPage_nav_options_active')
-            el.disabled = False
-            el = document.getElementById(f'SubPage_nav_options_compact')
-            el.disabled = False
+            document.getElementById(f'SubPage_nav_options_bulkadd').disabled = False
+            document.getElementById(f'SubPage_nav_options_active').disabled = False
+            document.getElementById(f'SubPage_nav_options_compact').disabled = False
 
         return data
 
@@ -577,7 +566,6 @@ def pageSub(args, extraData: dict = {}):
 
         if form:
             el.innerHTML += f'<form id="SubPage_page_row{rowC}" align="left" onsubmit="return false" style="display: flex;"></form>'
-
         else:
             el.innerHTML += f'<div id="SubPage_page_row{rowC}" align="left" style="display: flex;"></div>'
 
@@ -674,8 +662,7 @@ def pageSub(args, extraData: dict = {}):
 
                 el.innerHTML += f'<button id="SubPage_page_add" type="submit" style="padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;">Add</button>'
 
-                el = document.getElementById(f'SubPage_page_add')
-                el.style.width = f'{110 / (colC * 2)}%'
+                document.getElementById(f'SubPage_page_add').style.width = f'{110 / (colC * 2)}%'
 
                 break
 
@@ -919,8 +906,7 @@ def main(args=None, sub=None):
         el = document.getElementById(f'SubPage_nav_main')
         el.innerHTML += f'<h2 style="margin: 10px auto; text-align: center;">Unauthorized!</h2>'
 
-        el = document.getElementById(f'page_portal_{glb.mainPage}')
-        el.disabled = True
+        document.getElementById(f'page_portal_{glb.mainPage}').disabled = True
 
         return None
 
