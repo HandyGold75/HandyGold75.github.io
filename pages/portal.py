@@ -2,6 +2,7 @@ import mod.ws as ws
 import mod.func as func
 import subs.portal_sheets as ps
 import subs.portal_trees as pt
+from datetime import datetime, timedelta
 from rsa import encrypt
 from js import document, window, console
 
@@ -10,7 +11,15 @@ class glb:
     allSubs = {"Admin": ps.main, "Monitor": pt.main, "Asset Manager": ps.main, "License Manager": ps.main}
     allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM}
 
+    lastLogin = 0
     loggedIn = False
+
+
+def setup():
+    ws.start()
+
+    el = document.getElementById(f'page')
+    el.innerHTML = f'<div id="page_portal" align="left" style="display: flex;"></div>'
 
 
 def pagePortal(args=None, page=None):
@@ -36,10 +45,7 @@ def pagePortal(args=None, page=None):
 
 
 def main():
-    ws.start()
-
-    el = document.getElementById(f'page')
-    el.innerHTML = f'<div id="page_portal" align="left" style="display: flex;"></div>'
+    setup()
 
     el = document.getElementById("page_portal")
     el.innerHTML += f'<div id="page_portal_buttons" align="left" style="width: 10%; min-width: 60px; font-size: 75%; border-right: 10px solid #111; margin-right: 10px;"></div>'
@@ -51,19 +57,19 @@ def main():
         el.innerHTML += f'<button id="page_portal_{page}" type="button" style="width: 90%; word-wrap: break-word;" disabled>{page}</button>'
 
     def login(args):
-        if args.key != "Enter":
-            return None
-
         if checkLogin() is True:
             return None
 
-        el = document.getElementById("page_portal_body_login_usr")
-        usr = el.value
+        if args.key != "Enter":
+            return None
 
-        el = document.getElementById("page_portal_body_login_psw")
-        psw = el.value
+        if (datetime.now() - timedelta(seconds=3)).timestamp() < glb.lastLogin:
+            console.log("TIMEOUT")
+            return None
 
-        crypt = str(encrypt(usr.encode() + psw.encode(), ps.glb.pk))
+        glb.lastLogin = datetime.now().timestamp()
+
+        crypt = str(encrypt(document.getElementById("page_portal_body_login_usr").value.encode() + document.getElementById("page_portal_body_login_psw").value.encode(), ps.glb.pk))
 
         try:
             ws.send(f'<LOGIN> {crypt}')
@@ -84,11 +90,8 @@ def main():
             window.localStorage.setItem("token", "")
             glb.loggedIn = False
 
-            el = document.getElementById(f'page_portal_body_login_usr')
-            el.disabled = False
-
-            el = document.getElementById(f'page_portal_body_login_psw')
-            el.disabled = False
+            document.getElementById(f'page_portal_body_login_usr').disabled = False
+            document.getElementById(f'page_portal_body_login_psw').disabled = False
 
             return None
 
@@ -112,11 +115,8 @@ def main():
             return True
 
         if window.localStorage.getItem("token") != "":
-            el = document.getElementById(f'page_portal_body_login_usr')
-            el.disabled = True
-
-            el = document.getElementById(f'page_portal_body_login_psw')
-            el.disabled = True
+            document.getElementById(f'page_portal_body_login_usr').disabled = True
+            document.getElementById(f'page_portal_body_login_psw').disabled = True
 
             try:
                 ws.send(f'<LOGIN_TOKEN> {window.localStorage.getItem("token")}')
@@ -172,5 +172,4 @@ def main():
         func.addEvent(f'page_portal_{page}', glb.allInvokes[page], f'mousedown')
         func.addEvent(f'page_portal_body_logout_submit', logout)
 
-        el = document.getElementById(f'page_portal_{page}')
-        el.disabled = False
+        document.getElementById(f'page_portal_{page}').disabled = False
