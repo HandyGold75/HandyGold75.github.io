@@ -28,13 +28,13 @@ def toggleCat(args: any):
     el1.style.borderBottom = "2px solid #111"
     el = document.getElementById(f'page_links_{args.target.id.split("_")[2]}')
     el.style.position = "unset"
-    el.style.marginLeft = "0px"
+    el.style.marginTop = "0px"
     el.style.opacity = "1"
 
     if not cats[args.target.id.split("_")[2]]:
         el1.style.borderBottom = "4px solid #111"
         el.style.position = "absolute"
-        el.style.marginLeft = "-999px"
+        el.style.marginTop = "-9999px"
         el.style.opacity = "0"
 
     window.localStorage.setItem("page_links", dumps(cats))
@@ -60,7 +60,7 @@ def main():
             el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}" align="center" style="{baseStyle} border-bottom: 4px solid #111; opacity: 1;""></div>'
         else:
             el.innerHTML += f'<h2 id="page_links_{glb.allLinks[link]["cat"]}_row0" align="center" style="{baseStyle} border-top: 4px solid #111; border-bottom: 4px solid #111;">{glb.allLinks[link]["cat"]}</h2>'
-            el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}" align="center" style="{baseStyle} border-bottom: 4px solid #111; opacity: 0; margin-left: -999px; position: absolute;"></div>'
+            el.innerHTML += f'<div id="page_links_{glb.allLinks[link]["cat"]}" align="center" style="{baseStyle} border-bottom: 4px solid #111; opacity: 0; margin-top: -9999px; position: absolute;"></div>'
 
         return cats
 
