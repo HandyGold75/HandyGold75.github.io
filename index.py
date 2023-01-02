@@ -33,8 +33,8 @@ def general():
 
 def navigation():
     el = document.getElementById(f'nav')
-    el.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left" style="width: 12%; min-width: 78px; position: relative;">'
-    el.innerHTML += f'<h1 id="nav_title" align="center" style="font-size: 50%; width: 80%; padding: 5px; margin: 0px auto;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
+    el.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left" style="width: 12%; min-width: 78px; position: relative; user-select:none;">'
+    el.innerHTML += f'<h1 id="nav_title" align="center" style="font-size: 50%; width: 80%; padding: 5px; margin: 0px auto; user-select:none;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
     el.innerHTML += f'<div id="nav_buttons" align="center" style="width: 80%; padding: 4px; margin: 0px auto;"></div>'
 
     el = document.getElementById(f'nav_buttons')
@@ -63,7 +63,7 @@ def pageIndex(args=None, page=None):
     document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
 
     el = document.getElementById(f'nav_title')
-    el.innerHTML = f'<h1>HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
+    el.innerHTML = f'<h1 style="user-select:none;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
 
     glb.allPages[window.localStorage.getItem("page_index")]()
 
@@ -74,7 +74,7 @@ def footer():
 
     el = document.getElementById(f'footer')
     el.innerHTML = f''
-    el.innerHTML += f'<div id="footer_note" style="width: 50%; padding: 4px; margin: 0px auto;"><p style="padding: 3px; margin: 0px auto;"><b>HandyGold75 - 2022</b></p></div>'
+    el.innerHTML += f'<div id="footer_note" style="width: 50%; padding: 4px; margin: 0px auto;"><p style="padding: 3px; margin: 0px auto; user-select:none;"><b>HandyGold75 - 2022</b></p></div>'
     el.innerHTML += f'<div id="footer_buttons" align="right" style="width: 50%; padding: 3px; margin: 0px auto;"><button id="footer_toTop" type="button">Back to top</button></div>'
 
     func.addEvent(f'footer_toTop', toTop)
