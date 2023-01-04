@@ -1,27 +1,90 @@
 from json import loads
-from js import wsStart, wsUpState, wsSend, wsMsg, wsMsgDict
+from js import eval, console
 
 
-def start():
-    return wsStart()
+class glb:
+    PROTO = ""
+    IP = ""
+    PORT = ""
+    ws = None
+    lastMsg = ""
+    msgDict = {}
+
+
+class ws:
+    def close():
+        glb.ws.close()
+
+    fmap = {"<LOGIN_CANCEL>": close, "<LOGOUT>": close}
+
+    def onOpen(arg):
+        console.log(f'Opened connection to {glb.PROTO}://{glb.IP}:{glb.PORT}')
+
+    def onMessage(arg):
+        msg = arg.data
+        glb.lastMsg = msg
+
+        if msg.startswith("{") and msg.endswith("}"):
+            data = loads(msg)
+
+            for dict in data:
+                if not dict in glb.msgDict:
+                    glb.msgDict[dict] = {}
+
+                glb.msgDict[dict] = {**glb.msgDict[dict], **data[dict]}
+
+        elif msg in ws.fmap:
+            ws.fmap[msg.split(">")[0] + ">"](msg.split(">")[1])
+
+        # print(f'Received message: {msg}')
+        # print(f'{glb.msgDict}')
+
+    def onError(arg):
+        console.error(arg)
+
+    def onClose(arg):
+        console.log(f'Closed connection to {glb.PROTO}://{glb.IP}:{glb.PORT}')
+
+    def upState():
+        if glb.ws.readyState in [0, 1]:
+            return True
+
+        elif glb.ws.readyState in [2, 3]:
+            return False
+
+
+def start(protocol: str, ip: str, port: str):
+    if not glb.ws is None:
+        return None
+
+    glb.PROTO = str(protocol)[:3]
+    glb.IP = str(ip[:32])
+    glb.PORT = str(port)[:5]
+
+    glb.ws = eval(f'new WebSocket("{glb.PROTO}://{glb.IP}:{glb.PORT}")')
+
+    glb.ws.onopen = ws.onOpen
+    glb.ws.onmessage = ws.onMessage
+    glb.ws.onerror = ws.onError
+    glb.ws.onclose = ws.onClose
 
 
 def send(com):
-    if not wsUpState():
+    if not ws.upState():
         raise ConnectionError(f"Unable to verify healty connection!")
 
-    return wsSend(com)
+    glb.ws.send(com)
 
 
 def msg():
-    if not wsUpState():
+    if not ws.upState():
         raise ConnectionError(f"Unable to verify healty connection!")
 
-    return wsMsg()
+    return glb.lastMsg
 
 
 def msgDict():
-    if not wsUpState():
+    if not ws.upState():
         raise ConnectionError(f"Unable to verify healty connection!")
 
-    return loads(wsMsgDict())
+    return glb.msgDict
