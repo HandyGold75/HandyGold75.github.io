@@ -1,5 +1,6 @@
+import mod.func as func
 from json import load
-from js import document, window, console
+from js import console
 
 
 class glb:
@@ -11,18 +12,16 @@ def setup():
     glb.allContacts = load(file_R)
     file_R.close()
 
-    el = document.getElementById(f'page')
-    el.innerHTML = f'<div id="page_contact"></div>'
+    func.setHTML(f'div', f'page', _id="page_contact")
 
 
 def main():
     setup()
 
-    el = document.getElementById(f'page_contact')
-    txt = f'<h1 style="width: 50%; min-width: 250px; text-align: center; margin: 10px auto; color: #55F; user-select:none;"><b>Contact details</b></h1>'
-    el.innerHTML += f'<div style="width: 50%; margin: 4px auto 0px auto; display: flex; justify-content: center; border-bottom: 2px dashed #111;">{txt}</div>'
+    txt = func.addHTML(f'h1', _nest=f'Contact details', _style=f'headerBig %% width: 50%; min-width: 250px;')
+    func.addHTML(f'div', f'page_contact', _nest=txt, _style=f'flex %% width: 50%; margin: 4px auto 0px auto; justify-content: center; border-bottom: 2px dashed #111;')
 
     for contact in glb.allContacts:
-        img = f'<a href="{glb.allContacts[contact]["url"]}" target="_blank"><img src="docs/assets/Contact/{contact}" alt="{glb.allContacts[contact]["text"]}" style="width: 25%; min-width: 22px; margin: 10px;"></a>'
-        txt = f'<p style="width: 75%; max-width: 150px; text-align: left; margin: auto 0px; user-select:none;"><u><a href="{glb.allContacts[contact]["url"]}" target="_blank" style="color: #44F;">{glb.allContacts[contact]["text"]}</a></u></p>'
-        el.innerHTML += f'<div align="center" style="width: 50%; margin: 4px auto 0px auto; display: flex; justify-content: center; border-bottom: 2px dashed #111;">{img}{txt}</div>'
+        img = func.makeLink(glb.allContacts[contact]["url"], _nest=f'<img src="docs/assets/Contact/{contact}" alt="{glb.allContacts[contact]["text"]}" style="width: 25%; min-width: 22px; margin: 10px;">')
+        txt = func.addHTML(f'p', _nest=func.makeLink(glb.allContacts[contact]["url"], _nest=glb.allContacts[contact]["text"]), _style=f'width: 75%; max-width: 150px; text-align: left; margin: auto 0px; text-decoration-line: underline; user-select:none;')
+        func.addHTML(f'div', f'page_contact', _nest=f'{img}{txt}', _align=f'center', _style=f'flex %% width: 50%; margin: 4px auto 0px auto; justify-content: center; border-bottom: 2px dashed #111;')
