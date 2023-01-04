@@ -16,10 +16,8 @@ class glb:
 
 
 def setup():
-    ws.start()
-
-    el = document.getElementById(f'page')
-    el.innerHTML = f'<div id="page_portal" align="left" style="display: flex;"></div>'
+    ws.start("wss", "wss.HandyGold75.ga", "6900")
+    func.setHTML(f'div', f'page', _id=f'page_portal', _align=f'left', _style="flex")
 
 
 def pagePortal(args=None, page=None):
@@ -47,14 +45,14 @@ def pagePortal(args=None, page=None):
 def main():
     setup()
 
-    el = document.getElementById("page_portal")
-    el.innerHTML += f'<div id="page_portal_buttons" align="left" style="width: 10%; min-width: 60px; font-size: 75%; border-right: 10px solid #111; margin-right: 10px;"></div>'
-    el.innerHTML += f'<div id="page_portal_body" align="left" style="width: 90%;"></div>'
+    func.addHTML(f'div', f'page_portal', _id=f'page_portal_buttons', _align=f'left', _style="width: 10%; min-width: 60px; font-size: 75%; border-right: 10px solid #111; margin-right: 10px;")
+    func.addHTML(f'div', f'page_portal', _id=f'page_portal_body', _align=f'left', _style="width: 90%;")
 
-    el = document.getElementById(f'page_portal_buttons')
+    # el = document.getElementById(f'page_portal_buttons')
 
     for page in glb.allSubs:
-        el.innerHTML += f'<button id="page_portal_{page}" type="button" style="width: 90%; word-wrap: break-word;" disabled>{page}</button>'
+        # el.innerHTML += f'<button id="page_portal_{page}" type="button" style="width: 90%; word-wrap: break-word;" disabled>{page}</button>'
+        func.addHTML(f'button', f'page_portal_buttons', _nest=f'{page}', _id=f'page_portal_{page}', _type=f'button', _align=f'left', _style=f'buttonMedium %% width: 90%;', _custom=f'disabled')
 
     def login(args):
         if checkLogin() is True:
