@@ -1,5 +1,4 @@
-import mod.func as func
-from js import console
+import mod.HTML as HTML
 
 
 class glb:
@@ -7,10 +6,10 @@ class glb:
 
 
 def setup():
-    func.setHTML(f'div', f'page', _id=f'page_home', _align=f'left')
+    HTML.set(f'div', f'page', _id=f'page_home', _align=f'left')
 
 
 def main():
     setup()
 
-    func.setHTML(f'p', f'page_home', _nest=f'Page content for home.')
+    HTML.set(f'p', f'page_home', _nest=f'Page content for home.')
