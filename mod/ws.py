@@ -32,12 +32,13 @@ class ws:
                     glb.msgDict[dict] = {}
 
                 glb.msgDict[dict] = {**glb.msgDict[dict], **data[dict]}
+            
+            # print(f'{glb.msgDict}')
 
         elif msg in ws.fmap:
             ws.fmap[msg.split(">")[0] + ">"](msg.split(">")[1])
 
         # print(f'Received message: {msg}')
-        # print(f'{glb.msgDict}')
 
     def onError(arg):
         console.error(arg)
