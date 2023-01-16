@@ -1,8 +1,9 @@
-import mod.func as func
 import mod.ws as ws
+import mod.functions as f
+import mod.HTML as HTML
+import mod.CSS as CSS
 from rsa import encrypt, PublicKey
 from datetime import datetime, timedelta
-from js import document, window, console
 
 
 class invoke:
@@ -204,6 +205,7 @@ class glb:
     optionsList = []
 
     svcoms = {}
+    logsLoaded = 0
 
     pk = PublicKey(
         17975725580318426255082147295765624015303015361719602497231012933790462235693879580362187130307063578819348335338567705110647296830122706922462277858985753916807418663775359155059872610188320580932610131649669750813854841233828756158531041784174256821099975573954534872920341091204735563674609735155365230886328225569764099100220190749309854601263231477479542538657656228075477248164911150242612255058022595583271630531937574957740889057640197605063861387428744601476627747146952083278992989884033643188605058493867723623443206205193049387986735721023723231370158070058492831123317729469188277654546977114897225138444403440484404763488252900359062156606277556273881462454700682132900566293665122593793415917496306396245694769766289157377434428292617546842809345418069309429637482719212135032501150835116958632132203299437985348946833084644910715245987521602696627857328192665936755312620767597809000086619959376727150300660078176663731141210223403780234209251726760747452546317356315404004871864255840070441131656153163327938733747321658554956837916867148392977768261809450501332458691119391299657873525192653810706009363153494395380856616333139608534198022835408820709017274233496194895658713718965362482943679407034749283305672669328250828229765188719765598395616090554409644372199205005788822144569725849378518257318799359385281740742304089043012203207090757315833795382410385714872414605971371066034681422629572254445672849310499485979905134814561918728629098272915355126315453439738702075534702666290929177330864697626107597200532737216328442694999218938113176867865482874172297137142445161550097040446308420534920219666339316839673749833944188357418385020268794629695550903965269473702504547059078067498031149096658925058636652798068077433395661533192684961900825996213912591011509835703499018540858216533684827588691036564984023994359992388733781114505117772831573454751130891256075050103442171938154332660431264950585164243096093925476801938794141572630854512014984334825819438750599965004024341493159922341794445006274654995566118300460214077412075511161181698540977050816711684965694813515198715185678618288095811937806305637976252287014606730927818130439428520119356203573068177397436647258848659927556173455871707333064805630504242580519613705444817600006146353152014424758858473533029673605478152571643653561181152156398594145488582743474039155367716449975165309811984584398398690891924952884510454449930797215394455097922506895883409901302916494995512076986478728196359060058428252757519467838794722732611686045347810271767912080044182207678353913483129629823113438113820791587878184283905176268454906351041779158933382590216398059177568853055270942077059156649685981827207451739862232562515028977633596944364071556509266121310722218226028783650241233584332498505271414144626505460338325024130616840681895382408708213628489128094251273023012874086250181912500877109239104433256351412004835767020264459805538504082187665406998198032223427723556839093765764713436949937704964091432419465151166261180178053480295497695748125437451332250448661556736139515685003382928341989,
@@ -216,7 +218,7 @@ def getData(args=None):
             for file in glb.knownFiles:
                 ws.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]} {file}')
         except ConnectionError:
-            func.connectionError()
+            f.connectionError()
 
         glb.lastUpdate = datetime.now().timestamp()
 
@@ -226,13 +228,11 @@ def addRecord(args):
         try:
             ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json')
         except ConnectionError:
-            func.connectionError()
+            f.connectionError()
 
-        window.alert(f'New user created.\nReload the subpage for changes to appear.')
+        f.popup(f'alert', f'New user created.\nReload the subpage for changes to appear.')
 
         return None
-
-    el = document.getElementsByClassName(f'SubPage_page_new')
 
     token = ""
     data = {}
@@ -240,12 +240,12 @@ def addRecord(args):
     mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
     knownValues = glb.knownFiles[f'/{glb.currentSub}.json'][mainValue]
 
-    for i in range(0, el.length):
-        name = str(el.item(i).name.split("_")[0])
-        value = str(el.item(i).value)
+    for item in HTML.get(f'SubPage_page_new', isClass=True):
+        name = str(item.name.split("_")[0])
+        value = str(item.value)
 
         if name == mainValue and ("_" in value):
-            window.alert(f'Invalid format for "{name}"!\n"{name}" may not include underscores ("_").')
+            f.popup(f'alert', f'Invalid format for "{name}"!\n"{name}" may not include underscores ("_").')
             return None
 
         if name in knownValues:
@@ -256,25 +256,25 @@ def addRecord(args):
                 if name in glb.dates:
                     value = int(datetime.now().timestamp())
 
-                    if el.item(i).value != "":
-                        value = int(datetime.strptime(el.item(i).value, "%Y-%m-%d").timestamp())
+                    if item.value != "":
+                        value = int(datetime.strptime(item.value, "%Y-%m-%d").timestamp())
                 else:
                     value = int(value)
 
             elif knownValues[name] is bool:
-                value = bool(el.item(i).checked)
+                value = bool(item.checked)
 
             elif knownValues[name] is list:
                 value = []
 
-                for i1 in range(0, int(el.item(i).name.split("_")[1])):
-                    if el.item(i).item(i1).selected is True:
-                        value.append(el.item(i).item(i1).value)
+                for i1 in range(0, int(item.name.split("_")[1])):
+                    if item.item(i1).selected is True:
+                        value.append(item.item(i1).value)
 
-            elif el.item(i).value == "":
+            elif item.value == "":
                 value = knownValues[name]()
             else:
-                value = knownValues[name](el.item(i).value)
+                value = knownValues[name](item.value)
 
         if name == mainValue:
             token = value
@@ -295,7 +295,7 @@ def addRecord(args):
         ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")}')
         ws.send(f'{glb.svcoms["main"]} {glb.svcoms["modify"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")} {str(data).replace(" ", "%20").replace("False", "false").replace("True", "true")}')
     except ConnectionError:
-        func.connectionError()
+        f.connectionError()
 
     pageSub(args, {f'/{glb.currentSub}.json': data})
 
@@ -305,7 +305,7 @@ def editRecord(args):
         if not args.key in ["Enter", "Escape"]:
             return None
 
-        el = document.getElementById(args.target.id)
+        el = HTML.get(f'{args.target.id}')
 
         if "_" in el.id:
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
@@ -348,7 +348,7 @@ def editRecord(args):
                 html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
 
         if value in glb.invokePasswordOnChange:
-            password = window.prompt("Please enter the new password for the user.")
+            password = f.popup(f'prompt', "Please enter the new password for the user.")
 
             if password is None:
                 return None
@@ -360,7 +360,7 @@ def editRecord(args):
                 else:
                     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json Password {password}')
             except ConnectionError:
-                func.connectionError()
+                f.connectionError()
 
         try:
             if not mainValue is None:
@@ -368,18 +368,17 @@ def editRecord(args):
             else:
                 ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} {data}')
         except ConnectionError:
-            func.connectionError()
+            f.connectionError()
 
         el.outerHTML = html
 
-        el = document.getElementById(el.id)
-        el.style.width = width
+        CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
-        func.addEvent(el.id, editRecord, "dblclick")
+        f.addEvent(el.id, editRecord, "dblclick")
 
-    el = document.getElementById(args.target.id)
+    el = HTML.get(f'{args.target.id}')
     width = el.style.width
-    
+
     if "_" in el.id:
         value = el.id.split("_")[1]
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
@@ -411,7 +410,7 @@ def editRecord(args):
                     else:
                         ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
                 except ConnectionError:
-                    func.connectionError()
+                    f.connectionError()
 
                 el.innerHTML = "Yes"
                 return None
@@ -422,7 +421,7 @@ def editRecord(args):
                 else:
                     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} False')
             except ConnectionError:
-                func.connectionError()
+                f.connectionError()
 
             el.innerHTML = "No"
             return None
@@ -432,7 +431,7 @@ def editRecord(args):
                 try:
                     data = ws.msgDict()[glb.svcoms["main"]][f'/{el.id.split("_")[1]}.json']
                 except ConnectionError:
-                    func.connectionError()
+                    f.connectionError()
                     return None
             else:
                 data = glb.optionsList
@@ -446,34 +445,33 @@ def editRecord(args):
 
     el.outerHTML = html
 
-    el = document.getElementById(el.id)
+    el = HTML.get(f'{el.id}')
     el.style.width = width
 
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.645}%'
 
-    func.addEvent(el.id, submit, "keyup")
+    f.addEvent(el.id, submit, "keyup")
 
 
 def delRecord(args):
-    if not window.confirm(f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
+    if not f.popup(f'confirm', f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
         return None
 
     try:
         ws.send(f'{glb.svcoms["main"]} {glb.svcoms["delete"]} /{glb.currentSub.replace(" ", "%20")}.json {args.target.id.split("_")[-1].replace(" ", "%20")}')
     except ConnectionError:
-        func.connectionError()
+        f.connectionError()
 
-    el = document.getElementById(args.target.id)
-    document.getElementById(el.parentNode.id).remove()
+    HTML.get(HTML.get(f'{args.target.id}').parentNode.id).remove()
 
 
 def bulkAdd(args):
     if glb.currentSub == "":
         return None
 
-    prefix = window.prompt("Prefix")
-    amount = window.prompt("Amount")
+    prefix = f.popup(f'prompt', "Prefix")
+    amount = f.popup(f'prompt', "Amount")
 
     if prefix is None or amount is None:
         return None
@@ -481,15 +479,15 @@ def bulkAdd(args):
     try:
         amount = int(amount)
     except ValueError:
-        window.alert("Please enter a rounded number!")
+        f.popup(f'alert', "Please enter a rounded number!")
         return None
 
-    if window.confirm(f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
+    if f.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
         for i in range(0, amount):
             try:
                 ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
             except ConnectionError:
-                func.connectionError()
+                f.connectionError()
 
 
 def pageSub(args, extraData: dict = {}):
@@ -497,7 +495,7 @@ def pageSub(args, extraData: dict = {}):
         try:
             data = ws.msgDict()[glb.svcoms["main"]]
         except ConnectionError:
-            func.connectionError()
+            f.connectionError()
             return None
 
         file = f'/{glb.currentSub}.json'
@@ -509,7 +507,7 @@ def pageSub(args, extraData: dict = {}):
         if args.target.id.split("_")[-1] == "compact":
             glb.compactView = not glb.compactView
 
-            el = document.getElementById(args.target.id)
+            el = HTML.get(f'{args.target.id}')
 
             if glb.compactView:
                 el.innerHTML = "Expand"
@@ -519,7 +517,7 @@ def pageSub(args, extraData: dict = {}):
         elif args.target.id.split("_")[-1] == "active":
             glb.hideInactive = not glb.hideInactive
 
-            el = document.getElementById(args.target.id)
+            el = HTML.get(f'{args.target.id}')
 
             if glb.hideInactive:
                 el.innerHTML = "Inactive"
@@ -547,31 +545,29 @@ def pageSub(args, extraData: dict = {}):
             for value in glb.knownFiles[file][mainValue]:
                 data[" "][value] = glb.knownFiles[file][mainValue][value]()
 
-        document.getElementById(f'SubPage_nav_options_bulkadd').disabled = True
-        document.getElementById(f'SubPage_nav_options_active').disabled = True
-        document.getElementById(f'SubPage_nav_options_compact').disabled = True
+        HTML.enable(f'SubPage_nav_options_bulkadd', False)
+        HTML.enable(f'SubPage_nav_options_active', False)
+        HTML.enable(f'SubPage_nav_options_compact', False)
 
         if glb.knownFiles[file] is str:
             return data
 
         if type(glb.knownFiles[file][list(glb.knownFiles[file])[-1]]) is dict:
-            document.getElementById(f'SubPage_nav_options_bulkadd').disabled = False
-            document.getElementById(f'SubPage_nav_options_active').disabled = False
-            document.getElementById(f'SubPage_nav_options_compact').disabled = False
+            HTML.enable(f'SubPage_nav_options_bulkadd', True)
+            HTML.enable(f'SubPage_nav_options_active', True)
+            HTML.enable(f'SubPage_nav_options_compact', True)
 
         return data
 
     def newRow(rowC, form: bool = False):
-        el = document.getElementById(f'SubPage_page')
+        rowC += 1
 
         if form:
-            el.innerHTML += f'<form id="SubPage_page_row{rowC}" align="left" onsubmit="return false" style="display: flex;"></form>'
+            HTML.add(f'form', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
         else:
-            el.innerHTML += f'<div id="SubPage_page_row{rowC}" align="left" style="display: flex;"></div>'
+            HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
 
-        el = document.getElementById(f'SubPage_page_row{rowC}')
-
-        return el, rowC + 1
+        return rowC
 
     def addFull(data):
         def addHeader(data, rowC, colC):
@@ -579,10 +575,10 @@ def pageSub(args, extraData: dict = {}):
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
             for record in data:
-                el, rowC = newRow(rowC)
+                rowC = newRow(rowC)
                 colC += 0.5
 
-                el.innerHTML += f'<p class="SubPage_page_header" id="header_{mainValue}" style="{styleP}"><b>{mainValue}</b></p>'
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
 
                 if mainValue in glb.halfView:
                     colC += 0.5
@@ -593,7 +589,7 @@ def pageSub(args, extraData: dict = {}):
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
                         continue
 
-                    el.innerHTML += f'<p class="SubPage_page_header" id="header_{value}" style="{styleP}"><b>{value}</b></p>'
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
 
                     if value in glb.halfView:
                         colC += 0.5
@@ -601,17 +597,16 @@ def pageSub(args, extraData: dict = {}):
 
                     colC += 1
 
-                el.innerHTML += f'<p class="SubPage_page_header" id="header_Action" style="{styleP}"><b>Action</b></p>'
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+
                 colC += 0.5
 
-                el = document.getElementsByClassName(f'SubPage_page_header')
-
-                for i in range(0, el.length):
-                    if el.item(i).id.split("_")[1] in glb.halfView:
-                        el.item(i).style.width = f'{110 / (colC * 2)}%'
+                for item in HTML.get(f'SubPage_page_header', isClass=True):
+                    if item.id.split("_")[1] in glb.halfView:
+                        item.style.width = f'{110 / (colC * 2)}%'
                         continue
 
-                    el.item(i).style.width = f'{110 / colC}%'
+                    item.style.width = f'{110 / colC}%'
 
                 return rowC, colC
 
@@ -623,8 +618,8 @@ def pageSub(args, extraData: dict = {}):
             styleCbx = f'margin: 5px 2px; padding: 0px 0px;'
 
             for record in data:
-                el, rowC = newRow(rowC, form=True)
-                el.innerHTML += f'<input class="SubPage_page_new" name={mainValue} type="text" style="{styleInp}">'
+                rowC = newRow(rowC, form=True)
+                HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{mainValue}"')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -633,11 +628,11 @@ def pageSub(args, extraData: dict = {}):
                     elif value in knownValues:
                         if knownValues[value] is int:
                             if value in glb.dates:
-                                el.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="date" style="{styleInp}">'
+                                HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'date', _style=f'{styleInp}', _custom=f'name="{value}"')
                                 continue
 
                         elif knownValues[value] is bool:
-                            el.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="checkbox" style="{styleCbx}" checked>'
+                            HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'{styleCbx}', _custom=f'name="{value}" checked')
                             continue
 
                         elif knownValues[value] is list:
@@ -645,7 +640,7 @@ def pageSub(args, extraData: dict = {}):
                                 try:
                                     allData = ws.msgDict()[glb.svcoms["main"]][f'/{value}.json']
                                 except ConnectionError:
-                                    func.connectionError()
+                                    f.connectionError()
                                     return None
                             else:
                                 allData = glb.optionsList
@@ -653,41 +648,39 @@ def pageSub(args, extraData: dict = {}):
                             optionsHtml = f''
 
                             for option in allData:
-                                optionsHtml += f'<option value="{option}">{option}</option>'
+                                optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
 
-                            el.innerHTML += f'<select class="SubPage_page_new" name="{value}_{len(allData)}" size="1" multiple>{optionsHtml}</select>'
+                            HTML.add(f'select', f'SubPage_page_row{rowC}', _nest=f'{optionsHtml}', _class=f'SubPage_page_new', _custom=f'name="{value}_{len(allData)}" size="1" multiple')
                             continue
 
-                    el.innerHTML += f'<input class="SubPage_page_new" name="{value}" type="text" style="{styleInp}">'
+                    HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
 
-                el.innerHTML += f'<button id="SubPage_page_add" type="submit" style="padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;">Add</button>'
+                HTML.add(f'button', f'SubPage_page_row{rowC}', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
 
-                document.getElementById(f'SubPage_page_add').style.width = f'{110 / (colC * 2)}%'
+                CSS.setStyle(f'SubPage_page_add', f'width', f'{110 / (colC * 2)}%')
 
                 break
 
-            el = document.getElementsByClassName(f'SubPage_page_new')
-
-            for i in range(0, el.length):
-                name = el.item(i).name.split("_")[0]
-                localName = el.item(i).localName
+            for item in HTML.get(f'SubPage_page_new', isClass=True):
+                name = item.name.split("_")[0]
+                localName = item.localName
 
                 if name in glb.disabledInputs:
-                    el.item(i).disabled = True
+                    item.disabled = True
 
                 if localName == "select" and name in glb.halfView:
-                    el.item(i).style.width = f'{(110 / (colC * 2)) + 0.645}%'
+                    item.style.width = f'{(110 / (colC * 2)) + 0.645}%'
                     continue
 
                 elif localName == "select":
-                    el.item(i).style.width = f'{(110 / colC) + 0.645}%'
+                    item.style.width = f'{(110 / colC) + 0.645}%'
                     continue
 
                 elif name in glb.halfView:
-                    el.item(i).style.width = f'{110 / (colC * 2)}%'
+                    item.style.width = f'{110 / (colC * 2)}%'
                     continue
 
-                el.item(i).style.width = f'{110 / colC}%'
+                item.style.width = f'{110 / colC}%'
 
             return rowC
 
@@ -701,8 +694,8 @@ def pageSub(args, extraData: dict = {}):
                 if glb.hideInactive and not data[record]["Active"]:
                     continue
 
-                el, rowC = newRow(rowC)
-                el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{mainValue}" style="{styleP}">{record}</p>'
+                rowC = newRow(rowC)
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{record}', _id=f'{record}_{mainValue}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -711,65 +704,62 @@ def pageSub(args, extraData: dict = {}):
                     elif value in knownValues:
                         if knownValues[value] is int:
                             if value in glb.dates:
-                                el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}</p>'
+                                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
                                 continue
 
-                            el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">{data[record][value]}</p>'
+                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
                             continue
 
                         elif knownValues[value] is bool:
                             if data[record][value]:
-                                el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">Yes</p>'
+                                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Yes', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
                                 continue
 
-                            el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">No</p>'
+                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'No', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
                             continue
 
                         elif knownValues[value] is list:
-                            el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">{", ".join(data[record][value])}</p>'
+                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{", ".join(data[record][value])}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
                             continue
 
-                    el.innerHTML += f'<p class="SubPage_page_records" id="{record}_{value}" style="{styleP}">{data[record][value]}</p>'
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                el.innerHTML += f'<button id="SubPage_page_del_{record}" type="button" style="padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;">Del</button>'
+                HTML.add(f'button', f'SubPage_page_row{rowC}', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
                 buttons.append(f'SubPage_page_del_{record}')
 
-            el = document.getElementsByClassName(f'SubPage_page_records')
-
-            for i in range(0, el.length):
-                if el.item(i).id.split("_")[1] in glb.halfView:
-                    el.item(i).style.width = f'{110 / (colC * 2)}%'
+            for item in HTML.get(f'SubPage_page_records', isClass=True):
+                if item.id.split("_")[1] in glb.halfView:
+                    item.style.width = f'{110 / (colC * 2)}%'
                     continue
 
-                el.item(i).style.width = f'{110 / colC}%'
+                item.style.width = f'{110 / colC}%'
 
             return rowC, buttons
 
-        rowC, colC = addHeader(data, 0, 0)
+        rowC, colC = addHeader(data, -1, 0)
         rowC = addInputRow(data, rowC, colC)
         rowC, buttons = addRows(data, rowC, colC)
 
-        func.addEvent(f'SubPage_page_add', addRecord)
+        f.addEvent(f'SubPage_page_add', addRecord)
 
         for button in buttons:
-            el = document.getElementById(button)
-            el.style.width = f'{110 / (colC * 2)}%'
+            CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
 
-            func.addEvent(button, delRecord)
+            f.addEvent(button, delRecord)
 
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
-        els = document.getElementsByClassName(f'SubPage_page_records')
 
-        for i in range(0, els.length):
-            if not els.item(i).id.split("_")[1] == mainValue:
-                func.addEvent(els.item(i), editRecord, "dblclick", True)
+        for item in HTML.get(f'SubPage_page_records', isClass=True):
+            if not item.id.split("_")[1] == mainValue:
+                f.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addMinimal(data):
         def addHeader(rowC):
-            el, rowC = newRow(0)
+            rowC = newRow(-1)
+            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
-            for i, header in enumerate(["Key", "Value"]):
-                el.innerHTML += f'<p class="SubPage_page_keys" style="margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F;"><b>{header}</b></p>'
+            for header in ["Key", "Value"]:
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
             return rowC
 
@@ -778,85 +768,99 @@ def pageSub(args, extraData: dict = {}):
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
             for key in data:
-                el, rowC = newRow(rowC)
-                el.innerHTML += f'<p class="SubPage_page_keys" style="{styleP}">{key}</p>'
+                rowC = newRow(rowC)
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                 value = data[key]
 
                 if knownValues[key] is int:
                     if key in glb.dates:
-                        el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">{datetime.fromtimestamp(value).strftime("%d %b %y")}</p>'
+                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{datetime.fromtimestamp(value).strftime("%d %b %y")}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                         continue
 
-                    el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">{value}</p>'
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                     continue
 
                 elif knownValues[key] is bool:
                     if value:
-                        el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">Yes</p>'
+                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                         continue
 
-                    el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">No</p>'
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                     continue
 
                 elif knownValues[key] is list:
-                    el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">{", ".join(value)}</p>'
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                     continue
 
-                el.innerHTML += f'<p class="SubPage_page_keys" id="{key}" style="{styleP}">{value}</p>'
+                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
             return rowC
 
         rowC = addHeader(0)
         rowC = addRows(data, rowC)
 
-        els = document.getElementsByClassName(f'SubPage_page_keys')
+        for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            item.style.width = "50%"
 
-        for i in range(0, els.length):
-            els.item(i).style.width = "50%"
-
-        els = document.getElementsByClassName(f'SubPage_page_keys')
-
-        for i in range(0, els.length):
-            if els.item(i).id != "":
-                func.addEvent(els.item(i), editRecord, "dblclick", True)
+        for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            if item.id != "":
+                f.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addLogs(data):
-        endTime = (datetime.now() + timedelta(seconds=10)).timestamp()
+        def loadLogs(args=None):
+            rowC = glb.logsLoaded
+            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
-        el, rowC = newRow(0)
-        sizeDict = {"col0": "10%", "col1": "10%", "col2": "72.5%", "col3": "7.5%"}
-        styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
+            cutInt = None
+            if rowC > 0:
+                cutInt = -rowC
 
-        for i, header in enumerate(["Date/ Time", "IP/ Port", "Command", "Status"]):
-            el.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}" style="margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F;"><b>{header}</b></p>'
+            endTime = (datetime.now() + timedelta(seconds=2 + (rowC / 100))).timestamp()
 
-        for line in reversed(data.split("\n")):
-            if line == "":
-                continue
-
-            el, rowC = newRow(rowC)
-            splitLine = line.split("%S%")
-
-            for i, item in enumerate(splitLine):
-                el.innerHTML += f'<p class="SubPage_page_lines" id="SubPage_page_row{rowC - 1}_col{i}" style="{styleP}">{item}</p>'
-
-            if endTime < datetime.now().timestamp():
-                window.alert(f'Timmed out loading logs!\nLoaded logs: {rowC}')
-                break
-
-        els = document.getElementsByClassName(f'SubPage_page_lines')
-
-        for i in range(0, els.length):
-            els.item(i).style.width = sizeDict[els.item(i).id.split("_")[-1]]
-
-            if els.item(i).id.split("_")[-1] == "col2":
-                if els.item(i).id == "SubPage_page_row0_col2":
+            for line in reversed(data.split("\n")[:cutInt]):
+                if line == "":
                     continue
 
-                els.item(i).style.textAlign = "left"
+                rowC = newRow(rowC)
+                splitLine = line.split("%S%")
 
-    el = document.getElementById(f'SubPage_page')
-    el.innerHTML = f''
+                for i, item in enumerate(splitLine):
+                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{item}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP};')
+                    pass
+
+                if endTime < datetime.now().timestamp():
+                    break
+
+            glb.logsLoaded = rowC
+
+            for item in HTML.get(f'SubPage_page_lines', isClass=True):
+                item.classList.remove(f'SubPage_page_lines')
+                item.style.width = sizeDict[item.id.split("_")[-1]]
+
+                if item.id.split("_")[-1] == "col2":
+                    if item.id == "SubPage_page_row0_col2":
+                        continue
+
+                    item.style.textAlign = "left"
+
+            if not HTML.get(f'SubPage_page_buttons') is None:
+                HTML.remove(f'SubPage_page_buttons')
+
+            btn = HTML.add(f'button', _nest=f'Load More', _id=f'SubPage_page_buttons_loadMoreLogs', _type=f'button', _style=f'width: 75%; height: 40px; padding: 1px 3px; font-size: 100%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+            HTML.add(f'div', f'SubPage_page', _nest=f'{btn}', _id=f'SubPage_page_buttons', _align=f'center', _style=f'padding-top: 15px; display: flex; justify-content: center;')
+
+            f.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
+
+        rowC = newRow(-1)
+        sizeDict = {"col0": "10%", "col1": "10%", "col2": "72.5%", "col3": "7.5%"}
+        styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
+
+        for i, header in enumerate(["Date/ Time", "IP/ Port", "Command", "Status"]):
+            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP}')
+
+        loadLogs()
+
+    HTML.clear(f'SubPage_page')
 
     data = setup(args, extraData)
 
@@ -864,6 +868,7 @@ def pageSub(args, extraData: dict = {}):
         return None
 
     elif type(data) is str:
+        glb.logsLoaded = 0
         addLogs(data)
         return None
 
@@ -876,56 +881,50 @@ def pageSub(args, extraData: dict = {}):
 
 
 def main(args=None, sub=None):
-    el = document.getElementById(f'SubPage')
-    el.innerHTML = f'<div id="SubPage_nav" align="center" style="width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;"></div>'
-    el.innerHTML += f'<div id="SubPage_page" align="center" style="margin: 10px 10px 10px 0px;"></div>'
+    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
 
-    el = document.getElementById(f'SubPage_nav')
-    el.innerHTML += f'<div id="SubPage_nav_main" align="left" style="width: 60%"></div>'
-    el.innerHTML += f'<div id="SubPage_nav_options" align="right" style="width: 40%"></div>'
-
-    el = document.getElementById(f'SubPage_nav_main')
+    HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%;"')
+    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%;')
 
     try:
         data = ws.msgDict()[glb.svcoms["main"]]
     except ConnectionError:
-        func.connectionError()
+        f.connectionError()
         return None
 
     foundFile = False
 
     for file in data:
         if file in glb.knownFiles:
-            el.innerHTML += f'<button id="SubPage_nav_main_{file.replace("/", "").replace(".json", "")}" type="button" style="border: 2px solid #44F; font-size: 75%;">{file.replace("/", "").replace(".json", "").replace(".dmp", "")}</button>'
+            fileName = f'{file.replace("/", "").replace(".json", "")}'
+            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".dmp", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'border: 2px solid #44F; font-size: 75%;')
+
             foundFile = True
 
     if not foundFile:
-        el = document.getElementById(f'SubPage_nav')
-        el.innerHTML = f'<div id="SubPage_nav_main" align="center" style="width: 100%"></div>'
-
-        el = document.getElementById(f'SubPage_nav_main')
-        el.innerHTML += f'<h2 style="margin: 10px auto; text-align: center;">Unauthorized!</h2>'
-
-        document.getElementById(f'page_portal_{glb.mainPage}').disabled = True
+        HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'center', _style=f'width: 100%;')
+        HTML.add(f'h2', f'SubPage_nav_main', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
+        HTML.enable(f'page_portal_{glb.mainPage}', False)
 
         return None
 
     glb.hideInactive = True
     glb.compactView = True
 
-    el = document.getElementById(f'SubPage_nav_options')
-    el.innerHTML += f'<button id="SubPage_nav_options_bulkadd" type="button" align=right style="border: 2px solid #44F; font-size: 75%;" disabled>Bulk Add</button>'
-    el.innerHTML += f'<button id="SubPage_nav_options_active" type="button" align=right style="border: 2px solid #44F; font-size: 75%;" disabled>Inactive</button>'
-    el.innerHTML += f'<button id="SubPage_nav_options_compact" type="button" align=right style="border: 2px solid #44F; font-size: 75%;" disabled>Expand</button>'
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
 
     for file in data:
         if file in glb.knownFiles:
-            func.addEvent(f'SubPage_nav_main_{file.replace("/", "").replace(".json", "")}', pageSub)
-            func.addEvent(f'SubPage_nav_main_{file.replace("/", "").replace(".json", "")}', getData, f'mousedown')
+            fileName = f'{file.replace("/", "").replace(".json", "")}'
+            f.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
+            f.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
 
-    func.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
-    func.addEvent(f'SubPage_nav_options_active', pageSub)
-    func.addEvent(f'SubPage_nav_options_compact', pageSub)
+    f.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
+    f.addEvent(f'SubPage_nav_options_active', pageSub)
+    f.addEvent(f'SubPage_nav_options_compact', pageSub)
 
     if sub is not None:
         glb.currentSub = sub

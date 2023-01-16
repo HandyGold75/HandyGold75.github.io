@@ -1,9 +1,10 @@
-import mod.func as func
+import mod.HTML as HTML
+import mod.CSS as CSS
+import mod.functions as f
 import pages.home as home
 import pages.links as links
 import pages.portal as portal
 import pages.contact as contact
-from js import document, window, console
 
 
 class glb:
@@ -11,79 +12,72 @@ class glb:
 
 
 for item in ["token", "page_index", "page_portal"]:
-    if window.localStorage.getItem(item) is None:
-        window.localStorage.setItem(item, "")
+    if f.cache(item) is None:
+        f.cache(item, f'')
 
-if window.localStorage.getItem("page_index") == "":
-    window.localStorage.setItem("page_index", "Home")
+if f.cache(f'page_index') == "":
+    f.cache(f'page_index', f'Home')
 
 
 def general():
-    document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
+    f.setTitle(f'HandyGold75 - {f.cache("page_index")}')
 
-    el = document.getElementById(f'body')
-    el.innerHTML = f'<div id="main" style="background: #111; max-width: 1080px; min-width: 375px; margin: 0px auto;"></div>'
+    HTML.set(f'div', f'body', _id=f'main', _style=f'background: #111; max-width: 1080px; min-width: 375px; margin: 0px auto;')
 
-    el = document.getElementById(f'main')
-    el.innerHTML = f''
-    el.innerHTML += f'<div id="nav" style="background: #222; font-size: 150%; padding: 5px; margin: 15px auto; border-radius: 10px;"></div>'
-    el.innerHTML += f'<div id="page" style="background: #222; padding: 5px; margin: 15px auto; border-radius: 10px;"></div>'
-    el.innerHTML += f'<div id="footer" style="font-size: 75%; padding: 5px; margin: 15px auto; background: #55F; color: #111; display: flex; border-radius: 10px;"></div>'
+    HTML.set(f'div', f'main', _id=f'nav', _style=f'background: #222; font-size: 150%; padding: 5px; margin: 15px auto; border-radius: 10px;')
+    HTML.add(f'div', f'main', _id=f'page', _style=f'background: #222; padding: 5px; margin: 15px auto; border-radius: 10px;')
+    HTML.add(f'div', f'main', _id=f'footer', _style=f'font-size: 75%; padding: 5px; margin: 15px auto; background: #55F; color: #111; display: flex; border-radius: 10px;')
 
 
 def navigation():
-    el = document.getElementById(f'nav')
-    el.innerHTML += f'<img src="docs/assets/;D.png" id="nav_logo" align="left" style="width: 12%; min-width: 78px; position: relative; user-select:none;">'
-    el.innerHTML += f'<h1 id="nav_title" align="center" style="font-size: 50%; width: 80%; padding: 5px; margin: 0px auto; user-select:none;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
-    el.innerHTML += f'<div id="nav_buttons" align="center" style="width: 80%; padding: 4px; margin: 0px auto;"></div>'
-
-    el = document.getElementById(f'nav_buttons')
+    HTML.add(f'img', f'nav', _id=f'nav_logo', _align=f'left', _style=f'width: 12%; min-width: 78px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
+    HTML.add(f'h1', f'nav', _nest=f'HandyGold75 - {f.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'font-size: 50%; width: 80%; padding: 5px; margin: 0px auto; user-select: none;')
+    HTML.add(f'div', f'nav', _id=f'nav_buttons', _align=f'center', _style=f'width: 80%; padding: 4px; margin: 0px auto;')
 
     for page in glb.allPages:
-        el.innerHTML += f'<button id="page_{page}" type="button">{page}</button>'
+        HTML.add(f'button', f'nav_buttons', _nest=f'{page}', _id=f'page_{page}', _type=f'button')
 
     for page in glb.allPages:
-        func.addEvent(f'page_{page}', pageIndex)
+        f.addEvent(f'page_{page}', pageIndex)
 
 
 def pageIndex(args=None, page=None):
-    el = document.getElementById(f'page')
-    el.innerHTML = f''
+    HTML.clear(f'page')
 
     if page in glb.allPages:
-        window.localStorage.setItem("page_index", page)
+        f.cache(f'page_index', page)
 
     elif args.target.id.split(f'_')[-1] in glb.allPages:
-        window.localStorage.setItem("page_index", args.target.id.split(f'_')[-1])
-        window.localStorage.setItem("page_portal", "")
+        f.cache(f'page_index', args.target.id.split(f'_')[-1])
+        f.cache(f'page_portal', f'')
 
     else:
         return None
 
-    document.title = f'HandyGold75 - {window.localStorage.getItem("page_index")}'
+    f.setTitle(f'HandyGold75 - {f.cache("page_index")}')
 
-    el = document.getElementById(f'nav_title')
-    el.innerHTML = f'<h1 style="user-select:none;">HandyGold75 - {window.localStorage.getItem("page_index")}</h1>'
+    HTML.set(f'h1', f'nav_title', _nest=f'HandyGold75 - {f.cache("page_index")}', _style=f'user-select: none;')
 
-    glb.allPages[window.localStorage.getItem("page_index")]()
+    glb.allPages[f.cache(f'page_index')]()
 
 
 def footer():
     def toTop(*args):
-        document.getElementById(f'body').scrollIntoView()
+        CSS.get(f'body', f'scrollIntoView')()
 
-    el = document.getElementById(f'footer')
-    el.innerHTML = f''
-    el.innerHTML += f'<div id="footer_note" style="width: 50%; padding: 4px; margin: 0px auto;"><p style="padding: 3px; margin: 0px auto; user-select:none;"><b>HandyGold75 - 2022</b></p></div>'
-    el.innerHTML += f'<div id="footer_buttons" align="right" style="width: 50%; padding: 3px; margin: 0px auto;"><button id="footer_toTop" type="button">Back to top</button></div>'
+    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'padding: 3px; margin: 0px auto; user-select: none; font-weight: bold;')
+    HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 4px; margin: 0px auto;')
 
-    func.addEvent(f'footer_toTop', toTop)
+    but = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button')
+    HTML.add(f'div', f'footer', _nest=but, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
+
+    f.addEvent(f'footer_toTop', toTop)
 
 
 def main():
     general()
     navigation()
-    pageIndex(page=window.localStorage.getItem("page_index"))
+    pageIndex(page=f.cache(f'page_index'))
     footer()
 
 
