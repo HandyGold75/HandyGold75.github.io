@@ -570,15 +570,19 @@ def pageSub(args, extraData: dict = {}):
         return rowC
 
     def addFull(data):
-        def addHeader(data, rowC, colC):
+        def addHeader(data):
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
+            rowC = -1
+            colC = 0
+
+            HTMLrows = f''
             for record in data:
-                rowC = newRow(rowC)
+                rowC += 1
                 colC += 0.5
 
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+                HTMLcols = HTML.add(f'p', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
 
                 if mainValue in glb.halfView:
                     colC += 0.5
@@ -589,26 +593,30 @@ def pageSub(args, extraData: dict = {}):
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
                         continue
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+                    HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
 
                     if value in glb.halfView:
                         colC += 0.5
                         continue
-
                     colC += 1
 
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
-
+                HTMLcols += HTML.add(f'p', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
                 colC += 0.5
 
-                for item in HTML.get(f'SubPage_page_header', isClass=True):
-                    if item.id.split("_")[1] in glb.halfView:
-                        item.style.width = f'{110 / (colC * 2)}%'
-                        continue
+                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
 
-                    item.style.width = f'{110 / colC}%'
+                break
 
-                return rowC, colC
+            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
+
+            for item in HTML.get(f'SubPage_page_header', isClass=True):
+                if item.id.split("_")[1] in glb.halfView:
+                    item.style.width = f'{110 / (colC * 2)}%'
+                    continue
+
+                item.style.width = f'{110 / colC}%'
+
+            return rowC, colC
 
         def addInputRow(data, rowC, colC):
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
@@ -617,9 +625,10 @@ def pageSub(args, extraData: dict = {}):
             styleInp = f'margin: 1px -1px; padding: 0px 1px 3px 1px; border-radius: 0px;; border: 2px solid #44F;'
             styleCbx = f'margin: 5px 2px; padding: 0px 0px;'
 
+            HTMLrows = f''
             for record in data:
-                rowC = newRow(rowC, form=True)
-                HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{mainValue}"')
+                rowC += 1
+                HTMLcols = HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{mainValue}"')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -628,12 +637,12 @@ def pageSub(args, extraData: dict = {}):
                     elif value in knownValues:
                         if knownValues[value] is int:
                             if value in glb.dates:
-                                HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'date', _style=f'{styleInp}', _custom=f'name="{value}"')
-                                continue
+                                HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'date', _style=f'{styleInp}', _custom=f'name="{value}"')
+                            else:
+                                HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
 
                         elif knownValues[value] is bool:
-                            HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'{styleCbx}', _custom=f'name="{value}" checked')
-                            continue
+                            HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'{styleCbx}', _custom=f'name="{value}" checked')
 
                         elif knownValues[value] is list:
                             if glb.optionsList == []:
@@ -642,6 +651,7 @@ def pageSub(args, extraData: dict = {}):
                                 except ConnectionError:
                                     f.connectionError()
                                     return None
+
                             else:
                                 allData = glb.optionsList
 
@@ -650,16 +660,21 @@ def pageSub(args, extraData: dict = {}):
                             for option in allData:
                                 optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
 
-                            HTML.add(f'select', f'SubPage_page_row{rowC}', _nest=f'{optionsHtml}', _class=f'SubPage_page_new', _custom=f'name="{value}_{len(allData)}" size="1" multiple')
+                            HTMLcols += HTML.add(f'select', _nest=f'{optionsHtml}', _class=f'SubPage_page_new', _custom=f'name="{value}_{len(allData)}" size="1" multiple')
+
+                        else:
+                            HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
                             continue
 
-                    HTML.add(f'input', f'SubPage_page_row{rowC}', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
+                    else:
+                        HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
 
-                HTML.add(f'button', f'SubPage_page_row{rowC}', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
-
-                CSS.setStyle(f'SubPage_page_add', f'width', f'{110 / (colC * 2)}%')
+                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'width: {110 / (colC * 2)}%; padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+                HTMLrows += HTML.add(f'form', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
 
                 break
+
+            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
 
             for item in HTML.get(f'SubPage_page_new', isClass=True):
                 name = item.name.split("_")[0]
@@ -690,12 +705,13 @@ def pageSub(args, extraData: dict = {}):
             buttons = []
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
+            HTMLrows = f''
             for record in data:
                 if glb.hideInactive and not data[record]["Active"]:
                     continue
 
-                rowC = newRow(rowC)
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{record}', _id=f'{record}_{mainValue}', _class=f'SubPage_page_records', _style=f'{styleP}')
+                rowC += 1
+                HTMLcols = HTML.add(f'p', _nest=f'{record}', _id=f'{record}_{mainValue}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -704,28 +720,29 @@ def pageSub(args, extraData: dict = {}):
                     elif value in knownValues:
                         if knownValues[value] is int:
                             if value in glb.dates:
-                                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                                continue
+                                HTMLcols += HTML.add(f'p', _nest=f'{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                            continue
+                            else:
+                                HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
                         elif knownValues[value] is bool:
                             if data[record][value]:
-                                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Yes', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                                continue
-
-                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'No', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                            continue
+                                HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
+                            else:
+                                HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
                         elif knownValues[value] is list:
-                            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{", ".join(data[record][value])}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                            continue
+                            HTMLcols += HTML.add(f'p', _nest=f'{", ".join(data[record][value])}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
+                        else:
+                            HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                HTML.add(f'button', f'SubPage_page_row{rowC}', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
                 buttons.append(f'SubPage_page_del_{record}')
+
+                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+
+            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
 
             for item in HTML.get(f'SubPage_page_records', isClass=True):
                 if item.id.split("_")[1] in glb.halfView:
@@ -736,7 +753,7 @@ def pageSub(args, extraData: dict = {}):
 
             return rowC, buttons
 
-        rowC, colC = addHeader(data, -1, 0)
+        rowC, colC = addHeader(data)
         rowC = addInputRow(data, rowC, colC)
         rowC, buttons = addRows(data, rowC, colC)
 
@@ -754,8 +771,10 @@ def pageSub(args, extraData: dict = {}):
                 f.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addMinimal(data):
-        def addHeader(rowC):
-            rowC = newRow(-1)
+        def addHeader():
+            rowC = 0
+            HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
             for header in ["Key", "Value"]:
@@ -767,36 +786,38 @@ def pageSub(args, extraData: dict = {}):
             knownValues = glb.knownFiles[f'/{glb.currentSub}.json']
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
+            HTMLrows = f''
             for key in data:
-                rowC = newRow(rowC)
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                rowC += 1
+                HTMLcols = HTML.add(f'p', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
                 value = data[key]
 
                 if knownValues[key] is int:
                     if key in glb.dates:
-                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{datetime.fromtimestamp(value).strftime("%d %b %y")}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                        continue
+                        HTMLcols += HTML.add(f'p', _nest=f'{datetime.fromtimestamp(value).strftime("%d %b %y")}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                    continue
+                    else:
+                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
                 elif knownValues[key] is bool:
                     if value:
-                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                        continue
+                        HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                    continue
+                    HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
                 elif knownValues[key] is list:
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                    continue
+                    HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                else:
+                    HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+
+                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+
+            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
 
             return rowC
 
-        rowC = addHeader(0)
+        rowC = addHeader()
         rowC = addRows(data, rowC)
 
         for item in HTML.get(f'SubPage_page_keys', isClass=True):
@@ -809,27 +830,26 @@ def pageSub(args, extraData: dict = {}):
     def addLogs(data):
         def loadLogs(args=None):
             rowC = glb.logsLoaded
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
+            styleP = f'margin: -1px ; padding: 3px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
             cutInt = None
             if rowC > 0:
                 cutInt = -rowC
 
-            endTime = (datetime.now() + timedelta(seconds=2 + (rowC / 100))).timestamp()
-
+            HTMLrows = f''
             for line in reversed(data.split("\n")[:cutInt]):
                 if line == "":
                     continue
 
-                rowC = newRow(rowC)
-                splitLine = line.split("%S%")
-
-                for i, item in enumerate(splitLine):
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{item}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP};')
+                rowC += 1
+                HTMLcols = f''
+                for i, item in enumerate(line.split("%S%")):
+                    HTMLcols += HTML.add(f'p', _nest=f'{item}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP};')
                     pass
 
-                if endTime < datetime.now().timestamp():
-                    break
+                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+
+            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
 
             glb.logsLoaded = rowC
 
@@ -851,8 +871,10 @@ def pageSub(args, extraData: dict = {}):
 
             f.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
 
-        rowC = newRow(-1)
-        sizeDict = {"col0": "10%", "col1": "10%", "col2": "72.5%", "col3": "7.5%"}
+        rowC = 0
+        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+
+        sizeDict = {"col0": "10%", "col1": "12.5%", "col2": "70%", "col3": "7.5%"}
         styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
         for i, header in enumerate(["Date/ Time", "IP/ Port", "Command", "Status"]):
