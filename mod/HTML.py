@@ -94,6 +94,9 @@ def set(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id:
     return htmlStr
 
 
+def addRaw(id: str, HTML: str):
+    document.getElementById(id).innerHTML += HTML
+
 def enable(id: str, state: bool = True):
     document.getElementById(id).disabled = not state
 
