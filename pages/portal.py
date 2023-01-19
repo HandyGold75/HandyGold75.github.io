@@ -1,4 +1,5 @@
 import mod.HTML as HTML
+import mod.CSS as CSS
 import mod.ws as ws
 import mod.functions as f
 import subs.portal_sheets as ps
@@ -35,7 +36,7 @@ def pagePortal(args=None, page=None):
     f.setTitle(f'HandyGold75 - {f.cache("page_index")} - {f.cache("page_portal")}')
 
     HTML.set(f'div', f'page_portal_body', _id=f'SubPage', _align=f'left')
-    HTML.set(f'h1', f'nav_title', _nest=f'HandyGold75 - {f.cache("page_index")} - {f.cache("page_portal")}')
+    HTML.setRaw(f'nav_title', f'HandyGold75 - {f.cache("page_index")} - {f.cache("page_portal")}')
 
     glb.allSubs[f.cache("page_portal")]()
 
@@ -147,10 +148,13 @@ def main():
 
     for page in glb.allSubs:
         HTML.set(f'div', f'page_portal_body', _id=f'page_portal_body_logout', _align=f'center', _style=f'height: 100%;')
-        HTML.add(f'button', f'page_portal_body_logout', _nest=f'Logout', _id=f'page_portal_body_logout_submit', _type=f'button', _style=f'position: relative; top: 45%;')
+        HTML.add(f'button', f'page_portal_body_logout', _nest=f'Logout', _id=f'page_portal_body_logout_submit', _type=f'button', _style=f'buttonBig %% position: relative; top: 45%;')
 
         f.addEvent(f'page_portal_{page}', pagePortal)
         f.addEvent(f'page_portal_{page}', glb.allInvokes[page], f'mousedown')
         f.addEvent(f'page_portal_body_logout_submit', logout)
+
+        CSS.onHover(f'page_portal_{page}', f'buttonHover')
+        CSS.onHover(f'page_portal_body_logout_submit', f'buttonHover')
 
         HTML.enable(f'page_portal_{page}', True)
