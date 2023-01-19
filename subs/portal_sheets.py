@@ -321,7 +321,7 @@ def editRecord(args):
         width = el.style.width
 
         if el.localName == "select":
-            width = f'{float(width.replace("%", "")) - 0.645}%'
+            width = f'{float(width.replace("%", "")) - 0.5}%'
 
         if data == "":
             data = "%20"
@@ -449,7 +449,7 @@ def editRecord(args):
     el.style.width = width
 
     if el.localName == "select":
-        el.style.width = f'{float(width.replace("%", "")) + 0.645}%'
+        el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
 
     f.addEvent(el.id, submit, "keyup")
 
@@ -559,16 +559,6 @@ def pageSub(args, extraData: dict = {}):
 
         return data
 
-    def newRow(rowC, form: bool = False):
-        rowC += 1
-
-        if form:
-            HTML.add(f'form', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
-        else:
-            HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-        return rowC
-
     def addFull(data):
         def addHeader(data):
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
@@ -669,7 +659,7 @@ def pageSub(args, extraData: dict = {}):
                     else:
                         HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
 
-                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'width: {110 / (colC * 2)}%; padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'buttonSmall %% width: {110 / (colC * 2)}%;')
                 HTMLrows += HTML.add(f'form', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
 
                 break
@@ -684,11 +674,11 @@ def pageSub(args, extraData: dict = {}):
                     item.disabled = True
 
                 if localName == "select" and name in glb.halfView:
-                    item.style.width = f'{(110 / (colC * 2)) + 0.645}%'
+                    item.style.width = f'{(110 / (colC * 2)) + 0.5}%'
                     continue
 
                 elif localName == "select":
-                    item.style.width = f'{(110 / colC) + 0.645}%'
+                    item.style.width = f'{(110 / colC) + 0.5}%'
                     continue
 
                 elif name in glb.halfView:
@@ -737,7 +727,7 @@ def pageSub(args, extraData: dict = {}):
                         else:
                             HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'padding: 1px 3px; font-size: 75%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'buttonSmall %% padding: 1px 3px;')
                 buttons.append(f'SubPage_page_del_{record}')
 
                 HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
@@ -758,11 +748,13 @@ def pageSub(args, extraData: dict = {}):
         rowC, buttons = addRows(data, rowC, colC)
 
         f.addEvent(f'SubPage_page_add', addRecord)
+        CSS.onHover(f'SubPage_page_add', f'buttonHover')
 
         for button in buttons:
             CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
 
             f.addEvent(button, delRecord)
+            CSS.onHover(button, f'buttonHover')
 
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
 
@@ -866,10 +858,11 @@ def pageSub(args, extraData: dict = {}):
             if not HTML.get(f'SubPage_page_buttons') is None:
                 HTML.remove(f'SubPage_page_buttons')
 
-            btn = HTML.add(f'button', _nest=f'Load More', _id=f'SubPage_page_buttons_loadMoreLogs', _type=f'button', _style=f'width: 75%; height: 40px; padding: 1px 3px; font-size: 100%; word-wrap: break-word; background: #333; border: 2px solid #44F;')
+            btn = HTML.add(f'button', _nest=f'Load More', _id=f'SubPage_page_buttons_loadMoreLogs', _type=f'button', _style=f'buttonMedium %% width: 75%; height: 40px;')
             HTML.add(f'div', f'SubPage_page', _nest=f'{btn}', _id=f'SubPage_page_buttons', _align=f'center', _style=f'padding-top: 15px; display: flex; justify-content: center;')
 
             f.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
+            CSS.onHover(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover')
 
         rowC = 0
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
@@ -920,7 +913,7 @@ def main(args=None, sub=None):
     for file in data:
         if file in glb.knownFiles:
             fileName = f'{file.replace("/", "").replace(".json", "")}'
-            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".dmp", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'border: 2px solid #44F; font-size: 75%;')
+            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".dmp", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
 
             foundFile = True
 
@@ -934,9 +927,9 @@ def main(args=None, sub=None):
     glb.hideInactive = True
     glb.compactView = True
 
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'border: 2px solid #44F; font-size: 75%;', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
 
     for file in data:
         if file in glb.knownFiles:
@@ -944,9 +937,15 @@ def main(args=None, sub=None):
             f.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
             f.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
 
+            CSS.onHover(f'SubPage_nav_main_{fileName}', f'buttonHover')
+
     f.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
     f.addEvent(f'SubPage_nav_options_active', pageSub)
     f.addEvent(f'SubPage_nav_options_compact', pageSub)
+
+    CSS.onHover(f'SubPage_nav_options_bulkadd', f'buttonHover')
+    CSS.onHover(f'SubPage_nav_options_active', f'buttonHover')
+    CSS.onHover(f'SubPage_nav_options_compact', f'buttonHover')
 
     if sub is not None:
         glb.currentSub = sub

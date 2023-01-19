@@ -6,7 +6,7 @@ class glb:
     popupTypes = {"alert": window.alert, "prompt": window.prompt, "confirm": window.confirm}
 
 
-def log(msg):
+def log(msg: str = f''):
     console.log(msg)
 
 
@@ -16,13 +16,11 @@ def clearEvents(id):
 
 
 def addEvent(id: str, func, action: str = "click", isClass: bool = False):
-    proxy = create_proxy(func)
-
     if isClass:
-        id.addEventListener(action, proxy)
+        id.addEventListener(action, create_proxy(func))
         return None
 
-    document.getElementById(id).addEventListener(action, proxy)
+    document.getElementById(id).addEventListener(action, create_proxy(func))
 
 
 def cache(key: str, value: any = None):
