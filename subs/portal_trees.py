@@ -1,4 +1,5 @@
 import mod.HTML as HTML
+import mod.CSS as CSS
 import mod.ws as ws
 import mod.functions as f
 from datetime import datetime, timedelta
@@ -66,11 +67,6 @@ def pageSub(args):
                 data[" "][value] = glb.knownTree[glb.currentSub][mainValue][value]()
 
         return data
-
-    def addRow(rowC):
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-        return HTML.get(f'SubPage_page_row{rowC}'), rowC + 1
 
     def addTree(data):
         def recursive(data, rowC, colC, layer, prtSpc={}):
@@ -194,7 +190,7 @@ def main(args=None, sub=None):
     for file in data:
         if file in glb.knownTree:
             fileName = f'{file.replace("/", "").replace(".json", "").replace(".dmp", "")}'
-            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'border: 2px solid #44F; font-size: 75%;')
+            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
             foundFile = True
 
     if not foundFile:
@@ -208,6 +204,7 @@ def main(args=None, sub=None):
         if tree in glb.knownTree:
             f.addEvent(f'SubPage_nav_main_{tree}', pageSub)
             f.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
+            CSS.onHover(f'SubPage_nav_main_{tree}', f'buttonHover')
 
     if sub is not None:
         glb.currentSub = sub

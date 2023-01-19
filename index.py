@@ -22,23 +22,24 @@ if f.cache(f'page_index') == "":
 def general():
     f.setTitle(f'HandyGold75 - {f.cache("page_index")}')
 
-    HTML.set(f'div', f'body', _id=f'main', _style=f'background: #111; max-width: 1080px; min-width: 375px; margin: 0px auto;')
+    HTML.set(f'div', f'body', _id=f'main', _style=f'')
 
-    HTML.set(f'div', f'main', _id=f'nav', _style=f'background: #222; font-size: 150%; padding: 5px; margin: 15px auto; border-radius: 10px;')
-    HTML.add(f'div', f'main', _id=f'page', _style=f'background: #222; padding: 5px; margin: 15px auto; border-radius: 10px;')
-    HTML.add(f'div', f'main', _id=f'footer', _style=f'font-size: 75%; padding: 5px; margin: 15px auto; background: #55F; color: #111; display: flex; border-radius: 10px;')
+    HTML.set(f'div', f'main', _id=f'nav', _style=f'divNormal')
+    HTML.add(f'div', f'main', _id=f'page', _style=f'divNormal')
+    HTML.add(f'div', f'main', _id=f'footer', _style=f'divAlt %% flex')
 
 
 def navigation():
-    HTML.add(f'img', f'nav', _id=f'nav_logo', _align=f'left', _style=f'width: 12%; min-width: 78px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
-    HTML.add(f'h1', f'nav', _nest=f'HandyGold75 - {f.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'font-size: 50%; width: 80%; padding: 5px; margin: 0px auto; user-select: none;')
+    HTML.add(f'img', f'nav', _id=f'nav_logo', _align=f'left', _style=f'width: 20%; max-width: 100px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
+    HTML.add(f'h1', f'nav', _nest=f'HandyGold75 - {f.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'headerBig %% width: 80%;')
     HTML.add(f'div', f'nav', _id=f'nav_buttons', _align=f'center', _style=f'width: 80%; padding: 4px; margin: 0px auto;')
 
     for page in glb.allPages:
-        HTML.add(f'button', f'nav_buttons', _nest=f'{page}', _id=f'page_{page}', _type=f'button')
+        HTML.add(f'button', f'nav_buttons', _nest=f'{page}', _id=f'page_{page}', _type=f'button', _style=f'buttonBig')
 
     for page in glb.allPages:
         f.addEvent(f'page_{page}', pageIndex)
+        CSS.onHover(f'page_{page}', f'buttonHover')
 
 
 def pageIndex(args=None, page=None):
@@ -56,7 +57,7 @@ def pageIndex(args=None, page=None):
 
     f.setTitle(f'HandyGold75 - {f.cache("page_index")}')
 
-    HTML.set(f'h1', f'nav_title', _nest=f'HandyGold75 - {f.cache("page_index")}', _style=f'user-select: none;')
+    HTML.setRaw(f'nav_title', f'HandyGold75 - {f.cache("page_index")}')
 
     glb.allPages[f.cache(f'page_index')]()
 
@@ -65,13 +66,14 @@ def footer():
     def toTop(*args):
         CSS.get(f'body', f'scrollIntoView')()
 
-    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'padding: 3px; margin: 0px auto; user-select: none; font-weight: bold;')
-    HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 4px; margin: 0px auto;')
+    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'headerSmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
+    HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
-    but = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button')
+    but = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
     HTML.add(f'div', f'footer', _nest=but, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
 
     f.addEvent(f'footer_toTop', toTop)
+    CSS.onHover(f'footer_toTop', f'buttonHover %% background: #66F;')
 
 
 def main():

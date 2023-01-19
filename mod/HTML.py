@@ -5,12 +5,14 @@ from js import document
 class glb:
     noClosingHTML = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]
     styleMap = {
-        "headerBig": f'margin: 10px auto; text-align: center; font-size: 200%; font-weight: bold; color: #55F; user-select: none',
-        "headerMedium": f'margin: 10px auto; text-align: center; font-size: 150%; font-weight: bold; color: #55F; user-select: none',
-        "headerSmall": f'margin: 10px auto; text-align: center; font-size: 100%; font-weight: bold; color: #55F; user-select: none',
-        "buttonBig": f'z-index: 100; padding: 1px 4px; margin: 4px; text-align: center; font-size: 125%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
-        "buttonMedium": f'z-index: 100; padding: 1px 4px; margin: 4px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
-        "buttonSmall": f'z-index: 100; padding: 1px 4px; margin: 4px; text-align: center; font-size: 75%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "headerBig": f'margin: 10px auto; text-align: center; font-size: 150%; font-weight: bold; color: #55F; user-select: none',
+        "headerMedium": f'margin: 10px auto; text-align: center; font-size: 100%; font-weight: bold; color: #55F; user-select: none',
+        "headerSmall": f'margin: 10px auto; text-align: center; font-size: 75%; font-weight: bold; color: #55F; user-select: none',
+        "buttonBig": f'z-index: 100; padding: 1px 8px 5px 8px; margin: 3px; text-align: center; font-size: 125%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonMedium": f'z-index: 100; padding: 1px 6px 5px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonSmall": f'z-index: 100; padding: 1px 4px 5px 4px; margin: 3px; text-align: center; font-size: 75%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "divNormal": f'background: #222; padding: 5px; margin: 15px auto; border-radius: 10px',
+        "divAlt": f'background: #55F; color: #111; padding: 5px; margin: 15px auto; border-radius: 10px',
         "flex": f'display: flex',
         "pageLinks_Base": f'width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111; user-select:none'
     }
@@ -37,7 +39,7 @@ def getLink(href: str, _nest: str = None):
 def add(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id: str = None, _class: str = None, _type: str = None, _align: str = None, _style: str = None, _custom: str = None):
     if not _style is None and _style.split(" %% ")[0] in glb.styleMap:
         subStyleMerged = ""
-        _styleTmp = _style.split(" %% ")
+        _styleTmp = _style.split(f' %% ')
 
         for style in _styleTmp:
             if not style in glb.styleMap:
@@ -96,6 +98,11 @@ def set(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id:
 
 def addRaw(id: str, HTML: str):
     document.getElementById(id).innerHTML += HTML
+
+
+def setRaw(id: str, HTML: str):
+    document.getElementById(id).innerHTML = HTML
+
 
 def enable(id: str, state: bool = True):
     document.getElementById(id).disabled = not state
