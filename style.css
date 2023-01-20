@@ -1,14 +1,12 @@
-/* Main */
+/* body */
 
-#main button:active {
-    z-index: 101; color: #55F; background: #BFF; transition: 0.1s;
+#body button:disabled {
+    z-index: 100;
+    color: #88B;
+    background: #222;
 }
 
-#main button:disabled {
-    z-index: 100; color: #88B; background: #222;
-}
-
-#main input {
+#body input {
     z-index: 110;
     color: #BFF;
     background: #333;
@@ -19,26 +17,26 @@
     outline: none;
 }
 
-#main input:not([type=checkbox]):hover {
+#body input:not([type=checkbox]):hover {
     z-index: 112;
     color: #FFF;
     background: #444;
     transition: 0.25s;
 }
 
-#main input:not([type=checkbox]):focus {
+#body input:not([type=checkbox]):focus {
     z-index: 111;
     color: #FFF;
     background: #444;
 }
 
-#main input:disabled {
+#body input:disabled {
     z-index: 110;
     color: #88B;
     background: #222;
 }
 
-#main select {
+#body select {
     z-index: 120;
     color: #BFF;
     background: #333;
@@ -52,7 +50,7 @@
     transition: 0.25s;
 }
 
-#main select:hover {
+#body select:hover {
     z-index: 122;
     color: #FFF;
     background: #444;
@@ -63,7 +61,7 @@
     transition: 0.25s;
 }
 
-#main select:focus {
+#body select:focus {
     z-index: 121;
     color: #FFF;
     background: #444;
@@ -74,7 +72,7 @@
     transition: 0.25s;
 }
 
-#main select:disabled {
+#body select:disabled {
     z-index: 120;
     color: #88B;
     background: #222;

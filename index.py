@@ -22,11 +22,11 @@ if f.cache(f'page_index') == "":
 def general():
     f.setTitle(f'HandyGold75 - {f.cache("page_index")}')
 
-    HTML.set(f'div', f'body', _id=f'main', _style=f'')
+    HTML.set(f'div', f'body', _id=f'nav', _style=f'divNormal')
+    HTML.add(f'div', f'body', _id=f'page', _style=f'divNormal')
+    HTML.add(f'div', f'body', _id=f'footer', _style=f'divAlt %% flex')
 
-    HTML.set(f'div', f'main', _id=f'nav', _style=f'divNormal')
-    HTML.add(f'div', f'main', _id=f'page', _style=f'divNormal')
-    HTML.add(f'div', f'main', _id=f'footer', _style=f'divAlt %% flex')
+    f.addEvent(f.getWindow(), f.onResize, f'resize', isClass=True)
 
 
 def navigation():
@@ -40,6 +40,7 @@ def navigation():
     for page in glb.allPages:
         f.addEvent(f'page_{page}', pageIndex)
         CSS.onHover(f'page_{page}', f'buttonHover')
+        CSS.onClick(f'page_{page}', f'buttonClick')
 
 
 def pageIndex(args=None, page=None):
@@ -50,6 +51,10 @@ def pageIndex(args=None, page=None):
 
     elif args.target.id.split(f'_')[-1] in glb.allPages:
         f.cache(f'page_index', args.target.id.split(f'_')[-1])
+        f.cache(f'page_portal', f'')
+
+    elif args.target.parentElement.id.split(f'_')[-1] in glb.allPages:
+        f.cache(f'page_index', args.target.parentElement.id.split(f'_')[-1])
         f.cache(f'page_portal', f'')
 
     else:
@@ -74,6 +79,7 @@ def footer():
 
     f.addEvent(f'footer_toTop', toTop)
     CSS.onHover(f'footer_toTop', f'buttonHover %% background: #66F;')
+    CSS.onClick(f'footer_toTop', f'buttonClick %% background: #66F;')
 
 
 def main():
@@ -81,6 +87,8 @@ def main():
     navigation()
     pageIndex(page=f.cache(f'page_index'))
     footer()
+    
+    f.onResize()
 
 
 if __name__ == "__main__":
