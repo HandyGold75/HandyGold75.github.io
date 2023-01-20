@@ -1,9 +1,11 @@
+import mod.CSS as CSS
 from js import document, window, console
-from pyodide.ffi import create_proxy
+from pyodide.ffi import create_proxy # type: ignore
 
 
 class glb:
     popupTypes = {"alert": window.alert, "prompt": window.prompt, "confirm": window.confirm}
+    links_py_columns = 4
 
 
 def log(msg: str = f''):
@@ -46,3 +48,63 @@ def popup(type: str, text: str):
 
 def setTitle(title: str):
     document.title = title
+
+
+def getWindow():
+    return window
+
+
+def getVP():
+    return window.innerHeight, window.innerWidth
+
+
+def onResize(args=None):
+    if window.innerWidth < 450:
+        glb.links_py_columns = 3
+
+        CSS.setStyle(f'body', f'padding', f'0px')
+        CSS.setStyle(f'body', f'fontSize', f'75%')
+        CSS.setStyle(f'nav_logo', f'max-width', f'85px')
+
+        if window.localStorage.getItem(f'page_index') == f'Links':
+            from index import pageIndex
+            pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+        return None
+
+    elif window.innerWidth < 700:
+        glb.links_py_columns = 4
+
+        CSS.setStyle(f'body', f'padding', f'0px 20px')
+        CSS.setStyle(f'body', f'fontSize', f'75%')
+        CSS.setStyle(f'nav_logo', f'max-width', f'85px')
+
+        if window.localStorage.getItem(f'page_index') == f'Links':
+            from index import pageIndex
+            pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+        return None
+
+    elif window.innerWidth < 950:
+        glb.links_py_columns = 5
+
+        CSS.setStyle(f'body', f'padding', f'0px 20px')
+        CSS.setStyle(f'body', f'fontSize', f'100%')
+        CSS.setStyle(f'nav_logo', f'max-width', f'100px')
+
+        if window.localStorage.getItem(f'page_index') == f'Links':
+            from index import pageIndex
+            pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+        return None
+
+    else:
+        glb.links_py_columns = 6
+
+        CSS.setStyle(f'body', f'padding', f'0px 20px')
+        CSS.setStyle(f'body', f'fontSize', f'100%')
+        CSS.setStyle(f'nav_logo', f'max-width', f'100px')
+
+        if window.localStorage.getItem(f'page_index') == f'Links':
+            from index import pageIndex
+            pageIndex(page=window.localStorage.getItem(f'page_index'))

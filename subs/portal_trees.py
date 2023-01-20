@@ -205,6 +205,7 @@ def main(args=None, sub=None):
             f.addEvent(f'SubPage_nav_main_{tree}', pageSub)
             f.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
             CSS.onHover(f'SubPage_nav_main_{tree}', f'buttonHover')
+            CSS.onClick(f'SubPage_nav_main_{tree}', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub

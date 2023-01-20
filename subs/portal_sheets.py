@@ -749,12 +749,14 @@ def pageSub(args, extraData: dict = {}):
 
         f.addEvent(f'SubPage_page_add', addRecord)
         CSS.onHover(f'SubPage_page_add', f'buttonHover')
+        CSS.onClick(f'SubPage_page_add', f'buttonClick')
 
         for button in buttons:
             CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
 
             f.addEvent(button, delRecord)
             CSS.onHover(button, f'buttonHover')
+            CSS.onClick(button, f'buttonClick')
 
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
 
@@ -863,6 +865,7 @@ def pageSub(args, extraData: dict = {}):
 
             f.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
             CSS.onHover(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover')
+            CSS.onClick(f'SubPage_page_buttons_loadMoreLogs', f'buttonClick')
 
         rowC = 0
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
@@ -938,6 +941,7 @@ def main(args=None, sub=None):
             f.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
 
             CSS.onHover(f'SubPage_nav_main_{fileName}', f'buttonHover')
+            CSS.onClick(f'SubPage_nav_main_{fileName}', f'buttonClick')
 
     f.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
     f.addEvent(f'SubPage_nav_options_active', pageSub)
@@ -946,6 +950,10 @@ def main(args=None, sub=None):
     CSS.onHover(f'SubPage_nav_options_bulkadd', f'buttonHover')
     CSS.onHover(f'SubPage_nav_options_active', f'buttonHover')
     CSS.onHover(f'SubPage_nav_options_compact', f'buttonHover')
+
+    CSS.onClick(f'SubPage_nav_options_bulkadd', f'buttonClick')
+    CSS.onClick(f'SubPage_nav_options_active', f'buttonClick')
+    CSS.onClick(f'SubPage_nav_options_compact', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub

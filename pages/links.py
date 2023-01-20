@@ -21,21 +21,26 @@ def setup():
 
 
 def toggleCat(args: any):
+    id = args.target.id
+    
+    if id == "":
+        id = args.target.parentElement.id
+            
     catStates = loads(f.cache("page_links"))
-    catStates[args.target.id.split("_")[2]] = not catStates[args.target.id.split("_")[2]]
+    catStates[id.split("_")[2]] = not catStates[id.split("_")[2]]
 
-    CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}_header', f'borderBottom', f'2px solid #111')
+    CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'2px solid #111')
 
-    CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'position', f'unset')
-    CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'marginTop', f'0px')
-    CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'opacity', f'1')
+    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'position', f'unset')
+    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'marginTop', f'0px')
+    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'opacity', f'1')
 
-    if not catStates[args.target.id.split("_")[2]]:
-        CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}_header', f'borderBottom', f'4px solid #111')
+    if not catStates[id.split("_")[2]]:
+        CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'4px solid #111')
 
-        CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'position', f'absolute')
-        CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'marginTop', f'-9999px')
-        CSS.setStyle(f'page_links_{args.target.id.split("_")[2]}', f'opacity', f'0')
+        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'position', f'absolute')
+        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'marginTop', f'-9999px')
+        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'opacity', f'0')
 
     f.cache("page_links", dumps(catStates))
 
@@ -65,7 +70,7 @@ def main():
             newCat(currentCat, catStates[currentCat])
             catObjLens[currentCat] = 0
 
-        if i % glb.columns == 0:
+        if i % f.glb.links_py_columns == 0:
             catObjLens[currentCat] += 1
             HTML.add(f'div', f'page_links_{currentCat}', _id=f'page_links_{currentCat}_row{catObjLens[currentCat]}', _align=f'center', _style=f'flex')
 
@@ -73,7 +78,7 @@ def main():
 
         img = HTML.getLink(glb.links[link]["url"], _nest=f'<img id="Image_{glb.links[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.links[link]["text"]}" style="user-select:none; width: 30%; margin: 15px auto -10px auto;">')
         txt = HTML.add(f'p', _nest=HTML.getLink(glb.links[link]["url"], _nest=glb.links[link]["text"]))
-        HTML.add(f'div', f'page_links_{currentCat}_row{catObjLens[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / glb.columns}%; margin: 0px auto;')
+        HTML.add(f'div', f'page_links_{currentCat}_row{catObjLens[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / f.glb.links_py_columns}%; margin: 0px auto;')
 
     for cat in catObjLens:
         f.addEvent(f'page_links_{cat}_header', toggleCat, "click")

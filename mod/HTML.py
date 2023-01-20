@@ -1,4 +1,3 @@
-import mod.HTML as HTML
 from js import document
 
 
@@ -8,13 +7,14 @@ class glb:
         "headerBig": f'margin: 10px auto; text-align: center; font-size: 150%; font-weight: bold; color: #55F; user-select: none',
         "headerMedium": f'margin: 10px auto; text-align: center; font-size: 100%; font-weight: bold; color: #55F; user-select: none',
         "headerSmall": f'margin: 10px auto; text-align: center; font-size: 75%; font-weight: bold; color: #55F; user-select: none',
-        "buttonBig": f'z-index: 100; padding: 1px 8px 5px 8px; margin: 3px; text-align: center; font-size: 125%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
-        "buttonMedium": f'z-index: 100; padding: 1px 6px 5px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
-        "buttonSmall": f'z-index: 100; padding: 1px 4px 5px 4px; margin: 3px; text-align: center; font-size: 75%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonBig": f'z-index: 100; padding: 1px 8px 3px 8px; margin: 3px; text-align: center; font-size: 125%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonMedium": f'z-index: 100; padding: 1px 6px 3px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonSmall": f'z-index: 100; padding: 1px 4px 3px 4px; margin: 3px; text-align: center; font-size: 70%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
+        "buttonImg": f'z-index: 100; padding: 3px; color: #55F; background: #222; border: 2px solid #222; border-radius: 8px',
         "divNormal": f'background: #222; padding: 5px; margin: 15px auto; border-radius: 10px',
         "divAlt": f'background: #55F; color: #111; padding: 5px; margin: 15px auto; border-radius: 10px',
         "flex": f'display: flex',
-        "pageLinks_Base": f'width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111; user-select:none'
+        "pageLinks_Base": f'width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111; user-select: none'
     }
 
 
