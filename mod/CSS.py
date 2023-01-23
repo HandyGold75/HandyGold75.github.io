@@ -15,7 +15,7 @@ class glb:
         "selectHover": "z-index: 121; margin-bottom: -80px; height: 108px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.25s",
         "selectFocus": "z-index: 122; margin-bottom: -80px; height: 108px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.1s",
         "imgHover": "z-index: 101; color: #FFF; background: #444; border: 3px solid #FBDF56; transition: 0.25s",
-        "imgClick": "z-index: 102; color: #55F; background: #FFB; border: 3px solid #FBDF56; transition: 0.1s"
+        "imgClick": "z-index: 102; color: #55F; background: #550; border: 3px solid #FBDF56; transition: 0.1s"
     }
 
 
