@@ -93,7 +93,7 @@ def onHover(id: str, style: str):
             style = style.replace(styleKey, "")
 
         style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
-
+    
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 
@@ -211,7 +211,7 @@ def onFocus(id: str, style: str):
             style = style.replace(styleKey, "")
 
         style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
-
+    
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 

@@ -382,6 +382,7 @@ def editRecord(args):
 
     el = HTML.get(f'{args.target.id}')
     width = el.style.width
+    parantHeight = HTML.get(el.parentElement.id).offsetHeight
 
     if "_" in el.id:
         value = el.id.split("_")[1]
@@ -397,7 +398,7 @@ def editRecord(args):
         el.innerHTML = ""
 
     styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-    styleSlc = f'height: 29px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
+    styleSlc = f'height: {parantHeight + 4}px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
     html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
 
     if value in knownValues:
@@ -453,10 +454,13 @@ def editRecord(args):
     el = HTML.get(f'{el.id}')
     el.style.width = width
 
+    f.log(parantHeight)
+
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-        CSS.onHover(el.id, f'selectHover')
-        CSS.onFocus(el.id, f'selectFocus')
+        
+        CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
+        CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
 
     else:
         CSS.onHover(el.id, f'inputHover')
