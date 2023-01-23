@@ -6,94 +6,14 @@
     background: #222;
 }
 
-#body input {
-    z-index: 110;
-    color: #BFF;
-    background: #333;
-    border: 2px solid #55F;
-    padding: 1px 10px;
-    margin: 3px;
-    border-radius: 4px;
-    outline: none;
-}
-
-#body input:not([type=checkbox]):hover {
-    z-index: 112;
-    color: #FFF;
-    background: #444;
-    transition: 0.25s;
-}
-
-#body input:not([type=checkbox]):focus {
-    z-index: 111;
-    color: #FFF;
-    background: #444;
-}
-
 #body input:disabled {
     z-index: 110;
     color: #88B;
     background: #222;
 }
 
-#body select {
-    z-index: 120;
-    color: #BFF;
-    background: #333;
-    border: 2px solid #55F;
-    padding: 0px;
-    margin: 3px;
-    border-radius: 4px;
-    outline: none;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    transition: 0.25s;
-}
-
-#body select:hover {
-    z-index: 122;
-    color: #FFF;
-    background: #444;
-    margin-bottom: -80px;
-    height: 108px;
-    overflow-y: scroll;
-    scrollbar-width: auto;
-    transition: 0.25s;
-}
-
-#body select:focus {
-    z-index: 121;
-    color: #FFF;
-    background: #444;
-    margin-bottom: -80px;
-    height: 108px;
-    overflow-y: scroll;
-    scrollbar-width: auto;
-    transition: 0.25s;
-}
-
 #body select:disabled {
     z-index: 120;
     color: #88B;
     background: #222;
-}
-
-
-/* Page - Portal - SubPage */
-
-#SubPage_page select {
-    margin: -1px -1px;
-    padding: 1px 1px;
-    font-size: 75%;
-    height: 29px;
-    border-radius: 0px;
-    border: 2px solid #111;
-    background: #333;
-}
-
-#SubPage_page_row1 select {
-    margin: 1px -1px;
-    height: 28px;
-    font-size: 75%;
-    border: 2px solid #44F;
 }

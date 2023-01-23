@@ -120,10 +120,10 @@ def main():
             try:
                 try:
                     ws.send(f'<LOGIN_TOKEN> {f.cache("token")}')
-                except InvalidStateError: # type: ignore
-                    return None
-            except ConnectionError:
-                f.connectionError()
+                except ConnectionError:
+                    f.connectionError()
+            except:
+                return None
 
     def logout(args=None):
         try:
@@ -141,7 +141,7 @@ def main():
         HTML.add(f'form', f'page_portal_body', _id=f'page_portal_body_login', _style=f'width: 75%; display: flex; margin: 0 auto 20px auto;', _custom=f'onsubmit="return false"')
 
         txt = HTML.add(f'p', _nest=f'Username', _style=f'margin: 3px; padding: 2px;') + HTML.add(f'p', _nest=f'Password', _style=f'margin: 3px; padding: 2px;')
-        inp = HTML.add(f'input', _id=f'page_portal_body_login_usr', _style=f'width: 90%;') + HTML.add(f'input', _id=f'page_portal_body_login_psw', _type=f'password', _style=f'width: 90%;')
+        inp = HTML.add(f'input', _id=f'page_portal_body_login_usr', _style=f'inputMedium %% width: 90%;') + HTML.add(f'input', _id=f'page_portal_body_login_psw', _type=f'password', _style=f'inputMedium %% width: 90%;')
 
         HTML.add(f'div', f'page_portal_body_login', _nest=txt, _id=f'page_portal_body_login_txt', _align=f'center', _style=f'width: 25%;')
         HTML.add(f'div', f'page_portal_body_login', _nest=inp, _id=f'page_portal_body_login_inp', _align=f'center', _style=f'width: 75%;')
@@ -149,6 +149,9 @@ def main():
         f.addEvent(f'page', checkLogin, f'mouseover')
         f.addEvent(f'page_portal_body_login_usr', login, f'keyup')
         f.addEvent(f'page_portal_body_login_psw', login, f'keyup')
+
+        CSS.onHover(f'page_portal_body_login_usr', f'inputHover')
+        CSS.onHover(f'page_portal_body_login_psw', f'inputClick')
 
         return None
 

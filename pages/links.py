@@ -22,10 +22,10 @@ def setup():
 
 def toggleCat(args: any):
     id = args.target.id
-    
+
     if id == "":
         id = args.target.parentElement.id
-            
+
     catStates = loads(f.cache("page_links"))
     catStates[id.split("_")[2]] = not catStates[id.split("_")[2]]
 
@@ -48,10 +48,10 @@ def toggleCat(args: any):
 def main():
     def newCat(cat: dict, visable: bool):
         if visable:
-            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerMedium %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 2px solid #111;')
+            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 2px solid #111; user-select: none;')
             HTML.add(f'div', f'page_links', _id=f'page_links_{cat}', _align=f'center', _style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 1;')
         else:
-            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerMedium %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 4px solid #111;')
+            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 4px solid #111; user-select: none;')
             HTML.add(f'div', f'page_links', _id=f'page_links_{cat}', _align=f'center', _style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 0; margin-top: -9999px; position: absolute;')
 
     setup()
@@ -76,7 +76,7 @@ def main():
 
         i += 1
 
-        img = HTML.getLink(glb.links[link]["url"], _nest=f'<img id="Image_{glb.links[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.links[link]["text"]}" style="user-select:none; width: 30%; margin: 15px auto -10px auto;">')
+        img = HTML.getLink(glb.links[link]["url"], _nest=f'<img id="Image_{glb.links[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.links[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
         txt = HTML.add(f'p', _nest=HTML.getLink(glb.links[link]["url"], _nest=glb.links[link]["text"]))
         HTML.add(f'div', f'page_links_{currentCat}_row{catObjLens[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / f.glb.links_py_columns}%; margin: 0px auto;')
 
