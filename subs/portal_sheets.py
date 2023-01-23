@@ -38,7 +38,7 @@ class invoke:
         glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "Action"]
         glb.compactView = False
 
-        glb.excludeView = ["Expires", "Modified"]
+        glb.excludeView = ["Expires", "Modified", "Notes"]
         glb.hideInactive = False
 
         glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "Notes"]
@@ -115,7 +115,7 @@ class invoke:
         glb.halfView = ["User", "Tag", "Brand", "Series", "Active", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Action"]
         glb.compactView = False
 
-        glb.excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified"]
+        glb.excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Notes"]
         glb.hideInactive = False
 
         glb.disabledInputs = ["Modified"]
@@ -171,7 +171,7 @@ class invoke:
         glb.halfView = ["Tag", "DOP", "EOL", "Cost", "Auto Renew", "Modified", "Active", "Action"]
         glb.compactView = False
 
-        glb.excludeView = ["DOP", "EOL", "Cost", "Auto Renew", "Modified"]
+        glb.excludeView = ["DOP", "EOL", "Cost", "Auto Renew", "Modified", "Notes"]
         glb.hideInactive = False
 
         glb.disabledInputs = ["Modified"]
@@ -335,7 +335,11 @@ def editRecord(args):
                     data = int(datetime.strptime(data, "%Y-%m-%d").timestamp())
                     html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{datetime.fromtimestamp(data).strftime("%d %b %y")}</p>'
                 else:
-                    data = int(data)
+                    try:
+                        data = int(data)
+                    except ValueError:
+                        f.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                        return None
 
             elif knownValues[value] is list:
                 data = []
@@ -392,15 +396,16 @@ def editRecord(args):
     if el.innerHTML == " ":
         el.innerHTML = ""
 
-    styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-    html = f'<input class="{el.className}" id="{el.id}" name="{value}" type="text" value="{el.innerHTML}" style="{styleInp}">'
+    styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
+    styleSlc = f'height: 29px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
+    html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
 
     if value in knownValues:
         if knownValues[value] is int:
             if value in glb.dates:
-                html = f'<input class="{el.className}" id="{el.id}" name="{value}" type="date" value="{datetime.strptime(el.innerHTML, "%d %b %y").strftime("%Y-%m-%d")}" style="{styleInp}">'
+                html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'date', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{datetime.strptime(el.innerHTML, "%d %b %y").strftime("%Y-%m-%d")}"')
             else:
-                html = f'<input class="{el.className}" id="{el.id}" name="{value}" type="text" value="{el.innerHTML}" style="{styleInp}">'
+                html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
 
         elif knownValues[value] is bool:
             if el.innerHTML == "No":
@@ -439,9 +444,9 @@ def editRecord(args):
             optionsHtml = f''
 
             for option in data:
-                optionsHtml += f'<option value="{option}">{option}</option>'
+                optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
 
-            html = f'<select class="{el.className}" id="{el.id}" name="{value}_{len(data)}" size="1" multiple>{optionsHtml}</select>'
+            html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(data)}" size="1" multiple')
 
     el.outerHTML = html
 
@@ -450,6 +455,12 @@ def editRecord(args):
 
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
+        CSS.onHover(el.id, f'selectHover')
+        CSS.onFocus(el.id, f'selectFocus')
+
+    else:
+        CSS.onHover(el.id, f'inputHover')
+        CSS.onFocus(el.id, f'inputFocus')
 
     f.addEvent(el.id, submit, "keyup")
 
@@ -562,7 +573,7 @@ def pageSub(args, extraData: dict = {}):
     def addFull(data):
         def addHeader(data):
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
+            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; background: #1F1F1F;'
 
             rowC = -1
             colC = 0
@@ -572,7 +583,7 @@ def pageSub(args, extraData: dict = {}):
                 rowC += 1
                 colC += 0.5
 
-                HTMLcols = HTML.add(f'p', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+                HTMLcols = HTML.add(f'h1', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
 
                 if mainValue in glb.halfView:
                     colC += 0.5
@@ -583,14 +594,14 @@ def pageSub(args, extraData: dict = {}):
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
                         continue
 
-                    HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+                    HTMLcols += HTML.add(f'h1', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
 
                     if value in glb.halfView:
                         colC += 0.5
                         continue
                     colC += 1
 
-                HTMLcols += HTML.add(f'p', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'{styleP} font-weight: bold;')
+                HTMLcols += HTML.add(f'h1', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
                 colC += 0.5
 
                 HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
@@ -612,13 +623,14 @@ def pageSub(args, extraData: dict = {}):
             mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
             knownValues = glb.knownFiles[f'/{glb.currentSub}.json'][mainValue]
 
-            styleInp = f'margin: 1px -1px; padding: 0px 1px 3px 1px; border-radius: 0px;; border: 2px solid #44F;'
+            styleInp = f'padding: 0px 1px 3px 1px; margin: 1px -1px; border: 2px solid #55F; border-radius: 0px;'
+            styleSlc = f'margin: 1px -1px; height: 28px; border: 2px solid #55F; border-radius: 0px;'
             styleCbx = f'margin: 5px 2px; padding: 0px 0px;'
 
             HTMLrows = f''
             for record in data:
                 rowC += 1
-                HTMLcols = HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{mainValue}"')
+                HTMLcols = HTML.add(f'input', _id=f'SubPage_page_new_input_{mainValue}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{mainValue}"')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -627,12 +639,12 @@ def pageSub(args, extraData: dict = {}):
                     elif value in knownValues:
                         if knownValues[value] is int:
                             if value in glb.dates:
-                                HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'date', _style=f'{styleInp}', _custom=f'name="{value}"')
+                                HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'date', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
                             else:
-                                HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
+                                HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
 
                         elif knownValues[value] is bool:
-                            HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'{styleCbx}', _custom=f'name="{value}" checked')
+                            HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_checkbox_{value}', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'inputMedium %% {styleCbx}', _custom=f'name="{value}" checked')
 
                         elif knownValues[value] is list:
                             if glb.optionsList == []:
@@ -649,17 +661,17 @@ def pageSub(args, extraData: dict = {}):
 
                             for option in allData:
                                 optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
-
-                            HTMLcols += HTML.add(f'select', _nest=f'{optionsHtml}', _class=f'SubPage_page_new', _custom=f'name="{value}_{len(allData)}" size="1" multiple')
+                            name = f'{value}_{len(allData)}'
+                            HTMLcols += HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'SubPage_page_new_select_{name}', _class=f'SubPage_page_new', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{name}" size="1" multiple')
 
                         else:
-                            HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
+                            HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
                             continue
 
                     else:
-                        HTMLcols += HTML.add(f'input', _class=f'SubPage_page_new', _type=f'text', _style=f'{styleInp}', _custom=f'name="{value}"')
+                        HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
 
-                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'buttonSmall %% width: {110 / (colC * 2)}%;')
+                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'buttonSmall %% color: #BFF; width: {110 / (colC * 2)}%;')
                 HTMLrows += HTML.add(f'form', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
 
                 break
@@ -668,20 +680,19 @@ def pageSub(args, extraData: dict = {}):
 
             for item in HTML.get(f'SubPage_page_new', isClass=True):
                 name = item.name.split("_")[0]
-                localName = item.localName
 
                 if name in glb.disabledInputs:
                     item.disabled = True
 
-                if localName == "select" and name in glb.halfView:
+                if item.localName == "select" and name in glb.halfView:
                     item.style.width = f'{(110 / (colC * 2)) + 0.5}%'
                     continue
 
-                elif localName == "select":
+                elif item.localName == "select":
                     item.style.width = f'{(110 / colC) + 0.5}%'
                     continue
 
-                elif name in glb.halfView:
+                if name in glb.halfView:
                     item.style.width = f'{110 / (colC * 2)}%'
                     continue
 
@@ -746,6 +757,20 @@ def pageSub(args, extraData: dict = {}):
         rowC, colC = addHeader(data)
         rowC = addInputRow(data, rowC, colC)
         rowC, buttons = addRows(data, rowC, colC)
+
+        for item in HTML.get(f'SubPage_page_new', isClass=True):
+            if not item.localName in ["input", "select"]:
+                continue
+
+            if item.type == "text":
+                CSS.onHover(item.id, f'inputHover')
+                CSS.onFocus(item.id, f'inputFocus')
+                continue
+
+            if item.type == "select-multiple":
+                CSS.onHover(item.id, f'selectHover')
+                CSS.onFocus(item.id, f'selectFocus')
+                continue
 
         f.addEvent(f'SubPage_page_add', addRecord)
         CSS.onHover(f'SubPage_page_add', f'buttonHover')

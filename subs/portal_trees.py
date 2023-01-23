@@ -144,6 +144,7 @@ def pageSub(args):
             item.style.fontSize = f'100%'
             item.style.overflow = f'hidden'
             item.style.borderLeft = f'2px solid #44F'
+            item.style.userSelect = f'none'
 
         for item in HTML.get(f'SubPage_page_bEnd', isClass=True):
             item.style.width = f'{40/ colC}%'
