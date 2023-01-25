@@ -458,7 +458,7 @@ def editRecord(args):
 
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-        
+
         CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
         CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
 
@@ -500,6 +500,10 @@ def bulkAdd(args):
     if f.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
         for i in range(0, amount):
             try:
+                if glb.svcoms["add"] == "uadd":
+                    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
+                    continue
+
                 ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
             except ConnectionError:
                 f.connectionError()
