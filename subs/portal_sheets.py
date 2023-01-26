@@ -16,6 +16,7 @@ class invoke:
             "/Config.json": {
                 "IP": str,
                 "PORT": int,
+                "LogLevel": int,
                 "Debug": bool,
                 "Modified": int
             },
