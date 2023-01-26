@@ -89,6 +89,11 @@
         "text": "NS",
         "cat": "Stores"
     },
+    "Vodafone.png": {
+        "url": "https://www.Vodafone.nl/My",
+        "text": "Vodafone",
+        "cat": "Stores"
+    },
     "SokPop.png": {
         "url": "https://sokpop.co/patreon",
         "text": "SokPop",
