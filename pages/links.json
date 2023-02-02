@@ -1,23 +1,38 @@
 {
+    "Outlook.png": {
+        "url": "https://outlook.office.com/",
+        "text": "Outlook",
+        "cat": "Microsoft/ Google"
+    },
+    "OutlookCalendar.png": {
+        "url": "https://outlook.office.com/calendar/",
+        "text": "Outlook Calendar",
+        "cat": "Microsoft/ Google"
+    },
+    "OneDrive.png": {
+        "url": "https://www.office.com/login?ru=%2Flaunch%2Fonedrive",
+        "text": "OneDrive",
+        "cat": "Microsoft/ Google"
+    },
     "G-Mail.png": {
         "url": "https://mail.google.com/",
         "text": "Google Mail",
-        "cat": "Google"
+        "cat": "Microsoft/ Google"
     },
     "G-Drive.png": {
         "url": "https://drive.google.com/",
         "text": "Google Drive",
-        "cat": "Google"
+        "cat": "Microsoft/ Google"
     },
     "G-Photos.png": {
         "url": "https://photos.google.com/",
         "text": "Google Photos",
-        "cat": "Google"
+        "cat": "Microsoft/ Google"
     },
     "G-Calendar.png": {
         "url": "https://calendar.google.com/",
         "text": "Google Calendar",
-        "cat": "Google"
+        "cat": "Microsoft/ Google"
     },
     "YouTube.png": {
         "url": "https://www.youtube.com/",
