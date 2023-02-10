@@ -1,7 +1,10 @@
 from js import document
+import mod.CSS as CSS
+import mod.functions as f
 
 
 class glb:
+    disabledStyles = {}
     noClosingHTML = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]
     styleMap = {
         "headerVeryBig": f'margin: 10px auto; text-align: center; font-size: 175%; font-weight: bold; color: #55F; user-select: none',
@@ -112,7 +115,78 @@ def setRaw(id: str, HTML: str):
 
 
 def enable(id: str, state: bool = True):
-    document.getElementById(id).disabled = not state
+    el = document.getElementById(id)
+
+    if el.disabled is not state:
+        return None
+
+    onStyles = {
+        "onHover": {
+            "style": CSS.glb.onHoverStyles,
+            "actions": ["mouseover", "mouseout"]
+        },
+        "onClick": {
+            "style": CSS.glb.onClickStyles,
+            "actions": ["mousedown", "mouseup"]
+        },
+        "onFocus": {
+            "style": CSS.glb.onFocusStyles,
+            "actions": ["focusout", "focusin"]
+        }
+    }
+
+    el.disabled = not state
+
+    if state:
+        if not id in glb.disabledStyles:
+            return None
+
+        for onStyle in onStyles:
+            for action in onStyles[onStyle]["actions"]:
+                if not f'{id}_{action}' in onStyles[onStyle]["style"]:
+                    continue
+
+                if not f'{id}_{action}' in glb.disabledStyles[id]["events"]:
+                    continue
+
+                itemListTmp = list(onStyles[onStyle]["style"][f'{id}_{action}'])
+
+                for i, item in enumerate(itemListTmp):
+                    if item.startswith("color: ") and "color" in glb.disabledStyles[id]["events"][f'{id}_{action}']:
+                        onStyles[onStyle]["style"][f'{id}_{action}'][i] = glb.disabledStyles[id]["events"][f'{id}_{action}']["color"]
+
+                    elif item.startswith("background: ") and "background" in glb.disabledStyles[id]["events"][f'{id}_{action}']:
+                        onStyles[onStyle]["style"][f'{id}_{action}'][i] = glb.disabledStyles[id]["events"][f'{id}_{action}']["background"]
+
+        el.style.color = glb.disabledStyles[id]["color"]
+        el.style.background = glb.disabledStyles[id]["background"]
+
+        glb.disabledStyles.pop(id)
+
+        return None
+
+    glb.disabledStyles[id] = {"color": el.style.color, "background": el.style.background, "events": {}}
+
+    for onStyle in onStyles:
+        for action in onStyles[onStyle]["actions"]:
+            if not f'{id}_{action}' in onStyles[onStyle]["style"]:
+                continue
+
+            glb.disabledStyles[id]["events"][f'{id}_{action}'] = {}
+            itemListTmp = list(onStyles[onStyle]["style"][f'{id}_{action}'])
+
+            for i, item in enumerate(itemListTmp):
+
+                if item.startswith("color: "):
+                    glb.disabledStyles[id]["events"][f'{id}_{action}']["color"] = onStyles[onStyle]["style"][f'{id}_{action}'][i]
+                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = f'color: #88B'
+
+                elif item.startswith("background: "):
+                    glb.disabledStyles[id]["events"][f'{id}_{action}']["background"] = onStyles[onStyle]["style"][f'{id}_{action}'][i]
+                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = f'background: #222'
+
+    el.style.color = f'#88B'
+    el.style.background = f'#222'
 
 
 def clear(id: str):
