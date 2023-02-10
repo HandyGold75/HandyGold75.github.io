@@ -1,4 +1,3 @@
-import mod.functions as f
 from js import document
 from pyodide.ffi import create_proxy # type: ignore
 
@@ -15,7 +14,8 @@ class glb:
         "selectHover": "z-index: 121; margin-bottom: -80px; height: 108px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.25s",
         "selectFocus": "z-index: 122; margin-bottom: -80px; height: 108px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.1s",
         "imgHover": "z-index: 101; color: #FFF; background: #444; border: 3px solid #FBDF56; transition: 0.25s",
-        "imgClick": "z-index: 102; color: #55F; background: #550; border: 3px solid #FBDF56; transition: 0.1s"
+        "imgClick": "z-index: 102; color: #55F; background: #550; border: 3px solid #FBDF56; transition: 0.1s",
+        "disabled": f'color: #88B; background: #222'
     }
 
 
@@ -93,7 +93,7 @@ def onHover(id: str, style: str):
             style = style.replace(styleKey, "")
 
         style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
-    
+
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 
@@ -211,7 +211,7 @@ def onFocus(id: str, style: str):
             style = style.replace(styleKey, "")
 
         style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
-    
+
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 
