@@ -2,7 +2,7 @@ import mod.ws as ws
 import mod.functions as f
 import mod.HTML as HTML
 import mod.CSS as CSS
-from rsa import encrypt, PublicKey
+from rsa import encrypt
 from datetime import datetime, timedelta
 
 
@@ -208,10 +208,6 @@ class glb:
     svcoms = {}
     logsLoaded = 0
 
-    pk = PublicKey(
-        17975725580318426255082147295765624015303015361719602497231012933790462235693879580362187130307063578819348335338567705110647296830122706922462277858985753916807418663775359155059872610188320580932610131649669750813854841233828756158531041784174256821099975573954534872920341091204735563674609735155365230886328225569764099100220190749309854601263231477479542538657656228075477248164911150242612255058022595583271630531937574957740889057640197605063861387428744601476627747146952083278992989884033643188605058493867723623443206205193049387986735721023723231370158070058492831123317729469188277654546977114897225138444403440484404763488252900359062156606277556273881462454700682132900566293665122593793415917496306396245694769766289157377434428292617546842809345418069309429637482719212135032501150835116958632132203299437985348946833084644910715245987521602696627857328192665936755312620767597809000086619959376727150300660078176663731141210223403780234209251726760747452546317356315404004871864255840070441131656153163327938733747321658554956837916867148392977768261809450501332458691119391299657873525192653810706009363153494395380856616333139608534198022835408820709017274233496194895658713718965362482943679407034749283305672669328250828229765188719765598395616090554409644372199205005788822144569725849378518257318799359385281740742304089043012203207090757315833795382410385714872414605971371066034681422629572254445672849310499485979905134814561918728629098272915355126315453439738702075534702666290929177330864697626107597200532737216328442694999218938113176867865482874172297137142445161550097040446308420534920219666339316839673749833944188357418385020268794629695550903965269473702504547059078067498031149096658925058636652798068077433395661533192684961900825996213912591011509835703499018540858216533684827588691036564984023994359992388733781114505117772831573454751130891256075050103442171938154332660431264950585164243096093925476801938794141572630854512014984334825819438750599965004024341493159922341794445006274654995566118300460214077412075511161181698540977050816711684965694813515198715185678618288095811937806305637976252287014606730927818130439428520119356203573068177397436647258848659927556173455871707333064805630504242580519613705444817600006146353152014424758858473533029673605478152571643653561181152156398594145488582743474039155367716449975165309811984584398398690891924952884510454449930797215394455097922506895883409901302916494995512076986478728196359060058428252757519467838794722732611686045347810271767912080044182207678353913483129629823113438113820791587878184283905176268454906351041779158933382590216398059177568853055270942077059156649685981827207451739862232562515028977633596944364071556509266121310722218226028783650241233584332498505271414144626505460338325024130616840681895382408708213628489128094251273023012874086250181912500877109239104433256351412004835767020264459805538504082187665406998198032223427723556839093765764713436949937704964091432419465151166261180178053480295497695748125437451332250448661556736139515685003382928341989,
-        65537)
-
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
@@ -358,7 +354,7 @@ def editRecord(args):
             if password is None:
                 return None
 
-            password = str(encrypt(data.encode() + password.encode(), glb.pk)).replace(" ", "%20")
+            password = str(encrypt(data.encode() + password.encode(), f.glb.pk)).replace(" ", "%20")
             try:
                 if not mainValue is None:
                     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
@@ -454,8 +450,6 @@ def editRecord(args):
 
     el = HTML.get(f'{el.id}')
     el.style.width = width
-
-    f.log(parantHeight)
 
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
@@ -690,9 +684,6 @@ def pageSub(args, extraData: dict = {}):
             for item in HTML.get(f'SubPage_page_new', isClass=True):
                 name = item.name.split("_")[0]
 
-                if name in glb.disabledInputs:
-                    item.disabled = True
-
                 if item.localName == "select" and name in glb.halfView:
                     item.style.width = f'{(110 / (colC * 2)) + 0.5}%'
                     continue
@@ -771,15 +762,16 @@ def pageSub(args, extraData: dict = {}):
             if not item.localName in ["input", "select"]:
                 continue
 
-            if item.type == "text":
+            elif item.type == "text":
                 CSS.onHover(item.id, f'inputHover')
                 CSS.onFocus(item.id, f'inputFocus')
-                continue
 
-            if item.type == "select-multiple":
+            elif item.type == "select-multiple":
                 CSS.onHover(item.id, f'selectHover')
                 CSS.onFocus(item.id, f'selectFocus')
-                continue
+
+            if item.name.split("_")[0] in glb.disabledInputs:
+                HTML.enable(item.id, False)
 
         f.addEvent(f'SubPage_page_add', addRecord)
         CSS.onHover(f'SubPage_page_add', f'buttonHover')
@@ -964,9 +956,9 @@ def main(args=None, sub=None):
     glb.hideInactive = True
     glb.compactView = True
 
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'buttonSmall', _custom=f'disabled')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'buttonSmall')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'buttonSmall')
+    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'buttonSmall')
 
     for file in data:
         if file in glb.knownFiles:
@@ -988,6 +980,10 @@ def main(args=None, sub=None):
     CSS.onClick(f'SubPage_nav_options_bulkadd', f'buttonClick')
     CSS.onClick(f'SubPage_nav_options_active', f'buttonClick')
     CSS.onClick(f'SubPage_nav_options_compact', f'buttonClick')
+
+    HTML.enable(f'SubPage_nav_options_bulkadd', False)
+    HTML.enable(f'SubPage_nav_options_active', False)
+    HTML.enable(f'SubPage_nav_options_compact', False)
 
     if sub is not None:
         glb.currentSub = sub

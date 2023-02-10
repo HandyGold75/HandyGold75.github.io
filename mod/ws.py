@@ -7,18 +7,19 @@ class glb:
     IP = ""
     PORT = ""
     ws = None
+    msgReply = {}
     lastMsg = ""
     msgDict = {}
 
 
 class ws:
-    def close():
+    def close(arg=None):
         glb.ws.close()
 
     fmap = {"<LOGIN_CANCEL>": close, "<LOGOUT>": close}
 
-    def onOpen(arg):
-        console.log(f'Opened connection to {glb.PROTO}://{glb.IP}:{glb.PORT}')
+    def onOpen(arg=None):
+        pass
 
     def onMessage(arg):
         msg = arg.data
@@ -32,8 +33,17 @@ class ws:
                     glb.msgDict[dict] = {}
 
                 glb.msgDict[dict] = {**glb.msgDict[dict], **data[dict]}
-            
+
             # print(f'{glb.msgDict}')
+
+        elif msg.split(f' ')[0] in glb.msgReply:
+            msg = msg.split(f' ')[0]
+
+            if callable(glb.msgReply[msg]):
+                glb.msgReply[msg]()
+                return None
+
+            glb.ws.send(glb.msgReply[msg])
 
         elif msg in ws.fmap:
             ws.fmap[msg.split(">")[0] + ">"](msg.split(">")[1])
@@ -43,8 +53,8 @@ class ws:
     def onError(arg):
         console.error(arg)
 
-    def onClose(arg):
-        console.log(f'Closed connection to {glb.PROTO}://{glb.IP}:{glb.PORT}')
+    def onClose(arg=None):
+        pass
 
     def upState():
         if glb.ws.readyState in [0, 1]:
@@ -70,7 +80,7 @@ def start(protocol: str, ip: str, port: str):
     glb.ws.onclose = ws.onClose
 
 
-def send(com):
+def send(com: str):
     if not ws.upState():
         raise ConnectionError(f"Unable to verify healty connection!")
 
@@ -89,3 +99,7 @@ def msgDict():
         raise ConnectionError(f"Unable to verify healty connection!")
 
     return glb.msgDict
+
+
+def onMsg(msgRecv: str, msgOrFunc: msg):
+    glb.msgReply[msgRecv] = msgOrFunc
