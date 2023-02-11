@@ -2,14 +2,15 @@ import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
 import mod.functions as f
+import subs.portal_sonos as so
 import subs.portal_sheets as ps
 import subs.portal_trees as pt
 
 
 class glb:
-    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Asset Manager": ps.main, "License Manager": ps.main}
-    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM}
-    allCommands = {"Admin": "admin", "Monitor": "monitor", "Asset Manager": "am", "License Manager": "lm"}
+    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Asset Manager": ps.main, "License Manager": ps.main}
+    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM}
+    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Asset Manager": "am", "License Manager": "lm"}
 
     lastLogin = 0
 
