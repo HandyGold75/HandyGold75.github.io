@@ -45,7 +45,7 @@ class invoke:
         glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "Notes"]
         glb.invokePasswordOnChange = ["User"]
 
-        glb.optionsList = ["Admin", "Asset Manager", "License Manager"]
+        glb.optionsList = ["Admin", "Home", "Asset Manager", "License Manager"]
 
         glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete"}
 
