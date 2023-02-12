@@ -64,9 +64,6 @@ def setup():
         HTML.enable(f'page_login_body_login_usr', True)
         HTML.enable(f'page_login_body_login_psw', True)
 
-    def loginCancel():
-        pass
-
     f.cache(f'page_index', f'Login')
     f.cache(f'page_portal', f'')
 
@@ -103,7 +100,7 @@ def main(args=None):
 
         glb.lastLogin = datetime.now().timestamp()
 
-        crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + HTML.get("page_login_body_login_psw").value.encode(), f.glb.pk))
+        crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), f.glb.pk))
 
         try:
             ws.send(f'<LOGIN> {crypt}')

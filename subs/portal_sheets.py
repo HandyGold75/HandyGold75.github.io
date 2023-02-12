@@ -354,7 +354,7 @@ def editRecord(args):
             if password is None:
                 return None
 
-            password = str(encrypt(data.encode() + password.encode(), f.glb.pk)).replace(" ", "%20")
+            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), f.glb.pk)).replace(" ", "%20")
             try:
                 if not mainValue is None:
                     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
