@@ -41,6 +41,18 @@ def pause(args=None):
     ws.send(f'sonos pause')
 
 
+def volumeGet(args=None):
+    ws.send(f'sonos volume get')
+
+
+def volumeUp(args=None):
+    ws.send(f'sonos volume up')
+
+
+def volumeDown(args=None):
+    ws.send(f'sonos volume down')
+
+
 def pageSub(args):
     def setup(args):
         if f'{args.target.id.split("_")[-1]}' in glb.subPages:
@@ -49,16 +61,19 @@ def pageSub(args):
     def player():
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
 
-        for but in ["state", "track", "togglePlay", "play", "pause"]:
+        for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
             HTML.add(f'button', f'SubPage_page_buttons', _nest=f'{but}', _id=f'SubPage_page_buttons_{but}', _type=f'button', _style=f'buttonBig')
 
         f.addEvent(f'SubPage_page_buttons_state', state)
         f.addEvent(f'SubPage_page_buttons_track', track)
-        f.addEvent(f'SubPage_page_buttons_togglePlay', togglePlay)
+        f.addEvent(f'SubPage_page_buttons_toggle play', togglePlay)
         f.addEvent(f'SubPage_page_buttons_play', play)
         f.addEvent(f'SubPage_page_buttons_pause', pause)
+        f.addEvent(f'SubPage_page_buttons_volume get', volumeGet)
+        f.addEvent(f'SubPage_page_buttons_volume up', volumeUp)
+        f.addEvent(f'SubPage_page_buttons_volume down', volumeDown)
 
-        for but in ["state", "track", "togglePlay", "play", "pause"]:
+        for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
             CSS.onHover(f'SubPage_page_buttons_{but}', f'buttonHover')
             CSS.onClick(f'SubPage_page_buttons_{but}', f'buttonClick')
 
