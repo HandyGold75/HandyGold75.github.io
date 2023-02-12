@@ -14,7 +14,7 @@ def setup():
     glb.links = load(file_R)
     file_R.close()
 
-    if f.cache("page_links") is None:
+    if f.cache("page_links") is None or f.cache("page_links") == "":
         f.cache("page_links", dumps({}))
 
     HTML.set(f'div', f'page', _id=f'page_links', _align=f'center')
