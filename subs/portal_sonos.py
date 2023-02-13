@@ -137,7 +137,7 @@ def pageSub(args):
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
 
-        addControls()
+        addAlbumArt()
         addOldControls()
 
     def config():
