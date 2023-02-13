@@ -738,7 +738,7 @@ def pageSub(args, extraData: dict = {}):
                         else:
                             HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
 
-                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'buttonSmall %% padding: 1px 3px;')
+                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'buttonSmall %% padding: 1px 3px; width: {110 / (colC * 2)}%;')
                 buttons.append(f'SubPage_page_del_{record}')
 
                 HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
