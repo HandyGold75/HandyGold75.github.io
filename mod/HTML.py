@@ -201,7 +201,10 @@ def clear(id: str, isClass: bool = False):
 def remove(id: str, isClass: bool = False):
     if isClass:
         for item in document.getElementsByClassName(id):
-            item.remove()
+            try:
+                item.remove()
+            except AttributeError:
+                f.log("failed: " + id)
             return None
 
     document.getElementById(id).remove()
