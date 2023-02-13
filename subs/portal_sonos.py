@@ -94,21 +94,6 @@ def pageSub(args):
             f.afterDelay(track, 500)
             f.afterDelay(updateAlbumArt, 1000)
 
-        def deltrash():
-            # HTML.get(f'Image_AlbumArt').contentWindow.getElementsByClassName('ytp-watch-later-button')
-            try:
-                f.clearEvents(f'player')
-            except:
-                f.log(f'failed: player')
-            try:
-                f.clearEvents(f'Image_AlbumArt')
-            except:
-                f.log(f'failed: Image_AlbumArt')
-
-            # HTML.remove(f'ytp-chrome-top ytp-show-cards-title', isClass=True)
-            # HTML.remove(f'ytp-pause-overlay-container', isClass=True)
-            # HTML.remove(f'ytp-watermark yt-uix-sessionlink', isClass=True)
-
         data = ws.msgDict()["sonos"]
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
@@ -118,11 +103,11 @@ def pageSub(args):
         pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
         pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
 
-        # img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 30%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-        img = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="640" height="360" src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
-        HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{img}', _style=f'divNormal')
+        HTML.add(f'img', f'SubPage_page_main', _style=f'margin-bottom: -385.5px; position: relative; user-select: none', _custom=f'width=640px height=360px src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
 
-        f.afterDelay(deltrash, 2000)
+        # img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 30%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
+        ifr = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="640" height="360" src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
+        HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{ifr}', _style=f'divNormal')
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
 
