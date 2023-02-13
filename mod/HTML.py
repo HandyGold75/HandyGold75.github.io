@@ -191,15 +191,18 @@ def enable(id: str, state: bool = True):
 
 def clear(id: str, isClass: bool = False):
     if isClass:
-        id.innerHTML = f''
-        return None
+        for item in document.getElementsByClassName(id):
+            item.innerHTML = f''
+            return None
 
     document.getElementById(id).innerHTML = f''
 
 
 def remove(id: str, isClass: bool = False):
     if isClass:
-        id.remove()
+        for item in document.getElementsByClassName(id):
+            item.remove()
+
         return None
 
     document.getElementById(id).remove()
