@@ -73,61 +73,72 @@ def pageSub(args):
             glb.currentSub = args.target.id.split("_")[-1]
 
     def player():
-        def updateAlbumArt():
+        def addAlbumArt():
+            def updateAlbumArt():
+                data = ws.msgDict()["sonos"]
+
+                try:
+                    HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
+                    HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+                except AttributeError:
+                    return None
+
+                f.afterDelay(track, 500)
+                f.afterDelay(updateAlbumArt, 1000)
+
             data = ws.msgDict()["sonos"]
 
-            try:
-                HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
-                HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
-            except AttributeError:
-                return None
+            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
 
-            # pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-            # pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+            img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 50%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_albumArt', _nest=f'{img}', _style=f'divNormal')
 
-            # dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
-            # dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
+            updateAlbumArt()
 
-            # f.afterDelay(getData, ((dur - pos) * 1000) - 500)
-            # f.afterDelay(updateAlbumArt, (dur - pos) * 1000)
+        def addVideo():
+            data = ws.msgDict()["sonos"]
+            f.log(str(data["device"]))
+            f.log(str(data["track"]))
 
-            f.afterDelay(track, 500)
-            f.afterDelay(updateAlbumArt, 1000)
+            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
 
-        data = ws.msgDict()["sonos"]
+            img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+
+            ifr = HTML.add(f'iframe',
+                           _id="Image_AlbumArt",
+                           _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;',
+                           _custom=f'src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_video', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+
+        def addOldControls():
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal')
+
+            for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
+                HTML.add(f'button', f'SubPage_page_buttons', _nest=f'{but}', _id=f'SubPage_page_buttons_{but}', _type=f'button', _style=f'buttonBig')
+
+            f.addEvent(f'SubPage_page_buttons_state', state)
+            f.addEvent(f'SubPage_page_buttons_track', track)
+            f.addEvent(f'SubPage_page_buttons_toggle play', togglePlay)
+            f.addEvent(f'SubPage_page_buttons_play', play)
+            f.addEvent(f'SubPage_page_buttons_pause', pause)
+            f.addEvent(f'SubPage_page_buttons_volume get', volumeGet)
+            f.addEvent(f'SubPage_page_buttons_volume up', volumeUp)
+            f.addEvent(f'SubPage_page_buttons_volume down', volumeDown)
+
+            for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
+                CSS.onHover(f'SubPage_page_buttons_{but}', f'buttonHover')
+                CSS.onClick(f'SubPage_page_buttons_{but}', f'buttonClick')
+
+        def addControls():
+            pass
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
-        f.log(str(data["device"]))
-        f.log(str(data["track"]))
 
-        pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-        pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
-
-        HTML.add(f'img', f'SubPage_page_main', _style=f'margin-bottom: -385.5px; position: relative; user-select: none', _custom=f'width=640px height=360px src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
-
-        # img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 30%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-        ifr = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="640" height="360" src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
-        HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{ifr}', _style=f'divNormal')
-
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
-
-        for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
-            HTML.add(f'button', f'SubPage_page_buttons', _nest=f'{but}', _id=f'SubPage_page_buttons_{but}', _type=f'button', _style=f'buttonBig')
-
-        f.addEvent(f'SubPage_page_buttons_state', state)
-        f.addEvent(f'SubPage_page_buttons_track', track)
-        f.addEvent(f'SubPage_page_buttons_toggle play', togglePlay)
-        f.addEvent(f'SubPage_page_buttons_play', play)
-        f.addEvent(f'SubPage_page_buttons_pause', pause)
-        f.addEvent(f'SubPage_page_buttons_volume get', volumeGet)
-        f.addEvent(f'SubPage_page_buttons_volume up', volumeUp)
-        f.addEvent(f'SubPage_page_buttons_volume down', volumeDown)
-
-        for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
-            CSS.onHover(f'SubPage_page_buttons_{but}', f'buttonHover')
-            CSS.onClick(f'SubPage_page_buttons_{but}', f'buttonClick')
-
-        # updateAlbumArt()
+        addControls()
+        addOldControls()
 
     def config():
         pass
