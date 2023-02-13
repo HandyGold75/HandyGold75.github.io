@@ -95,9 +95,19 @@ def pageSub(args):
             f.afterDelay(updateAlbumArt, 1000)
 
         def deltrash():
-            HTML.remove(f'ytp-chrome-top ytp-show-cards-title', isClass=True)
-            HTML.remove(f'ytp-pause-overlay-container', isClass=True)
-            HTML.remove(f'ytp-watermark yt-uix-sessionlink', isClass=True)
+            # HTML.get(f'Image_AlbumArt').contentWindow.getElementsByClassName('ytp-watch-later-button')
+            try:
+                f.clearEvents(f'player')
+            except:
+                f.log(f'failed: player')
+            try:
+                f.clearEvents(f'Image_AlbumArt')
+            except:
+                f.log(f'failed: Image_AlbumArt')
+
+            # HTML.remove(f'ytp-chrome-top ytp-show-cards-title', isClass=True)
+            # HTML.remove(f'ytp-pause-overlay-container', isClass=True)
+            # HTML.remove(f'ytp-watermark yt-uix-sessionlink', isClass=True)
 
         data = ws.msgDict()["sonos"]
 
