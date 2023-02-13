@@ -189,9 +189,19 @@ def enable(id: str, state: bool = True):
     el.style.background = f'#222'
 
 
-def clear(id: str):
+def clear(id: str, isClass: bool = False):
+    if isClass:
+        for item in document.getElementsByClassName(id):
+            item.innerHTML = f''
+            return None
+
     document.getElementById(id).innerHTML = f''
 
 
-def remove(id: str):
+def remove(id: str, isClass: bool = False):
+    if isClass:
+        for item in document.getElementsByClassName(id):
+            item.remove()
+            return None
+
     document.getElementById(id).remove()
