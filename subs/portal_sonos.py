@@ -2,6 +2,7 @@ import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
 import mod.functions as f
+from datetime import datetime, timedelta
 
 
 class invoke:
@@ -11,6 +12,19 @@ class invoke:
         glb.subPages = ["Player", "Config"]
 
         glb.lastUpdate = 0
+
+        getData()
+
+
+def getData(args=None):
+    if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
+        try:
+            ws.send(f'sonos state')
+            ws.send(f'sonos track')
+        except ConnectionError:
+            f.connectionError()
+
+        glb.lastUpdate = datetime.now().timestamp()
 
 
 class glb:
@@ -59,6 +73,40 @@ def pageSub(args):
             glb.currentSub = args.target.id.split("_")[-1]
 
     def player():
+        def updateAlbumArt():
+            data = ws.msgDict()["sonos"]
+
+            try:
+                HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
+                HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+            except AttributeError:
+                return None
+
+            # pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            # pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+
+            # dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
+            # dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
+
+            # f.afterDelay(getData, ((dur - pos) * 1000) - 500)
+            # f.afterDelay(updateAlbumArt, (dur - pos) * 1000)
+
+            f.afterDelay(track, 500)
+            f.afterDelay(updateAlbumArt, 1000)
+
+        data = ws.msgDict()["sonos"]
+
+        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
+        f.log(str(data["device"]))
+        f.log(str(data["track"]))
+
+        pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+        pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+
+        # img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 30%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
+        img = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="420" height="315" src="https://www.youtube.com/embed/7NK_JOkuSVY"')
+        HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{img}', _style=f'divNormal')
+
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
 
         for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
@@ -76,6 +124,8 @@ def pageSub(args):
         for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
             CSS.onHover(f'SubPage_page_buttons_{but}', f'buttonHover')
             CSS.onClick(f'SubPage_page_buttons_{but}', f'buttonClick')
+
+        # updateAlbumArt()
 
     def config():
         pass

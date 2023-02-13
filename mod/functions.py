@@ -1,6 +1,6 @@
 import mod.CSS as CSS
-from js import document, window, console
-from pyodide.ffi import create_proxy # type: ignore
+from js import document, window, setTimeout, setInterval, console
+from pyodide.ffi import create_proxy, create_once_callable # type: ignore
 from rsa import PublicKey
 
 
@@ -70,7 +70,7 @@ def onResize(args=None):
         glb.links_py_columns = 3
 
         CSS.setStyle(f'body', f'padding', f'0px')
-        CSS.setStyle(f'body', f'fontSize', f'75%')
+        CSS.setStyle(f'body', f'fontSize', f'50%')
         CSS.setStyle(f'nav_logo', f'max-width', f'85px')
 
         if window.localStorage.getItem(f'page_index') == f'Links':
@@ -115,3 +115,11 @@ def onResize(args=None):
         if window.localStorage.getItem(f'page_index') == f'Links':
             from index import pageIndex
             pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+
+def afterDelay(func, delay: int):
+    setTimeout(create_once_callable(func), delay)
+
+
+def atInterval(func, delay: int):
+    setInterval(create_proxy(func), delay)
