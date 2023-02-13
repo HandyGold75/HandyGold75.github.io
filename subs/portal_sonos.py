@@ -104,7 +104,7 @@ def pageSub(args):
         pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
 
         # img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 30%; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-        img = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="420" height="315" src="https://www.youtube.com/embed/7NK_JOkuSVY"')
+        img = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="640" height="360" src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&color=white&controls=0&disablekb=1&fs=0&iv_load_policy=0&rel=0&origin=localhost" frameborder="0"')
         HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{img}', _style=f'divNormal')
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
