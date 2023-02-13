@@ -107,6 +107,10 @@ def pageSub(args):
         img = HTML.add(f'iframe', _id="Image_AlbumArt", _custom=f'width="640" height="360" src="https://www.youtube.com/embed/7NK_JOkuSVY?start=5&autoplay=1&color=white&controls=0&disablekb=1&fs=0&iv_load_policy=0&rel=0&origin=localhost" frameborder="0"')
         HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_AlbumArt', _nest=f'{img}', _style=f'divNormal')
 
+        HTML.remove(f'ytp-chrome-top ytp-show-cards-title', isClass=True)
+        HTML.remove(f'ytp-pause-overlay-container', isClass=True)
+        HTML.remove(f'ytp-watermark yt-uix-sessionlink', isClass=True)
+
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_buttons', _style=f'divNormal')
 
         for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
