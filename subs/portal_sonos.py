@@ -35,36 +35,61 @@ class glb:
     lastUpdate = 0
 
 
-def state(args=None):
-    ws.send(f'sonos state')
+class sonosControl:
+    def state(args=None):
+        ws.send(f'sonos state')
 
+    def track(args=None):
+        ws.send(f'sonos track')
 
-def track(args=None):
-    ws.send(f'sonos track')
+    def togglePlay(args=None):
+        def doAction():
+            data = ws.msgDict()["sonos"]
 
+            f.log(str(data["device"]))
+            f.log(str(data["track"]))
 
-def togglePlay(args=None):
-    ws.send(f'sonos togglePlay')
+            if data["device"]["playback"] == "active":
+                ws.send(f'sonos pause')
+                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
+                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
+            elif data["device"]["playback"] == "standby":
+                ws.send(f'sonos play')
+                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
+                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
 
-def play(args=None):
-    ws.send(f'sonos play')
+            elif data["device"]["playback"] == "inactive":
+                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
+                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
 
+            else:
+                ws.send(f'sonos state')
+                f.afterDelay(doAction, 100)
 
-def pause(args=None):
-    ws.send(f'sonos pause')
+        ws.send(f'sonos state')
+        f.afterDelay(doAction, 100)
 
+    def play(args=None):
+        ws.send(f'sonos play')
 
-def volumeGet(args=None):
-    ws.send(f'sonos volume get')
+    def pause(args=None):
+        ws.send(f'sonos pause')
 
+    def next(args=None):
+        ws.send(f'sonos pause')
 
-def volumeUp(args=None):
-    ws.send(f'sonos volume up')
+    def back(args=None):
+        ws.send(f'sonos pause')
 
+    def volumeGet(args=None):
+        ws.send(f'sonos volume get')
 
-def volumeDown(args=None):
-    ws.send(f'sonos volume down')
+    def volumeUp(args=None):
+        ws.send(f'sonos volume up')
+
+    def volumeDown(args=None):
+        ws.send(f'sonos volume down')
 
 
 def pageSub(args):
@@ -83,7 +108,7 @@ def pageSub(args):
                 except AttributeError:
                     return None
 
-                f.afterDelay(track, 500)
+                f.afterDelay(sonosControl.track, 500)
                 f.afterDelay(updateAlbumArt, 1000)
 
             data = ws.msgDict()["sonos"]
@@ -119,21 +144,34 @@ def pageSub(args):
             for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
                 HTML.add(f'button', f'SubPage_page_buttons', _nest=f'{but}', _id=f'SubPage_page_buttons_{but}', _type=f'button', _style=f'buttonBig')
 
-            f.addEvent(f'SubPage_page_buttons_state', state)
-            f.addEvent(f'SubPage_page_buttons_track', track)
-            f.addEvent(f'SubPage_page_buttons_toggle play', togglePlay)
-            f.addEvent(f'SubPage_page_buttons_play', play)
-            f.addEvent(f'SubPage_page_buttons_pause', pause)
-            f.addEvent(f'SubPage_page_buttons_volume get', volumeGet)
-            f.addEvent(f'SubPage_page_buttons_volume up', volumeUp)
-            f.addEvent(f'SubPage_page_buttons_volume down', volumeDown)
+            f.addEvent(f'SubPage_page_buttons_state', sonosControl.state)
+            f.addEvent(f'SubPage_page_buttons_track', sonosControl.track)
+            f.addEvent(f'SubPage_page_buttons_toggle play', sonosControl.togglePlay)
+            f.addEvent(f'SubPage_page_buttons_play', sonosControl.play)
+            f.addEvent(f'SubPage_page_buttons_pause', sonosControl.pause)
+            f.addEvent(f'SubPage_page_buttons_volume get', sonosControl.volumeGet)
+            f.addEvent(f'SubPage_page_buttons_volume up', sonosControl.volumeUp)
+            f.addEvent(f'SubPage_page_buttons_volume down', sonosControl.volumeDown)
 
             for but in ["state", "track", "toggle play", "play", "pause", "volume get", "volume up", "volume down"]:
                 CSS.onHover(f'SubPage_page_buttons_{but}', f'buttonHover')
                 CSS.onClick(f'SubPage_page_buttons_{but}', f'buttonClick')
 
         def addControls():
-            pass
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% justify-content: center;')
+
+            for action in ["Back", "Pause", "Next"]:
+                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 50px; margin: 10px 5px 10px 5px;')
+
+            f.addEvent(f'SubPage_page_buttons_Back', sonosControl.back)
+            f.addEvent(f'SubPage_page_buttons_Pause', sonosControl.togglePlay)
+            f.addEvent(f'SubPage_page_buttons_Next', sonosControl.next)
+
+            for action in ["Back", "Pause", "Next"]:
+                CSS.onHover(f'SubPage_page_buttons_{action}', f'imgHover')
+                CSS.onClick(f'SubPage_page_buttons_{action}', f'imgClick')
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
 

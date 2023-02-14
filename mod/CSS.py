@@ -49,7 +49,7 @@ def onHover(id: str, style: str):
     def mouseover(args=None):
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         for prop in glb.onHoverStyles[f'{id}_mouseover']:
@@ -59,7 +59,7 @@ def onHover(id: str, style: str):
 
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         if document.getElementById(id).tagName != f'BUTTON' and document.activeElement == args.target:
@@ -112,7 +112,7 @@ def onClick(id: str, style: str):
     def mousedown(args=None):
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         for prop in glb.onClickStyles[f'{id}_mousedown']:
@@ -121,7 +121,7 @@ def onClick(id: str, style: str):
     def mouseup(args=None):
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         for prop in glb.onClickStyles[f'{id}_mouseup']:
@@ -171,7 +171,7 @@ def onFocus(id: str, style: str):
     def focusin(args=None):
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         for prop in glb.onFocusStyles[f'{id}_focusin']:
@@ -180,7 +180,7 @@ def onFocus(id: str, style: str):
     def focusout(args=None):
         id = args.target.id
 
-        if id == "":
+        if id == "" or id.split("_")[-1].startswith("img"):
             id = args.target.parentElement.id
 
         for prop in glb.onFocusStyles[f'{id}_focusout']:
