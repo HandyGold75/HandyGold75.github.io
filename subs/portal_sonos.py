@@ -268,7 +268,7 @@ def pageSub(args):
             ifr = HTML.add(f'iframe',
                            _id="Image_AlbumArt",
                            _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;',
-                           _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={data["track"]["position"]}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
+                           _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_video', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
 
@@ -338,7 +338,7 @@ def pageSub(args):
         addVideo()
         addControls()
 
-        # updateUI()
+        updateUI()
 
         # f.afterDelay(CSS.get(f'SubPage_page_main', f'scrollIntoView'), 1000)
 
