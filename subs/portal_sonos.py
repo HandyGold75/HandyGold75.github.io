@@ -177,7 +177,7 @@ def pageSub(args):
                 HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
                 HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
 
-            elif not HTML.get(f'Image_AlbumArt').src.startswith(f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}'):
+            elif not HTML.get(f'Image_AlbumArt').src.startswith(f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}?'):
                 HTML.get(f'Image_AlbumArt').src = f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0'
 
             HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
@@ -265,8 +265,8 @@ def pageSub(args):
             if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                 durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
 
-            # img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
-            # HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+            img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
 
             ifr = HTML.add(f'iframe',
                            _id="Image_AlbumArt",
