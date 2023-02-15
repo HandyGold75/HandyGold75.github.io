@@ -146,12 +146,12 @@ def pageSub(args):
                 glb.sendedSeek = False
 
             if data["device"]["playback"] == "active":
-                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
-                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
-
-            elif data["device"]["playback"] == "standby":
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
+
+            elif data["device"]["playback"] == "standby":
+                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
+                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
             elif data["device"]["playback"] == "inactive":
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
@@ -240,7 +240,7 @@ def pageSub(args):
                 btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 50px; margin: 10px 5px 10px 5px;')
 
-            if data["device"]["playback"] == "active":
+            if data["device"]["playback"] == "standby":
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
