@@ -38,6 +38,7 @@ class glb:
 
     config = {}
     knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool}
+    optionsList = []
     currentTitle = ""
 
     useAlbumArt = False
@@ -132,15 +133,13 @@ class sonosControl:
         glb.skipUiUpdate = True
 
 
-def setup():
-    if f.cache("page_portal_sonos") is None or f.cache("page_links") == "":
-        f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False}))
-
-    glb.config = loads(f.cache("page_portal_sonos"))
-
-
 def pageSub(args):
     def setup(args):
+        if f.cache("page_portal_sonos") is None or f.cache("page_links") == "":
+            f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False}))
+
+        glb.config = loads(f.cache("page_portal_sonos"))
+
         if f'{args.target.id.split("_")[-1]}' in glb.subPages:
             glb.currentSub = args.target.id.split("_")[-1]
 
@@ -456,32 +455,25 @@ def pageSub(args):
 
                 elif knownValues[value] is bool:
                     if el.innerHTML == "No":
-                        glb.config[value] = data
+                        glb.config[value] = True
                         f.cache("page_portal_sonos", dumps(glb.config))
 
                         el.innerHTML = "Yes"
                         return None
 
-                    glb.config[value] = data
+                    glb.config[value] = False
                     f.cache("page_portal_sonos", dumps(glb.config))
 
                     el.innerHTML = "No"
                     return None
 
                 elif knownValues[value] is list:
-                    if glb.optionsList == []:
-                        glb.config[value] = data
-                        f.cache("page_portal_sonos", dumps(glb.config))
-
-                    else:
-                        data = glb.optionsList
-
                     optionsHtml = f''
 
-                    for option in data:
+                    for option in glb.optionsList:
                         optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
 
-                    html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(data)}" size="1" multiple')
+                    html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
 
             el.outerHTML = html
 
@@ -570,8 +562,6 @@ def pageSub(args):
 
 
 def main(args=None, sub=None):
-    setup()
-
     HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
     HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
 
