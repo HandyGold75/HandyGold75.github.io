@@ -349,7 +349,10 @@ def pageSub(args):
                 CSS.onHover(f'SubPage_page_buttons_{action}', f'imgHover')
                 CSS.onClick(f'SubPage_page_buttons_{action}', f'imgClick')
 
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
+        if glb.currentSub != "Player":
+            return None
+
+        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
 
         if glb.config["useAlbumArt"]:
             addAlbumArt()
@@ -357,11 +360,10 @@ def pageSub(args):
             addVideo()
 
         addControls()
-
         updateUI()
 
     def qr():
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
+        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
 
         txt = HTML.add(f'h1', _nest=f'Sonos S2 - Android', _style=f'headerBig')
         img = HTML.add(f'img', _id="Image_SonosAndroidQR", _style="width: 100%; max-width: 75vh; max-height: 75vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Sonos/SonosAndroidQR.png" alt="Sonos Android QR"')
@@ -495,7 +497,7 @@ def pageSub(args):
         def addMinimal(data):
             def addHeader():
                 rowC = 0
-                HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
 
                 styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 

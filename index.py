@@ -85,16 +85,24 @@ def footer():
     def toTop(*args):
         CSS.get(f'body', f'scrollIntoView')()
 
+    def clearCache():
+        f.clearCache()
+
     txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
     HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
     butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
     butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_Login', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
     HTML.add(f'div', f'footer', _nest=butLogin + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
 
     f.addEvent(f'footer_toTop', toTop)
     CSS.onHover(f'footer_toTop', f'buttonHover %% background: #66F;')
     CSS.onClick(f'footer_toTop', f'buttonClick %% background: #66F;')
+
+    f.addEvent(f'footer_ClearCache', clearCache)
+    CSS.onHover(f'footer_ClearCache', f'buttonHover %% background: #66F;')
+    CSS.onClick(f'footer_ClearCache', f'buttonClick %% background: #66F;')
 
     f.addEvent(f'footer_Login', login.main)
     CSS.onHover(f'footer_Login', f'buttonHover %% background: #66F;')
