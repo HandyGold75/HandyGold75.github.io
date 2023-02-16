@@ -557,7 +557,12 @@ def pageSub(args):
 
     setup(args)
 
-    pageSubMap[glb.currentSub]()
+    if glb.currentSub == "Player":
+        getData()
+        f.afterDelay(pageSubMap[glb.currentSub], 1000)
+
+    else:
+        pageSubMap[glb.currentSub]()
 
 
 def main(args=None, sub=None):
