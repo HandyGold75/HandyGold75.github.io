@@ -190,7 +190,7 @@ def pageSub(args):
                 HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
 
             elif not HTML.get(f'Image_AlbumArt').src.startswith(f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}?'):
-                HTML.get(f'Image_AlbumArt').src = f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 3}&autoplay=1&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0' # &controls=0
+                HTML.get(f'Image_AlbumArt').src = f'https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 2}&autoplay=1&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0' # &controls=0
 
             HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
             HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
