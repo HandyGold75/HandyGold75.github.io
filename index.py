@@ -92,9 +92,9 @@ def footer():
     HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
     butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butClearCache = HTML.add(f'button', _nest=f'Clear cache', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
     butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_Login', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    HTML.add(f'div', f'footer', _nest=butLogin + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
+    HTML.add(f'div', f'footer', _nest=butLogin + butClearCache + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
 
     f.addEvent(f'footer_toTop', toTop)
     CSS.onHover(f'footer_toTop', f'buttonHover %% background: #66F;')
