@@ -37,7 +37,7 @@ class glb:
     lastUpdate = 0
 
     config = {}
-    knownConfig = {"volumeMax": int, "seekStep": int}
+    knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool}
     currentTitle = ""
 
     useAlbumArt = False
@@ -134,7 +134,7 @@ class sonosControl:
 
 def setup():
     if f.cache("page_portal_sonos") is None or f.cache("page_links") == "":
-        f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15}))
+        f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False}))
 
     glb.config = loads(f.cache("page_portal_sonos"))
 
@@ -220,6 +220,7 @@ def pageSub(args):
             f.afterDelay(updateUI, 1000)
 
         def addAlbumArt():
+            glb.useAlbumArt = True
             data = ws.msgDict()["sonos"]
 
             img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
@@ -257,13 +258,9 @@ def pageSub(args):
 
             f.afterDelay(doAction, 200)
 
-            glb.useAlbumArt = True
-
         def addVideo():
+            glb.useAlbumArt = False
             data = ws.msgDict()["sonos"]
-            if data["ytinfo"]["id"] == "":
-                addAlbumArt()
-                return None
 
             f.log(str(data["device"]))
             f.log(str(data["track"]))
@@ -310,7 +307,6 @@ def pageSub(args):
                 f.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
 
             f.afterDelay(doAction, 200)
-            glb.useAlbumArt = False
 
         def addControls():
             data = ws.msgDict()["sonos"]
@@ -356,7 +352,11 @@ def pageSub(args):
 
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
 
-        addVideo()
+        if glb.config["useAlbumArt"]:
+            addAlbumArt()
+        else:
+            addVideo()
+
         addControls()
 
         updateUI()
