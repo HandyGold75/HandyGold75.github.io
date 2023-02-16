@@ -39,6 +39,11 @@ def cache(key: str, value: any = None):
     return window.localStorage.getItem(key)
 
 
+def clearCache():
+    window.localStorage.clear()
+    window.location.reload()
+
+
 def f5():
     window.location.reload()
 
