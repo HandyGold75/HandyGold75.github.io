@@ -257,13 +257,9 @@ def pageSub(args):
 
             f.afterDelay(doAction, 200)
 
-        def addVideo():
+        def addOldVideo():
             glb.useAlbumArt = False
             data = ws.msgDict()["sonos"]
-
-            f.log(str(data["device"]))
-            f.log(str(data["track"]))
-            f.log(str(data["ytinfo"]))
 
             pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
@@ -357,7 +353,7 @@ def pageSub(args):
         if glb.config["useAlbumArt"]:
             addAlbumArt()
         else:
-            addVideo()
+            addOldVideo()
 
         addControls()
         updateUI()
@@ -523,7 +519,8 @@ def pageSub(args):
                         if value:
                             HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
-                        HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        else:
+                            HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
 
                     elif knownValues[key] is list:
                         HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
