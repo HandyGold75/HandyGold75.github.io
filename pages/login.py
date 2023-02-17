@@ -67,7 +67,7 @@ def setup():
     f.cache(f'page_index', f'Login')
     f.cache(f'page_portal', f'')
 
-    ws.start("wss", "wss.HandyGold75.ga", "6900")
+    ws.start("wss", "wss.HandyGold75.com", "6900")
 
     if f.cache("token") != "":
         ws.onMsg(f'<LOGIN>', f'<LOGIN_TOKEN> {f.cache("token")}')
