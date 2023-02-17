@@ -115,6 +115,15 @@ def setRaw(id: str, HTML: str):
     document.getElementById(id).innerHTML = HTML
 
 
+def move(sourceId: str, targetId: str):
+    document.getElementById(targetId).appendChild(document.getElementById(sourceId))
+
+def copy(sourceId: str, targetId: str):
+    el = document.getElementById(sourceId).cloneNode(True)
+    el.id = f'{el.id}_NEW'
+    document.getElementById(targetId).appendChild(el)
+
+
 def enable(id: str, state: bool = True):
     el = document.getElementById(id)
 

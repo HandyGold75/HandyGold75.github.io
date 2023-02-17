@@ -1,5 +1,5 @@
 import mod.CSS as CSS
-from js import document, window, setTimeout, setInterval, console
+from js import document, window, eval, setTimeout, setInterval, console
 from pyodide.ffi import create_proxy, create_once_callable # type: ignore
 from rsa import PublicKey
 
@@ -128,3 +128,6 @@ def afterDelay(func, delay: int):
 
 def atInterval(func, delay: int):
     setInterval(create_proxy(func), delay)
+
+def jsEval(com: str):
+    return eval(f'{com}')
