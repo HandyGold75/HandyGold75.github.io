@@ -82,10 +82,10 @@ def pageIndex(args=None, page=None):
 
 
 def footer():
-    def toTop(*args):
+    def toTop(args=None):
         CSS.get(f'body', f'scrollIntoView')()
 
-    def clearCache():
+    def clearCache(args=None):
         f.clearCache()
 
     txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
@@ -109,8 +109,29 @@ def footer():
     CSS.onClick(f'footer_Login', f'buttonClick %% background: #66F;')
 
 
+def ytPrep():
+    ifr = HTML.add(f'div', _id=f'iframe_YTVideo_active', _style=f'position: absolute; top: 0; left: 0; width: 0%; height: 0%;', _custom=f'frameborder="0"')
+    HTML.add(f'div', f'body', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+
+    f.jsEval("""
+    t = document.createElement('script');
+    t.src = 'https://www.youtube.com/iframe_api';
+    s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+
+    var ytPlayer;
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('iframe_YTVideo_active', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );
+        document.getElementById('iframe_YTVideo_active').id = 'iframe_YTVideo'
+    }
+    """)
+
+
 def main():
     general()
+
+    ytPrep()
+
     navigation()
     pageIndex(page=f.cache(f'page_index'))
     footer()

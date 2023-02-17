@@ -35,6 +35,7 @@ class glb:
     subPages = []
 
     lastUpdate = 0
+    ytPlayer = None
 
     config = {}
     knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool}
@@ -280,9 +281,64 @@ def pageSub(args):
             ifr = HTML.add(f'iframe',
                            _id="iFrame_YTVideo",
                            _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;',
-                           _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 3}&autoplay=1&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"') # &controls=0
+                           _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 3}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_video', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 75%; justify-content: center;')
+
+            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{posStr}', _id=f'SubPage_page_timeline_position', _style=f'color: #F7E163; width: 10%;')
+            HTML.add(f'input', f'SubPage_page_timeline', _id=f'SubPage_page_timeline_slider', _type=f'range', _style=f'inputRange %% width: 80%; user-select: none;', _custom=f'min="0" max="{dur}" value="{pos}"')
+            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{durStr}', _id=f'SubPage_page_timeline_duration', _style=f'color: #F7E163; width: 10%;')
+
+            def doAction():
+                def videoScollFalse(args=None):
+                    glb.videoScolling = False
+
+                def videoScollTrue(args=None):
+                    glb.videoScolling = True
+
+                f.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
+                f.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
+                f.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
+
+            f.afterDelay(doAction, 200)
+
+        def addVideo():
+            glb.useAlbumArt = False
+            data = ws.msgDict()["sonos"]
+
+            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+            dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
+            dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
+
+            posStr = ws.msgDict()["sonos"]["track"]["position"]
+            if int(ws.msgDict()["sonos"]["track"]["position"].split(":")[0]) == 0:
+                posStr = ":".join(ws.msgDict()["sonos"]["track"]["position"].split(":")[1:])
+
+            durStr = ws.msgDict()["sonos"]["track"]["duration"]
+            if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
+                durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
+
+            img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
+            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+
+            # ifr = HTML.add(f'iframe',
+            #                _id="iFrame_YTVideo",
+            #                _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;',
+            #                _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 3}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
+
+            HTML.copy(f'div_YTVideo', f'SubPage_page_main')
+            CSS.setStyle(f'iframe_YTVideo', f'width', f'100%')
+            CSS.setStyle(f'iframe_YTVideo', f'height', f'100%')
+            HTML.get(f'iframe_YTVideo').id = f'iframe_YTVideo_active'
+
+            glb.ytPlayer = f.jsEval("ytPlayer")
+            f.log(glb.ytPlayer)
+
+            glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}", {pos + 3}')
+            glb.ytPlayer.playVideo()
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 75%; justify-content: center;')
 
@@ -353,10 +409,10 @@ def pageSub(args):
         if glb.config["useAlbumArt"]:
             addAlbumArt()
         else:
-            addOldVideo()
+            addVideo()
 
         addControls()
-        updateUI()
+        # updateUI()
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
@@ -561,6 +617,7 @@ def pageSub(args):
 
 
 def main(args=None, sub=None):
+
     HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
     HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
 
