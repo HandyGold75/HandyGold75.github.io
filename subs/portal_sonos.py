@@ -228,7 +228,7 @@ def pageSub(args):
                     glb.ytPlayer.pauseVideo()
 
                 if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
-                    glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}"')
+                    glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
 
             f.afterDelay(sonosControl.track, 500)
             f.afterDelay(sonosControl.state, 500)
