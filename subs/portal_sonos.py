@@ -216,19 +216,25 @@ def pageSub(args):
                 HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
 
             else:
-                f.log(str(data["device"]))
-                f.log(str(data["ytinfo"]))
-                f.log(glb.ytPlayer.getPlayerState())
-                f.log(glb.ytPlayer.getVideoUrl())
-
-                if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
-                    glb.ytPlayer.playVideo()
-
-                if data["device"]["playback"] == "standby" and glb.ytPlayer.getPlayerState() == 1:
-                    glb.ytPlayer.pauseVideo()
+                glb.ytPlayer.setVolume(0)
+                glb.ytPlayer.mute(0)
 
                 if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
                     glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
+
+                if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
+                    glb.ytPlayer.playVideo()
+                elif data["device"]["playback"] != "active":
+                    glb.ytPlayer.pauseVideo()
+
+                newPos = pos + 1
+                oldPos = glb.ytPlayer.getCurrentTime()
+
+                if oldPos is None:
+                    oldPos = 0
+
+                if not newPos < oldPos + 1 or not newPos > oldPos - 1:
+                    glb.ytPlayer.seekTo(newPos)
 
             f.afterDelay(sonosControl.track, 500)
             f.afterDelay(sonosControl.state, 500)
@@ -273,52 +279,6 @@ def pageSub(args):
 
             f.afterDelay(doAction, 200)
 
-        def addOldVideo():
-            glb.useAlbumArt = False
-            data = ws.msgDict()["sonos"]
-
-            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-            pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
-            dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
-            dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
-
-            posStr = ws.msgDict()["sonos"]["track"]["position"]
-            if int(ws.msgDict()["sonos"]["track"]["position"].split(":")[0]) == 0:
-                posStr = ":".join(ws.msgDict()["sonos"]["track"]["position"].split(":")[1:])
-
-            durStr = ws.msgDict()["sonos"]["track"]["duration"]
-            if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
-                durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
-
-            img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
-            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
-
-            ifr = HTML.add(f'iframe',
-                           _id="iFrame_YTVideo",
-                           _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;',
-                           _custom=f'src="https://www.youtube.com/embed/{data["ytinfo"]["id"]}?start={pos + 3}&autoplay=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&rel=0" frameborder="0"')
-
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_video', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
-
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 75%; justify-content: center;')
-
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{posStr}', _id=f'SubPage_page_timeline_position', _style=f'color: #F7E163; width: 10%;')
-            HTML.add(f'input', f'SubPage_page_timeline', _id=f'SubPage_page_timeline_slider', _type=f'range', _style=f'inputRange %% width: 80%; user-select: none;', _custom=f'min="0" max="{dur}" value="{pos}"')
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{durStr}', _id=f'SubPage_page_timeline_duration', _style=f'color: #F7E163; width: 10%;')
-
-            def doAction():
-                def videoScollFalse(args=None):
-                    glb.videoScolling = False
-
-                def videoScollTrue(args=None):
-                    glb.videoScolling = True
-
-                f.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
-
-            f.afterDelay(doAction, 200)
-
         def addVideo():
             glb.useAlbumArt = False
             data = ws.msgDict()["sonos"]
@@ -337,23 +297,17 @@ def pageSub(args):
                 durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
 
             img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
-            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -42.1875%; position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
             ifr = HTML.add(f'div', _id=f'iframe_YTVideo', _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'frameborder="0"')
-            HTML.add(f'div', f'SubPage_page_main', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
             def loadYtPlayer():
                 glb.ytPlayer = f.jsEval("new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );")
 
             f.aSync(loadYtPlayer)
 
-            def setUpYtPlayer():
-                glb.ytPlayer.setVolume(0)
-                glb.ytPlayer.mute()
-
-            f.afterDelay(setUpYtPlayer, 1000)
-
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 75%; justify-content: center;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
             HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{posStr}', _id=f'SubPage_page_timeline_position', _style=f'color: #F7E163; width: 10%;')
             HTML.add(f'input', f'SubPage_page_timeline', _id=f'SubPage_page_timeline_slider', _type=f'range', _style=f'inputRange %% width: 80%; user-select: none;', _custom=f'min="0" max="{dur}" value="{pos}"')
@@ -380,7 +334,7 @@ def pageSub(args):
             for action in ["VolumeDown", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "VolumeUp"]:
                 img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
                 btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 50px; margin: 10px auto 10px auto;')
+                HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
 
             if data["device"]["playback"] == "standby":
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
@@ -425,7 +379,7 @@ def pageSub(args):
             addVideo()
 
         addControls()
-        updateUI()
+        f.afterDelay(updateUI, 1500)
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
