@@ -126,8 +126,13 @@ def afterDelay(func, delay: int):
     setTimeout(create_once_callable(func), delay)
 
 
+def aSync(func):
+    setTimeout(create_once_callable(func), 0)
+
+
 def atInterval(func, delay: int):
     setInterval(create_proxy(func), delay)
+
 
 def jsEval(com: str):
     return eval(f'{com}')

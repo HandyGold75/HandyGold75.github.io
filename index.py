@@ -110,7 +110,7 @@ def footer():
 
 
 def ytPrep():
-    ifr = HTML.add(f'div', _id=f'iframe_YTVideo_active', _style=f'position: absolute; top: 0; left: 0; width: 0%; height: 0%;', _custom=f'frameborder="0"')
+    ifr = HTML.add(f'div', _id=f'iframe_YTVideo', _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'frameborder="0"')
     HTML.add(f'div', f'body', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
 
     f.jsEval("""
@@ -121,16 +121,13 @@ def ytPrep():
 
     var ytPlayer;
     function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('iframe_YTVideo_active', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );
-        document.getElementById('iframe_YTVideo_active').id = 'iframe_YTVideo'
+        ytPlayer = new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );
     }
     """)
 
 
 def main():
     general()
-
-    ytPrep()
 
     navigation()
     pageIndex(page=f.cache(f'page_index'))
