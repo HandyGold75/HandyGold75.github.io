@@ -64,9 +64,9 @@
         "text": "UniFi Portal",
         "cat": "Management"
     },
-    "FreeNom.png": {
-        "url": "https://my.freenom.com/",
-        "text": "FreeNom",
+    "Cloudflare.png": {
+        "url": "https://dash.cloudflare.com/",
+        "text": "CloudFlare",
         "cat": "Management"
     },
     "Sophos.png": {
