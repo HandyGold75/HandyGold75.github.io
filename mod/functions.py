@@ -48,11 +48,6 @@ def f5():
     window.location.reload()
 
 
-def connectionError():
-    document.getElementById(f'page').innerHTML = f'<div id="page_error" align="center"></div>'
-    document.getElementById(f'page_error').innerHTML = f'<h1>WARNING!</h1><p>Connection lost to the server! The connection to the server is probably closed!<br>Please refresh the page to try again.</p><br>'
-
-
 def popup(type: str, text: str):
     if type in glb.popupTypes:
         return glb.popupTypes[type](text)

@@ -34,21 +34,14 @@ class glb:
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
-        try:
-            ws.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]}')
-        except ConnectionError:
-            f.connectionError()
+        ws.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]}')
 
         glb.lastUpdate = datetime.now().timestamp()
 
 
 def pageSub(args):
     def setup(args):
-        try:
-            data = ws.msgDict()[glb.svcoms["main"]]
-        except ConnectionError:
-            f.connectionError()
-            return None
+        data = ws.msgDict()[glb.svcoms["main"]]
 
         if f'{args.target.id.split("_")[-1]}' in glb.knownTree:
             glb.currentSub = args.target.id.split("_")[-1]
@@ -180,11 +173,7 @@ def main(args=None, sub=None):
     HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%')
     HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%')
 
-    try:
-        data = ws.msgDict()[glb.svcoms["main"]]
-    except ConnectionError:
-        f.connectionError()
-        return None
+    data = ws.msgDict()[glb.svcoms["main"]]
 
     foundFile = False
 
