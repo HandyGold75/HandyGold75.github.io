@@ -109,23 +109,6 @@ def footer():
     CSS.onClick(f'footer_Login', f'buttonClick %% background: #66F;')
 
 
-def ytPrep():
-    ifr = HTML.add(f'div', _id=f'iframe_YTVideo', _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'frameborder="0"')
-    HTML.add(f'div', f'body', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 75%; height: 0px; padding-bottom: 42.1875%;')
-
-    f.jsEval("""
-    t = document.createElement('script');
-    t.src = 'https://www.youtube.com/iframe_api';
-    s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(t, s);
-
-    var ytPlayer;
-    function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );
-    }
-    """)
-
-
 def main():
     general()
 
