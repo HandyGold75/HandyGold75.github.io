@@ -15,10 +15,7 @@ def setup():
         if not f.popup(f'confirm', f'Log off?'):
             return None
 
-        try:
-            ws.send(f'logout')
-        except ConnectionError:
-            f.connectionError()
+        ws.send(f'logout')
 
         f.cache("token", "")
         f.glb.loggedIn = False
@@ -26,11 +23,7 @@ def setup():
         f.f5()
 
     def loginSucces():
-        try:
-            msg = ws.msg()
-        except ConnectionError:
-            f.connectionError()
-            return None
+        msg = ws.msg()
 
         f.cache("token", f'{msg.split("<LOGIN_SUCCESS> ")[1]}')
 
@@ -102,10 +95,7 @@ def main(args=None):
 
         crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), f.glb.pk))
 
-        try:
-            ws.send(f'<LOGIN> {crypt}')
-        except ConnectionError:
-            f.connectionError()
+        ws.send(f'<LOGIN> {crypt}')
 
     def signinRemember(args):
         if args.target.checked:
