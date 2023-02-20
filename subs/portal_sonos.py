@@ -19,12 +19,9 @@ class invoke:
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
-        try:
-            ws.send(f'sonos state')
-            ws.send(f'sonos track')
-            ws.send(f'sonos ytinfo')
-        except ConnectionError:
-            f.connectionError()
+        ws.send(f'sonos state')
+        ws.send(f'sonos track')
+        ws.send(f'sonos ytinfo')
 
         glb.lastUpdate = datetime.now().timestamp()
 
