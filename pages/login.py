@@ -2,6 +2,7 @@ import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
 import mod.functions as f
+from pages.portal import glb as portal_glb
 from datetime import datetime, timedelta
 from rsa import encrypt
 
@@ -30,7 +31,14 @@ def setup():
         loginTokenSucces()
 
     def loginTokenSucces():
+        def getData():
+            for invoke in reversed(portal_glb.allInvokes):
+                portal_glb.allInvokes[invoke]()
+
         ws.send(f'access')
+
+        f.afterDelay(getData, 200)
+
         f.glb.loggedIn = True
 
         if f.cache("page_index") != "Login":
