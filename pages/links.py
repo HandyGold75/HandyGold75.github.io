@@ -1,23 +1,271 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
+import mod.ws as ws
 import mod.functions as f
 from json import dumps, loads, load
 
 
 class glb:
-    links = {}
+    allLinks = {}
+
+    defaultLinks = {
+        "Outlook.png": {
+            "url": "https://outlook.office.com/",
+            "text": "Outlook",
+            "cat": "Microsoft/ Google",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        },
+        "OutlookCalendar.png": {
+            "url": "https://outlook.office.com/calendar/",
+            "text": "Outlook Calendar",
+            "cat": "Microsoft/ Google",
+            "Index": 102,
+            "Active": True,
+            "Modified": 0
+        },
+        "OneDrive.png": {
+            "url": "https://www.office.com/login?ru=%2Flaunch%2Fonedrive",
+            "text": "OneDrive",
+            "cat": "Microsoft/ Google",
+            "Index": 103,
+            "Active": True,
+            "Modified": 0
+        },
+        "G-Mail.png": {
+            "url": "https://mail.google.com/",
+            "text": "Google Mail",
+            "cat": "Microsoft/ Google",
+            "Index": 104,
+            "Active": True,
+            "Modified": 0
+        },
+        "G-Drive.png": {
+            "url": "https://drive.google.com/",
+            "text": "Google Drive",
+            "cat": "Microsoft/ Google",
+            "Index": 105,
+            "Active": True,
+            "Modified": 0
+        },
+        "G-Photos.png": {
+            "url": "https://photos.google.com/",
+            "text": "Google Photos",
+            "cat": "Microsoft/ Google",
+            "Index": 106,
+            "Active": True,
+            "Modified": 0
+        },
+        "G-Calendar.png": {
+            "url": "https://calendar.google.com/",
+            "text": "Google Calendar",
+            "cat": "Microsoft/ Google",
+            "Index": 107,
+            "Active": True,
+            "Modified": 0
+        },
+        "YouTube.png": {
+            "url": "https://www.youtube.com/",
+            "text": "YouTube",
+            "cat": "Media",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        },
+        "YouTubeMusic.png": {
+            "url": "https://music.youtube.com/",
+            "text": "YouTube Music",
+            "cat": "Media",
+            "Index": 102,
+            "Active": True,
+            "Modified": 0
+        },
+        "Spotify.png": {
+            "url": "https://open.spotify.com/",
+            "text": "Spotify",
+            "cat": "Media",
+            "Index": 103,
+            "Active": True,
+            "Modified": 0
+        },
+        "GitHub.png": {
+            "url": "https://github.com/",
+            "text": "GitHub",
+            "cat": "Management",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        },
+        "Linode.png": {
+            "url": "https://cloud.linode.com/",
+            "text": "Linode Cloud",
+            "cat": "Management",
+            "Index": 102,
+            "Active": True,
+            "Modified": 0
+        },
+        "UniFi.png": {
+            "url": "https://unifi.ui.com/",
+            "text": "UniFi Portal",
+            "cat": "Management",
+            "Index": 103,
+            "Active": True,
+            "Modified": 0
+        },
+        "Cloudflare.png": {
+            "url": "https://dash.cloudflare.com/",
+            "text": "CloudFlare",
+            "cat": "Management",
+            "Index": 104,
+            "Active": True,
+            "Modified": 0
+        },
+        "Sophos.png": {
+            "url": "https://my.sophos.com/",
+            "text": "Sophos Home",
+            "cat": "Management",
+            "Index": 105,
+            "Active": True,
+            "Modified": 0
+        },
+        "Nord.png": {
+            "url": "https://my.nordaccount.com/",
+            "text": "Nord Account",
+            "cat": "Management",
+            "Index": 106,
+            "Active": True,
+            "Modified": 0
+        },
+        "OneTimeSecret.png": {
+            "url": "https://onetimesecret.com/",
+            "text": "One Time Secret",
+            "cat": "Tools",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        },
+        "SpeedTest.png": {
+            "url": "https://www.speedtest.net/",
+            "text": "SpeedTest Ookla",
+            "cat": "Tools",
+            "Index": 102,
+            "Active": True,
+            "Modified": 0
+        },
+        "DownDetector.png": {
+            "url": "https://downdetector.com/",
+            "text": "Down Detector",
+            "cat": "Tools",
+            "Index": 103,
+            "Active": True,
+            "Modified": 0
+        },
+        "CloudConvert.png": {
+            "url": "https://cloudconvert.com/",
+            "text": "Cloud Convert",
+            "cat": "Tools",
+            "Index": 104,
+            "Active": True,
+            "Modified": 0
+        },
+        "NS.png": {
+            "url": "https://www.ns.nl/",
+            "text": "NS",
+            "cat": "Stores",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        },
+        "Vodafone.png": {
+            "url": "https://www.Vodafone.nl/My",
+            "text": "Vodafone",
+            "cat": "Stores",
+            "Index": 102,
+            "Active": True,
+            "Modified": 0
+        },
+        "SokPop.png": {
+            "url": "https://sokpop.co/patreon",
+            "text": "SokPop",
+            "cat": "Stores",
+            "Index": 103,
+            "Active": True,
+            "Modified": 0
+        },
+        "LinusTechTips.png": {
+            "url": "https://www.lttstore.com/",
+            "text": "Linus Tech Tips",
+            "cat": "Stores",
+            "Index": 104,
+            "Active": True,
+            "Modified": 0
+        },
+        "Megekko.png": {
+            "url": "https://www.megekko.nl/",
+            "text": "Megekko",
+            "cat": "Stores",
+            "Index": 105,
+            "Active": True,
+            "Modified": 0
+        },
+        "Bol.png": {
+            "url": "https://www.bol.com/",
+            "text": "Bol",
+            "cat": "Stores",
+            "Index": 106,
+            "Active": True,
+            "Modified": 0
+        },
+        "Dell.png": {
+            "url": "https://www.dell.com/",
+            "text": "Dell",
+            "cat": "Stores",
+            "Index": 107,
+            "Active": True,
+            "Modified": 0
+        },
+        "Zwoofs.png": {
+            "url": "https://www.zwoofs.nl/",
+            "text": "Zwoofs",
+            "cat": "Stores",
+            "Index": 108,
+            "Active": True,
+            "Modified": 0
+        },
+        "RockStar.png": {
+            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
+            "text": "RockStar GTA V Events",
+            "cat": "Other",
+            "Index": 101,
+            "Active": True,
+            "Modified": 0
+        }
+    }
+
     columns = 4
 
 
 def setup():
-    file_R = open(f'pages/links.json', "r", encoding="UTF-8")
-    glb.links = load(file_R)
-    file_R.close()
+    glb.allLinks = dict(sorted(glb.defaultLinks.items(), key=lambda x: x[1]['Index']))
 
     if f.cache("page_links") is None or f.cache("page_links") == "":
         f.cache("page_links", dumps({}))
 
     HTML.set(f'div', f'page', _id=f'page_links', _align=f'center')
+
+    if not f.glb.loggedIn:
+        return None
+
+    msgDict = ws.msgDict()
+
+    if "qr" in msgDict:
+        if " " in msgDict["qr"]["/Links.json"]:
+            msgDict["qr"]["/Links.json"].pop(" ")
+
+        glb.allLinks = {**glb.defaultLinks, **msgDict["qr"]["/Links.json"]}
+
+    glb.allLinks = dict(sorted(glb.allLinks.items(), key=lambda x: x[1]['Index']))
 
 
 def toggleCat(args: any):
@@ -57,30 +305,31 @@ def main():
     setup()
 
     catStates = loads(f.cache("page_links"))
-    catObjLens = {}
+    catRowCount = {}
+    catColCount = {}
 
-    for link in glb.links:
-        currentCat = glb.links[link]["cat"]
+    for link in glb.allLinks:
+        currentCat = glb.allLinks[link]["cat"]
 
-        if not currentCat in catObjLens:
+        if not currentCat in catRowCount:
             if not currentCat in catStates:
                 catStates[currentCat] = True
 
-            i = 0
             newCat(currentCat, catStates[currentCat])
-            catObjLens[currentCat] = 0
+            catRowCount[currentCat] = 0
+            catColCount[currentCat] = 0
 
-        if i % f.glb.links_py_columns == 0:
-            catObjLens[currentCat] += 1
-            HTML.add(f'div', f'page_links_{currentCat}', _id=f'page_links_{currentCat}_row{catObjLens[currentCat]}', _align=f'center', _style=f'flex')
+        if catColCount[currentCat] % f.glb.links_py_columns == 0:
+            catRowCount[currentCat] += 1
+            HTML.add(f'div', f'page_links_{currentCat}', _id=f'page_links_{currentCat}_row{catRowCount[currentCat]}', _align=f'center', _style=f'flex')
 
-        i += 1
+        catColCount[currentCat] += 1
 
-        img = HTML.getLink(glb.links[link]["url"], _nest=f'<img id="Image_{glb.links[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.links[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
-        txt = HTML.add(f'p', _nest=HTML.getLink(glb.links[link]["url"], _nest=glb.links[link]["text"]))
-        HTML.add(f'div', f'page_links_{currentCat}_row{catObjLens[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / f.glb.links_py_columns}%; margin: 0px auto;')
+        img = HTML.getLink(glb.allLinks[link]["url"], _nest=f'<img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
+        txt = HTML.add(f'p', _nest=HTML.getLink(glb.allLinks[link]["url"], _nest=glb.allLinks[link]["text"]))
+        HTML.add(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / f.glb.links_py_columns}%; margin: 0px auto;')
 
-    for cat in catObjLens:
+    for cat in catRowCount:
         f.addEvent(f'page_links_{cat}_header', toggleCat, "click")
 
     f.cache("page_links", dumps(catStates))
