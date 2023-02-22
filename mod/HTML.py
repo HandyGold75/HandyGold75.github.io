@@ -36,8 +36,34 @@ def get(id: str, isClass: bool = False):
     return document.getElementById(id)
 
 
-def getLink(href: str, _nest: str = None):
-    htmlStr = f'<a href="{href}" target="_blank" style="color: #44F;">'
+def getLink(href: str, _nest: str = None, _style: str = None):
+    if not _style is None and _style.split(" %% ")[0] in glb.styleMap:
+        subStyleMerged = ""
+        _styleTmp = _style.split(f' %% ')
+
+        for style in _styleTmp:
+            if not style in glb.styleMap:
+                continue
+
+            for subStyle in glb.styleMap[style].split(";"):
+                subStyleKey, subStyleValue = subStyle.split(":")
+                subStyleKey = subStyleKey.replace(" ", "")
+
+                if subStyleKey in subStyleMerged or subStyleKey in _style:
+                    continue
+
+                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
+
+            _style = _style.replace(style, "")
+
+        _style = f'{subStyleMerged}{_style.split(" %% ")[-1]}'
+
+    style = f'color: #44F;'
+
+    if not _style is None:
+        style = f'{style} {_style}'
+
+    htmlStr = f'<a href="{href}" target="_blank" style="{style}">'
 
     if not _nest is None:
         htmlStr += f'{_nest}'
@@ -117,6 +143,7 @@ def setRaw(id: str, HTML: str):
 
 def move(sourceId: str, targetId: str):
     document.getElementById(targetId).appendChild(document.getElementById(sourceId))
+
 
 def copy(sourceId: str, targetId: str):
     el = document.getElementById(sourceId).cloneNode(True)

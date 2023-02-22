@@ -45,7 +45,8 @@ class invoke:
         glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "Notes"]
         glb.invokePasswordOnChange = ["User"]
 
-        glb.optionsList = ["Admin", "Home", "Asset Manager", "License Manager"]
+        glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home", "Asset Manager", "License Manager"], "Logs": []}
+        glb.tagIsList = False
 
         glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete"}
 
@@ -122,7 +123,8 @@ class invoke:
         glb.disabledInputs = ["Modified"]
         glb.invokePasswordOnChange = []
 
-        glb.optionsList = []
+        glb.optionsList = {"Assignments": [], "Devices": [], "Assets": [], "Servers": []}
+        glb.tagIsList = False
 
         glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
 
@@ -178,9 +180,41 @@ class invoke:
         glb.disabledInputs = ["Modified"]
         glb.invokePasswordOnChange = []
 
-        glb.optionsList = []
+        glb.optionsList = {"Assignments": [], "Devices": [], "Licenses": []}
+        glb.tagIsList = False
 
         glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
+
+        getData()
+
+    def QR(args=None):
+        glb.mainPage = "Query"
+        glb.currentSub = ""
+
+        glb.lastUpdate = 0
+        glb.knownFiles = {"/Links.json": {"Tag": {"url": str, "text": str, "cat": str, "Index": int, "Active": bool, "Modified": int}}, "/Contact.json": {"Tag": {"url": str, "text": str, "Index": int, "Active": bool, "Modified": int}}}
+
+        glb.dates = ["Modified"]
+
+        glb.halfView = ["Index", "Modified", "Active", "Action"]
+        glb.compactView = False
+
+        glb.excludeView = ["Index", "Modified"]
+        glb.hideInactive = False
+
+        glb.disabledInputs = ["Modified"]
+        glb.invokePasswordOnChange = []
+
+        glb.optionsList = {
+            "Links": [
+                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "Nord.png", "NS.png",
+                "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png", "Zwoofs.png"
+            ],
+            "Contact": ["discord.ico", "exchange.ico", "snapchat.ico", "spotify.ico", "steam.ico", "twitch.ico", "youtube.ico"]
+        }
+        glb.tagIsList = True
+
+        glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
 
         getData()
 
@@ -204,6 +238,7 @@ class glb:
     invokePasswordOnChange = []
 
     optionsList = []
+    tagIsList = None
 
     svcoms = {}
     logsLoaded = 0
@@ -410,10 +445,10 @@ def editRecord(args):
             return None
 
         elif knownValues[value] is list:
-            if glb.optionsList == []:
+            if glb.optionsList[glb.currentSub] == []:
                 data = ws.msgDict()[glb.svcoms["main"]][f'/{el.id.split("_")[1]}.json']
             else:
-                data = glb.optionsList
+                data = glb.optionsList[glb.currentSub]
 
             optionsHtml = f''
 
@@ -599,7 +634,23 @@ def pageSub(args, extraData: dict = {}):
             HTMLrows = f''
             for record in data:
                 rowC += 1
-                HTMLcols = HTML.add(f'input', _id=f'SubPage_page_new_input_{mainValue}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{mainValue}"')
+
+                if glb.tagIsList:
+                    if glb.optionsList[glb.currentSub] == []:
+                        allData = ws.msgDict()[glb.svcoms["main"]][f'/{mainValue}.json']
+                    else:
+                        allData = glb.optionsList[glb.currentSub]
+
+                    optionsHtml = f''
+
+                    for option in allData:
+                        optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
+
+                    name = f'{mainValue}_{len(allData)}'
+                    HTMLcols = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'SubPage_page_new_select_{name}', _class=f'SubPage_page_new', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{name}" size="1"')
+
+                else:
+                    HTMLcols = HTML.add(f'input', _id=f'SubPage_page_new_input_{mainValue}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{mainValue}"')
 
                 for value in data[record]:
                     if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
@@ -616,15 +667,16 @@ def pageSub(args, extraData: dict = {}):
                             HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_checkbox_{value}', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'inputMedium %% {styleCbx}', _custom=f'name="{value}" checked')
 
                         elif knownValues[value] is list:
-                            if glb.optionsList == []:
+                            if glb.optionsList[glb.currentSub] == []:
                                 allData = ws.msgDict()[glb.svcoms["main"]][f'/{value}.json']
                             else:
-                                allData = glb.optionsList
+                                allData = glb.optionsList[glb.currentSub]
 
                             optionsHtml = f''
 
                             for option in allData:
                                 optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
+
                             name = f'{value}_{len(allData)}'
                             HTMLcols += HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'SubPage_page_new_select_{name}', _class=f'SubPage_page_new', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{name}" size="1" multiple')
 
@@ -818,6 +870,8 @@ def pageSub(args, extraData: dict = {}):
             if rowC > 0:
                 cutInt = -rowC
 
+            endTime = (datetime.now() + timedelta(milliseconds=100)).timestamp()
+
             HTMLrows = f''
             for line in reversed(data.split("\n")[:cutInt]):
                 if line == "":
@@ -828,6 +882,9 @@ def pageSub(args, extraData: dict = {}):
                 for i, item in enumerate(line.split("%S%")):
                     HTMLcols += HTML.add(f'p', _nest=f'{item}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP};')
                     pass
+
+                if endTime < datetime.now().timestamp():
+                    break
 
                 HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
 

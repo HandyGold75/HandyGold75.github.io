@@ -8,9 +8,9 @@ import subs.portal_trees as pt
 
 
 class glb:
-    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Asset Manager": ps.main, "License Manager": ps.main}
-    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM}
-    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Asset Manager": "am", "License Manager": "lm"}
+    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Asset Manager": ps.main, "License Manager": ps.main, "Query": ps.main}
+    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM, "Query": ps.invoke.QR}
+    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
 
     lastLogin = 0
 
@@ -64,9 +64,6 @@ def main():
         img = HTML.add(f'img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/{page}.png" alt="{page.split(" ")[0]}"')
         btn = HTML.add(f'button', _id=f'page_portal_{page}', _nest=f'{img}', _style=f'buttonImg')
         HTML.add(f'div', f'page_portal_buttons', _nest=f'{btn}', _align=f'center', _style=f'margin: 10px 5px 10px auto;')
-
-    for invoke in reversed(glb.allInvokes):
-        glb.allInvokes[invoke]()
 
     for page in glb.allSubs:
         f.addEvent(f'page_portal_{page}', pagePortal)
