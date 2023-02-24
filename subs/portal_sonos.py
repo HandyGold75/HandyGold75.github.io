@@ -20,7 +20,6 @@ class invoke:
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         ws.send(f'sonos state')
-        ws.send(f'sonos track')
         ws.send(f'sonos ytinfo')
 
         glb.lastUpdate = datetime.now().timestamp()
@@ -48,9 +47,6 @@ class sonosControl:
     def state(args=None):
         ws.send(f'sonos state')
 
-    def track(args=None):
-        ws.send(f'sonos track')
-
     def ytinfo(args=None):
         ws.send(f'sonos ytinfo')
 
@@ -62,6 +58,12 @@ class sonosControl:
 
         elif data["device"]["playback"] in ["standby", "inactive"]:
             ws.send(f'sonos play')
+
+    def toggleShuffle(args=None):
+        ws.send(f'sonos toggleShuffle')
+
+    def toggleRepeat(args=None):
+        ws.send(f'sonos toggleRepeat')
 
     def next(args=None):
         ws.send(f'sonos next')
@@ -142,77 +144,15 @@ def pageSub(args):
             glb.currentSub = args.target.id.split("_")[-1]
 
     def player():
-        def updateUI():
-            if not glb.currentSub == "Player":
-                return None
-
-            data = ws.msgDict()["sonos"]
-
-            if data["track"]["title"] != glb.currentTitle:
-                sonosControl.ytinfo()
-
-            glb.currentTitle = data["track"]["title"]
-
-            if data["device"]["playback"] == "busy":
-                f.afterDelay(sonosControl.state, 500)
-                f.afterDelay(sonosControl.track, 500)
-                f.afterDelay(updateUI, 1000)
-
-                return None
-
-            if glb.skipUiUpdate:
-                glb.skipUiUpdate = False
-
-                f.afterDelay(sonosControl.state, 500)
-                f.afterDelay(sonosControl.track, 500)
-                f.afterDelay(updateUI, 1000)
-
-                return None
-
-            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-            pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
-            dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
-            dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
-
-            posStr = ws.msgDict()["sonos"]["track"]["position"]
-            if int(ws.msgDict()["sonos"]["track"]["position"].split(":")[0]) == 0:
-                posStr = ":".join(ws.msgDict()["sonos"]["track"]["position"].split(":")[1:])
-
-            durStr = ws.msgDict()["sonos"]["track"]["duration"]
-            if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
-                durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
-
-            try:
-                HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
-                HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
-            except AttributeError:
-                return None
-
-            if not glb.videoScolling:
-                HTML.get(f'SubPage_page_timeline_slider').max = dur
-                HTML.get(f'SubPage_page_timeline_slider').value = pos
-
-            if data["device"]["playback"] == "active":
-                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
-                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
-
-            elif data["device"]["playback"] in ["standby", "inactive"]:
-                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
-                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
-
-            elif data["device"]["playback"] == "inactive":
-                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
-                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
-
-            HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
-
-            CSS.get(f'SubPage_nav', f'scrollIntoView')()
-
-            if glb.useAlbumArt:
+        def slowUIRefresh():
+            def albumArt(data):
                 HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
                 HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
 
-            else:
+            def video(data):
+                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+                pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+
                 glb.ytPlayer.setVolume(0)
                 glb.ytPlayer.mute(0)
 
@@ -233,9 +173,91 @@ def pageSub(args):
                 if not newPos < oldPos + 1 or not newPos > oldPos - 1:
                     glb.ytPlayer.seekTo(newPos)
 
-            f.afterDelay(sonosControl.track, 500)
+            def controls(data):
+                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+                pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+                dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
+                dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
+
+                posStr = ws.msgDict()["sonos"]["track"]["position"]
+                if int(ws.msgDict()["sonos"]["track"]["position"].split(":")[0]) == 0:
+                    posStr = ":".join(ws.msgDict()["sonos"]["track"]["position"].split(":")[1:])
+                durStr = ws.msgDict()["sonos"]["track"]["duration"]
+                if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
+                    durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
+
+                HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
+                HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
+
+                if not glb.videoScolling:
+                    HTML.get(f'SubPage_page_timeline_slider').max = dur
+                    HTML.get(f'SubPage_page_timeline_slider').value = pos
+
+                if data["device"]["playback"] == "active":
+                    HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
+                    HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
+                elif data["device"]["playback"] in ["standby", "inactive"]:
+                    HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
+                    HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
+
+                HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
+
+            if not glb.currentSub == "Player":
+                return False
+
+            data = ws.msgDict()["sonos"]
+
+            if data["track"]["title"] != glb.currentTitle:
+                sonosControl.ytinfo()
+            glb.currentTitle = data["track"]["title"]
+
+            if data["device"]["playback"] == "busy":
+                f.afterDelay(sonosControl.state, 500)
+                f.afterDelay(slowUIRefresh, 1000)
+                return None
+
+            if glb.skipUiUpdate:
+                glb.skipUiUpdate = False
+                f.afterDelay(sonosControl.state, 500)
+                f.afterDelay(slowUIRefresh, 1000)
+                return None
+
+            try:
+                controls(data)
+
+                if glb.useAlbumArt:
+                    albumArt(data)
+                else:
+                    video(data)
+            except AttributeError:
+                return None
+
+            CSS.get(f'SubPage_nav', f'scrollIntoView')()
+
             f.afterDelay(sonosControl.state, 500)
-            f.afterDelay(updateUI, 1000)
+            f.afterDelay(slowUIRefresh, 1000)
+
+        def fastUIRefresh():
+            def controls(data):
+                if data["device"]["shuffle"]:
+                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'background', f'#444')
+                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'border', f'3px solid #FBDF56')
+
+                if data["device"]["repeat"]:
+                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'background', f'#444')
+                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'border', f'3px solid #FBDF56')
+
+            if not glb.currentSub == "Player":
+                return False
+
+            data = ws.msgDict()["sonos"]
+
+            try:
+                controls(data)
+            except AttributeError:
+                return None
+
+            f.afterDelay(fastUIRefresh, 250)
 
         def addAlbumArt():
             glb.useAlbumArt = True
@@ -328,7 +350,7 @@ def pageSub(args):
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% width: 90%; max-width: 500px; margin: 0px; padding: 0px;')
 
-            for action in ["VolumeDown", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "VolumeUp"]:
+            for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
                 btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
@@ -353,15 +375,17 @@ def pageSub(args):
                      _custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
 
             f.addEvent(f'SubPage_page_buttons_VolumeDown', sonosControl.volumeDown)
+            f.addEvent(f'SubPage_page_buttons_Repeat', sonosControl.toggleRepeat)
             f.addEvent(f'SubPage_page_buttons_SeekBackward', sonosControl.seekBackward)
             f.addEvent(f'SubPage_page_buttons_Back', sonosControl.back)
             f.addEvent(f'SubPage_page_buttons_Pause', sonosControl.togglePlay)
             f.addEvent(f'SubPage_page_buttons_Next', sonosControl.next)
             f.addEvent(f'SubPage_page_buttons_VolumeUp', sonosControl.volumeUp)
             f.addEvent(f'SubPage_page_buttons_SeekForward', sonosControl.seekForward)
+            f.addEvent(f'SubPage_page_buttons_Shuffle', sonosControl.toggleShuffle)
             f.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
 
-            for action in ["VolumeDown", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "VolumeUp"]:
+            for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 CSS.onHover(f'SubPage_page_buttons_{action}', f'imgHover')
                 CSS.onClick(f'SubPage_page_buttons_{action}', f'imgClick')
 
@@ -376,7 +400,9 @@ def pageSub(args):
             addVideo()
 
         addControls()
-        f.afterDelay(updateUI, 1500)
+
+        f.afterDelay(fastUIRefresh, 250)
+        f.afterDelay(slowUIRefresh, 1000)
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
