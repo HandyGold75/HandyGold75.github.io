@@ -60,7 +60,7 @@ class sonosControl:
         if data["device"]["playback"] == "active":
             ws.send(f'sonos pause')
 
-        elif data["device"]["playback"] == "standby":
+        elif data["device"]["playback"] in ["standby", "inactive"]:
             ws.send(f'sonos play')
 
     def next(args=None):
@@ -196,7 +196,7 @@ def pageSub(args):
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
 
-            elif data["device"]["playback"] == "standby":
+            elif data["device"]["playback"] in ["standby", "inactive"]:
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
@@ -333,7 +333,7 @@ def pageSub(args):
                 btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
 
-            if data["device"]["playback"] == "standby":
+            if data["device"]["playback"] in ["standby", "inactive"]:
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
