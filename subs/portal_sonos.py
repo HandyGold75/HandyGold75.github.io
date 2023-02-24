@@ -189,6 +189,14 @@ def pageSub(args):
                 HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
                 HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
 
+                if not data["device"]["shuffle"]:
+                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'background', f'#222')
+                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'border', f'2px solid #222')
+
+                if not data["device"]["repeat"]:
+                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'background', f'#222')
+                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'border', f'2px solid #222')
+
                 if not glb.videoScolling:
                     HTML.get(f'SubPage_page_timeline_slider').max = dur
                     HTML.get(f'SubPage_page_timeline_slider').value = pos
@@ -348,7 +356,7 @@ def pageSub(args):
         def addControls():
             data = ws.msgDict()["sonos"]
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% width: 90%; max-width: 500px; margin: 0px; padding: 0px;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% width: 100%; max-width: 550px; margin: 0px; padding: 0px;')
 
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
@@ -359,7 +367,7 @@ def pageSub(args):
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 80%; max-width: 450px; margin: 0px; padding: 0px; justify-content: center;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 90%; max-width: 500px; margin: 0px; padding: 0px; justify-content: center;')
 
             options = ""
             for option in range(0, 101, int(glb.config["volumeMax"] / 10)):
