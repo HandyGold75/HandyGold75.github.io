@@ -77,6 +77,11 @@ def onResize(args=None):
             from index import pageIndex
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
+        el = document.getElementById(f'SubPage_page_que')
+
+        if not el is None:
+            el.style.display = f'none'
+
         return None
 
     elif window.innerWidth < 700:
@@ -89,6 +94,11 @@ def onResize(args=None):
         if window.localStorage.getItem(f'page_index') == f'Links':
             from index import pageIndex
             pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+        el = document.getElementById(f'SubPage_page_que')
+
+        if not el is None:
+            el.style.display = f'none'
 
         return None
 
@@ -103,6 +113,11 @@ def onResize(args=None):
             from index import pageIndex
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
+        el = document.getElementById(f'SubPage_page_que')
+
+        if not el is None:
+            el.style.display = f'none'
+
         return None
 
     else:
@@ -115,6 +130,11 @@ def onResize(args=None):
         if window.localStorage.getItem(f'page_index') == f'Links':
             from index import pageIndex
             pageIndex(page=window.localStorage.getItem(f'page_index'))
+
+        el = document.getElementById(f'SubPage_page_que')
+
+        if not el is None:
+            el.style.display = f''
 
 
 def afterDelay(func, delay: int):
