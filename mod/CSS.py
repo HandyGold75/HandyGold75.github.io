@@ -56,7 +56,6 @@ def onHover(id: str, style: str):
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])
 
     def mouseout(args=None):
-
         id = args.target.id
 
         if id == "" or id.split("_")[-1].startswith("img"):
@@ -96,6 +95,11 @@ def onHover(id: str, style: str):
 
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
+        
+        try:
+            getattr(el.style, styleKey)
+        except AttributeError:
+            continue
 
         if styleKey == f'transition':
             el.style.transition = f'{prop.split(": ")[1]}'
@@ -156,6 +160,11 @@ def onClick(id: str, style: str):
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 
+        try:
+            getattr(el.style, styleKey)
+        except AttributeError:
+            continue
+        
         if styleKey == f'transition':
             el.style.transition = f'{prop.split(": ")[1]}'
             continue
@@ -215,6 +224,11 @@ def onFocus(id: str, style: str):
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
 
+        try:
+            getattr(el.style, styleKey)
+        except AttributeError:
+            continue
+        
         if styleKey == f'transition':
             el.style.transition = f'{prop.split(": ")[1]}'
             continue

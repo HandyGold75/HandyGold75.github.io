@@ -20,6 +20,7 @@ class invoke:
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         ws.send(f'sonos state')
+        ws.send(f'sonos que get')
         ws.send(f'sonos ytinfo')
 
         glb.lastUpdate = datetime.now().timestamp()
@@ -34,9 +35,11 @@ class glb:
     ytPlayer = None
 
     config = {}
-    knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool}
+    knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool, "disableMaxWidth (experimental)": bool}
     optionsList = []
     currentTitle = ""
+    currentPosition = ""
+    currentQueSize = 0
 
     useAlbumArt = False
     videoScolling = False
@@ -132,11 +135,17 @@ class sonosControl:
         sonosControl.seek(pos=newPos)
         glb.skipUiUpdate = True
 
+    def getQue():
+        ws.send(f'sonos que get')
+
+    def setQue(index: int):
+        ws.send(f'sonos que {index}')
+
 
 def pageSub(args):
     def setup(args):
         if f.cache("page_portal_sonos") is None or f.cache("page_links") == "":
-            f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False}))
+            f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "disableMaxWidth (experimental)": False}))
 
         glb.config = loads(f.cache("page_portal_sonos"))
 
@@ -145,35 +154,9 @@ def pageSub(args):
 
     def player():
         def slowUIRefresh():
-            def albumArt(data):
-                HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
-                HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+            def controls():
+                data = ws.msgDict()["sonos"]
 
-            def video(data):
-                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-                pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
-
-                glb.ytPlayer.setVolume(0)
-                glb.ytPlayer.mute(0)
-
-                if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
-                    glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
-
-                if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
-                    glb.ytPlayer.playVideo()
-                elif data["device"]["playback"] != "active":
-                    glb.ytPlayer.pauseVideo()
-
-                newPos = pos + 1
-                oldPos = glb.ytPlayer.getCurrentTime()
-
-                if oldPos is None:
-                    oldPos = 0
-
-                if not newPos < oldPos + 1 or not newPos > oldPos - 1:
-                    glb.ytPlayer.seekTo(newPos)
-
-            def controls(data):
                 pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
                 pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
                 dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
@@ -210,39 +193,90 @@ def pageSub(args):
 
                 HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
 
+            def que():
+                data = ws.msgDict()["sonos"]
+
+                if data["que"]["position"] != glb.currentPosition:
+                    addQue()
+
+                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'background', f'#222')
+                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'color', f'#55F')
+                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
+                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
+
+                    CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+                    glb.currentPosition = data["que"]["position"]
+
+            def albumArt():
+                data = ws.msgDict()["sonos"]
+
+                HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
+                HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+
+            def video():
+                data = ws.msgDict()["sonos"]
+
+                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+                pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+
+                glb.ytPlayer.setVolume(0)
+                glb.ytPlayer.mute(0)
+
+                if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
+                    glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
+
+                if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
+                    glb.ytPlayer.playVideo()
+                elif data["device"]["playback"] != "active":
+                    glb.ytPlayer.pauseVideo()
+
+                newPos = pos + 1
+                oldPos = glb.ytPlayer.getCurrentTime()
+
+                if oldPos is None:
+                    oldPos = 0
+
+                if not newPos < oldPos + 1 or not newPos > oldPos - 1:
+                    glb.ytPlayer.seekTo(newPos)
+
             if not glb.currentSub == "Player":
                 return False
 
             data = ws.msgDict()["sonos"]
 
             if data["track"]["title"] != glb.currentTitle:
+                sonosControl.getQue()
                 sonosControl.ytinfo()
             glb.currentTitle = data["track"]["title"]
 
             if data["device"]["playback"] == "busy":
                 f.afterDelay(sonosControl.state, 500)
+                f.afterDelay(sonosControl.getQue, 500)
                 f.afterDelay(slowUIRefresh, 1000)
                 return None
 
             if glb.skipUiUpdate:
                 glb.skipUiUpdate = False
                 f.afterDelay(sonosControl.state, 500)
+                f.afterDelay(sonosControl.getQue, 500)
                 f.afterDelay(slowUIRefresh, 1000)
                 return None
 
             try:
-                controls(data)
+                controls()
+                que()
 
                 if glb.useAlbumArt:
-                    albumArt(data)
+                    albumArt()
                 else:
-                    video(data)
+                    video()
             except AttributeError:
                 return None
 
-            CSS.get(f'SubPage_nav', f'scrollIntoView')()
+            # CSS.get(f'SubPage_nav', f'scrollIntoView')()
 
             f.afterDelay(sonosControl.state, 500)
+            f.afterDelay(sonosControl.getQue, 500)
             f.afterDelay(slowUIRefresh, 1000)
 
         def fastUIRefresh():
@@ -271,8 +305,10 @@ def pageSub(args):
             glb.useAlbumArt = True
             data = ws.msgDict()["sonos"]
 
+            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 80%; margin: 0px auto;')
+
             img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_albumArt', _nest=f'{img}', _style=f'divNormal %% width: 100%;')
+            HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_albumArt', _style=f'divNormal %% width: 100%;')
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; max-width: 69vh; justify-content: center;')
 
@@ -323,11 +359,13 @@ def pageSub(args):
             if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                 durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
 
+            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 80%; margin: 0px auto;')
+
             img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
-            HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_main_videoCover', _nest=f'{img}', _style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+            HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_videoCover', _style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
             ifr = HTML.add(f'div', _id=f'iframe_YTVideo', _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'frameborder="0"')
-            HTML.add(f'div', f'SubPage_page_main', _id=f'div_YTVideo', _nest=f'{ifr}', _style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+            HTML.add(f'div', f'SubPage_page_art', _nest=f'{ifr}', _id=f'div_YTVideo', _style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
             def loadYtPlayer():
                 glb.ytPlayer = f.jsEval("new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );")
@@ -353,6 +391,56 @@ def pageSub(args):
 
             f.afterDelay(doAction, 200)
 
+        def addQue():
+            def playFromQue(args):
+                el = args.target
+
+                for i in range(0, 4):
+                    if el.id == "":
+                        el = el.parentElement
+                        continue
+
+                    try:
+                        int(el.id.split("_")[-1])
+                    except ValueError:
+                        el = el.parentElement
+                        continue
+
+                    sonosControl.setQue(f'{el.id.split("_")[-1]}')
+                    return None
+
+            data = ws.msgDict()["sonos"]
+            glb.currentQueSize = data["que"]["size"]
+
+            if HTML.get(f'SubPage_page_que') is None:
+                HTML.add(f'div', f'SubPage_page_media', _id=f'SubPage_page_que', _style=f'divNormal %% position: relative; width: 20%; height: 0px; padding-bottom: 44.5%; margin: 0px auto; border: 5px solid #111; overflow-x: hidden;')
+            else:
+                HTML.setRaw(f'SubPage_page_que', "")
+
+            tracks = data["que"]["tracks"]
+
+            queHTML = ""
+
+            for track in tracks:
+                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 25%;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+
+                txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis', _align=f'left')
+                dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto', _align=f'right')
+                title = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% margin: 0px;')
+
+                creator = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; font-size: 75%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
+                txt = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 75%; margin: auto 5px;')
+
+                queHTML += HTML.add(f'div', _nest=f'{img}{txt}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% margin: -5px -5px; border: 5px solid #111')
+
+            HTML.addRaw(f'SubPage_page_que', queHTML)
+
+            def doAction():
+                for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
+                    f.addEvent(track, playFromQue, "dblclick", isClass=True)
+
+            f.afterDelay(doAction, 100)
+
         def addControls():
             data = ws.msgDict()["sonos"]
 
@@ -360,7 +448,7 @@ def pageSub(args):
 
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
-                btn = HTML.add(f'button', _id=f'SubPage_page_buttons_{action}', _nest=f'{img}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
 
             if data["device"]["playback"] in ["standby", "inactive"]:
@@ -400,14 +488,23 @@ def pageSub(args):
         if glb.currentSub != "Player":
             return None
 
+        if glb.config["disableMaxWidth (experimental)"]:
+            CSS.setStyle(f'body', f'max-width', f'')
+        else:
+            CSS.setStyle(f'body', f'max-width', f'1440px')
+
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
+        HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_media', _style=f'divNormal %% flex %% margin: 0px auto;')
 
         if glb.config["useAlbumArt"]:
             addAlbumArt()
         else:
             addVideo()
 
+        addQue()
         addControls()
+
+        f.onResize()
 
         f.afterDelay(fastUIRefresh, 250)
         f.afterDelay(slowUIRefresh, 1000)
