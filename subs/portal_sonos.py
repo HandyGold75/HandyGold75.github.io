@@ -413,7 +413,7 @@ def pageSub(args):
             glb.currentQueSize = data["que"]["size"]
 
             if HTML.get(f'SubPage_page_que') is None:
-                HTML.add(f'div', f'SubPage_page_media', _id=f'SubPage_page_que', _style=f'divNormal %% position: relative; width: 20%; height: 0px; padding-bottom: 44.5%; margin: 0px auto; border: 5px solid #111; overflow-x: hidden;')
+                HTML.add(f'div', f'SubPage_page_media', _id=f'SubPage_page_que', _style=f'divNormal %% position: relative; width: 22.25%; height: 0px; padding-bottom: 44.5%; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
             else:
                 HTML.setRaw(f'SubPage_page_que', "")
 
@@ -422,14 +422,14 @@ def pageSub(args):
             queHTML = ""
 
             for track in tracks:
-                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 25%;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 20%;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis', _align=f'left')
                 dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto', _align=f'right')
                 title = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% margin: 0px;')
 
                 creator = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; font-size: 75%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                txt = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 75%; margin: auto 5px;')
+                txt = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 80%; margin: auto 5px;')
 
                 queHTML += HTML.add(f'div', _nest=f'{img}{txt}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% margin: -5px -5px; border: 5px solid #111')
 
@@ -455,7 +455,7 @@ def pageSub(args):
                 HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 90%; max-width: 500px; margin: 0px; padding: 0px; justify-content: center;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 90%; max-width: 525px; margin: 0px; padding: 0px; justify-content: center;')
 
             options = ""
             for option in range(0, 101, int(glb.config["volumeMax"] / 10)):
@@ -501,8 +501,8 @@ def pageSub(args):
         else:
             addVideo()
 
-        addQue()
         addControls()
+        addQue()
 
         f.onResize()
 
