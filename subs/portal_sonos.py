@@ -273,7 +273,7 @@ def pageSub(args):
             except AttributeError:
                 return None
 
-            # CSS.get(f'SubPage_nav', f'scrollIntoView')()
+            CSS.get(f'SubPage_nav', f'scrollIntoView')()
 
             f.afterDelay(sonosControl.state, 500)
             f.afterDelay(sonosControl.getQue, 500)
