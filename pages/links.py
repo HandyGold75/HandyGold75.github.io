@@ -178,7 +178,7 @@ class glb:
             "Modified": 0
         },
         "Vodafone.png": {
-            "url": "https://www.Vodafone.nl/My",
+            "url": "https://www.Vodafone.nl/my",
             "text": "Vodafone",
             "cat": "Stores",
             "Index": 102,
