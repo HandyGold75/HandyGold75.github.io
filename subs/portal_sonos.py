@@ -141,6 +141,9 @@ class sonosControl:
     def setQue(index: int):
         ws.send(f'sonos que {index}')
 
+    def remQue(index: int):
+        ws.send(f'sonos queRemove {index}')
+
 
 def pageSub(args):
     def setup(args):
@@ -201,8 +204,15 @@ def pageSub(args):
 
                     CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'background', f'#222')
                     CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'color', f'#55F')
+                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'border', f'5px solid #111')
+                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'borderRadius ', f'10px')
+                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'zIndex ', f'0')
+
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
+                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'border', f'5px solid #F7E163')
+                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
+                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex ', f'100')
 
                     CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
                     glb.currentPosition = data["que"]["position"]
@@ -249,17 +259,13 @@ def pageSub(args):
                 sonosControl.ytinfo()
             glb.currentTitle = data["track"]["title"]
 
-            if data["device"]["playback"] == "busy":
-                f.afterDelay(sonosControl.state, 500)
-                f.afterDelay(sonosControl.getQue, 500)
-                f.afterDelay(slowUIRefresh, 1000)
-                return None
-
-            if glb.skipUiUpdate:
+            if data["device"]["playback"] == "busy" or glb.skipUiUpdate:
                 glb.skipUiUpdate = False
+
                 f.afterDelay(sonosControl.state, 500)
                 f.afterDelay(sonosControl.getQue, 500)
                 f.afterDelay(slowUIRefresh, 1000)
+
                 return None
 
             try:
@@ -407,13 +413,35 @@ def pageSub(args):
                         continue
 
                     sonosControl.setQue(f'{el.id.split("_")[-1]}')
+                    glb.currentPosition = -1
+                    return None
+
+            def removeFromQue(args):
+                el = args.target
+
+                for i in range(0, 6):
+                    if el.id == "":
+                        el = el.parentElement
+                        continue
+
+                    try:
+                        int(el.id.split("_")[-1])
+                    except ValueError:
+                        el = el.parentElement
+                        continue
+
+                    sonosControl.remQue(f'{el.id.split("_")[-1]}')
+                    glb.currentPosition = -1
                     return None
 
             data = ws.msgDict()["sonos"]
             glb.currentQueSize = data["que"]["size"]
 
             if HTML.get(f'SubPage_page_que') is None:
-                HTML.add(f'div', f'SubPage_page_media', _id=f'SubPage_page_que', _style=f'divNormal %% position: relative; width: 22.25%; height: 0px; padding-bottom: 44.5%; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
+                HTML.add(f'div',
+                         f'SubPage_page_media',
+                         _id=f'SubPage_page_que',
+                         _style=f'divNormal %% position: relative; width: 22.25%; height: 38vw; max-height: 580px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
             else:
                 HTML.setRaw(f'SubPage_page_que', "")
 
@@ -424,20 +452,37 @@ def pageSub(args):
             for track in tracks:
                 img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 20%;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
-                txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis', _align=f'left')
-                dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto', _align=f'right')
-                title = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% margin: 0px;')
+                txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
+                remImg = HTML.add(f'img', _id=f'SubPage_page_que_{track}_rem_img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_{track}_rem', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                rem = HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
+                title = HTML.add(f'div', _nest=f'{txt}{rem}', _style=f'flex %% margin: 0px;')
 
-                creator = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; font-size: 75%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                txt = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 80%; margin: auto 5px;')
+                txt = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
+                dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto;', _align=f'right')
+                creator = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% font-size: 75%; margin: 0px;')
 
-                queHTML += HTML.add(f'div', _nest=f'{img}{txt}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% margin: -5px -5px; border: 5px solid #111')
+                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 80%; margin: auto 5px;')
+
+                queHTML += HTML.add(f'div', _nest=f'{img}{txtDiv}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% position: relative; margin: -5px -5px; z-index: 0; border: 5px solid #111;')
 
             HTML.addRaw(f'SubPage_page_que', queHTML)
+
+            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
+            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
+            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'border', f'5px solid #F7E163')
+            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
+            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex', f'100')
+
+            CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
 
             def doAction():
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
                     f.addEvent(track, playFromQue, "dblclick", isClass=True)
+
+                    f.addEvent(f'{track.id}_rem', removeFromQue)
+                    CSS.onHover(f'{track.id}_rem', f'imgHover')
+                    CSS.onClick(f'{track.id}_rem', f'imgClick')
 
             f.afterDelay(doAction, 100)
 
@@ -467,7 +512,7 @@ def pageSub(args):
                      f'SubPage_page_volume',
                      _id=f'SubPage_page_volume_slider',
                      _type=f'range',
-                     _style=f'inputRange %% width: 90%; height: 10px',
+                     _style=f'inputRange %% width: 90%; height: 10px;',
                      _custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
 
             f.addEvent(f'SubPage_page_buttons_VolumeDown', sonosControl.volumeDown)
