@@ -455,7 +455,7 @@ def pageSub(args):
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
                 remImg = HTML.add(f'img', _id=f'SubPage_page_que_{track}_rem_img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
                 remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_{track}_rem', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
-                rem = HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
+                rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
                 title = HTML.add(f'div', _nest=f'{txt}{rem}', _style=f'flex %% margin: 0px;')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
