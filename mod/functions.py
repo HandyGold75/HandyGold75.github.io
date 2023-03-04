@@ -66,6 +66,7 @@ def getVP():
 
 
 def onResize(args=None):
+
     if window.innerWidth < 450:
         glb.links_py_columns = 3
 
@@ -78,7 +79,6 @@ def onResize(args=None):
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
         el = document.getElementById(f'SubPage_page_que')
-
         if not el is None:
             el.style.display = f'none'
 
@@ -96,7 +96,6 @@ def onResize(args=None):
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
         el = document.getElementById(f'SubPage_page_que')
-
         if not el is None:
             el.style.display = f'none'
 
@@ -114,9 +113,8 @@ def onResize(args=None):
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
         el = document.getElementById(f'SubPage_page_que')
-
         if not el is None:
-            el.style.display = f'none'
+            el.style.display = f''
 
         return None
 
@@ -132,7 +130,6 @@ def onResize(args=None):
             pageIndex(page=window.localStorage.getItem(f'page_index'))
 
         el = document.getElementById(f'SubPage_page_que')
-
         if not el is None:
             el.style.display = f''
 

@@ -314,7 +314,7 @@ def pageSub(args):
             HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 80%; margin: 0px auto;')
 
             img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-            HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_albumArt', _style=f'divNormal %% width: 100%;')
+            HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_albumArt', _style=f'divNormal %% width: 75%;')
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; max-width: 69vh; justify-content: center;')
 
@@ -365,7 +365,7 @@ def pageSub(args):
             if int(ws.msgDict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                 durStr = ":".join(ws.msgDict()["sonos"]["track"]["duration"].split(":")[1:])
 
-            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 80%; margin: 0px auto;')
+            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 75%; margin: 0px auto;')
 
             img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Transparent.png" alt="Black"')
             HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_videoCover', _style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
@@ -438,10 +438,17 @@ def pageSub(args):
             glb.currentQueSize = data["que"]["size"]
 
             if HTML.get(f'SubPage_page_que') is None:
-                HTML.add(f'div',
-                         f'SubPage_page_media',
-                         _id=f'SubPage_page_que',
-                         _style=f'divNormal %% position: relative; width: 22.25%; height: 38vw; max-height: 580px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
+                if glb.config["useAlbumArt"]:
+                    HTML.add(f'div',
+                             f'SubPage_page_media',
+                             _id=f'SubPage_page_que',
+                             _style=f'divNormal %% position: relative; width: 25%; height: 69vh; max-height: 750px; padding: 0px; margin: 35px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
+
+                else:
+                    HTML.add(f'div',
+                             f'SubPage_page_media',
+                             _id=f'SubPage_page_que',
+                             _style=f'divNormal %% position: relative; width: 27.25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
             else:
                 HTML.setRaw(f'SubPage_page_que', "")
 
@@ -450,7 +457,7 @@ def pageSub(args):
             queHTML = ""
 
             for track in tracks:
-                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 20%;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 17%; max-width: 50px; height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
                 remImg = HTML.add(f'img', _id=f'SubPage_page_que_{track}_rem_img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
@@ -462,7 +469,7 @@ def pageSub(args):
                 dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto;', _align=f'right')
                 creator = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% font-size: 75%; margin: 0px;')
 
-                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 80%; margin: auto 5px;')
+                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 83%; margin: auto 5px;')
 
                 queHTML += HTML.add(f'div', _nest=f'{img}{txtDiv}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% position: relative; margin: -5px -5px; z-index: 0; border: 5px solid #111;')
 
