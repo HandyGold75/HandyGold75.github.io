@@ -13,18 +13,19 @@ class glb:
     exludeMainNav = ["Login"]
 
 
-for item in ["token", "signin", "page_index", "page_links", "page_portal"]:
-    if f.cache(item) is None:
-        f.cache(item, f'')
+def setup():
+    for item in ["token", "signin", "page_index", "page_links", "page_portal"]:
+        if f.cache(item) is None:
+            f.cache(item, f'')
 
-if f.cache(f'page_index') == "":
-    f.cache(f'page_index', f'Home')
+    if f.cache(f'page_index') == "":
+        f.cache(f'page_index', f'Home')
 
-if f.cache(f'signin') == "Auto":
-    f.cache(f'page_index', f'Login')
+    if f.cache(f'signin') == "Auto":
+        f.cache(f'page_index', f'Login')
 
-elif f.cache(f'signin') in ["", "None"]:
-    f.cache(f'token', f'')
+    elif f.cache(f'signin') in ["", "None"]:
+        f.cache(f'token', f'')
 
 
 def general():
@@ -110,6 +111,7 @@ def footer():
 
 
 def main():
+    setup()
     general()
 
     navigation()

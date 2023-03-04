@@ -95,7 +95,7 @@ def onHover(id: str, style: str):
 
     for prop in style.split(f';')[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
-        
+
         try:
             getattr(el.style, styleKey)
         except AttributeError:
@@ -164,7 +164,7 @@ def onClick(id: str, style: str):
             getattr(el.style, styleKey)
         except AttributeError:
             continue
-        
+
         if styleKey == f'transition':
             el.style.transition = f'{prop.split(": ")[1]}'
             continue
@@ -228,7 +228,7 @@ def onFocus(id: str, style: str):
             getattr(el.style, styleKey)
         except AttributeError:
             continue
-        
+
         if styleKey == f'transition':
             el.style.transition = f'{prop.split(": ")[1]}'
             continue
