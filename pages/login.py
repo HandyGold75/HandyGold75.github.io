@@ -32,11 +32,14 @@ def setup():
 
     def loginTokenSucces():
         def getData():
+            access = ws.msgDict()["access"]
             for invoke in reversed(portal_glb.allInvokes):
+                if not portal_glb.allCommands[invoke] in access:
+                    continue
+
                 portal_glb.allInvokes[invoke]()
 
         ws.send(f'access')
-
         f.afterDelay(getData, 200)
 
         f.glb.loggedIn = True
