@@ -65,14 +65,10 @@ def pageSub(args=None):
     def plugs():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% overflow-y: hidden;')
 
-        def test():
-            for plug in ws.msgDict()["tapo"]:
-                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium')
-                img = HTML.add(f'img', _id=f'Image_{plug}', _style="width: 100%; max-width: 25vh; max-height: 25vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Tapo/SmartPlug.png" alt="SmartPlug"')
-                HTML.add(f'div', f'SubPage_page_main', _nest=f'{txt}{img}', _id=f'SubPage_page_main_{plug}', _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
-
-        for i in range(0, 6):
-            test()
+        for plug in ws.msgDict()["tapo"]:
+            txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium')
+            img = HTML.add(f'img', _id=f'Image_{plug}', _style="width: 100%; max-width: 25vh; max-height: 25vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Tapo/SmartPlug.png" alt="SmartPlug"')
+            HTML.add(f'div', f'SubPage_page_main', _nest=f'{txt}{img}', _id=f'SubPage_page_main_{plug}', _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
 
     def config():
         def editRecord(args):
