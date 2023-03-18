@@ -28,6 +28,7 @@ class invoke:
                     "Expires": int,
                     "Modified": int,
                     "Active": bool,
+                    "TapoUser": str,
                     "Notes": str
                 }
             },
@@ -36,14 +37,14 @@ class invoke:
 
         glb.dates = ["Modified", "Expires"]
 
-        glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "Action"]
+        glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "TapoUser", "Action"]
         glb.compactView = False
 
-        glb.excludeView = ["Expires", "Modified", "Notes"]
+        glb.excludeView = ["Expires", "Modified", "TapoUser", "Notes"]
         glb.hideInactive = False
 
-        glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "Notes"]
-        glb.invokePasswordOnChange = ["User"]
+        glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "TapoUser", "Notes"]
+        glb.invokePasswordOnChange = ["User", "TapoUser"]
 
         glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home", "Asset Manager", "License Manager"], "Logs": []}
         glb.tagIsList = False
@@ -382,10 +383,12 @@ def editRecord(args):
 
             password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), f.glb.pk)).replace(" ", "%20")
 
-            if not mainValue is None:
-                ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
-            else:
-                ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json Password {password}')
+            f.log(str(mainValue))
+
+            # if not mainValue is None:
+            #     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
+            # else:
+            #     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json Password {password}')
 
         if not mainValue is None:
             ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')

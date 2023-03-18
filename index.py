@@ -89,7 +89,7 @@ def footer():
     def clearCache(args=None):
         f.clearCache()
 
-    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
+    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022 / 2023', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
     HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
     butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
