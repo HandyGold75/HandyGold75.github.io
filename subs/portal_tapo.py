@@ -63,12 +63,89 @@ def pageSub(args=None):
         f.afterDelay(pageSub, 2000)
 
     def plugs():
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% overflow-y: hidden;')
+        def slowUIRefresh():
+            def getData():
+                ws.send(f'tapo state')
 
-        for plug in ws.msgDict()["tapo"]:
-            txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium')
-            img = HTML.add(f'img', _id=f'Image_{plug}', _style="width: 100%; max-width: 25vh; max-height: 25vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Tapo/SmartPlug.png" alt="SmartPlug"')
-            HTML.add(f'div', f'SubPage_page_main', _nest=f'{txt}{img}', _id=f'SubPage_page_main_{plug}', _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
+            if not glb.currentSub == "Plugs":
+                return False
+
+            data = ws.msgDict()["tapo"]
+
+            for plug in data:
+                HTML.setRaw(f'Gauge_{plug}_power', f'{(data[plug]["currentPower"] / 1000):.2f}<br>Wh')
+
+                dur = data[plug]["duration"]
+
+                if dur > 7884000:
+                    dur = f'{(dur / 2628000):.2f}M'
+                elif dur > 259200:
+                    dur = f'{(dur / 86400):.2f}d'
+                elif dur > 10800:
+                    dur = f'{(dur / 3600):.2f}h'
+                elif dur > 180:
+                    dur = f'{int(dur / 60)}m'
+                else:
+                    dur = f'{dur}s'
+
+                HTML.setRaw(f'Gauge_{plug}_uptime', f'{dur}')
+
+                if data[plug]["overheated"]:
+                    CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'100%')
+                else:
+                    CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'0%')
+
+                if not data[plug]["state"]:
+                    for i in range(1, 24):
+                        CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
+
+                    continue
+
+                CSS.setStyle(f'Gauge_{plug}_1', f'opacity', f'100%')
+
+                for i in range(1, 23):
+                    if data[plug]["currentPower"] > i * 15000:
+                        CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'100%')
+                        continue
+
+                    CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'0%')
+
+            f.afterDelay(getData, 500)
+            f.afterDelay(slowUIRefresh, 1000)
+
+        def addPlugs():
+            data = ws.msgDict()["tapo"]
+
+            for plug in data:
+                if not data[plug]["model"] in ["P115", "P110"]:
+                    continue
+
+                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 75%;')
+                img = HTML.add(f'img', _style=f'width: 25%; margin: auto; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/SmartPlug.png" alt="SmartPlug"')
+                header = HTML.add(f'div', _nest=f'{txt}{img}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
+
+                img = HTML.add(f'img', _style=f'z-index: 0; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge.png" alt="Gauge"')
+                for i in range(1, 24):
+                    img += HTML.add(f'img',
+                                    _id=f'Gauge_{plug}_{i}',
+                                    _style=f'z-index: {i}; width: 100%; margin: auto auto auto -100%; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;',
+                                    _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge_{i}.png" alt="Gauge {i}"')
+                txt = HTML.add(f'p', _nest=f'0.00<br>Wh', _id=f'Gauge_{plug}_power', _style=f'z-index: 24; width: 100%; margin: auto auto auto -100%; padding: 0px 0px 5% 0px; line-height: 100%; font-weight: bold; position: relative; user-select:none;')
+                txt += HTML.add(f'p', _nest=f'0.00h', _id=f'Gauge_{plug}_uptime', _style=f'z-index: 25; width: 100%; margin: auto auto auto -100%; padding: 50% 0px 0px 0px; font-weight: bold; position: relative; user-select:none;')
+                txt += HTML.add(f'h1',
+                                _nest=f'Overheated!',
+                                _id=f'Gauge_{plug}_overheat',
+                                _style=f'headerMedium %% z-index: 26; width: 100%; margin: auto auto -20px -100%; color: #F00; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;')
+
+                body = HTML.add(f'div', _nest=f'{img}{txt}', _style=f'flex %% padding: 20px 10px; border-bottom: 4px dotted #111;')
+
+                HTML.add(f'div', f'SubPage_page_main', _nest=f'{header}{body}', _id=f'SubPage_page_main_{plug}', _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
+
+        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
+
+        addPlugs()
+
+        f.afterDelay(slowUIRefresh, 1000)
 
     def config():
         def editRecord(args):
