@@ -1,5 +1,5 @@
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 import mod.HTML as HTML
 import mod.CSS as CSS
 from rsa import encrypt
@@ -257,7 +257,7 @@ def addRecord(args):
     if glb.svcoms["add"] == "uadd":
         ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json')
 
-        f.popup(f'alert', f'New user created.\nReload the subpage for changes to appear.')
+        JS.popup(f'alert', f'New user created.\nReload the subpage for changes to appear.')
 
         return None
 
@@ -272,7 +272,7 @@ def addRecord(args):
         value = str(item.value)
 
         if name == mainValue and ("_" in value):
-            f.popup(f'alert', f'Invalid format for "{name}"!\n"{name}" may not include underscores ("_").')
+            JS.popup(f'alert', f'Invalid format for "{name}"!\n"{name}" may not include underscores ("_").')
             return None
 
         if name in knownValues:
@@ -362,7 +362,7 @@ def editRecord(args):
                     try:
                         data = int(data)
                     except ValueError:
-                        f.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                        JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
                         return None
 
             elif knownValues[value] is list:
@@ -376,14 +376,14 @@ def editRecord(args):
                 html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
 
         if value in glb.invokePasswordOnChange:
-            password = f.popup(f'prompt', "Please enter the new password for the user.")
+            password = JS.popup(f'prompt', "Please enter the new password for the user.")
 
             if password is None:
                 return None
 
-            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), f.glb.pk)).replace(" ", "%20")
+            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), JS.glb.pk)).replace(" ", "%20")
 
-            f.log(str(mainValue))
+            JS.log(str(mainValue))
 
             # if not mainValue is None:
             #     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
@@ -399,7 +399,7 @@ def editRecord(args):
 
         CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
-        f.addEvent(el.id, editRecord, "dblclick")
+        JS.addEvent(el.id, editRecord, "dblclick")
 
     el = HTML.get(f'{args.target.id}')
     width = el.style.width
@@ -475,11 +475,11 @@ def editRecord(args):
         CSS.onHover(el.id, f'inputHover')
         CSS.onFocus(el.id, f'inputFocus')
 
-    f.addEvent(el.id, submit, "keyup")
+    JS.addEvent(el.id, submit, "keyup")
 
 
 def delRecord(args):
-    if not f.popup(f'confirm', f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
+    if not JS.popup(f'confirm', f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
         return None
 
     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["delete"]} /{glb.currentSub.replace(" ", "%20")}.json {args.target.id.split("_")[-1].replace(" ", "%20")}')
@@ -491,8 +491,8 @@ def bulkAdd(args):
     if glb.currentSub == "":
         return None
 
-    prefix = f.popup(f'prompt', "Prefix")
-    amount = f.popup(f'prompt', "Amount")
+    prefix = JS.popup(f'prompt', "Prefix")
+    amount = JS.popup(f'prompt', "Amount")
 
     if prefix is None or amount is None:
         return None
@@ -500,10 +500,10 @@ def bulkAdd(args):
     try:
         amount = int(amount)
     except ValueError:
-        f.popup(f'alert', "Please enter a rounded number!")
+        JS.popup(f'alert', "Please enter a rounded number!")
         return None
 
-    if f.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
+    if JS.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
         for i in range(0, amount):
             if glb.svcoms["add"] == "uadd":
                 ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
@@ -789,14 +789,14 @@ def pageSub(args, extraData: dict = {}):
             if item.name.split("_")[0] in glb.disabledInputs:
                 HTML.enable(item.id, False)
 
-        f.addEvent(f'SubPage_page_add', addRecord)
+        JS.addEvent(f'SubPage_page_add', addRecord)
         CSS.onHover(f'SubPage_page_add', f'buttonHover')
         CSS.onClick(f'SubPage_page_add', f'buttonClick')
 
         for button in buttons:
             CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
 
-            f.addEvent(button, delRecord)
+            JS.addEvent(button, delRecord)
             CSS.onHover(button, f'buttonHover')
             CSS.onClick(button, f'buttonClick')
 
@@ -804,7 +804,7 @@ def pageSub(args, extraData: dict = {}):
 
         for item in HTML.get(f'SubPage_page_records', isClass=True):
             if not item.id.split("_")[1] == mainValue:
-                f.addEvent(item, editRecord, "dblclick", isClass=True)
+                JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addMinimal(data):
         def addHeader():
@@ -862,7 +862,7 @@ def pageSub(args, extraData: dict = {}):
 
         for item in HTML.get(f'SubPage_page_keys', isClass=True):
             if item.id != "":
-                f.addEvent(item, editRecord, "dblclick", isClass=True)
+                JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addLogs(data):
         def loadLogs(args=None):
@@ -911,7 +911,7 @@ def pageSub(args, extraData: dict = {}):
             btn = HTML.add(f'button', _nest=f'Load More', _id=f'SubPage_page_buttons_loadMoreLogs', _type=f'button', _style=f'buttonMedium %% width: 75%; height: 40px;')
             HTML.add(f'div', f'SubPage_page', _nest=f'{btn}', _id=f'SubPage_page_buttons', _align=f'center', _style=f'padding-top: 15px; display: flex; justify-content: center;')
 
-            f.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
+            JS.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
             CSS.onHover(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover')
             CSS.onClick(f'SubPage_page_buttons_loadMoreLogs', f'buttonClick')
 
@@ -981,15 +981,15 @@ def main(args=None, sub=None):
     for file in data:
         if file in glb.knownFiles:
             fileName = f'{file.replace("/", "").replace(".json", "")}'
-            f.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
-            f.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
+            JS.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
+            JS.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
 
             CSS.onHover(f'SubPage_nav_main_{fileName}', f'buttonHover')
             CSS.onClick(f'SubPage_nav_main_{fileName}', f'buttonClick')
 
-    f.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
-    f.addEvent(f'SubPage_nav_options_active', pageSub)
-    f.addEvent(f'SubPage_nav_options_compact', pageSub)
+    JS.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
+    JS.addEvent(f'SubPage_nav_options_active', pageSub)
+    JS.addEvent(f'SubPage_nav_options_compact', pageSub)
 
     CSS.onHover(f'SubPage_nav_options_bulkadd', f'buttonHover')
     CSS.onHover(f'SubPage_nav_options_active', f'buttonHover')

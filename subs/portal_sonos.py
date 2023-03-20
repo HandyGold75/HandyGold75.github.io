@@ -1,7 +1,7 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 from json import dumps, loads
 from datetime import datetime, timedelta
 
@@ -147,10 +147,10 @@ class sonosControl:
 
 def pageSub(args):
     def setup(args):
-        if f.cache("page_portal_sonos") is None or f.cache("page_links") == "":
-            f.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "disableMaxWidth (experimental)": False}))
+        if JS.cache("page_portal_sonos") is None or JS.cache("page_links") == "":
+            JS.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "disableMaxWidth (experimental)": False}))
 
-        glb.config = loads(f.cache("page_portal_sonos"))
+        glb.config = loads(JS.cache("page_portal_sonos"))
 
         if f'{args.target.id.split("_")[-1]}' in glb.subPages:
             glb.currentSub = args.target.id.split("_")[-1]
@@ -188,11 +188,11 @@ def pageSub(args):
                     HTML.get(f'SubPage_page_timeline_slider').value = pos
 
                 if data["device"]["playback"] == "active":
-                    HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Pause.png'
-                    HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Pause'
+                    HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Pause.png'
+                    HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Pause'
                 elif data["device"]["playback"] in ["standby", "inactive"]:
-                    HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
-                    HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
+                    HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Play.png'
+                    HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Play'
 
                 HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
 
@@ -262,9 +262,9 @@ def pageSub(args):
             if data["device"]["playback"] == "busy" or glb.skipUiUpdate:
                 glb.skipUiUpdate = False
 
-                f.afterDelay(sonosControl.state, 500)
-                f.afterDelay(sonosControl.getQue, 500)
-                f.afterDelay(slowUIRefresh, 1000)
+                JS.afterDelay(sonosControl.state, 500)
+                JS.afterDelay(sonosControl.getQue, 500)
+                JS.afterDelay(slowUIRefresh, 1000)
 
                 return None
 
@@ -281,9 +281,9 @@ def pageSub(args):
 
             CSS.get(f'SubPage_nav', f'scrollIntoView')()
 
-            f.afterDelay(sonosControl.state, 500)
-            f.afterDelay(sonosControl.getQue, 500)
-            f.afterDelay(slowUIRefresh, 1000)
+            JS.afterDelay(sonosControl.state, 500)
+            JS.afterDelay(sonosControl.getQue, 500)
+            JS.afterDelay(slowUIRefresh, 1000)
 
         def fastUIRefresh():
             def controls(data):
@@ -305,7 +305,7 @@ def pageSub(args):
             except AttributeError:
                 return None
 
-            f.afterDelay(fastUIRefresh, 250)
+            JS.afterDelay(fastUIRefresh, 250)
 
         def addAlbumArt():
             glb.useAlbumArt = True
@@ -342,11 +342,11 @@ def pageSub(args):
                 def videoScollTrue(args=None):
                     glb.videoScolling = True
 
-                f.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
+                JS.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
+                JS.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
+                JS.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
 
-            f.afterDelay(doAction, 200)
+            JS.afterDelay(doAction, 200)
 
         def addVideo():
             glb.useAlbumArt = False
@@ -374,9 +374,9 @@ def pageSub(args):
             HTML.add(f'div', f'SubPage_page_art', _nest=f'{ifr}', _id=f'div_YTVideo', _style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
             def loadYtPlayer():
-                glb.ytPlayer = f.jsEval("new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );")
+                glb.ytPlayer = JS.jsEval("new YT.Player('iframe_YTVideo', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );")
 
-            f.aSync(loadYtPlayer)
+            JS.aSync(loadYtPlayer)
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
@@ -391,11 +391,11 @@ def pageSub(args):
                 def videoScollTrue(args=None):
                     glb.videoScolling = True
 
-                f.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
-                f.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
+                JS.addEvent(f'SubPage_page_timeline_slider', sonosControl.seek, f'change')
+                JS.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
+                JS.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
 
-            f.afterDelay(doAction, 200)
+            JS.afterDelay(doAction, 200)
 
         def addQue():
             def playFromQue(args):
@@ -485,13 +485,13 @@ def pageSub(args):
 
             def doAction():
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
-                    f.addEvent(track, playFromQue, "dblclick", isClass=True)
+                    JS.addEvent(track, playFromQue, "dblclick", isClass=True)
 
-                    f.addEvent(f'{track.id}_rem', removeFromQue)
+                    JS.addEvent(f'{track.id}_rem', removeFromQue)
                     CSS.onHover(f'{track.id}_rem', f'imgHover')
                     CSS.onClick(f'{track.id}_rem', f'imgClick')
 
-            f.afterDelay(doAction, 100)
+            JS.afterDelay(doAction, 100)
 
         def addControls():
             data = ws.msgDict()["sonos"]
@@ -499,13 +499,13 @@ def pageSub(args):
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% width: 100%; max-width: 550px; margin: 0px; padding: 0px;')
 
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
-                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
                 btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
 
             if data["device"]["playback"] in ["standby", "inactive"]:
-                HTML.get(f'SubPage_page_buttons_imgPause').src = f'docs/assets/Portal/Sonos/Play.png'
-                HTML.get(f'SubPage_page_buttons_imgPause').alt = f'Play'
+                HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Play.png'
+                HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Play'
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 90%; max-width: 525px; margin: 0px; padding: 0px; justify-content: center;')
 
@@ -522,16 +522,16 @@ def pageSub(args):
                      _style=f'inputRange %% width: 90%; height: 10px;',
                      _custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
 
-            f.addEvent(f'SubPage_page_buttons_VolumeDown', sonosControl.volumeDown)
-            f.addEvent(f'SubPage_page_buttons_Repeat', sonosControl.toggleRepeat)
-            f.addEvent(f'SubPage_page_buttons_SeekBackward', sonosControl.seekBackward)
-            f.addEvent(f'SubPage_page_buttons_Back', sonosControl.back)
-            f.addEvent(f'SubPage_page_buttons_Pause', sonosControl.togglePlay)
-            f.addEvent(f'SubPage_page_buttons_Next', sonosControl.next)
-            f.addEvent(f'SubPage_page_buttons_VolumeUp', sonosControl.volumeUp)
-            f.addEvent(f'SubPage_page_buttons_SeekForward', sonosControl.seekForward)
-            f.addEvent(f'SubPage_page_buttons_Shuffle', sonosControl.toggleShuffle)
-            f.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
+            JS.addEvent(f'SubPage_page_buttons_VolumeDown', sonosControl.volumeDown)
+            JS.addEvent(f'SubPage_page_buttons_Repeat', sonosControl.toggleRepeat)
+            JS.addEvent(f'SubPage_page_buttons_SeekBackward', sonosControl.seekBackward)
+            JS.addEvent(f'SubPage_page_buttons_Back', sonosControl.back)
+            JS.addEvent(f'SubPage_page_buttons_Pause', sonosControl.togglePlay)
+            JS.addEvent(f'SubPage_page_buttons_Next', sonosControl.next)
+            JS.addEvent(f'SubPage_page_buttons_VolumeUp', sonosControl.volumeUp)
+            JS.addEvent(f'SubPage_page_buttons_SeekForward', sonosControl.seekForward)
+            JS.addEvent(f'SubPage_page_buttons_Shuffle', sonosControl.toggleShuffle)
+            JS.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
 
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 CSS.onHover(f'SubPage_page_buttons_{action}', f'imgHover')
@@ -556,10 +556,10 @@ def pageSub(args):
         addControls()
         addQue()
 
-        f.onResize()
+        JS.onResize()
 
-        f.afterDelay(fastUIRefresh, 250)
-        f.afterDelay(slowUIRefresh, 1000)
+        JS.afterDelay(fastUIRefresh, 250)
+        JS.afterDelay(slowUIRefresh, 1000)
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
@@ -607,7 +607,7 @@ def pageSub(args):
                         try:
                             data = int(data)
                         except ValueError:
-                            f.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                            JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
                             return None
 
                     elif knownValues[value] is list:
@@ -621,13 +621,13 @@ def pageSub(args):
                         html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
 
                 glb.config[value] = data
-                f.cache("page_portal_sonos", dumps(glb.config))
+                JS.cache("page_portal_sonos", dumps(glb.config))
 
                 el.outerHTML = html
 
                 CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
-                f.addEvent(el.id, editRecord, "dblclick")
+                JS.addEvent(el.id, editRecord, "dblclick")
 
             el = HTML.get(f'{args.target.id}')
             width = el.style.width
@@ -657,13 +657,13 @@ def pageSub(args):
                 elif knownValues[value] is bool:
                     if el.innerHTML == "No":
                         glb.config[value] = True
-                        f.cache("page_portal_sonos", dumps(glb.config))
+                        JS.cache("page_portal_sonos", dumps(glb.config))
 
                         el.innerHTML = "Yes"
                         return None
 
                     glb.config[value] = False
-                    f.cache("page_portal_sonos", dumps(glb.config))
+                    JS.cache("page_portal_sonos", dumps(glb.config))
 
                     el.innerHTML = "No"
                     return None
@@ -691,7 +691,7 @@ def pageSub(args):
                 CSS.onHover(el.id, f'inputHover')
                 CSS.onFocus(el.id, f'inputFocus')
 
-            f.addEvent(el.id, submit, "keyup")
+            JS.addEvent(el.id, submit, "keyup")
 
         def addMinimal(data):
             def addHeader():
@@ -745,7 +745,7 @@ def pageSub(args):
 
             for item in HTML.get(f'SubPage_page_keys', isClass=True):
                 if item.id != "":
-                    f.addEvent(item, editRecord, "dblclick", isClass=True)
+                    JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
         addMinimal(glb.config)
 
@@ -757,7 +757,7 @@ def pageSub(args):
 
     if glb.currentSub == "Player":
         getData()
-        f.afterDelay(pageSubMap[glb.currentSub], 1000)
+        JS.afterDelay(pageSubMap[glb.currentSub], 1000)
 
     else:
         pageSubMap[glb.currentSub]()
@@ -774,7 +774,7 @@ def main(args=None, sub=None):
         HTML.add(f'button', f'SubPage_nav_main', _nest=f'{subPage}', _id=f'SubPage_nav_main_{subPage}', _type=f'button', _style=f'buttonSmall')
 
     for subPage in glb.subPages:
-        f.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
+        JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
         CSS.onHover(f'SubPage_nav_main_{subPage}', f'buttonHover')
         CSS.onClick(f'SubPage_nav_main_{subPage}', f'buttonClick')
 

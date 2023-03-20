@@ -1,6 +1,4 @@
 from js import document
-import mod.CSS as CSS
-import mod.functions as f
 
 
 class glb:
@@ -15,7 +13,7 @@ class glb:
         "buttonBig": f'z-index: 100; padding: 1px 8px 3px 8px; margin: 3px; text-align: center; font-size: 125%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
         "buttonMedium": f'z-index: 100; padding: 1px 6px 3px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
         "buttonSmall": f'z-index: 100; padding: 1px 4px 3px 4px; margin: 3px; text-align: center; font-size: 70%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px',
-        "buttonImg": f'z-index: 100; padding: 4px; color: #55F; background: #222; border: 2px solid #222; border-radius: 8px',
+        "buttonImg": f'z-index: 100; padding: 4px; color: #55F; background: #222; border: 2px solid #222; border-radius: 8px; user-select: none',
         "inputMedium": f'z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 100%; background: #333; border: 2px solid #55F; border-radius: 4px; outline: none',
         "inputSmall": f'z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 75%; background: #333; border: 2px solid #55F; border-radius: 4px; outline: none',
         "inputRange": f'z-index: 110; padding: 1px 10px; margin: 3px; accent-color: #F7E163; background: #333; border: 0px solid #55F; border-radius: 4px; outline: none',
@@ -157,17 +155,19 @@ def enable(id: str, state: bool = True):
     if el.disabled is not state:
         return None
 
+    from mod.CSS import glb as glbCSS
+
     onStyles = {
         "onHover": {
-            "style": CSS.glb.onHoverStyles,
+            "style": glbCSS.onHoverStyles,
             "actions": ["mouseover", "mouseout"]
         },
         "onClick": {
-            "style": CSS.glb.onClickStyles,
+            "style": glbCSS.onClickStyles,
             "actions": ["mousedown", "mouseup"]
         },
         "onFocus": {
-            "style": CSS.glb.onFocusStyles,
+            "style": glbCSS.onFocusStyles,
             "actions": ["focusout", "focusin"]
         }
     }
