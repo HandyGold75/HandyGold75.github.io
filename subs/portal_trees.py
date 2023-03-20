@@ -1,7 +1,7 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 from datetime import datetime, timedelta
 
 
@@ -192,8 +192,8 @@ def main(args=None, sub=None):
 
     for tree in data:
         if tree in glb.knownTree:
-            f.addEvent(f'SubPage_nav_main_{tree}', pageSub)
-            f.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
+            JS.addEvent(f'SubPage_nav_main_{tree}', pageSub)
+            JS.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
             CSS.onHover(f'SubPage_nav_main_{tree}', f'buttonHover')
             CSS.onClick(f'SubPage_nav_main_{tree}', f'buttonClick')
 

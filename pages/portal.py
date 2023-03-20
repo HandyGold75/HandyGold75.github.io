@@ -1,7 +1,7 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 import subs.portal_sonos as so
 import subs.portal_tapo as tp
 import subs.portal_sheets as ps
@@ -25,26 +25,26 @@ def pagePortal(args=None, page=None):
         id = args.target.parentElement.id
 
     if page in glb.allSubs:
-        f.cache("page_portal", page)
+        JS.cache("page_portal", page)
 
     elif not args is None and id.split("_")[-1] in glb.allSubs:
-        f.cache("page_portal", id.split("_")[-1])
+        JS.cache("page_portal", id.split("_")[-1])
 
     else:
         return None
 
-    f.setTitle(f'HandyGold75 - {f.cache("page_index")} - {f.cache("page_portal")}')
+    JS.setTitle(f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
     HTML.set(f'div', f'page_portal_body', _id=f'SubPage', _align=f'left')
-    HTML.setRaw(f'nav_title', f'HandyGold75 - {f.cache("page_index")} - {f.cache("page_portal")}')
+    HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
-    glb.allSubs[f.cache("page_portal")]()
+    glb.allSubs[JS.cache("page_portal")]()
 
 
 def main():
     HTML.set(f'div', f'page', _id=f'page_portal', _align=f'center', _style="flex")
 
-    if not f.glb.loggedIn:
+    if not JS.glb.loggedIn:
         HTML.add(f'h1', f'page_portal', _nest=f'Please log in first!', _style=f'headerBig')
         return None
 
@@ -67,8 +67,8 @@ def main():
         HTML.add(f'div', f'page_portal_buttons', _nest=f'{btn}', _align=f'center', _style=f'margin: 10px 5px 10px auto;')
 
     for page in glb.allSubs:
-        f.addEvent(f'page_portal_{page}', pagePortal)
-        f.addEvent(f'page_portal_{page}', glb.allInvokes[page], f'mousedown')
+        JS.addEvent(f'page_portal_{page}', pagePortal)
+        JS.addEvent(f'page_portal_{page}', glb.allInvokes[page], f'mousedown')
 
         CSS.onHover(f'page_portal_{page}', f'imgHover')
         CSS.onClick(f'page_portal_{page}', f'imgClick')

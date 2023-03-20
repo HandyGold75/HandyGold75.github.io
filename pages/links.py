@@ -1,7 +1,7 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 from json import dumps, loads, load
 
 
@@ -249,12 +249,12 @@ class glb:
 def setup():
     glb.allLinks = dict(sorted(glb.defaultLinks.items(), key=lambda x: x[1]['Index']))
 
-    if f.cache("page_links") is None or f.cache("page_links") == "":
-        f.cache("page_links", dumps({}))
+    if JS.cache("page_links") is None or JS.cache("page_links") == "":
+        JS.cache("page_links", dumps({}))
 
     HTML.set(f'div', f'page', _id=f'page_links', _align=f'center')
 
-    if not f.glb.loggedIn:
+    if not JS.glb.loggedIn:
         return None
 
     msgDict = ws.msgDict()
@@ -274,7 +274,7 @@ def toggleCat(args: any):
     if id == "":
         id = args.target.parentElement.id
 
-    catStates = loads(f.cache("page_links"))
+    catStates = loads(JS.cache("page_links"))
     catStates[id.split("_")[2]] = not catStates[id.split("_")[2]]
 
     CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'2px solid #111')
@@ -290,7 +290,7 @@ def toggleCat(args: any):
         CSS.setStyle(f'page_links_{id.split("_")[2]}', f'marginTop', f'-9999px')
         CSS.setStyle(f'page_links_{id.split("_")[2]}', f'opacity', f'0')
 
-    f.cache("page_links", dumps(catStates))
+    JS.cache("page_links", dumps(catStates))
 
 
 def main():
@@ -304,7 +304,7 @@ def main():
 
     setup()
 
-    catStates = loads(f.cache("page_links"))
+    catStates = loads(JS.cache("page_links"))
     catRowCount = {}
     catColCount = {}
 
@@ -319,7 +319,7 @@ def main():
             catRowCount[currentCat] = 0
             catColCount[currentCat] = 0
 
-        if catColCount[currentCat] % f.glb.links_py_columns == 0:
+        if catColCount[currentCat] % JS.glb.links_py_columns == 0:
             catRowCount[currentCat] += 1
             HTML.add(f'div', f'page_links_{currentCat}', _id=f'page_links_{currentCat}_row{catRowCount[currentCat]}', _align=f'center', _style=f'flex')
 
@@ -327,9 +327,9 @@ def main():
 
         img = HTML.getLink(glb.allLinks[link]["url"], _nest=f'<img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
         txt = HTML.add(f'p', _nest=HTML.getLink(glb.allLinks[link]["url"], _nest=glb.allLinks[link]["text"]))
-        HTML.add(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / f.glb.links_py_columns}%; margin: 0px auto;')
+        HTML.add(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / JS.glb.links_py_columns}%; margin: 0px auto;')
 
     for cat in catRowCount:
-        f.addEvent(f'page_links_{cat}_header', toggleCat, "click")
+        JS.addEvent(f'page_links_{cat}_header', toggleCat, "click")
 
-    f.cache("page_links", dumps(catStates))
+    JS.cache("page_links", dumps(catStates))

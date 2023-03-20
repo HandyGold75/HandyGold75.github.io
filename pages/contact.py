@@ -1,6 +1,6 @@
 import mod.HTML as HTML
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 
 
 class glb:
@@ -64,7 +64,7 @@ def setup():
 
     HTML.set(f'div', f'page', _id="page_contact")
 
-    if not f.glb.loggedIn:
+    if not JS.glb.loggedIn:
         return None
 
     msgDict = ws.msgDict()
