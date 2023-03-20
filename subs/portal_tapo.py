@@ -1,7 +1,7 @@
 import mod.HTML as HTML
 import mod.CSS as CSS
 import mod.ws as ws
-import mod.functions as f
+import mod.JS as JS
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -39,90 +39,135 @@ class glb:
 
 def pageSub(args=None):
     def setup(args):
-        if f.cache("page_portal_tapo") is None or f.cache("page_links") == "":
+        if JS.cache("page_portal_tapo") is None or JS.cache("page_links") == "":
             pass
-            # f.cache("page_portal_tapo", dumps({}))
+            # JS.cache("page_portal_tapo", dumps({}))
 
         glb.config = {}
-        # glb.config = loads(f.cache("page_portal_tapo"))
+        # glb.config = loads(JS.cache("page_portal_tapo"))
 
         if f'{args.target.id.split("_")[-1]}' in glb.subPages:
             glb.currentSub = args.target.id.split("_")[-1]
 
     def login():
-        usr = f.popup(f'prompt', f'Tapo Username')
+        usr = JS.popup(f'prompt', f'Tapo Username')
         if usr is None:
             return None
 
-        psw = f.popup(f'prompt', f'Tapo Password')
+        psw = JS.popup(f'prompt', f'Tapo Password')
         if psw is None:
             return None
 
-        ws.send(f'<RAW>tapo<SPLIT>login<SPLIT>{usr}<SPLIT>{str(encrypt(psw.encode(), f.glb.pk))}')
+        ws.send(f'<RAW>tapo<SPLIT>login<SPLIT>{usr}<SPLIT>{str(encrypt(psw.encode(), JS.glb.pk))}')
 
-        f.afterDelay(pageSub, 2000)
+        JS.afterDelay(pageSub, 2000)
 
     def plugs():
         def slowUIRefresh():
-            def getData():
-                ws.send(f'tapo state')
+            def update(data):
+                for plug in data:
+                    HTML.setRaw(f'Gauge_{plug}_power', f'{(data[plug]["currentPower"] / 1000):.2f}<br>Wh')
+
+                    dur = data[plug]["duration"]
+
+                    for applyValue, correctionValue, format, round in [(7884000, 2628000, "M", False), (259200, 86400, "d", False), (10800, 3600, "h", False), (180, 60, "m", True)]:
+                        if not dur > applyValue:
+                            continue
+
+                        if round:
+                            dur = f'{int(dur / correctionValue)}{format}'
+                            break
+
+                        dur = f'{(dur / correctionValue):.2f}{format}'
+                        break
+
+                    if type(dur) is int:
+                        dur = f'{dur}s'
+
+                    HTML.setRaw(f'Gauge_{plug}_uptime', f'{dur}')
+
+                    if data[plug]["overheated"]:
+                        CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'100%')
+                    else:
+                        CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'0%')
+
+                    if not data[plug]["state"]:
+                        for i in range(1, 24):
+                            CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
+
+                        CSS.setStyle(f'Power_{plug}', f'background', f'#222')
+                        CSS.setStyle(f'Power_{plug}', f'border', f'2px solid #222')
+                        continue
+
+                    CSS.setStyle(f'Gauge_{plug}_1', f'opacity', f'100%')
+
+                    for i in range(1, 23):
+                        if data[plug]["currentPower"] > i * 20000:
+                            CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'100%')
+                            continue
+
+                        CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'0%')
 
             if not glb.currentSub == "Plugs":
                 return False
 
             data = ws.msgDict()["tapo"]
 
-            for plug in data:
-                HTML.setRaw(f'Gauge_{plug}_power', f'{(data[plug]["currentPower"] / 1000):.2f}<br>Wh')
+            try:
+                update(data)
+            except AttributeError:
+                return None
 
-                dur = data[plug]["duration"]
+            JS.afterDelay(getData, 500)
+            JS.afterDelay(slowUIRefresh, 1000)
 
-                if dur > 7884000:
-                    dur = f'{(dur / 2628000):.2f}M'
-                elif dur > 259200:
-                    dur = f'{(dur / 86400):.2f}d'
-                elif dur > 10800:
-                    dur = f'{(dur / 3600):.2f}h'
-                elif dur > 180:
-                    dur = f'{int(dur / 60)}m'
-                else:
-                    dur = f'{dur}s'
-
-                HTML.setRaw(f'Gauge_{plug}_uptime', f'{dur}')
-
-                if data[plug]["overheated"]:
-                    CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'100%')
-                else:
-                    CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'0%')
-
-                if not data[plug]["state"]:
-                    for i in range(1, 24):
-                        CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
-
-                    continue
-
-                CSS.setStyle(f'Gauge_{plug}_1', f'opacity', f'100%')
-
-                for i in range(1, 23):
-                    if data[plug]["currentPower"] > i * 15000:
-                        CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'100%')
+        def fastUIRefresh():
+            def update(data):
+                for plug in data:
+                    if not data[plug]["state"]:
                         continue
 
-                    CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'0%')
+                    CSS.setStyle(f'Power_{plug}', f'background', f'#444')
+                    CSS.setStyle(f'Power_{plug}', f'border', f'3px solid #FBDF56')
 
-            f.afterDelay(getData, 500)
-            f.afterDelay(slowUIRefresh, 1000)
+            if not glb.currentSub == "Plugs":
+                return False
+
+            data = ws.msgDict()["tapo"]
+
+            try:
+                update(data)
+            except AttributeError:
+                return None
+
+            JS.afterDelay(fastUIRefresh, 250)
 
         def addPlugs():
+            def togglePower(args):
+                data = ws.msgDict()["tapo"]
+                plug = args.target.id.split("_")[-1]
+
+                if not plug in data:
+                    return None
+
+                if not data[plug]["state"]:
+                    ws.send(f'tapo on {plug}')
+
+                elif JS.popup(f'confirm', f'Are you sure you want to turn off this device?\nDevice: {plug}'):
+                    ws.send(f'tapo off {plug}')
+
             data = ws.msgDict()["tapo"]
 
             for plug in data:
                 if not data[plug]["model"] in ["P115", "P110"]:
                     continue
 
-                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 75%;')
-                img = HTML.add(f'img', _style=f'width: 25%; margin: auto; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/SmartPlug.png" alt="SmartPlug"')
-                header = HTML.add(f'div', _nest=f'{txt}{img}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
+                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 85%;')
+                img = HTML.add(f'img', _id=f'Power_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
+                btn = HTML.add(f'button', _nest=f'{img}', _id=f'Power_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                power = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
+
+                header = HTML.add(f'div', _nest=f'{txt}{power}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
 
                 img = HTML.add(f'img', _style=f'z-index: 0; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge.png" alt="Gauge"')
                 for i in range(1, 24):
@@ -141,11 +186,20 @@ def pageSub(args=None):
 
                 HTML.add(f'div', f'SubPage_page_main', _nest=f'{header}{body}', _id=f'SubPage_page_main_{plug}', _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
 
+            for plug in data:
+                if not data[plug]["model"] in ["P115", "P110"]:
+                    continue
+
+                JS.addEvent(f'Power_{plug}', togglePower)
+                CSS.onHover(f'Power_{plug}', f'imgHover')
+                CSS.onClick(f'Power_{plug}', f'imgClick')
+
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
 
         addPlugs()
 
-        f.afterDelay(slowUIRefresh, 1000)
+        JS.afterDelay(fastUIRefresh, 250)
+        JS.afterDelay(slowUIRefresh, 1000)
 
     def config():
         def editRecord(args):
@@ -182,7 +236,7 @@ def pageSub(args=None):
                         try:
                             data = int(data)
                         except ValueError:
-                            f.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                            JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
                             return None
 
                     elif knownValues[value] is list:
@@ -196,13 +250,13 @@ def pageSub(args=None):
                         html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
 
                 glb.config[value] = data
-                f.cache("page_portal_sonos", dumps(glb.config))
+                JS.cache("page_portal_sonos", dumps(glb.config))
 
                 el.outerHTML = html
 
                 CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
-                f.addEvent(el.id, editRecord, "dblclick")
+                JS.addEvent(el.id, editRecord, "dblclick")
 
             el = HTML.get(f'{args.target.id}')
             width = el.style.width
@@ -232,13 +286,13 @@ def pageSub(args=None):
                 elif knownValues[value] is bool:
                     if el.innerHTML == "No":
                         glb.config[value] = True
-                        f.cache("page_portal_sonos", dumps(glb.config))
+                        JS.cache("page_portal_sonos", dumps(glb.config))
 
                         el.innerHTML = "Yes"
                         return None
 
                     glb.config[value] = False
-                    f.cache("page_portal_sonos", dumps(glb.config))
+                    JS.cache("page_portal_sonos", dumps(glb.config))
 
                     el.innerHTML = "No"
                     return None
@@ -266,7 +320,7 @@ def pageSub(args=None):
                 CSS.onHover(el.id, f'inputHover')
                 CSS.onFocus(el.id, f'inputFocus')
 
-            f.addEvent(el.id, submit, "keyup")
+            JS.addEvent(el.id, submit, "keyup")
 
         def addMinimal(data):
             def addHeader():
@@ -320,7 +374,7 @@ def pageSub(args=None):
 
             for item in HTML.get(f'SubPage_page_keys', isClass=True):
                 if item.id != "":
-                    f.addEvent(item, editRecord, "dblclick", isClass=True)
+                    JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
         addMinimal(glb.config)
 
@@ -349,7 +403,7 @@ def main(args=None, sub=None):
         HTML.add(f'button', f'SubPage_nav_main', _nest=f'{subPage}', _id=f'SubPage_nav_main_{subPage}', _type=f'button', _style=f'buttonSmall')
 
     for subPage in glb.subPages:
-        f.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
+        JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
         CSS.onHover(f'SubPage_nav_main_{subPage}', f'buttonHover')
         CSS.onClick(f'SubPage_nav_main_{subPage}', f'buttonClick')
 
