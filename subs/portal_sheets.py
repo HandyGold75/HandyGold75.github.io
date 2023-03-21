@@ -365,6 +365,13 @@ def editRecord(args):
                         JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
                         return None
 
+            elif knownValues[value] is float:
+                try:
+                    data = float(data)
+                except ValueError:
+                    JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                    return None
+
             elif knownValues[value] is list:
                 data = []
 
