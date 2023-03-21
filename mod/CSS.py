@@ -49,8 +49,11 @@ def onHover(id: str, style: str):
     def mouseover(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         for prop in glb.onHoverStyles[f'{id}_mouseover']:
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])
@@ -58,8 +61,11 @@ def onHover(id: str, style: str):
     def mouseout(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         if document.getElementById(id).tagName != f'BUTTON' and document.activeElement == args.target:
             return None
@@ -116,8 +122,11 @@ def onClick(id: str, style: str):
     def mousedown(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         for prop in glb.onClickStyles[f'{id}_mousedown']:
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])
@@ -125,8 +134,11 @@ def onClick(id: str, style: str):
     def mouseup(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         for prop in glb.onClickStyles[f'{id}_mouseup']:
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])
@@ -180,8 +192,11 @@ def onFocus(id: str, style: str):
     def focusin(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         for prop in glb.onFocusStyles[f'{id}_focusin']:
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])
@@ -189,8 +204,11 @@ def onFocus(id: str, style: str):
     def focusout(args=None):
         id = args.target.id
 
-        if id == "" or id.split("_")[-2].startswith("img"):
-            id = args.target.parentElement.id
+        try:
+            if id == "" or id.split("_")[-2].startswith("img"):
+                id = args.target.parentElement.id
+        except IndexError:
+            pass
 
         for prop in glb.onFocusStyles[f'{id}_focusout']:
             setattr(document.getElementById(id).style, prop.split(": ")[0], prop.split(": ")[1])

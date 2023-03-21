@@ -610,6 +610,13 @@ def pageSub(args):
                             JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
                             return None
 
+                    elif knownValues[value] is float:
+                        try:
+                            data = float(data)
+                        except ValueError:
+                            JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
+                            return None
+
                     elif knownValues[value] is list:
                         data = []
 
@@ -651,10 +658,7 @@ def pageSub(args):
             html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
 
             if value in knownValues:
-                if knownValues[value] is int:
-                    html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
-
-                elif knownValues[value] is bool:
+                if knownValues[value] is bool:
                     if el.innerHTML == "No":
                         glb.config[value] = True
                         JS.cache("page_portal_sonos", dumps(glb.config))
