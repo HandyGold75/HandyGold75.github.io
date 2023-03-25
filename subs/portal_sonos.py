@@ -624,8 +624,7 @@ def pageSub(args):
                             if args.target.item(i).selected is True:
                                 data.append(args.target.item(i).value)
 
-                        data = ", ".join(data).replace(" ", "%20")
-                        html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
+                        html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{", ".join(data).replace(" ", "%20")}</p>'
 
                 glb.config[value] = data
                 JS.cache("page_portal_sonos", dumps(glb.config))
