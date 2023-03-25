@@ -46,10 +46,12 @@ class invoke:
         glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "TapoUser", "Notes"]
         glb.invokePasswordOnChange = ["User", "TapoUser"]
 
-        glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home", "Asset Manager", "License Manager"], "Logs": []}
+        glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home"], "Logs": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete"}
+        glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+
+        glb.extraButtons = (("Clean", "clean", clean, True), ("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
@@ -127,7 +129,9 @@ class invoke:
         glb.optionsList = {"Assignments": [], "Devices": [], "Assets": [], "Servers": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
+        glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+
+        glb.extraButtons = (("Bulk Add", False, "bulkadd", False, bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
@@ -184,7 +188,9 @@ class invoke:
         glb.optionsList = {"Assignments": [], "Devices": [], "Licenses": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
+        glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+
+        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
@@ -215,7 +221,9 @@ class invoke:
         }
         glb.tagIsList = True
 
-        glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete"}
+        glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+
+        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", False, pageSub, False))
 
         getData()
 
@@ -243,6 +251,8 @@ class glb:
 
     svcoms = {}
     logsLoaded = 0
+
+    extraButtons = ()
 
 
 def getData(args=None):
@@ -519,6 +529,15 @@ def bulkAdd(args):
             ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
 
+def clean(args):
+    def cleanResults():
+        JS.popup("alert", f'Cleaning results:\n{chr(10).join(ws.msgDict()["admin"]["Cleaned"])}')
+
+    if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
+        ws.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
+        JS.afterDelay(cleanResults, 1000)
+
+
 def pageSub(args, extraData: dict = {}):
     def setup(args, extraData={}):
         data = ws.msgDict()[glb.svcoms["main"]]
@@ -570,17 +589,16 @@ def pageSub(args, extraData: dict = {}):
             for value in glb.knownFiles[file][mainValue]:
                 data[" "][value] = glb.knownFiles[file][mainValue][value]()
 
-        HTML.enable(f'SubPage_nav_options_bulkadd', False)
-        HTML.enable(f'SubPage_nav_options_active', False)
-        HTML.enable(f'SubPage_nav_options_compact', False)
+        for butTxt, butId, butFunc, butAct in glb.extraButtons:
+            if not butAct:
+                HTML.enable(f'SubPage_nav_options_{butId}', False)
 
         if glb.knownFiles[file] is str:
             return data
 
         if type(glb.knownFiles[file][list(glb.knownFiles[file])[-1]]) is dict:
-            HTML.enable(f'SubPage_nav_options_bulkadd', True)
-            HTML.enable(f'SubPage_nav_options_active', True)
-            HTML.enable(f'SubPage_nav_options_compact', True)
+            for butTxt, butId, butFunc, butAct in glb.extraButtons:
+                HTML.enable(f'SubPage_nav_options_{butId}', True)
 
         return data
 
@@ -981,34 +999,24 @@ def main(args=None, sub=None):
     glb.hideInactive = True
     glb.compactView = True
 
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Bulk Add', _id=f'SubPage_nav_options_bulkadd', _type=f'button', _align=f'right', _style=f'buttonSmall')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Inactive', _id=f'SubPage_nav_options_active', _type=f'button', _align=f'right', _style=f'buttonSmall')
-    HTML.add(f'button', f'SubPage_nav_options', _nest=f'Expand', _id=f'SubPage_nav_options_compact', _type=f'button', _align=f'right', _style=f'buttonSmall')
+    for butTxt, butId, butFunc, butAct in glb.extraButtons:
+        HTML.add(f'button', f'SubPage_nav_options', _nest=f'{butTxt}', _id=f'SubPage_nav_options_{butId}', _type=f'button', _align=f'right', _style=f'buttonSmall')
 
     for file in data:
         if file in glb.knownFiles:
             fileName = f'{file.replace("/", "").replace(".json", "")}'
             JS.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
             JS.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
-
             CSS.onHover(f'SubPage_nav_main_{fileName}', f'buttonHover')
             CSS.onClick(f'SubPage_nav_main_{fileName}', f'buttonClick')
 
-    JS.addEvent(f'SubPage_nav_options_bulkadd', bulkAdd)
-    JS.addEvent(f'SubPage_nav_options_active', pageSub)
-    JS.addEvent(f'SubPage_nav_options_compact', pageSub)
+    for butTxt, butId, butFunc, butAct in glb.extraButtons:
+        JS.addEvent(f'SubPage_nav_options_{butId}', butFunc)
+        CSS.onHover(f'SubPage_nav_options_{butId}', f'buttonHover')
+        CSS.onClick(f'SubPage_nav_options_{butId}', f'buttonClick')
 
-    CSS.onHover(f'SubPage_nav_options_bulkadd', f'buttonHover')
-    CSS.onHover(f'SubPage_nav_options_active', f'buttonHover')
-    CSS.onHover(f'SubPage_nav_options_compact', f'buttonHover')
-
-    CSS.onClick(f'SubPage_nav_options_bulkadd', f'buttonClick')
-    CSS.onClick(f'SubPage_nav_options_active', f'buttonClick')
-    CSS.onClick(f'SubPage_nav_options_compact', f'buttonClick')
-
-    HTML.enable(f'SubPage_nav_options_bulkadd', False)
-    HTML.enable(f'SubPage_nav_options_active', False)
-    HTML.enable(f'SubPage_nav_options_compact', False)
+        if not butAct:
+            HTML.enable(f'SubPage_nav_options_{butId}', False)
 
     if sub is not None:
         glb.currentSub = sub
