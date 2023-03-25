@@ -4,14 +4,15 @@ import mod.ws as ws
 import mod.JS as JS
 import subs.portal_sonos as so
 import subs.portal_tapo as tp
+import subs.portal_ytdl as ytdl
 import subs.portal_sheets as ps
 import subs.portal_trees as pt
 
 
 class glb:
-    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Tapo": tp.main, "Asset Manager": ps.main, "License Manager": ps.main, "Query": ps.main}
-    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Tapo": tp.invoke.TP, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM, "Query": ps.invoke.QR}
-    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Tapo": "tapo", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
+    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Tapo": tp.main,"YT-DL": ytdl.main, "Asset Manager": ps.main, "License Manager": ps.main, "Query": ps.main}
+    allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Tapo": tp.invoke.TP, "YT-DL": ytdl.invoke.YTDL, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM, "Query": ps.invoke.QR}
+    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Tapo": "tapo","YT-DL": "yt", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
 
     lastLogin = 0
 
