@@ -38,17 +38,17 @@ class glb:
     dates = []
 
     config = {}
-    knownConfig = {"costPerKw": float, "costFormat": str}
-    optionsList = []
+    knownConfig = {"quality": list}
+    optionsList = ["Low", "Medium", "High"]
 
 
 def pageSub(args=None):
     def setup(args):
         if JS.cache("page_portal_ytdl") is None or JS.cache("page_links") == "":
-            # JS.cache("page_portal_ytdl", dumps({}))
+            JS.cache("page_portal_ytdl", dumps({"quality": ["Medium"]}))
             pass
 
-        # glb.config = loads(JS.cache("page_portal_ytdl"))
+        glb.config = loads(JS.cache("page_portal_ytdl"))
 
         if f'{args.target.id.split("_")[-1]}' in glb.subPages:
             glb.currentSub = args.target.id.split("_")[-1]
@@ -105,7 +105,7 @@ def pageSub(args=None):
                     return None
 
                 glb.lastDownload = datetime.now().timestamp()
-                ws.send(f'yt download {input}')
+                ws.send(f'yt download {glb.config["quality"][0]} {input}')
 
             HTML.add(f'input', f'SubPage_page_download', _id=f'download_input', _type=f'text', _style=f'inputMedium %% width: 75%;')
             HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
@@ -123,9 +123,6 @@ def pageSub(args=None):
 
             HTML.add(f'h1', f'SubPage_page_results', _nest=f'Recent Downloads', _style=f'headerBig %% margin: 0px auto;')
             HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal')
-
-            for index in data["downloads"]:
-                JS.log(str(data["downloads"][index]))
 
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex')
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_download', _style=f'divNormal %% flex %% width: 75%;')
@@ -197,11 +194,10 @@ def pageSub(args=None):
                             if args.target.item(i).selected is True:
                                 data.append(args.target.item(i).value)
 
-                        data = ", ".join(data).replace(" ", "%20")
-                        html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
+                        html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{", ".join(data).replace(" ", "%20")}</p>'
 
                 glb.config[value] = data
-                JS.cache("page_portal_tapo", dumps(glb.config))
+                JS.cache("page_portal_ytdl", dumps(glb.config))
 
                 el.outerHTML = html
 
@@ -234,13 +230,13 @@ def pageSub(args=None):
                 if knownValues[value] is bool:
                     if el.innerHTML == "No":
                         glb.config[value] = True
-                        JS.cache("page_portal_tapo", dumps(glb.config))
+                        JS.cache("page_portal_ytdl", dumps(glb.config))
 
                         el.innerHTML = "Yes"
                         return None
 
                     glb.config[value] = False
-                    JS.cache("page_portal_tapo", dumps(glb.config))
+                    JS.cache("page_portal_ytdl", dumps(glb.config))
 
                     el.innerHTML = "No"
                     return None
