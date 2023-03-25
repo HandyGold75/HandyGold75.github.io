@@ -15,6 +15,8 @@ class invoke:
 
         glb.lastUpdate = 0
 
+        glb.dates = ["Modified"]
+
         getData()
 
 
@@ -32,6 +34,8 @@ class glb:
 
     lastUpdate = 0
     lastDownload = 0
+
+    dates = []
 
     config = {}
     knownConfig = {"costPerKw": float, "costFormat": str}
@@ -52,12 +56,28 @@ def pageSub(args=None):
     def download():
         def slowUIRefresh():
             def update(data):
-                pass
+                records = ""
+                for index in reversed(data["downloads"]):
+                    values = ""
+
+                    for key in data["downloads"][index]:
+                        txt = HTML.add("p", _nest=f'{key}', _style=f'width: 50%; margin: 0px auto')
+
+                        if not key in glb.dates:
+                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key]}', _style=f'width: 50%; margin: 0px auto')
+                        else:
+                            txt += HTML.add("p", _nest=f'{datetime.fromtimestamp(data["downloads"][index][key]).strftime("%d %b %y - %H:%M")}', _style=f'width: 50%; margin: 0px auto')
+
+                        values += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% margin: 0px auto')
+
+                    records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto; border: 4px solid #111; border-radius: 4px;')
+
+                HTML.set("div", f'SubPage_page_results_out', _nest=f'{records}', _style=f'divNormal')
 
             if not glb.currentSub == "Download":
                 return False
 
-            data = ws.msgDict()["tapo"]
+            data = ws.msgDict()["yt"]
 
             try:
                 update(data)
@@ -80,13 +100,12 @@ def pageSub(args=None):
                 if not input.startswith("https://www.youtube.com/watch?v=") and not input.startswith("https://www.youtube.com/shorts/"):
                     return None
 
-                if (datetime.now() - timedelta(seconds=5)).timestamp() < glb.lastDownload:
-                    JS.popup("alert", "Please wait a little bit until submitting an new download request!")
+                if (datetime.now() - timedelta(seconds=15)).timestamp() < glb.lastDownload:
+                    JS.popup("alert", f'Please wait {int(glb.lastDownload - (datetime.now() - timedelta(seconds=15)).timestamp())} seconds until starting the next download.')
                     return None
 
                 glb.lastDownload = datetime.now().timestamp()
                 ws.send(f'yt download {input}')
-                JS.popup("alert", f'Started download for: "{input}"')
 
             HTML.add(f'input', f'SubPage_page_download', _id=f'download_input', _type=f'text', _style=f'inputMedium %% width: 75%;')
             HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
@@ -103,9 +122,10 @@ def pageSub(args=None):
             data = ws.msgDict()["yt"]
 
             HTML.add(f'h1', f'SubPage_page_results', _nest=f'Recent Downloads', _style=f'headerBig %% margin: 0px auto;')
+            HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal')
 
             for index in data["downloads"]:
-                JS.log(str(data[index]))
+                JS.log(str(data["downloads"][index]))
 
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex')
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_download', _style=f'divNormal %% flex %% width: 75%;')
