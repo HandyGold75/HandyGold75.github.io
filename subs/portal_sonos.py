@@ -460,8 +460,8 @@ def pageSub(args):
                 img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 17%; max-width: 50px; height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                remImg = HTML.add(f'img', _id=f'SubPage_page_que_{track}_rem_img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
-                remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_{track}_rem', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                remImg = HTML.add(f'img', _id=f'SubPage_page_que_rem_img_{track}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_rem_{track}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
                 rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
                 title = HTML.add(f'div', _nest=f'{txt}{rem}', _style=f'flex %% margin: 0px;')
 
@@ -487,9 +487,9 @@ def pageSub(args):
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
                     JS.addEvent(track, playFromQue, "dblclick", isClass=True)
 
-                    JS.addEvent(f'{track.id}_rem', removeFromQue)
-                    CSS.onHover(f'{track.id}_rem', f'imgHover')
-                    CSS.onClick(f'{track.id}_rem', f'imgClick')
+                    JS.addEvent(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', removeFromQue)
+                    CSS.onHover(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgHover')
+                    CSS.onClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgClick')
 
             JS.afterDelay(doAction, 100)
 
