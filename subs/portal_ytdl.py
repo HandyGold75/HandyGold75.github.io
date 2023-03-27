@@ -38,14 +38,16 @@ class glb:
     dates = []
 
     config = {}
-    knownConfig = {"quality": list}
+    knownConfig = {"quality": list, "audioOnly": bool}
     optionsList = ["Low", "Medium", "High"]
+
+    lastDataPackage = {}
 
 
 def pageSub(args=None):
     def setup(args):
         if JS.cache("page_portal_ytdl") is None or JS.cache("page_links") == "":
-            JS.cache("page_portal_ytdl", dumps({"quality": ["Medium"]}))
+            JS.cache("page_portal_ytdl", dumps({"quality": ["Medium"], "audioOnly": False}))
             pass
 
         glb.config = loads(JS.cache("page_portal_ytdl"))
@@ -56,23 +58,84 @@ def pageSub(args=None):
     def download():
         def slowUIRefresh():
             def update(data):
+                def removeFromDownload(args):
+                    el = args.target
+
+                    for i in range(0, 6):
+                        if el.id == "":
+                            el = el.parentElement
+                            continue
+
+                        try:
+                            int(el.id.split("_")[-1])
+                        except ValueError:
+                            el = el.parentElement
+                            continue
+
+                        ws.send(f'yt remove {el.id.split("_")[-1]}')
+                        return None
+
                 records = ""
+
+                if data == glb.lastDataPackage:
+                    return None
+
+                glb.lastDataPackage = data
+
                 for index in reversed(data["downloads"]):
-                    values = ""
+                    values = HTML.add("h1", _nest=f'{index}', _style=f'headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;')
+                    # values = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% margin: 0px auto; padding: 0px;')
 
-                    for key in data["downloads"][index]:
-                        txt = HTML.add("p", _nest=f'{key}', _style=f'width: 50%; margin: 0px auto')
+                    remImg = HTML.add(f'img', _id=f'SubPage_page_results_rem_img_{index}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                    remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_results_rem_{index}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                    rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;')
+                    values += HTML.add(f'div', _nest=f'{rem}', _style=f'flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;')
 
-                        if not key in glb.dates:
-                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key]}', _style=f'width: 50%; margin: 0px auto')
+                    if type(data["downloads"][index]["Modified"]) is int:
+                        data["downloads"][index]["Modified"] = f'{datetime.fromtimestamp(data["downloads"][index]["Modified"]).strftime("%d %b %y - %H:%M")}'
+
+                    for key1, key2 in (("Title", None), ("Link", None), ("URL", None), ("State", "Modified"), ("Resolution", "AudioBitrate")):
+                        if not key2 is None:
+                            txt = HTML.add("p", _nest=key1, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            if key1 == "State":
+                                if data["downloads"][index][key1] == "Done":
+                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #0F5; overflow: hidden;')
+                                elif data["downloads"][index][key1] == "Failed":
+                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F05; overflow: hidden;')
+                                else:
+                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F85; overflow: hidden;')
+                            else:
+                                txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                            div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;')
                         else:
-                            txt += HTML.add("p", _nest=f'{datetime.fromtimestamp(data["downloads"][index][key]).strftime("%d %b %y - %H:%M")}', _style=f'width: 50%; margin: 0px auto')
+                            txt = HTML.add("p", _nest=key1, _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                            div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
 
-                        values += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% margin: 0px auto')
+                        if not key2 is None:
+                            txt = HTML.add("p", _nest=key2, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key2]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                            div += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px;')
 
-                    records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto; border: 4px solid #111; border-radius: 4px;')
+                            values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                            continue
+
+                        values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+
+                    if not data["downloads"][index]["Error"] == "":
+                        txt = HTML.add("p", _nest=f'Error', _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                        txt += HTML.add("p", _nest=f'{data["downloads"][index]["Error"]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                        div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
+                        values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+
+                    records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto -6px auto; border: 6px solid #FBDF56; border-radius: 4px;')
 
                 HTML.set("div", f'SubPage_page_results_out', _nest=f'{records}', _style=f'divNormal')
+
+                for index in reversed(data["downloads"]):
+                    JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
+                    CSS.onHover(f'SubPage_page_results_rem_{index}', f'imgHover')
+                    CSS.onClick(f'SubPage_page_results_rem_{index}', f'imgClick')
 
             if not glb.currentSub == "Download":
                 return False
@@ -84,8 +147,8 @@ def pageSub(args=None):
             except AttributeError:
                 return None
 
-            JS.afterDelay(getData, 4000)
-            JS.afterDelay(slowUIRefresh, 5000)
+            JS.afterDelay(getData, 2000)
+            JS.afterDelay(slowUIRefresh, 2500)
 
         def addHeader():
             HTML.add(f'h1', f'SubPage_page_header', _nest=f'YouTube Downloader', _style=f'headerBig %% margin: 0px auto;')
@@ -105,7 +168,11 @@ def pageSub(args=None):
                     return None
 
                 glb.lastDownload = datetime.now().timestamp()
-                ws.send(f'yt download {glb.config["quality"][0]} {input}')
+
+                if glb.config["audioOnly"]:
+                    ws.send(f'yt download audio {glb.config["quality"][0]} {input}')
+                else:
+                    ws.send(f'yt download video {glb.config["quality"][0]} {input}')
 
             HTML.add(f'input', f'SubPage_page_download', _id=f'download_input', _type=f'text', _style=f'inputMedium %% width: 75%;')
             HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
@@ -122,11 +189,11 @@ def pageSub(args=None):
             data = ws.msgDict()["yt"]
 
             HTML.add(f'h1', f'SubPage_page_results', _nest=f'Recent Downloads', _style=f'headerBig %% margin: 0px auto;')
-            HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal')
+            HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex')
+        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex %% width: 95%;')
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_download', _style=f'divNormal %% flex %% width: 75%;')
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_results', _style=f'divNormal %% border: 4px solid #111; border-radius: 4px;')
+        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_results', _style=f'divNormal %% width: 95%; margin-top: 50px;')
 
         addHeader()
         addDownload()
@@ -135,12 +202,52 @@ def pageSub(args=None):
         JS.afterDelay(slowUIRefresh, 500)
 
     def history():
-        def addPage():
-            pass
+        def slowUIRefresh():
+            def update(data):
+                records = ""
+                for index in reversed(data["history"]):
+                    txt = HTML.add("p", _nest=f'index', _style=f'width: 50%; margin: 0px auto')
+                    txt += HTML.add("p", _nest=f'{index}', _style=f'width: 50%; margin: 0px auto')
+                    values = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% margin: 0px auto')
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
+                    for key in data["history"][index]:
+                        txt = HTML.add("p", _nest=f'{key}', _style=f'width: 50%; margin: 0px auto')
 
-        addPage()
+                        if not key in glb.dates:
+                            txt += HTML.add("p", _nest=f'{data["history"][index][key]}', _style=f'width: 50%; margin: 0px auto')
+                        else:
+                            txt += HTML.add("p", _nest=f'{datetime.fromtimestamp(data["history"][index][key]).strftime("%d %b %y - %H:%M")}', _style=f'width: 50%; margin: 0px auto')
+
+                        values += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% margin: 0px auto')
+
+                    records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto; border: 4px solid #111; border-radius: 4px;')
+
+                HTML.set("div", f'SubPage_page_history_out', _nest=f'{records}', _style=f'divNormal')
+
+            if not glb.currentSub == "History":
+                return False
+
+            data = ws.msgDict()["yt"]
+
+            try:
+                update(data)
+            except AttributeError:
+                return None
+
+            JS.afterDelay(getData, 2000)
+            JS.afterDelay(slowUIRefresh, 2500)
+
+        def addHistory():
+            data = ws.msgDict()["yt"]
+
+            HTML.add(f'h1', f'SubPage_page_history', _nest=f'History', _style=f'headerBig %% margin: 0px auto;')
+            HTML.add(f'div', f'SubPage_page_history', _id=f'SubPage_page_history_out', _style=f'divNormal')
+
+        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_history', _style=f'divNormal %% border: 4px solid #111; border-radius: 4px;')
+
+        addHistory()
+
+        JS.afterDelay(slowUIRefresh, 500)
 
     def config():
         def editRecord(args):
@@ -325,6 +432,7 @@ def pageSub(args=None):
     pageSubMap = {"Download": download, "History": history, "Config": config}
 
     HTML.clear(f'SubPage_page')
+    glb.lastDataPackage = {}
 
     if not args is None:
         setup(args)

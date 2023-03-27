@@ -131,7 +131,7 @@ class invoke:
 
         glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
 
-        glb.extraButtons = (("Bulk Add", False, "bulkadd", False, bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
+        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
@@ -223,7 +223,7 @@ class invoke:
 
         glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
 
-        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", False, pageSub, False))
+        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
