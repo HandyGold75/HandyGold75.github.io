@@ -223,6 +223,8 @@ def pageSub(args):
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex ', f'100')
 
+                    CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+
                     glb.currentPosition = data["que"]["position"]
                     glb.currentQueSize = data["que"]["size"]
 
@@ -287,6 +289,8 @@ def pageSub(args):
                     video()
             except AttributeError:
                 return None
+
+            CSS.get(f'SubPage_nav', f'scrollIntoView')()
 
             JS.afterDelay(sonosControl.state, 500)
             JS.afterDelay(sonosControl.getQue, 500)
@@ -503,6 +507,8 @@ def pageSub(args):
             btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_queAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
             div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
             HTML.set(f'div', f'SubPage_page_queAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
+
+            CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
 
             def doAction():
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
