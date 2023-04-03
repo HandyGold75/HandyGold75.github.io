@@ -285,7 +285,7 @@ def pageSub(args=None):
 
         def addResults():
             data = ws.msgDict()["yt"]
-            
+
             HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
             update(data)
 
