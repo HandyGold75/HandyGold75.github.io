@@ -144,6 +144,15 @@ class sonosControl:
     def remQue(index: int):
         ws.send(f'sonos queRemove {index}')
 
+    def addQue(url: str, playNow: bool = False):
+        if not url.startswith("https://open.spotify.com/track/"):
+            return None
+
+        if not playNow:
+            ws.send(f'sonos playNext {url}')
+        else:
+            ws.send(f'sonos playNow {url}')
+
 
 def pageSub(args):
     def setup(args):
@@ -199,7 +208,7 @@ def pageSub(args):
             def que():
                 data = ws.msgDict()["sonos"]
 
-                if data["que"]["position"] != glb.currentPosition:
+                if data["que"]["position"] != glb.currentPosition or data["que"]["size"] != glb.currentQueSize:
                     addQue()
 
                     CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'background', f'#222')
@@ -214,8 +223,8 @@ def pageSub(args):
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
                     CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex ', f'100')
 
-                    CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
                     glb.currentPosition = data["que"]["position"]
+                    glb.currentQueSize = data["que"]["size"]
 
             def albumArt():
                 data = ws.msgDict()["sonos"]
@@ -279,8 +288,6 @@ def pageSub(args):
             except AttributeError:
                 return None
 
-            CSS.get(f'SubPage_nav', f'scrollIntoView')()
-
             JS.afterDelay(sonosControl.state, 500)
             JS.afterDelay(sonosControl.getQue, 500)
             JS.afterDelay(slowUIRefresh, 1000)
@@ -311,12 +318,12 @@ def pageSub(args):
             glb.useAlbumArt = True
             data = ws.msgDict()["sonos"]
 
-            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 80%; margin: 0px auto;')
+            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 75%; margin: -30px auto 15px auto;')
 
             img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
             HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_albumArt', _style=f'divNormal %% width: 75%;')
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; max-width: 69vh; justify-content: center;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
             pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
@@ -434,30 +441,40 @@ def pageSub(args):
                     glb.currentPosition = -1
                     return None
 
+            def playNext(args):
+                sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, False)
+
+            def playNow(args):
+                sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, True)
+
             data = ws.msgDict()["sonos"]
-            glb.currentQueSize = data["que"]["size"]
 
             if HTML.get(f'SubPage_page_que') is None:
+                que = HTML.add(f'div', _id=f'SubPage_page_queList', _style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
+                queAdd = HTML.add(f'div', _id=f'SubPage_page_queAdd', _style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
+
                 if glb.config["useAlbumArt"]:
                     HTML.add(f'div',
                              f'SubPage_page_media',
                              _id=f'SubPage_page_que',
-                             _style=f'divNormal %% position: relative; width: 25%; height: 69vh; max-height: 750px; padding: 0px; margin: 35px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
+                             _nest=f'{que}{queAdd}',
+                             _style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
 
                 else:
                     HTML.add(f'div',
                              f'SubPage_page_media',
                              _id=f'SubPage_page_que',
-                             _style=f'divNormal %% position: relative; width: 27.25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111; overflow-x: hidden;')
+                             _nest=f'{que}{queAdd}',
+                             _style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
             else:
-                HTML.setRaw(f'SubPage_page_que', "")
+                HTML.setRaw(f'SubPage_page_queList', "")
 
             tracks = data["que"]["tracks"]
 
             queHTML = ""
 
             for track in tracks:
-                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 17%; max-width: 50px; height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 20%; max-width: 50px; height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
                 remImg = HTML.add(f'img', _id=f'SubPage_page_que_rem_img_{track}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
@@ -469,11 +486,11 @@ def pageSub(args):
                 dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto;', _align=f'right')
                 creator = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% font-size: 75%; margin: 0px;')
 
-                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 83%; margin: auto 5px;')
+                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 90%; margin: auto 5px;')
 
                 queHTML += HTML.add(f'div', _nest=f'{img}{txtDiv}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% position: relative; margin: -5px -5px; z-index: 0; border: 5px solid #111;')
 
-            HTML.addRaw(f'SubPage_page_que', queHTML)
+            HTML.addRaw(f'SubPage_page_queList', queHTML)
 
             CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
             CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
@@ -481,7 +498,11 @@ def pageSub(args):
             CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
             CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex', f'100')
 
-            CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+            inp = HTML.add(f'input', _id=f'SubPage_page_queAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;')
+            btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_queAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_queAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
+            HTML.set(f'div', f'SubPage_page_queAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
 
             def doAction():
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
@@ -490,6 +511,17 @@ def pageSub(args):
                     JS.addEvent(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', removeFromQue)
                     CSS.onHover(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgHover')
                     CSS.onClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgClick')
+
+                CSS.onHover(f'SubPage_page_queAdd_input', f'inputHover')
+                CSS.onFocus(f'SubPage_page_queAdd_input', f'inputFocus')
+
+                JS.addEvent(f'SubPage_page_queAdd_playNext', playNext)
+                CSS.onHover(f'SubPage_page_queAdd_playNext', f'buttonHover')
+                CSS.onClick(f'SubPage_page_queAdd_playNext', f'buttonClick')
+
+                JS.addEvent(f'SubPage_page_queAdd_playNow', playNow)
+                CSS.onHover(f'SubPage_page_queAdd_playNow', f'buttonHover')
+                CSS.onClick(f'SubPage_page_queAdd_playNow', f'buttonClick')
 
             JS.afterDelay(doAction, 100)
 
