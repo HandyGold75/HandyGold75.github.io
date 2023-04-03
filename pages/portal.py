@@ -10,9 +10,9 @@ import subs.portal_trees as pt
 
 
 class glb:
-    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Tapo": tp.main,"YT-DL": ytdl.main, "Asset Manager": ps.main, "License Manager": ps.main, "Query": ps.main}
+    allSubs = {"Admin": ps.main, "Monitor": pt.main, "Sonos": so.main, "Tapo": tp.main, "YT-DL": ytdl.main, "Asset Manager": ps.main, "License Manager": ps.main, "Query": ps.main}
     allInvokes = {"Admin": ps.invoke.AP, "Monitor": pt.invoke.MO, "Sonos": so.invoke.SO, "Tapo": tp.invoke.TP, "YT-DL": ytdl.invoke.YTDL, "Asset Manager": ps.invoke.AM, "License Manager": ps.invoke.LM, "Query": ps.invoke.QR}
-    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Tapo": "tapo","YT-DL": "yt", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
+    allCommands = {"Admin": "admin", "Monitor": "monitor", "Sonos": "sonos", "Tapo": "tapo", "YT-DL": "yt", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
 
     lastLogin = 0
 
@@ -40,6 +40,8 @@ def pagePortal(args=None, page=None):
     HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
     glb.allSubs[JS.cache("page_portal")]()
+
+    JS.onResize()
 
 
 def main():
