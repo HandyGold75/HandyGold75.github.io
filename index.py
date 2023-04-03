@@ -81,6 +81,9 @@ def pageIndex(args=None, page=None):
 
     glb.allPages[JS.cache(f'page_index')]()
 
+    if args != "noResize":
+        JS.onResize()
+
 
 def footer():
     def toTop(args=None):
@@ -117,8 +120,6 @@ def main():
     navigation()
     pageIndex(page=JS.cache(f'page_index'))
     footer()
-
-    JS.onResize()
 
 
 if __name__ == "__main__":

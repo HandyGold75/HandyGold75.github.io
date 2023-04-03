@@ -66,72 +66,72 @@ def getVP():
 
 
 def onResize(args=None):
+    def update(size: int):
+        sizeMap = {"0": ("0px", "50%", "85px"), "1": ("0px 20px", "75%", "85px"), "max": ("0px 20px", "100%", "100px")}
 
+        if size >= 2:
+            size = "max"
+
+        if not str(size) in sizeMap:
+            return None
+
+        CSS.setStyle(f'body', f'padding', sizeMap[str(size)][0])
+        CSS.setStyle(f'body', f'fontSize', sizeMap[str(size)][1])
+        CSS.setStyle(f'nav_logo', f'max-width', sizeMap[str(size)][2])
+
+    def update_links(size: int):
+        sizeMap = {"0": 3, "1": 4, "2": 5, "max": 6}
+
+        if size >= 3:
+            size = "max"
+
+        if not str(size) in sizeMap:
+            return None
+
+        glb.links_py_columns = sizeMap[str(size)]
+        from index import pageIndex
+        pageIndex("noResize", page=window.localStorage.getItem(f'page_index'))
+
+    def update_sonos(size: int):
+        sizeMap = {"0": ("0%", "100%", "40px", "35px", "none"), "1": ("50%", "50%", "20px", "45px", ""), "max": ("75%", "25%", "0px", "55px", "")}
+
+        if size >= 2:
+            size = "max"
+
+        if not str(size) in sizeMap:
+            return None
+
+        el = document.getElementById(f'SubPage_page_art')
+        if not el is None:
+            el.style.width = sizeMap[str(size)][0]
+            el.style.display = sizeMap[str(size)][4]
+
+        el = document.getElementById(f'SubPage_page_que')
+        if not el is None:
+            el.style.width = sizeMap[str(size)][1]
+            el.style.marginBottom = sizeMap[str(size)][2]
+
+        el = document.getElementById(f'SubPage_page_queAdd')
+        if not el is None:
+            el.style.minHeight = sizeMap[str(size)][3]
+
+    page = window.localStorage.getItem(f'page_index')
+    if page == "Portal":
+        page = window.localStorage.getItem(f'page_portal')
+
+    fmap = {"Links": update_links, "Sonos": update_sonos}
+
+    size = 99
     if window.innerWidth < 450:
-        glb.links_py_columns = 3
-
-        CSS.setStyle(f'body', f'padding', f'0px')
-        CSS.setStyle(f'body', f'fontSize', f'50%')
-        CSS.setStyle(f'nav_logo', f'max-width', f'85px')
-
-        if window.localStorage.getItem(f'page_index') == f'Links':
-            from index import pageIndex
-            pageIndex(page=window.localStorage.getItem(f'page_index'))
-
-        el = document.getElementById(f'SubPage_page_que')
-        if not el is None:
-            el.style.display = f'none'
-
-        return None
-
+        size = 0
     elif window.innerWidth < 700:
-        glb.links_py_columns = 4
-
-        CSS.setStyle(f'body', f'padding', f'0px 20px')
-        CSS.setStyle(f'body', f'fontSize', f'75%')
-        CSS.setStyle(f'nav_logo', f'max-width', f'85px')
-
-        if window.localStorage.getItem(f'page_index') == f'Links':
-            from index import pageIndex
-            pageIndex(page=window.localStorage.getItem(f'page_index'))
-
-        el = document.getElementById(f'SubPage_page_que')
-        if not el is None:
-            el.style.display = f'none'
-
-        return None
-
+        size = 1
     elif window.innerWidth < 950:
-        glb.links_py_columns = 5
+        size = 2
 
-        CSS.setStyle(f'body', f'padding', f'0px 20px')
-        CSS.setStyle(f'body', f'fontSize', f'100%')
-        CSS.setStyle(f'nav_logo', f'max-width', f'100px')
-
-        if window.localStorage.getItem(f'page_index') == f'Links':
-            from index import pageIndex
-            pageIndex(page=window.localStorage.getItem(f'page_index'))
-
-        el = document.getElementById(f'SubPage_page_que')
-        if not el is None:
-            el.style.display = f''
-
-        return None
-
-    else:
-        glb.links_py_columns = 6
-
-        CSS.setStyle(f'body', f'padding', f'0px 20px')
-        CSS.setStyle(f'body', f'fontSize', f'100%')
-        CSS.setStyle(f'nav_logo', f'max-width', f'100px')
-
-        if window.localStorage.getItem(f'page_index') == f'Links':
-            from index import pageIndex
-            pageIndex(page=window.localStorage.getItem(f'page_index'))
-
-        el = document.getElementById(f'SubPage_page_que')
-        if not el is None:
-            el.style.display = f''
+    update(size)
+    if page in fmap:
+        fmap[page](size)
 
 
 def afterDelay(func, delay: int):
