@@ -1,4 +1,5 @@
 import mod.CSS as CSS
+import mod.HTML as HTML
 from js import document, window, eval, setTimeout, setInterval, console
 from pyodide.ffi import create_proxy, create_once_callable # type: ignore
 from rsa import PublicKey
@@ -148,3 +149,103 @@ def atInterval(func, delay: int):
 
 def jsEval(com: str):
     return eval(f'{com}')
+
+
+def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = ()):
+    htmlRows = ""
+    for i1 in range(0, rows):
+        borderStyle = ""
+        if i1 > 0:
+            borderStyle = f' border-top: 2px dashed #111;'
+
+        txt = HTML.add(f'h1', _nest=f'{rowPrefix}{(rows - i1) * rowStep}{rowAfterfix}', _style=f'headerSmall %% height: 25%; margin: 0px auto auto auto;')
+        if i1 == rows - 1:
+            txt += HTML.add(f'h1', _style=f'headerSmall %% height: 40%; margin: auto auto auto auto;')
+            txt += HTML.add(f'h1', _nest=f'{rowPrefix}{(rows - i1 - 1) * rowStep}{rowAfterfix}', _style=f'headerSmall %% height: 25%; margin: auto auto auto 5px;')
+
+        htmlCols = HTML.add(f'div', _nest=txt, _id=f'{name}_row_{rows - i1 - 1}_col_header', _style=f'background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 2px solid #111;{borderStyle}')
+        for i2 in range(0, cols):
+            if i2 == cols - 1:
+                htmlCols += HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {100 / cols}%; height: {rowHeight};{borderStyle}')
+            else:
+                htmlCols += HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {100 / cols}%; height: {rowHeight}; border-right: 1px dashed #111;{borderStyle}')
+
+        htmlRows += HTML.add(f'div', _nest=htmlCols, _id=f'{name}_row_{rows - i1 - 1}', _style=f'flex %% width: 100%; height: {rowHeight};')
+
+    txt = ""
+    if len(origin) == 1:
+        txt += HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: auto;')
+    elif len(origin) > 1:
+        txt += HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: left;')
+        txt += HTML.add(f'h1', _nest=f'/', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: center;')
+        txt += HTML.add(f'h1', _nest=f'{origin[1]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: right;')
+
+    htmlCols = HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_header', _style=f'background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 2px solid #111; border-top: 2px solid #111;')
+    for i2 in range(0, cols):
+        try:
+            txt = HTML.add(f'h1', _nest=f'{colNames[i2]}', _style=f'headerSmall %% margin: auto;')
+        except IndexError:
+            txt = HTML.add(f'h1', _nest=f'', _style=f'headerSmall %% margin: auto;')
+
+        if i2 == cols - 1:
+            htmlCols += HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-top: 2px solid #111;')
+        else:
+            htmlCols += HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 1px dashed #111; border-top: 2px solid #111;')
+
+    htmlRows += HTML.add(f'div', _nest=htmlCols, _id=f'{name}_row_header', _style=f'flex %% width: 100%; height: {rowHeight};')
+
+    return HTML.add(f'div', _nest=htmlRows, _id=f'{name}', _style=f'margin: 10px; padding-bottom: 2px; border: 2px solid #111;')
+
+
+def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: bool = False):
+    def getLineSteps(oldCords, curCords, resolution):
+        diff1, diff2 = (curCords[0] - oldCords[0], curCords[1] - oldCords[1])
+
+        if diff1 < 0:
+            diff1 = -diff1
+        if diff2 < 0:
+            diff2 = -diff2
+
+        biggestDiff = 0
+        smallestDiff = 1
+        altDiff = curCords[1] - oldCords[1]
+        if diff2 > diff1:
+            biggestDiff = 1
+            smallestDiff = 0
+            altDiff = curCords[0] - oldCords[0]
+
+        increments = 1
+        if curCords[biggestDiff] > oldCords[biggestDiff]:
+            increments = -1
+
+        steps = []
+        totalSteps = len(range(int(curCords[biggestDiff] * resolution), int(oldCords[biggestDiff] * resolution), increments))
+        for i, step in enumerate(range(int(curCords[biggestDiff] * resolution), int(oldCords[biggestDiff] * resolution), increments)):
+            if biggestDiff == 0:
+                steps.append((step / resolution, round(curCords[smallestDiff] - ((altDiff / totalSteps) * i), 2)))
+            else:
+                steps.append((round(curCords[smallestDiff] - ((altDiff / totalSteps) * i), 2), step / resolution))
+
+        return steps
+
+    for i, cord in enumerate(cords):
+        colNum, colFloat = str(float(cord[0])).split(".")
+        rowNum, rowFloat = str(float(cord[1])).split(".")
+
+        try:
+            HTML.add(
+                f'div',
+                f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
+                _style=f'width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%')
+        except AttributeError:
+            raise AttributeError(f'Invalid ID/ Cords: {name}_row_{rowNum[:2]}_col_{colNum[:2]} {cord}')
+
+        if i <= 0 or disalowRecursive:
+            continue
+
+        oldCords = list(cords[i - 1])
+        curCords = list(cords[i])
+
+        steps = getLineSteps(oldCords, curCords, lineRes)
+
+        graphDraw(name, steps, lineRes=lineRes, disalowRecursive=True)

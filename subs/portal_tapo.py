@@ -21,6 +21,7 @@ class invoke:
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         ws.send(f'tapo state')
+        ws.send(f'tapo history')
 
         glb.lastUpdate = datetime.now().timestamp()
 
@@ -33,14 +34,14 @@ class glb:
     lastUpdate = 0
 
     config = {}
-    knownConfig = {"costPerKw": float, "costFormat": str}
+    knownConfig = {"costPerKw": float, "costFormat": str, "lineResolution": int, ":D": bool}
     optionsList = []
 
 
 def pageSub(args=None):
     def setup(args):
         if JS.cache("page_portal_tapo") is None or JS.cache("page_links") == "":
-            JS.cache("page_portal_tapo", dumps({"costPerKw": 0.00, "costFormat": "$"}))
+            JS.cache("page_portal_tapo", dumps({"costPerKw": 0.00, "costFormat": "$", "lineResolution": 25, ":D": False}))
 
         glb.config = loads(JS.cache("page_portal_tapo"))
 
@@ -96,7 +97,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]
+            data = ws.msgDict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -131,7 +132,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]
+            data = ws.msgDict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -153,7 +154,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]
+            data = ws.msgDict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -162,9 +163,89 @@ def pageSub(args=None):
 
             JS.afterDelay(fastUIRefresh, 250)
 
+        def addGraph(plug: str):
+            def drawLines():
+                if glb.config[":D"]:
+                    JS.graphDraw(f'graph_usage_{plug}', ((1, 2), (1, 3), (2, 4), (3, 4), (4, 3), (4, 2), (3, 1), (2, 1), (1, 2)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_usage_{plug}', ((5, 1), (4.5, 2), (7.5, 2), (7, 1), (5, 1)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_usage_{plug}', ((8, 2), (8, 3), (9, 4), (10, 4), (11, 3), (11, 2), (10, 1), (9, 1), (8, 2)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((1, 2), (1, 3), (2, 4), (3, 4), (4, 3), (4, 2), (3, 1), (2, 1), (1, 2)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((5, 1), (4.5, 2), (7.5, 2), (7, 1), (5, 1)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((8, 2), (8, 3), (9, 4), (10, 4), (11, 3), (11, 2), (10, 1), (9, 1), (8, 2)), lineRes=glb.config["lineResolution"])
+
+                    return None
+
+                data = ws.msgDict()["tapo"]["history"][plug]
+
+                date = datetime.now()
+                dates = []
+                for i in range(0, 13):
+                    dates.append(date)
+                    date = date - timedelta(days=date.day)
+
+                cordsUsage = []
+                cordsCost = []
+                for time in data:
+                    dataDate = datetime.fromtimestamp(int(time))
+                    col = None
+
+                    JS.log(dataDate.strftime("%d/%m/%Y %H:%M:%S"))
+
+                    for i, date in enumerate(reversed(dates)):
+                        if dataDate.year != date.year or dataDate.month != date.month:
+                            continue
+
+                        col = i + 1 - (31 - dataDate.day) / 31
+                        break
+
+                    if col is None:
+                        continue
+                    elif col >= 13:
+                        col = 12.99
+
+                    row = data[time]["monthlyPower"] / 50000
+                    if row >= 6:
+                        row = 5.99
+                    cordsUsage.append((col, row))
+
+                    row = (data[time]["monthlyPower"] / 10000) * glb.config["costPerKw"]
+                    if row >= 6:
+                        row = 5.99
+                    cordsCost.append((col, row))
+
+                JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
+                JS.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
+
+            data = ws.msgDict()["tapo"]["current"]
+
+            if not data[plug]["model"] in ["P115", "P110"]:
+                return None
+
+            date = datetime.now()
+            dates = []
+            for i in range(0, 13):
+                dates.append(date.strftime("%b (%y)"))
+                date = date - timedelta(days=date.day)
+
+            txt = HTML.add("h1", _nest=f'Usage', _style=f'headerBig')
+            HTML.set(f'div',
+                     f'SubPage_page_graph',
+                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=6, rowStep=50, cols=13, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates))),
+                     _id=f'SubPage_page_graph_usage',
+                     _style=f'divNormal')
+
+            txt = HTML.add("h1", _nest=f'Cost', _style=f'headerBig')
+            HTML.add(f'div',
+                     f'SubPage_page_graph',
+                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=6, rowStep=10, cols=13, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates))),
+                     _id=f'SubPage_page_graph_cost',
+                     _style=f'divNormal')
+
+            JS.aSync(drawLines)
+
         def addPlugs():
             def togglePower(args):
-                data = ws.msgDict()["tapo"]
+                data = ws.msgDict()["tapo"]["current"]
                 plug = args.target.id.split("_")[-1]
 
                 if not plug in data:
@@ -176,13 +257,27 @@ def pageSub(args=None):
                 elif JS.popup(f'confirm', f'Are you sure you want to turn off this device?\nDevice: {plug}'):
                     ws.send(f'tapo off {plug}')
 
+            def getInfo(args):
+                data = ws.msgDict()["tapo"]["history"]
+                plug = args.target.id.split("_")[-1]
+
+                if not plug in data:
+                    return None
+
+                addGraph(plug)
+
             def header(plug):
-                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 85%;')
+                img = HTML.add(f'img', _id=f'Info_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Info.png" alt="Info"')
+                btn = HTML.add(f'button', _nest=f'{img}', _id=f'Info_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                info = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
+
+                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 70%;')
+
                 img = HTML.add(f'img', _id=f'Power_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
                 btn = HTML.add(f'button', _nest=f'{img}', _id=f'Power_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 power = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
 
-                return HTML.add(f'div', _nest=f'{txt}{power}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
+                return HTML.add(f'div', _nest=f'{info}{txt}{power}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
 
             def body(plug):
                 img = HTML.add(f'img', _style=f'z-index: 0; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge.png" alt="Gauge"')
@@ -215,7 +310,7 @@ def pageSub(args=None):
 
                 return HTML.add(f'div', _nest=f'{div}', _style=f'padding-top: 10px;')
 
-            data = ws.msgDict()["tapo"]
+            data = ws.msgDict()["tapo"]["current"]
 
             for plug in data:
                 if not data[plug]["model"] in ["P115", "P110"]:
@@ -231,11 +326,16 @@ def pageSub(args=None):
                 if not data[plug]["model"] in ["P115", "P110"]:
                     continue
 
+                JS.addEvent(f'Info_{plug}', getInfo)
+                CSS.onHover(f'Info_{plug}', f'imgHover')
+                CSS.onClick(f'Info_{plug}', f'imgClick')
+
                 JS.addEvent(f'Power_{plug}', togglePower)
                 CSS.onHover(f'Power_{plug}', f'imgHover')
                 CSS.onClick(f'Power_{plug}', f'imgClick')
 
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
+        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_graph', _style=f'divNormal %% margin: 0px; padding 0px;')
 
         addPlugs()
 
