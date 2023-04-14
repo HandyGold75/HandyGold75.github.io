@@ -84,8 +84,8 @@ def pageSub(args=None):
                 for plug in data:
                     HTML.setRaw(f'Details_{plug}_todayCost', f'{((data[plug]["todayPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
                     HTML.setRaw(f'Details_{plug}_monthlyCost', f'{((data[plug]["monthlyPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
-                    HTML.setRaw(f'Details_{plug}_todayPower', f'{(data[plug]["todayPower"] / 1000):.2f} kWh')
-                    HTML.setRaw(f'Details_{plug}_monthlyPower', f'{(data[plug]["monthlyPower"] / 1000):.2f} kWh')
+                    HTML.setRaw(f'Details_{plug}_todayPower', f'{(data[plug]["todayPower"] / 1000):.2f} kW')
+                    HTML.setRaw(f'Details_{plug}_monthlyPower', f'{(data[plug]["monthlyPower"] / 1000):.2f} kW')
                     HTML.setRaw(f'Details_{plug}_todayTime', f'{getDur(data[plug]["todayTime"] * 60)}')
                     HTML.setRaw(f'Details_{plug}_monthlyTime', f'{getDur(data[plug]["monthlyTime"] * 60)}')
 
@@ -298,8 +298,8 @@ def pageSub(args=None):
             def footer(plug):
                 div = ""
 
-                for visKey, key, format in (("Today", "", ""), ("Cost:", "todayCost", f'0 {glb.config["costFormat"]}'), ("Power:", "todayPower", "0 kWh"), ("Time:", "todayTime", "0 s"), ("Monthly", "", ""),
-                                            ("Cost:", "monthlyCost", f'0 {glb.config["costFormat"]}'), ("Power:", "monthlyPower", "0 kWh"), ("Time:", "monthlyTime", "0 s")):
+                for visKey, key, format in (("Today", "", ""), ("Cost:", "todayCost", f'0 {glb.config["costFormat"]}'), ("Power:", "todayPower", "0 kW"), ("Time:", "todayTime", "0 s"), ("Monthly", "", ""),
+                                            ("Cost:", "monthlyCost", f'0 {glb.config["costFormat"]}'), ("Power:", "monthlyPower", "0 kW"), ("Time:", "monthlyTime", "0 s")):
 
                     txt = HTML.add(f'p', _nest=f'{visKey}', _style=f'width: 45%; margin: auto; font-weight: bold; user-select:none;')
 
