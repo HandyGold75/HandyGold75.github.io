@@ -166,12 +166,12 @@ def pageSub(args=None):
         def addGraph(plug: str):
             def drawLines():
                 if glb.config[":D"]:
-                    JS.graphDraw(f'graph_usage_{plug}', ((1, 2), (1, 3), (2, 4), (3, 4), (4, 3), (4, 2), (3, 1), (2, 1), (1, 2)), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_usage_{plug}', ((5, 1), (4.5, 2), (7.5, 2), (7, 1), (5, 1)), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_usage_{plug}', ((8, 2), (8, 3), (9, 4), (10, 4), (11, 3), (11, 2), (10, 1), (9, 1), (8, 2)), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((1, 2), (1, 3), (2, 4), (3, 4), (4, 3), (4, 2), (3, 1), (2, 1), (1, 2)), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((5, 1), (4.5, 2), (7.5, 2), (7, 1), (5, 1)), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((8, 2), (8, 3), (9, 4), (10, 4), (11, 3), (11, 2), (10, 1), (9, 1), (8, 2)), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_usage_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_usage_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_usage_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
+                    JS.graphDraw(f'graph_cost_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
 
                     return None
 
@@ -189,8 +189,6 @@ def pageSub(args=None):
                     dataDate = datetime.fromtimestamp(int(time))
                     col = None
 
-                    JS.log(dataDate.strftime("%d/%m/%Y %H:%M:%S"))
-
                     for i, date in enumerate(reversed(dates)):
                         if dataDate.year != date.year or dataDate.month != date.month:
                             continue
@@ -203,15 +201,19 @@ def pageSub(args=None):
                     elif col >= 13:
                         col = 12.99
 
+                    txt = ""
+                    for key in data[time]:
+                        txt += f'{key}:	{data[time][key]}<br>'
+
                     row = data[time]["monthlyPower"] / 50000
                     if row >= 6:
                         row = 5.99
-                    cordsUsage.append((col, row))
+                    cordsUsage.append((col, row, txt))
 
                     row = (data[time]["monthlyPower"] / 10000) * glb.config["costPerKw"]
                     if row >= 6:
                         row = 5.99
-                    cordsCost.append((col, row))
+                    cordsCost.append((col, row, txt))
 
                 JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
                 JS.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
