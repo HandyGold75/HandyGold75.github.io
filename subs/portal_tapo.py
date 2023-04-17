@@ -162,6 +162,23 @@ def pageSub(args=None):
 
         def addGraph(plug: str):
             def drawLines():
+                def getDur(dur):
+                    for applyValue, correctionValue, format, round in [(7884000, 2628000, "M", False), (259200, 86400, "d", False), (10800, 3600, "h", False), (180, 60, "m", True)]:
+                        if not dur > applyValue:
+                            continue
+
+                        if round:
+                            dur = f'{int(dur / correctionValue)} {format}'
+                            break
+
+                        dur = f'{(dur / correctionValue):.2f} {format}'
+                        break
+
+                    if type(dur) is int:
+                        dur = f'{dur} s'
+
+                    return dur
+
                 if glb.config[":D"]:
                     JS.graphDraw(f'graph_usage_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
                     JS.graphDraw(f'graph_usage_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
@@ -198,9 +215,25 @@ def pageSub(args=None):
                     elif col >= 13:
                         col = 12.99
 
-                    txt = ""
+                    txt = f'date: {dataDate.strftime("%d %b %y")}<br>'
                     for key in data[time]:
+                        if key == "duration":
+                            txt += f'{key}:	{getDur(data[time][key])}<br>'
+                            continue
+                        if key == "currentPower":
+                            txt += f'{key}:	{(data[time][key] / 1000):.2f} W<br>'
+                            continue
+                        elif "Power" in key:
+                            txt += f'{key}:	{(data[time][key] / 1000):.2f} kW<br>'
+                            continue
+                        elif "Time" in key:
+                            txt += f'{key}:	{getDur(data[time][key] * 60)}<br>'
+                            continue
+
                         txt += f'{key}:	{data[time][key]}<br>'
+
+                    txt += f'todayCost: {((data[time]["todayPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}<br>'
+                    txt += f'monthlyCost: {((data[time]["monthlyPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}<br>'
 
                     row = data[time]["monthlyPower"] / 50000
                     if row >= 6:

@@ -687,18 +687,18 @@ class JS:
                     txt = bridge.HTML.add(f'h1', _nest=f'{onHoverTxt}', _style=f'headerSmall %% white-space: nowrap; text-overflow: ellipsis;')
                     details = bridge.HTML.add(f'div',
                                               _nest=txt,
-                                              _id=f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHoverTxt',
+                                              _id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHoverTxt',
                                               _style=f'divNormal %% z-index: 12; width: 0vw; height: 25vh; margin: {vh} 0px 0px {vw}; padding: 0px; position: relative; opacity: 0%; transition: width 0.25s, opacity 0.5s; overflow-x: hidden;')
                     bridge.HTML.add(
                         f'div',
                         f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
                         _nest=details,
-                        _id=f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHover',
+                        _id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHover',
                         _style=
                         f'z-index: 11; width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%'
                     )
 
-                    addOnHovers.append(f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHover')
+                    addOnHovers.append(f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHover')
 
             except AttributeError:
                 raise AttributeError(f'Invalid ID/ Cords: {name}_row_{rowNum[:2]}_col_{colNum[:2]} {cord}')
