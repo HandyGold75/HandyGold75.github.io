@@ -1,4 +1,4 @@
-import mod.HTML as HTML
+from WebKit import HTML
 
 
 class glb:

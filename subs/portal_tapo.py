@@ -1,7 +1,4 @@
-import mod.HTML as HTML
-import mod.CSS as CSS
-import mod.ws as ws
-import mod.JS as JS
+from WebKit import HTML, CSS, JS, WS, glb as wkGlb
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -20,8 +17,8 @@ class invoke:
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
-        ws.send(f'tapo state')
-        ws.send(f'tapo history')
+        WS.send(f'tapo state')
+        WS.send(f'tapo history')
 
         glb.lastUpdate = datetime.now().timestamp()
 
@@ -57,7 +54,7 @@ def pageSub(args=None):
         if psw is None:
             return None
 
-        ws.send(f'<RAW>tapo<SPLIT>login<SPLIT>{usr}<SPLIT>{str(encrypt(psw.encode(), JS.glb.pk))}')
+        WS.send(f'<RAW>tapo<SPLIT>login<SPLIT>{usr}<SPLIT>{str(encrypt(psw.encode(), wkGlb.pk))}')
 
         JS.afterDelay(pageSub, 2000)
 
@@ -97,7 +94,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]["current"]
+            data = WS.dict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -132,7 +129,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]["current"]
+            data = WS.dict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -154,7 +151,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Plugs":
                 return False
 
-            data = ws.msgDict()["tapo"]["current"]
+            data = WS.dict()["tapo"]["current"]
 
             try:
                 update(data)
@@ -175,7 +172,7 @@ def pageSub(args=None):
 
                     return None
 
-                data = ws.msgDict()["tapo"]["history"][plug]
+                data = WS.dict()["tapo"]["history"][plug]
 
                 date = datetime.now()
                 dates = []
@@ -218,7 +215,7 @@ def pageSub(args=None):
                 JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
                 JS.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
 
-            data = ws.msgDict()["tapo"]["current"]
+            data = WS.dict()["tapo"]["current"]
 
             if not data[plug]["model"] in ["P115", "P110"]:
                 return None
@@ -247,20 +244,20 @@ def pageSub(args=None):
 
         def addPlugs():
             def togglePower(args):
-                data = ws.msgDict()["tapo"]["current"]
+                data = WS.dict()["tapo"]["current"]
                 plug = args.target.id.split("_")[-1]
 
                 if not plug in data:
                     return None
 
                 if not data[plug]["state"]:
-                    ws.send(f'tapo on {plug}')
+                    WS.send(f'tapo on {plug}')
 
                 elif JS.popup(f'confirm', f'Are you sure you want to turn off this device?\nDevice: {plug}'):
-                    ws.send(f'tapo off {plug}')
+                    WS.send(f'tapo off {plug}')
 
             def getInfo(args):
-                data = ws.msgDict()["tapo"]["history"]
+                data = WS.dict()["tapo"]["history"]
                 plug = args.target.id.split("_")[-1]
 
                 if not plug in data:
@@ -312,7 +309,7 @@ def pageSub(args=None):
 
                 return HTML.add(f'div', _nest=f'{div}', _style=f'padding-top: 10px;')
 
-            data = ws.msgDict()["tapo"]["current"]
+            data = WS.dict()["tapo"]["current"]
 
             for plug in data:
                 if not data[plug]["model"] in ["P115", "P110"]:
@@ -532,7 +529,7 @@ def pageSub(args=None):
     if not args is None:
         setup(args)
 
-    if not "tapo" in ws.msgDict():
+    if not "tapo" in WS.dict():
         login()
         return None
 

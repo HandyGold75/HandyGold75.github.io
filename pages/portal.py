@@ -1,7 +1,4 @@
-import mod.HTML as HTML
-import mod.CSS as CSS
-import mod.ws as ws
-import mod.JS as JS
+from WebKit import HTML, CSS, JS, WS
 import subs.portal_sonos as so
 import subs.portal_tapo as tp
 import subs.portal_ytdl as ytdl
@@ -47,13 +44,13 @@ def pagePortal(args=None, page=None):
 def main():
     HTML.set(f'div', f'page', _id=f'page_portal', _align=f'center', _style="flex")
 
-    if not JS.glb.loggedIn:
+    if not WS.loggedIn:
         HTML.add(f'h1', f'page_portal', _nest=f'Please log in first!', _style=f'headerBig')
         return None
 
     allSubsTmp = dict(glb.allSubs)
     for page in allSubsTmp:
-        if not glb.allCommands[page] in ws.msgDict()[f'access']:
+        if not glb.allCommands[page] in WS.dict()[f'access']:
             glb.allSubs.pop(page)
             glb.allInvokes.pop(page)
 

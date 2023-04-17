@@ -1,8 +1,4 @@
-import mod.HTML as HTML
-import mod.CSS as CSS
-import mod.ws as ws
-import mod.JS as JS
-from rsa import encrypt
+from WebKit import HTML, CSS, JS, WS
 from json import dumps, loads
 from datetime import datetime, timedelta
 
@@ -22,7 +18,7 @@ class invoke:
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
-        ws.send(f'yt state')
+        WS.send(f'yt state')
 
         glb.lastUpdate = datetime.now().timestamp()
 
@@ -72,7 +68,7 @@ def pageSub(args=None):
                             el = el.parentElement
                             continue
 
-                        ws.send(f'yt remove {el.id.split("_")[-1]}')
+                        WS.send(f'yt remove {el.id.split("_")[-1]}')
                         return None
 
                 records = ""
@@ -139,7 +135,7 @@ def pageSub(args=None):
             if not glb.currentSub == "Download":
                 return False
 
-            data = ws.msgDict()["yt"]
+            data = WS.dict()["yt"]
 
             try:
                 update(data)
@@ -169,9 +165,9 @@ def pageSub(args=None):
                 glb.lastDownload = datetime.now().timestamp()
 
                 if glb.config["audioOnly"]:
-                    ws.send(f'yt download audio {glb.config["quality"][0]} {input}')
+                    WS.send(f'yt download audio {glb.config["quality"][0]} {input}')
                 else:
-                    ws.send(f'yt download video {glb.config["quality"][0]} {input}')
+                    WS.send(f'yt download video {glb.config["quality"][0]} {input}')
 
             HTML.add(f'input', f'SubPage_page_download', _id=f'download_input', _type=f'text', _style=f'inputMedium %% width: 75%;')
             HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
@@ -185,7 +181,7 @@ def pageSub(args=None):
             CSS.onClick(f'download_button', f'buttonClick')
 
         def addResults():
-            data = ws.msgDict()["yt"]
+            data = WS.dict()["yt"]
 
             HTML.add(f'h1', f'SubPage_page_results', _nest=f'Recent Downloads', _style=f'headerBig %% margin: 0px auto;')
             HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
@@ -216,7 +212,7 @@ def pageSub(args=None):
                         el = el.parentElement
                         continue
 
-                    ws.send(f'yt remove {el.id.split("_")[-1]}')
+                    WS.send(f'yt remove {el.id.split("_")[-1]}')
                     return None
 
             records = ""
@@ -284,7 +280,7 @@ def pageSub(args=None):
             HTML.add(f'h1', f'SubPage_page_header', _nest=f'History', _style=f'headerBig %% margin: 0px auto;')
 
         def addResults():
-            data = ws.msgDict()["yt"]
+            data = WS.dict()["yt"]
 
             HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
             update(data)

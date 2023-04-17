@@ -1,7 +1,4 @@
-import mod.HTML as HTML
-import mod.CSS as CSS
-import mod.ws as ws
-import mod.JS as JS
+from WebKit import HTML, CSS, JS, WS, glb as wkGlb
 from pages.portal import glb as portal_glb
 from datetime import datetime, timedelta
 from rsa import encrypt
@@ -16,15 +13,15 @@ def setup():
         if not JS.popup(f'confirm', f'Log off?'):
             return None
 
-        ws.send(f'logout')
+        WS.send(f'logout')
 
         JS.cache("token", "")
-        JS.glb.loggedIn = False
+        WS.loggedIn = False
 
         JS.f5()
 
     def loginSucces():
-        msg = ws.msg()
+        msg = WS.msg()
 
         JS.cache("token", f'{msg.split("<LOGIN_SUCCESS> ")[1]}')
 
@@ -32,17 +29,17 @@ def setup():
 
     def loginTokenSucces():
         def getData():
-            access = ws.msgDict()["access"]
+            access = WS.dict()["access"]
             for invoke in reversed(portal_glb.allInvokes):
                 if not portal_glb.allCommands[invoke] in access:
                     continue
 
                 portal_glb.allInvokes[invoke]()
 
-        ws.send(f'access')
+        WS.send(f'access')
         JS.afterDelay(getData, 200)
 
-        JS.glb.loggedIn = True
+        WS.loggedIn = True
 
         if JS.cache("page_index") != "Login":
             return None
@@ -63,7 +60,7 @@ def setup():
 
     def loginTokenFail():
         JS.cache("token", "")
-        JS.glb.loggedIn = False
+        WS.loggedIn = False
 
         HTML.enable(f'page_login_body_login_usr', True)
         HTML.enable(f'page_login_body_login_psw', True)
@@ -71,21 +68,21 @@ def setup():
     JS.cache(f'page_index', f'Login')
     JS.cache(f'page_portal', f'')
 
-    ws.start("wss", "wss.HandyGold75.com", "6900")
+    WS.start("wss", "wss.HandyGold75.com", "6900")
 
     if JS.cache("token") != "":
-        ws.onMsg(f'<LOGIN>', f'<LOGIN_TOKEN> {JS.cache("token")}')
-        ws.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces)
-        ws.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail)
+        WS.onMsg(f'<LOGIN>', f'<LOGIN_TOKEN> {JS.cache("token")}')
+        WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces)
+        WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail)
 
-    ws.onMsg(f'<LOGIN_SUCCESS>', loginSucces)
-    ws.onMsg(f'<LOGIN_FAIL>', loginFail)
+    WS.onMsg(f'<LOGIN_SUCCESS>', loginSucces)
+    WS.onMsg(f'<LOGIN_FAIL>', loginFail)
 
 
 def main(args=None):
     HTML.set(f'div', f'page', _id=f'page_login', _align=f'center', _style="flex")
 
-    if JS.glb.loggedIn:
+    if WS.loggedIn:
         return None
 
     setup()
@@ -93,7 +90,7 @@ def main(args=None):
     HTML.add(f'div', f'page_login', _id=f'page_login_body', _align=f'center', _style="width: 100%;")
 
     def login(args):
-        if JS.glb.loggedIn:
+        if WS.loggedIn:
             return None
 
         if args.key != "Enter":
@@ -104,9 +101,9 @@ def main(args=None):
 
         glb.lastLogin = datetime.now().timestamp()
 
-        crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), JS.glb.pk))
+        crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), wkGlb.pk))
 
-        ws.send(f'<LOGIN> {crypt}')
+        WS.send(f'<LOGIN> {crypt}')
 
     def signinRemember(args):
         if args.target.checked:
