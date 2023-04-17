@@ -238,12 +238,12 @@ def pageSub(args=None):
                     row = data[time]["monthlyPower"] / 50000
                     if row >= 6:
                         row = 5.99
-                    cordsUsage.append((col, row, txt))
+                    cordsUsage.append((float(col), float(row), txt))
 
                     row = (data[time]["monthlyPower"] / 10000) * glb.config["costPerKw"]
                     if row >= 6:
                         row = 5.99
-                    cordsCost.append((col, row, txt))
+                    cordsCost.append((float(col), float(row), txt))
 
                 JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
                 JS.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
