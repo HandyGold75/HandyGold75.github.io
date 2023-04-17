@@ -1,7 +1,4 @@
-import mod.ws as ws
-import mod.JS as JS
-import mod.HTML as HTML
-import mod.CSS as CSS
+from WebKit import HTML, CSS, JS, WS, glb as wkGlb
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -258,14 +255,14 @@ class glb:
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         for file in glb.knownFiles:
-            ws.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]} {file}')
+            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]} {file}')
 
         glb.lastUpdate = datetime.now().timestamp()
 
 
 def addRecord(args):
     if glb.svcoms["add"] == "uadd":
-        ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json')
+        WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json')
 
         JS.popup(f'alert', f'New user created.\nReload the subpage for changes to appear.')
 
@@ -328,8 +325,8 @@ def addRecord(args):
 
         data[token][name] = value
 
-    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")}')
-    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["modify"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")} {str(data).replace(" ", "%20").replace("False", "false").replace("True", "true")}')
+    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")}')
+    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["modify"]} /{glb.currentSub.replace(" ", "%20")}.json {token.replace(" ", "%20")} {str(data).replace(" ", "%20").replace("False", "false").replace("True", "true")}')
 
     pageSub(args, {f'/{glb.currentSub}.json': data})
 
@@ -398,19 +395,19 @@ def editRecord(args):
             if password is None:
                 return None
 
-            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), JS.glb.pk)).replace(" ", "%20")
+            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), wkGlb.pk)).replace(" ", "%20")
 
             JS.log(str(mainValue))
 
             # if not mainValue is None:
-            #     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
+            #     WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
             # else:
-            #     ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json Password {password}')
+            #     WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json Password {password}')
 
         if not mainValue is None:
-            ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
+            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
         else:
-            ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} {data}')
+            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} {data}')
 
         el.outerHTML = html
 
@@ -449,24 +446,24 @@ def editRecord(args):
         elif knownValues[value] is bool:
             if el.innerHTML == "No":
                 if not mainValue is None:
-                    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
                 else:
-                    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
 
                 el.innerHTML = "Yes"
                 return None
 
             if not mainValue is None:
-                ws.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
             else:
-                ws.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} False')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{glb.currentSub.replace(" ", "%20")}.json {value.replace(" ", "%20")} False')
 
             el.innerHTML = "No"
             return None
 
         elif knownValues[value] is list:
             if glb.optionsList[glb.currentSub] == []:
-                data = ws.msgDict()[glb.svcoms["main"]][f'/{el.id.split("_")[1]}.json']
+                data = WS.dict()[glb.svcoms["main"]][f'/{el.id.split("_")[1]}.json']
             else:
                 data = glb.optionsList[glb.currentSub]
 
@@ -499,7 +496,7 @@ def delRecord(args):
     if not JS.popup(f'confirm', f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
         return None
 
-    ws.send(f'{glb.svcoms["main"]} {glb.svcoms["delete"]} /{glb.currentSub.replace(" ", "%20")}.json {args.target.id.split("_")[-1].replace(" ", "%20")}')
+    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["delete"]} /{glb.currentSub.replace(" ", "%20")}.json {args.target.id.split("_")[-1].replace(" ", "%20")}')
 
     HTML.get(HTML.get(f'{args.target.id}').parentNode.id).remove()
 
@@ -523,24 +520,24 @@ def bulkAdd(args):
     if JS.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
         for i in range(0, amount):
             if glb.svcoms["add"] == "uadd":
-                ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
                 continue
 
-            ws.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
+            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{glb.currentSub.replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
 
 def clean(args):
     def cleanResults():
-        JS.popup("alert", f'Cleaning results:\n{chr(10).join(ws.msgDict()["admin"]["Cleaned"])}')
+        JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()["admin"]["Cleaned"])}')
 
     if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
-        ws.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
+        WS.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
         JS.afterDelay(cleanResults, 1000)
 
 
 def pageSub(args, extraData: dict = {}):
     def setup(args, extraData={}):
-        data = ws.msgDict()[glb.svcoms["main"]]
+        data = WS.dict()[glb.svcoms["main"]]
 
         file = f'/{glb.currentSub}.json'
 
@@ -665,7 +662,7 @@ def pageSub(args, extraData: dict = {}):
 
                 if glb.tagIsList:
                     if glb.optionsList[glb.currentSub] == []:
-                        allData = ws.msgDict()[glb.svcoms["main"]][f'/{mainValue}.json']
+                        allData = WS.dict()[glb.svcoms["main"]][f'/{mainValue}.json']
                     else:
                         allData = glb.optionsList[glb.currentSub]
 
@@ -696,7 +693,7 @@ def pageSub(args, extraData: dict = {}):
 
                         elif knownValues[value] is list:
                             if glb.optionsList[glb.currentSub] == []:
-                                allData = ws.msgDict()[glb.svcoms["main"]][f'/{value}.json']
+                                allData = WS.dict()[glb.svcoms["main"]][f'/{value}.json']
                             else:
                                 allData = glb.optionsList[glb.currentSub]
 
@@ -978,7 +975,7 @@ def main(args=None, sub=None):
     HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%;"')
     HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%;')
 
-    data = ws.msgDict()[glb.svcoms["main"]]
+    data = WS.dict()[glb.svcoms["main"]]
 
     foundFile = False
 

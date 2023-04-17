@@ -1,6 +1,4 @@
-import mod.HTML as HTML
-import mod.ws as ws
-import mod.JS as JS
+from WebKit import HTML, WS
 
 
 class glb:
@@ -64,10 +62,10 @@ def setup():
 
     HTML.set(f'div', f'page', _id="page_contact")
 
-    if not JS.glb.loggedIn:
+    if not WS.loggedIn:
         return None
 
-    msgDict = ws.msgDict()
+    msgDict = WS.dict()
 
     if "qr" in msgDict:
         if " " in msgDict["qr"]["/Contact.json"]:
