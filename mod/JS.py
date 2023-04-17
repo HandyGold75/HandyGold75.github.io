@@ -198,6 +198,32 @@ def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep
 
 
 def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: bool = False):
+    def mouseover(args):
+        id = args.target.id
+        if id == "":
+            el = document.getElementById(args.target.parentElement.id)
+        elif not id.endswith("Txt"):
+            el = document.getElementById(f'{args.target.id}Txt')
+        else:
+            el = document.getElementById(id)
+
+        el.style.width = "25vw"
+        el.style.opacity = "90%"
+        el.style.transition = "width 0.25s, opacity 0.5s"
+
+    def mouseout(args):
+        id = args.target.id
+        if id == "":
+            el = document.getElementById(args.target.parentElement.id)
+        elif not id.endswith("Txt"):
+            el = document.getElementById(f'{args.target.id}Txt')
+        else:
+            el = document.getElementById(id)
+
+        el.style.width = "0vw"
+        el.style.opacity = "0%"
+        el.style.transition = "width 0.5s, opacity 0.25s"
+
     def getLineSteps(oldCords, curCords, resolution):
         diff1, diff2 = (curCords[0] - oldCords[0], curCords[1] - oldCords[1])
 
@@ -228,15 +254,44 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
 
         return steps
 
+    addOnHovers = []
     for i, cord in enumerate(cords):
         colNum, colFloat = str(float(cord[0])).split(".")
         rowNum, rowFloat = str(float(cord[1])).split(".")
 
+        onHoverTxt = None
+        if len(cord) > 2:
+            onHoverTxt = str(cord[2])
+
         try:
-            HTML.add(
-                f'div',
-                f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
-                _style=f'width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%')
+            if onHoverTxt is None:
+                HTML.add(
+                    f'div',
+                    f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
+                    _style=
+                    f'z-index: 10; width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%'
+                )
+            else:
+                ml = "-25vw"
+                if int(colNum) < 3:
+                    ml = "0.5vw"
+                txt = HTML.add(f'h1', _nest=f'{onHoverTxt}', _style=f'headerSmall')
+                details = HTML.add(
+                    f'div',
+                    _nest=txt,
+                    _id=f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHoverTxt',
+                    _style=f'divNormal %% z-index: 11; width: 0vw; margin-left: {ml}; margin-top: -{max(0, 225 - (75 * int(rowNum)))}px; padding: 0px; position: relative; opacity: 0%; transition: width 0.25s, opacity 0.5s; overflow: hidden;')
+                HTML.add(
+                    f'div',
+                    f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
+                    _nest=details,
+                    _id=f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHover',
+                    _style=
+                    f'z-index: 12; width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%'
+                )
+
+                addOnHovers.append(f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}_onHover')
+
         except AttributeError:
             raise AttributeError(f'Invalid ID/ Cords: {name}_row_{rowNum[:2]}_col_{colNum[:2]} {cord}')
 
@@ -249,3 +304,8 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
         steps = getLineSteps(oldCords, curCords, lineRes)
 
         graphDraw(name, steps, lineRes=lineRes, disalowRecursive=True)
+
+    for id in addOnHovers:
+        el = document.getElementById(id)
+        el.addEventListener(f'mouseover', create_proxy(mouseover))
+        el.addEventListener(f'mouseout', create_proxy(mouseout))
