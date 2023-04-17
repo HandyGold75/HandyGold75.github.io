@@ -1,6 +1,4 @@
-import mod.HTML as HTML
-import mod.CSS as CSS
-import mod.JS as JS
+from WebKit import HTML, JS, CSS
 import pages.home as home
 import pages.links as links
 import pages.portal as portal
