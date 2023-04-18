@@ -278,17 +278,11 @@ def toggleCat(args: any):
     catStates[id.split("_")[2]] = not catStates[id.split("_")[2]]
 
     CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'2px solid #111')
-
-    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'position', f'unset')
-    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'marginTop', f'0px')
-    CSS.setStyle(f'page_links_{id.split("_")[2]}', f'opacity', f'1')
+    CSS.setStyles(f'page_links_{id.split("_")[2]}', ((f'position', f'unset'), (f'marginTop', f'0px'), (f'opacity', f'1')))
 
     if not catStates[id.split("_")[2]]:
         CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'4px solid #111')
-
-        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'position', f'absolute')
-        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'marginTop', f'-9999px')
-        CSS.setStyle(f'page_links_{id.split("_")[2]}', f'opacity', f'0')
+        CSS.setStyles(f'page_links_{id.split("_")[2]}', ((f'position', f'absolute'), (f'marginTop', f'-9999px'), (f'opacity', f'0')))
 
     JS.cache("page_links", dumps(catStates))
 

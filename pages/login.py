@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, glb as wkGlb
+from WebKit import HTML, CSS, JS, WS, wkGlb
 from pages.portal import glb as portal_glb
 from datetime import datetime, timedelta
 from rsa import encrypt
@@ -52,8 +52,7 @@ def setup():
         HTML.setRaw(f'footer_Login', f'Logout')
 
         JS.addEvent(f'footer_Login', logout)
-        CSS.onHover(f'footer_Login', f'buttonHover %% background: #66F;')
-        CSS.onClick(f'footer_Login', f'buttonClick %% background: #66F;')
+        CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
 
     def loginFail():
         JS.popup(f'alert', f'Log in failed!')
@@ -152,8 +151,8 @@ def main(args=None):
     JS.addEvent(f'page_login_body_login_usr', login, f'keyup')
     JS.addEvent(f'page_login_body_login_psw', login, f'keyup')
 
-    CSS.onHover(f'page_login_body_login_usr', f'inputHover')
-    CSS.onHover(f'page_login_body_login_psw', f'inputClick')
+    CSS.onHoverFocus(f'page_login_body_login_usr', f'inputHover', f'inputFocus')
+    CSS.onHoverFocus(f'page_login_body_login_psw', f'inputHover', f'inputFocus')
 
     JS.addEvent(f'page_login_body_options_remember', signinRemember)
     JS.addEvent(f'page_login_body_options_auto', signinAuto)
