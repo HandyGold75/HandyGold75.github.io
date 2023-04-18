@@ -69,6 +69,4 @@ def main():
     for page in glb.allSubs:
         JS.addEvent(f'page_portal_{page}', pagePortal)
         JS.addEvent(f'page_portal_{page}', glb.allInvokes[page], f'mousedown')
-
-        CSS.onHover(f'page_portal_{page}', f'imgHover')
-        CSS.onClick(f'page_portal_{page}', f'imgClick')
+        CSS.onHoverClick(f'page_portal_{page}', f'imgHover', f'imgClick')

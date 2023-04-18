@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, glb as wkGlb
+from WebKit import HTML, CSS, JS, WS, wkGlb
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -113,8 +113,7 @@ def pageSub(args=None):
                         for i in range(1, 24):
                             CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
 
-                        CSS.setStyle(f'Power_{plug}', f'background', f'#222')
-                        CSS.setStyle(f'Power_{plug}', f'border', f'2px solid #222')
+                        CSS.setStyles(f'Power_{plug}', ((f'background', f'#222'), (f'border', f'2px solid #222')))
                         continue
 
                     CSS.setStyle(f'Gauge_{plug}_1', f'opacity', f'100%')
@@ -145,8 +144,7 @@ def pageSub(args=None):
                     if not data[plug]["state"]:
                         continue
 
-                    CSS.setStyle(f'Power_{plug}', f'background', f'#444')
-                    CSS.setStyle(f'Power_{plug}', f'border', f'3px solid #FBDF56')
+                    CSS.setStyles(f'Power_{plug}', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
             if not glb.currentSub == "Plugs":
                 return False
@@ -359,12 +357,10 @@ def pageSub(args=None):
                     continue
 
                 JS.addEvent(f'Info_{plug}', getInfo)
-                CSS.onHover(f'Info_{plug}', f'imgHover')
-                CSS.onClick(f'Info_{plug}', f'imgClick')
+                CSS.onHoverClick(f'Info_{plug}', f'imgHover', f'imgClick')
 
                 JS.addEvent(f'Power_{plug}', togglePower)
-                CSS.onHover(f'Power_{plug}', f'imgHover')
-                CSS.onClick(f'Power_{plug}', f'imgClick')
+                CSS.onHoverClick(f'Power_{plug}', f'imgHover', f'imgClick')
 
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_graph', _style=f'divNormal %% margin: 0px; padding 0px;')
@@ -434,9 +430,8 @@ def pageSub(args=None):
 
                 el.outerHTML = html
 
-                CSS.setStyle(f'{el.id}', f'width', f'{width}')
-
                 JS.addEvent(el.id, editRecord, "dblclick")
+                CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
             el = HTML.get(f'{args.target.id}')
             width = el.style.width
@@ -489,13 +484,9 @@ def pageSub(args=None):
 
             if el.localName == "select":
                 el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-
-                CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
-                CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
-
+                CSS.onHoverFocus(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;', f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
             else:
-                CSS.onHover(el.id, f'inputHover')
-                CSS.onFocus(el.id, f'inputFocus')
+                CSS.onHoverFocus(el.id, f'inputHover', f'inputFocus')
 
             JS.addEvent(el.id, submit, "keyup")
 
@@ -581,8 +572,7 @@ def main(args=None, sub=None):
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
-        CSS.onHover(f'SubPage_nav_main_{subPage}', f'buttonHover')
-        CSS.onClick(f'SubPage_nav_main_{subPage}', f'buttonClick')
+        CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub

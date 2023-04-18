@@ -129,8 +129,7 @@ def pageSub(args=None):
 
                 for index in reversed(data["downloads"]):
                     JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
-                    CSS.onHover(f'SubPage_page_results_rem_{index}', f'imgHover')
-                    CSS.onClick(f'SubPage_page_results_rem_{index}', f'imgClick')
+                    CSS.onHoverClick(f'SubPage_page_results_rem_{index}', f'imgHover', f'imgClick')
 
             if not glb.currentSub == "Download":
                 return False
@@ -173,12 +172,10 @@ def pageSub(args=None):
             HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
 
             JS.addEvent(f'download_input', submitDownload, "keyup")
-            CSS.onHover(f'download_input', f'inputHover')
-            CSS.onFocus(f'download_input', f'inputFocus')
+            CSS.onHoverFocus(f'download_input', f'inputHover', f'inputFocus')
 
             JS.addEvent(f'download_button', submitDownload)
-            CSS.onHover(f'download_button', f'buttonHover')
-            CSS.onClick(f'download_button', f'buttonClick')
+            CSS.onHoverClick(f'download_button', f'buttonHover', f'buttonClick')
 
         def addResults():
             data = WS.dict()["yt"]
@@ -273,8 +270,7 @@ def pageSub(args=None):
 
             for index in reversed(data["history"]):
                 JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
-                CSS.onHover(f'SubPage_page_results_rem_{index}', f'imgHover')
-                CSS.onClick(f'SubPage_page_results_rem_{index}', f'imgClick')
+                CSS.onHoverClick(f'SubPage_page_results_rem_{index}', f'imgHover', f'imgClick')
 
         def addHeader():
             HTML.add(f'h1', f'SubPage_page_header', _nest=f'History', _style=f'headerBig %% margin: 0px auto;')
@@ -405,13 +401,9 @@ def pageSub(args=None):
 
             if el.localName == "select":
                 el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-
-                CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
-                CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
-
+                CSS.onHoverFocus(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;', f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
             else:
-                CSS.onHover(el.id, f'inputHover')
-                CSS.onFocus(el.id, f'inputFocus')
+                CSS.onHoverFocus(el.id, f'inputHover', f'inputFocus')
 
             JS.addEvent(el.id, submit, "keyup")
 
@@ -494,8 +486,7 @@ def main(args=None, sub=None):
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
-        CSS.onHover(f'SubPage_nav_main_{subPage}', f'buttonHover')
-        CSS.onClick(f'SubPage_nav_main_{subPage}', f'buttonClick')
+        CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub

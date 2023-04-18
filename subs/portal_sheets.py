@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, glb as wkGlb
+from WebKit import HTML, CSS, JS, WS, wkGlb
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -481,13 +481,9 @@ def editRecord(args):
 
     if el.localName == "select":
         el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-
-        CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
-        CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
-
+        CSS.onHoverFocus(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;', f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
     else:
-        CSS.onHover(el.id, f'inputHover')
-        CSS.onFocus(el.id, f'inputFocus')
+        CSS.onHoverFocus(el.id, f'inputHover', f'inputFocus')
 
     JS.addEvent(el.id, submit, "keyup")
 
@@ -801,26 +797,20 @@ def pageSub(args, extraData: dict = {}):
                 continue
 
             elif item.type == "text":
-                CSS.onHover(item.id, f'inputHover')
-                CSS.onFocus(item.id, f'inputFocus')
-
+                CSS.onHoverFocus(item.id, f'inputHover', f'inputFocus')
             elif item.type == "select-multiple":
-                CSS.onHover(item.id, f'selectHover')
-                CSS.onFocus(item.id, f'selectFocus')
+                CSS.onHoverFocus(item.id, f'selectHover', f'selectFocus')
 
             if item.name.split("_")[0] in glb.disabledInputs:
                 HTML.enable(item.id, False)
 
         JS.addEvent(f'SubPage_page_add', addRecord)
-        CSS.onHover(f'SubPage_page_add', f'buttonHover')
-        CSS.onClick(f'SubPage_page_add', f'buttonClick')
+        CSS.onHoverClick(f'SubPage_page_add', f'buttonHover', f'buttonClick')
 
         for button in buttons:
             CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
-
             JS.addEvent(button, delRecord)
-            CSS.onHover(button, f'buttonHover')
-            CSS.onClick(button, f'buttonClick')
+            CSS.onHoverClick(button, f'buttonHover', f'buttonClick')
 
         mainValue = list(glb.knownFiles[f'/{glb.currentSub}.json'])[-1]
 
@@ -934,8 +924,7 @@ def pageSub(args, extraData: dict = {}):
             HTML.add(f'div', f'SubPage_page', _nest=f'{btn}', _id=f'SubPage_page_buttons', _align=f'center', _style=f'padding-top: 15px; display: flex; justify-content: center;')
 
             JS.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
-            CSS.onHover(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover')
-            CSS.onClick(f'SubPage_page_buttons_loadMoreLogs', f'buttonClick')
+            CSS.onHoverClick(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover', f'buttonClick')
 
         rowC = 0
         HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
@@ -1004,13 +993,11 @@ def main(args=None, sub=None):
             fileName = f'{file.replace("/", "").replace(".json", "")}'
             JS.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
             JS.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
-            CSS.onHover(f'SubPage_nav_main_{fileName}', f'buttonHover')
-            CSS.onClick(f'SubPage_nav_main_{fileName}', f'buttonClick')
+            CSS.onHoverClick(f'SubPage_nav_main_{fileName}', f'buttonHover', f'buttonClick')
 
     for butTxt, butId, butFunc, butAct in glb.extraButtons:
         JS.addEvent(f'SubPage_nav_options_{butId}', butFunc)
-        CSS.onHover(f'SubPage_nav_options_{butId}', f'buttonHover')
-        CSS.onClick(f'SubPage_nav_options_{butId}', f'buttonClick')
+        CSS.onHoverClick(f'SubPage_nav_options_{butId}', f'buttonHover', f'buttonClick')
 
         if not butAct:
             HTML.enable(f'SubPage_nav_options_{butId}', False)

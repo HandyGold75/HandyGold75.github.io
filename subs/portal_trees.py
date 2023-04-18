@@ -191,8 +191,7 @@ def main(args=None, sub=None):
         if tree in glb.knownTree:
             JS.addEvent(f'SubPage_nav_main_{tree}', pageSub)
             JS.addEvent(f'SubPage_nav_main_{tree}', getData, f'mousedown')
-            CSS.onHover(f'SubPage_nav_main_{tree}', f'buttonHover')
-            CSS.onClick(f'SubPage_nav_main_{tree}', f'buttonClick')
+            CSS.onHoverClick(f'SubPage_nav_main_{tree}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub

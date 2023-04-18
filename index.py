@@ -26,34 +26,51 @@ def setup():
         JS.cache(f'token', f'')
 
 
-def general():
+def mainPage():
+    def addEvents():
+        for page in glb.allPages:
+            if page in glb.exludeMainNav:
+                continue
+            JS.addEvent(f'page_{page}', pageIndex)
+            CSS.onHoverClick(f'page_{page}', f'buttonHover', f'buttonClick')
+
+        JS.addEvent(f'footer_toTop', lambda args=None: CSS.get(f'body', f'scrollIntoView')())
+        CSS.onHoverClick(f'footer_toTop', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+
+        JS.addEvent(f'footer_ClearCache', lambda args=None: JS.clearCache())
+        CSS.onHoverClick(f'footer_ClearCache', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+
+        JS.addEvent(f'footer_Login', login.main)
+        CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+
+        JS.addEvent(JS.getWindow(), JS.onResize, f'resize', isClass=True)
+
     JS.setTitle(f'HandyGold75 - {JS.cache("page_index")}')
 
-    HTML.set(f'div', f'body', _id=f'nav', _style=f'divNormal')
-    HTML.add(f'div', f'body', _id=f'page', _style=f'divNormal')
-    HTML.add(f'div', f'body', _id=f'footer', _style=f'divAlt %% flex')
-
-    JS.addEvent(JS.getWindow(), JS.onResize, f'resize', isClass=True)
-
-
-def navigation():
-    HTML.add(f'img', f'nav', _id=f'nav_logo', _align=f'left', _style=f'width: 20%; max-width: 100px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
-    HTML.add(f'h1', f'nav', _nest=f'HandyGold75 - {JS.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'headerBig %% width: 80%;')
-    HTML.add(f'div', f'nav', _id=f'nav_buttons', _align=f'center', _style=f'width: 80%; padding: 4px; margin: 0px auto;')
-
+    buttons = ""
     for page in glb.allPages:
         if page in glb.exludeMainNav:
             continue
+        buttons += HTML.add(f'button', _nest=f'{page}', _id=f'page_{page}', _type=f'button', _style=f'buttonBig')
 
-        HTML.add(f'button', f'nav_buttons', _nest=f'{page}', _id=f'page_{page}', _type=f'button', _style=f'buttonBig')
+    nav = HTML.add(f'img', _id=f'nav_logo', _align=f'left', _style=f'width: 20%; max-width: 100px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
+    nav += HTML.add(f'h1', _nest=f'HandyGold75 - {JS.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'headerBig %% width: 80%;')
+    nav += HTML.add(f'div', _nest=buttons, _id=f'nav_buttons', _align=f'center', _style=f'width: 80%; padding: 4px; margin: 0px auto;')
 
-    for page in glb.allPages:
-        if page in glb.exludeMainNav:
-            continue
+    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022 / 2023', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
+    footer = HTML.set(f'div', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
-        JS.addEvent(f'page_{page}', pageIndex)
-        CSS.onHover(f'page_{page}', f'buttonHover')
-        CSS.onClick(f'page_{page}', f'buttonClick')
+    butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butClearCache = HTML.add(f'button', _nest=f'Clear cache', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_Login', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    footer += HTML.add(f'div', _nest=butLogin + butClearCache + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
+
+    main = HTML.add(f'div', _nest=nav, _id=f'nav', _style=f'divNormal')
+    main += HTML.add(f'div', _id=f'page', _style=f'divNormal')
+    main += HTML.add(f'div', _nest=footer, _id=f'footer', _style=f'divAlt %% flex')
+
+    HTML.setRaw(f'body', main)
+    JS.afterDelay(addEvents, 100)
 
 
 def pageIndex(args=None, page=None):
@@ -83,41 +100,11 @@ def pageIndex(args=None, page=None):
         JS.onResize()
 
 
-def footer():
-    def toTop(args=None):
-        CSS.get(f'body', f'scrollIntoView')()
-
-    def clearCache(args=None):
-        JS.clearCache()
-
-    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022 / 2023', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
-    HTML.set(f'div', f'footer', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
-
-    butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butClearCache = HTML.add(f'button', _nest=f'Clear cache', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_Login', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    HTML.add(f'div', f'footer', _nest=butLogin + butClearCache + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
-
-    JS.addEvent(f'footer_toTop', toTop)
-    CSS.onHover(f'footer_toTop', f'buttonHover %% background: #66F;')
-    CSS.onClick(f'footer_toTop', f'buttonClick %% background: #66F;')
-
-    JS.addEvent(f'footer_ClearCache', clearCache)
-    CSS.onHover(f'footer_ClearCache', f'buttonHover %% background: #66F;')
-    CSS.onClick(f'footer_ClearCache', f'buttonClick %% background: #66F;')
-
-    JS.addEvent(f'footer_Login', login.main)
-    CSS.onHover(f'footer_Login', f'buttonHover %% background: #66F;')
-    CSS.onClick(f'footer_Login', f'buttonClick %% background: #66F;')
-
-
 def main():
     setup()
-    general()
+    mainPage()
 
-    navigation()
     pageIndex(page=JS.cache(f'page_index'))
-    footer()
 
 
 if __name__ == "__main__":

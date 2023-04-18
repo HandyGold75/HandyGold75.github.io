@@ -182,12 +182,10 @@ def pageSub(args):
                 HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
 
                 if not data["device"]["shuffle"]:
-                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'background', f'#222')
-                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'border', f'2px solid #222')
+                    CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#222'), (f'border', f'2px solid #222')))
 
                 if not data["device"]["repeat"]:
-                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'background', f'#222')
-                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'border', f'2px solid #222')
+                    CSS.setStyles(f'SubPage_page_buttons_Repeat', ((f'background', f'#222'), (f'border', f'2px solid #222')))
 
                 if not glb.videoScolling:
                     HTML.get(f'SubPage_page_timeline_slider').max = dur
@@ -208,17 +206,8 @@ def pageSub(args):
                 if data["que"]["position"] != glb.currentPosition or data["que"]["size"] != glb.currentQueSize:
                     addQue()
 
-                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'background', f'#222')
-                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'color', f'#55F')
-                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'border', f'5px solid #111')
-                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'borderRadius ', f'10px')
-                    CSS.setStyle(f'SubPage_page_que_{glb.currentPosition}', f'zIndex ', f'0')
-
-                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
-                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
-                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'border', f'5px solid #F7E163')
-                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
-                    CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex ', f'100')
+                    CSS.setStyles(f'SubPage_page_que_{glb.currentPosition}', ((f'background', f'#222'), (f'color', f'#55F'), (f'border', f'5px solid #111'), (f'borderRadius ', f'10px'), (f'zIndex ', f'0')))
+                    CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex ', f'100')))
 
                     CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
 
@@ -296,12 +285,9 @@ def pageSub(args):
         def fastUIRefresh():
             def controls(data):
                 if data["device"]["shuffle"]:
-                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'background', f'#444')
-                    CSS.setStyle(f'SubPage_page_buttons_Shuffle', f'border', f'3px solid #FBDF56')
-
+                    CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
                 if data["device"]["repeat"]:
-                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'background', f'#444')
-                    CSS.setStyle(f'SubPage_page_buttons_Repeat', f'border', f'3px solid #FBDF56')
+                    CSS.setStyles(f'SubPage_page_buttons_Repeat', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
             if not glb.currentSub == "Player":
                 return False
@@ -493,11 +479,7 @@ def pageSub(args):
 
             HTML.addRaw(f'SubPage_page_queList', queHTML)
 
-            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'background', f'#444')
-            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'color', f'#F7E163')
-            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'border', f'5px solid #F7E163')
-            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'borderRadius', f'0px')
-            CSS.setStyle(f'SubPage_page_que_{data["que"]["position"]}', f'zIndex', f'100')
+            CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
 
             glb.currentPosition = data["que"]["position"]
 
@@ -512,21 +494,16 @@ def pageSub(args):
             def doAction():
                 for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
                     JS.addEvent(track, playFromQue, "dblclick", isClass=True)
-
                     JS.addEvent(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', removeFromQue)
-                    CSS.onHover(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgHover')
-                    CSS.onClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgClick')
+                    CSS.onHoverClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgHover', f'imgClick')
 
-                CSS.onHover(f'SubPage_page_queAdd_input', f'inputHover')
-                CSS.onFocus(f'SubPage_page_queAdd_input', f'inputFocus')
+                CSS.onHoverFocus(f'SubPage_page_queAdd_input', f'inputHover', f'inputFocus')
 
                 JS.addEvent(f'SubPage_page_queAdd_playNext', playNext)
-                CSS.onHover(f'SubPage_page_queAdd_playNext', f'buttonHover')
-                CSS.onClick(f'SubPage_page_queAdd_playNext', f'buttonClick')
+                CSS.onHoverClick(f'SubPage_page_queAdd_playNext', f'buttonHover', f'buttonClick')
 
                 JS.addEvent(f'SubPage_page_queAdd_playNow', playNow)
-                CSS.onHover(f'SubPage_page_queAdd_playNow', f'buttonHover')
-                CSS.onClick(f'SubPage_page_queAdd_playNow', f'buttonClick')
+                CSS.onHoverClick(f'SubPage_page_queAdd_playNow', f'buttonHover', f'buttonClick')
 
             JS.afterDelay(doAction, 100)
 
@@ -571,8 +548,7 @@ def pageSub(args):
             JS.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
 
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
-                CSS.onHover(f'SubPage_page_buttons_{action}', f'imgHover')
-                CSS.onClick(f'SubPage_page_buttons_{action}', f'imgClick')
+                CSS.onHoverClick(f'SubPage_page_buttons_{action}', f'imgHover', f'imgClick')
 
         if glb.currentSub != "Player":
             return None
@@ -669,7 +645,6 @@ def pageSub(args):
                 el.outerHTML = html
 
                 CSS.setStyle(f'{el.id}', f'width', f'{width}')
-
                 JS.addEvent(el.id, editRecord, "dblclick")
 
             el = HTML.get(f'{args.target.id}')
@@ -723,13 +698,9 @@ def pageSub(args):
 
             if el.localName == "select":
                 el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-
-                CSS.onHover(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;')
-                CSS.onFocus(el.id, f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
-
+                CSS.onHoverFocus(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;', f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
             else:
-                CSS.onHover(el.id, f'inputHover')
-                CSS.onFocus(el.id, f'inputFocus')
+                CSS.onHoverFocus(el.id, f'inputHover', f'inputFocus')
 
             JS.addEvent(el.id, submit, "keyup")
 
@@ -815,8 +786,7 @@ def main(args=None, sub=None):
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)
-        CSS.onHover(f'SubPage_nav_main_{subPage}', f'buttonHover')
-        CSS.onClick(f'SubPage_nav_main_{subPage}', f'buttonClick')
+        CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
         glb.currentSub = sub
