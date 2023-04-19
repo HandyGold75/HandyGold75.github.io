@@ -12,7 +12,7 @@ class glb:
 
 
 def setup():
-    for item in ["token", "signin", "page_index", "page_links", "page_portal"]:
+    for item in ["token", "signin", "page_index", "page_links", "page_portal", "page_portalSub"]:
         if JS.cache(item) is None:
             JS.cache(item, f'')
 
@@ -80,12 +80,14 @@ def pageIndex(args=None, page=None):
         JS.cache(f'page_index', page)
 
     elif args.target.id.split(f'_')[-1] in glb.allPages:
-        JS.cache(f'page_index', args.target.id.split(f'_')[-1])
-        JS.cache(f'page_portal', f'')
+        JS.cache("page_index", args.target.id.split(f'_')[-1])
+        JS.cache("page_portal", f'')
+        JS.cache("page_portalSub", f'')
 
     elif args.target.parentElement.id.split(f'_')[-1] in glb.allPages:
-        JS.cache(f'page_index', args.target.parentElement.id.split(f'_')[-1])
-        JS.cache(f'page_portal', f'')
+        JS.cache("page_index", args.target.parentElement.id.split(f'_')[-1])
+        JS.cache("page_portal", f'')
+        JS.cache("page_portalSub", f'')
 
     else:
         return None
