@@ -17,16 +17,21 @@ class glb:
 def pagePortal(args=None, page=None):
     HTML.clear(f'page_portal_body')
 
-    id = args.target.id
-
-    if id == "":
-        id = args.target.parentElement.id
-
     if page in glb.allSubs:
         JS.cache("page_portal", page)
+        JS.cache("page_portalSub", f'')
 
-    elif not args is None and id.split("_")[-1] in glb.allSubs:
-        JS.cache("page_portal", id.split("_")[-1])
+    elif not args is None:
+        id = args.target.id
+        if id == "":
+            id = args.target.parentElement.id
+
+        if id.split("_")[-1] in glb.allSubs:
+            JS.cache("page_portal", id.split("_")[-1])
+            JS.cache("page_portalSub", f'')
+
+    elif JS.cache("page_portal") != "":
+        pass
 
     else:
         return None
@@ -36,7 +41,10 @@ def pagePortal(args=None, page=None):
     HTML.set(f'div', f'page_portal_body', _id=f'SubPage', _align=f'left')
     HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
-    glb.allSubs[JS.cache("page_portal")]()
+    if JS.cache("page_portalSub") != "":
+        glb.allSubs[JS.cache("page_portal")](sub=JS.cache("page_portalSub"))
+    else:
+        glb.allSubs[JS.cache("page_portal")]()
 
     JS.onResize()
 

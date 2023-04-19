@@ -566,6 +566,32 @@ class JS:
         if page in fmap:
             fmap[page](size)
 
+    def sheet(data: dict): #, dates: tuple, halfView: tuple, excludeView: tuple, disabledInputs: tuple, invokePasswordOnChange: tuple, optionsList: tuple, tagIsList: bool, extraButtons: tuple, comMap: tuple):
+        def getLines(data):
+            headers = []
+            for key in data:
+                for item in data[key]:
+                    if item in headers:
+                        continue
+
+                    headers.append(item)
+
+            lines = [["Tag"] + headers]
+            for key in data:
+                line = [key]
+                for header in headers:
+                    if not header in data[key]:
+                        line.append(None)
+                        continue
+                    line.append(data[key][header])
+
+                lines.append(line)
+
+            return lines
+
+        lines = getLines(data)
+        return lines
+
     def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = ()):
         htmlRows = ""
         for i1 in range(0, rows):

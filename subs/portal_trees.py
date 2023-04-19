@@ -4,29 +4,21 @@ from datetime import datetime, timedelta
 
 class invoke:
     def MO(args=None):
-        glb.mainPage = "Monitor"
-        glb.currentSub = ""
+        glb.knownTree = {"Current": {"sId": int, "cl": dict, "wsAuth": dict, "logStack": dict}, "All": {"cl": dict, "wsAuth": dict, "logStack": dict}}
+        glb.dates = ["Expires", "Modified", "time"]
+        glb.svcoms = {"main": "monitor", "read": "read"}
 
         glb.lastUpdate = 0
-        glb.knownTree = {"Current": {"sId": int, "cl": dict, "wsAuth": dict, "logStack": dict}, "All": {"cl": dict, "wsAuth": dict, "logStack": dict}}
-
-        glb.dates = ["Expires", "Modified", "time"]
-
-        glb.svcoms = {"main": "monitor", "read": "read"}
 
         getData()
 
 
 class glb:
-    mainPage = ""
-    currentSub = ""
+    knownTree = {}
+    dates = []
+    svcoms = {}
 
     lastUpdate = 0
-    knownTree = {}
-
-    dates = []
-
-    svcoms = {}
 
 
 def getData(args=None):
@@ -40,21 +32,21 @@ def pageSub(args):
     def setup(args):
         data = WS.dict()[glb.svcoms["main"]]
 
-        if f'{args.target.id.split("_")[-1]}' in glb.knownTree:
-            glb.currentSub = args.target.id.split("_")[-1]
+        if not args is None and f'{args.target.id.split("_")[-1]}' in glb.knownTree:
+            JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
-        if not glb.currentSub in data:
+        if not JS.cache("page_portalSub") in data:
             return None
 
-        data = data[glb.currentSub]
+        data = data[JS.cache("page_portalSub")]
 
         if data == {}:
             data[" "] = {}
-            mainValue = list(glb.knownTree[glb.currentSub])[-1]
+            mainValue = list(glb.knownTree[JS.cache("page_portalSub")])[-1]
             data[" "] = {}
 
-            for value in glb.knownTree[glb.currentSub][mainValue]:
-                data[" "][value] = glb.knownTree[glb.currentSub][mainValue][value]()
+            for value in glb.knownTree[JS.cache("page_portalSub")][mainValue]:
+                data[" "][value] = glb.knownTree[JS.cache("page_portalSub")][mainValue][value]()
 
         return data
 
@@ -183,7 +175,7 @@ def main(args=None, sub=None):
     if not foundFile:
         HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'center', _style=f'width: 100%')
         HTML.add(f'h2', f'SubPage_nav_main', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
-        HTML.enable(f'page_portal_{glb.mainPage}', False)
+        HTML.enable(f'page_portal_{JS.cache("page_portal")}', False)
 
         return None
 
@@ -194,5 +186,5 @@ def main(args=None, sub=None):
             CSS.onHoverClick(f'SubPage_nav_main_{tree}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
-        glb.currentSub = sub
+        JS.cache("page_portalSub", f'{sub}')
         pageSub(args)

@@ -5,13 +5,10 @@ from datetime import datetime, timedelta
 
 class invoke:
     def YTDL(args=None):
-        glb.mainPage = "YT-DL"
-        glb.currentSub = ""
         glb.subPages = ["Download", "History", "Config"]
+        glb.dates = ["Modified"]
 
         glb.lastUpdate = 0
-
-        glb.dates = ["Modified"]
 
         getData()
 
@@ -24,14 +21,11 @@ def getData(args=None):
 
 
 class glb:
-    mainPage = ""
-    currentSub = ""
     subPages = []
+    dates = []
 
     lastUpdate = 0
     lastDownload = 0
-
-    dates = []
 
     config = {}
     knownConfig = {"quality": list, "audioOnly": bool}
@@ -48,8 +42,8 @@ def pageSub(args=None):
 
         glb.config = loads(JS.cache("page_portal_ytdl"))
 
-        if f'{args.target.id.split("_")[-1]}' in glb.subPages:
-            glb.currentSub = args.target.id.split("_")[-1]
+        if not args is None and f'{args.target.id.split("_")[-1]}' in glb.subPages:
+            JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
     def download():
         def slowUIRefresh():
@@ -131,7 +125,7 @@ def pageSub(args=None):
                     JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
                     CSS.onHoverClick(f'SubPage_page_results_rem_{index}', f'imgHover', f'imgClick')
 
-            if not glb.currentSub == "Download":
+            if not JS.cache("page_portalSub") == "Download":
                 return False
 
             data = WS.dict()["yt"]
@@ -468,10 +462,9 @@ def pageSub(args=None):
     HTML.clear(f'SubPage_page')
     glb.lastDataPackage = {}
 
-    if not args is None:
-        setup(args)
+    setup(args)
 
-    pageSubMap[glb.currentSub]()
+    pageSubMap[JS.cache("page_portalSub")]()
 
 
 def main(args=None, sub=None):
@@ -489,5 +482,5 @@ def main(args=None, sub=None):
         CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
-        glb.currentSub = sub
+        JS.cache("page_portalSub", f'{sub}')
         pageSub(args)

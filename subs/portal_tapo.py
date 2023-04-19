@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 
 class invoke:
     def TP(args=None):
-        glb.mainPage = "Tapo"
-        glb.currentSub = ""
         glb.subPages = ["Plugs", "Config"]
 
         glb.lastUpdate = 0
@@ -24,8 +22,6 @@ def getData(args=None):
 
 
 class glb:
-    mainPage = ""
-    currentSub = ""
     subPages = []
 
     lastUpdate = 0
@@ -42,8 +38,8 @@ def pageSub(args=None):
 
         glb.config = loads(JS.cache("page_portal_tapo"))
 
-        if f'{args.target.id.split("_")[-1]}' in glb.subPages:
-            glb.currentSub = args.target.id.split("_")[-1]
+        if not args is None and f'{args.target.id.split("_")[-1]}' in glb.subPages:
+            JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
     def login():
         usr = JS.popup(f'prompt', f'Tapo Username')
@@ -91,7 +87,7 @@ def pageSub(args=None):
                     else:
                         CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'0%')
 
-            if not glb.currentSub == "Plugs":
+            if not JS.cache("page_portalSub") == "Plugs":
                 return False
 
             data = WS.dict()["tapo"]["current"]
@@ -125,7 +121,7 @@ def pageSub(args=None):
 
                         CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'0%')
 
-            if not glb.currentSub == "Plugs":
+            if not JS.cache("page_portalSub") == "Plugs":
                 return False
 
             data = WS.dict()["tapo"]["current"]
@@ -146,7 +142,7 @@ def pageSub(args=None):
 
                     CSS.setStyles(f'Power_{plug}', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
-            if not glb.currentSub == "Plugs":
+            if not JS.cache("page_portalSub") == "Plugs":
                 return False
 
             data = WS.dict()["tapo"]["current"]
@@ -550,14 +546,13 @@ def pageSub(args=None):
 
     HTML.clear(f'SubPage_page')
 
-    if not args is None:
-        setup(args)
+    setup(args)
 
     if not "tapo" in WS.dict():
         login()
         return None
 
-    pageSubMap[glb.currentSub]()
+    pageSubMap[JS.cache("page_portalSub")]()
 
 
 def main(args=None, sub=None):
@@ -575,5 +570,5 @@ def main(args=None, sub=None):
         CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
-        glb.currentSub = sub
+        JS.cache("page_portalSub", f'{sub}')
         pageSub(args)

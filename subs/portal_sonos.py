@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 
 class invoke:
     def SO(args=None):
-        glb.mainPage = "Sonos"
-        glb.currentSub = ""
         glb.subPages = ["Player", "QR", "Config"]
 
         glb.lastUpdate = 0
@@ -24,8 +22,6 @@ def getData(args=None):
 
 
 class glb:
-    mainPage = ""
-    currentSub = ""
     subPages = []
 
     lastUpdate = 0
@@ -158,8 +154,8 @@ def pageSub(args):
 
         glb.config = loads(JS.cache("page_portal_sonos"))
 
-        if f'{args.target.id.split("_")[-1]}' in glb.subPages:
-            glb.currentSub = args.target.id.split("_")[-1]
+        if not args is None and f'{args.target.id.split("_")[-1]}' in glb.subPages:
+            JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
     def player():
         def slowUIRefresh():
@@ -246,7 +242,7 @@ def pageSub(args):
                 if not newPos < oldPos + 1 or not newPos > oldPos - 1:
                     glb.ytPlayer.seekTo(newPos)
 
-            if not glb.currentSub == "Player":
+            if not JS.cache("page_portalSub") == "Player":
                 return False
 
             data = WS.dict()["sonos"]
@@ -289,7 +285,7 @@ def pageSub(args):
                 if data["device"]["repeat"]:
                     CSS.setStyles(f'SubPage_page_buttons_Repeat', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
-            if not glb.currentSub == "Player":
+            if not JS.cache("page_portalSub") == "Player":
                 return False
 
             data = WS.dict()["sonos"]
@@ -550,7 +546,7 @@ def pageSub(args):
             for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
                 CSS.onHoverClick(f'SubPage_page_buttons_{action}', f'imgHover', f'imgClick')
 
-        if glb.currentSub != "Player":
+        if JS.cache("page_portalSub") != "Player":
             return None
 
         if glb.config["disableMaxWidth (experimental)"]:
@@ -766,12 +762,12 @@ def pageSub(args):
 
     setup(args)
 
-    if glb.currentSub == "Player":
+    if JS.cache("page_portalSub") == "Player":
         getData()
-        JS.afterDelay(pageSubMap[glb.currentSub], 1000)
+        JS.afterDelay(pageSubMap[JS.cache("page_portalSub")], 1000)
 
     else:
-        pageSubMap[glb.currentSub]()
+        pageSubMap[JS.cache("page_portalSub")]()
 
 
 def main(args=None, sub=None):
@@ -789,5 +785,5 @@ def main(args=None, sub=None):
         CSS.onHoverClick(f'SubPage_nav_main_{subPage}', f'buttonHover', f'buttonClick')
 
     if sub is not None:
-        glb.currentSub = sub
+        JS.cache("page_portalSub", f'{sub}')
         pageSub(args)

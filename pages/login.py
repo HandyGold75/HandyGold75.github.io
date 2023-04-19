@@ -1,5 +1,4 @@
 from WebKit import HTML, CSS, JS, WS, wkGlb
-from pages.portal import glb as portal_glb
 from datetime import datetime, timedelta
 from rsa import encrypt
 
@@ -29,30 +28,50 @@ def setup():
 
     def loginTokenSucces():
         def getData():
+            from pages.portal import glb as pGlb, pagePortal, main as pMain
+
             access = WS.dict()["access"]
-            for invoke in reversed(portal_glb.allInvokes):
-                if not portal_glb.allCommands[invoke] in access:
+            for invoke in reversed(pGlb.allInvokes):
+                if not pGlb.allCommands[invoke] in access:
                     continue
 
-                portal_glb.allInvokes[invoke]()
+                pGlb.allInvokes[invoke]()
+
+            if JS.cache("page_portal") != "":
+                pGlb.allInvokes[JS.cache("page_portal")]()
+                JS.afterDelay(pMain, max(250, (250 * len(access)) - 250))
+                JS.afterDelay(pagePortal, max(500, 250 * len(access)))
+
+        def loadingTxt():
+            el = HTML.get(f'page_login_loadingTxt')
+            if el is None:
+                return None
+
+            if el.innerHTML.endswith(". . . "):
+                el.innerHTML = el.innerHTML.replace(". . . ", "")
+
+            el.innerHTML += ". "
+            JS.afterDelay(loadingTxt, 500)
 
         WS.send(f'access')
-        JS.afterDelay(getData, 200)
-
+        JS.afterDelay(getData, 250)
         WS.loggedIn = True
 
-        if JS.cache("page_index") != "Login":
-            return None
-
         JS.clearEvents(f'footer_Login')
-
-        content = HTML.add(f'h1', _nest=f'Logged in succesfully', _style=f'headerBig')
-        HTML.set(f'div', f'page_login', _nest=f'{content}', _id=f'page_login_summary', _style=f'divNormal')
-
         HTML.setRaw(f'footer_Login', f'Logout')
 
         JS.addEvent(f'footer_Login', logout)
         CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+
+        if JS.cache("page_index") != "Login":
+            return None
+
+        content = HTML.add(f'h1', _nest=f'Logged in succesfully', _style=f'headerBig')
+        if JS.cache("page_portal") != "":
+            content += HTML.add(f'h1', _nest=f'Loading last used page', _id=f'page_login_loadingTxt', _style=f'headerMedium')
+
+        HTML.set(f'div', f'page_login', _nest=f'{content}', _id=f'page_login_summary', _style=f'divNormal')
+        JS.aSync(loadingTxt)
 
     def loginFail():
         JS.popup(f'alert', f'Log in failed!')
@@ -65,7 +84,6 @@ def setup():
         HTML.enable(f'page_login_body_login_psw', True)
 
     JS.cache(f'page_index', f'Login')
-    JS.cache(f'page_portal', f'')
 
     WS.start("wss", "wss.HandyGold75.com", "6900")
 
