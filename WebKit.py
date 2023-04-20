@@ -801,10 +801,10 @@ class WS:
 
         def connectionError(msg: str):
             def loginTokenSucces():
-                WS.websocket.send(f'access')
+                WS.ws.send(f'access')
 
                 for msg in WS.afterReconnect:
-                    WS.websocket.send(msg)
+                    WS.ws.send(msg)
 
                 WS.afterReconnect = []
 

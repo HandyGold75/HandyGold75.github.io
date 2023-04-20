@@ -244,7 +244,7 @@ def pageSub(args=None):
 
             data = WS.dict()["tapo"]["current"]
 
-            if not data[plug]["model"] in ["P115", "P110"]:
+            if not data[plug]["model"] in ["P115", "P110", "total"]:
                 return None
 
             date = datetime.now()
@@ -339,7 +339,7 @@ def pageSub(args=None):
             data = WS.dict()["tapo"]["current"]
 
             for plug in data:
-                if not data[plug]["model"] in ["P115", "P110"]:
+                if not data[plug]["model"] in ["P115", "P110", "total"]:
                     continue
 
                 HTML.add(f'div',
@@ -349,7 +349,7 @@ def pageSub(args=None):
                          _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
 
             for plug in data:
-                if not data[plug]["model"] in ["P115", "P110"]:
+                if not data[plug]["model"] in ["P115", "P110", "total"]:
                     continue
 
                 JS.addEvent(f'Info_{plug}', getInfo)
