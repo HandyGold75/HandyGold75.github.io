@@ -26,7 +26,7 @@ class invoke:
                     "Notes": str
                 }
             },
-            "/Logs.dmp": str,
+            "/Server.log": str
         }
 
         glb.dates = ["Modified", "Expires"]
@@ -380,12 +380,15 @@ def editRecord(args):
             if password is None:
                 return None
 
-            password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), wkGlb.pk)).replace(" ", "%20")
+            if value != "User":
+                password = str(encrypt(password.encode(), wkGlb.pk)).replace(" ", "%20")
+            else:
+                password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), wkGlb.pk)).replace(" ", "%20")
 
             if not mainValue is None:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} Password {password}')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
             else:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json Password {password}')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace("User", "")}Password {password}')
 
         if not mainValue is None:
             WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
@@ -507,11 +510,14 @@ def bulkAdd(args):
 
 def clean(args):
     def cleanResults():
+        if not "Cleaned" in WS.dict()["admin"]:
+            JS.afterDelay(cleanResults, 250)
+
         JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()["admin"]["Cleaned"])}')
 
     if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
         WS.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
-        JS.afterDelay(cleanResults, 1000)
+        JS.afterDelay(cleanResults, 250)
 
 
 def pageSub(args, extraData: dict = {}):
@@ -957,7 +963,7 @@ def main(args=None, sub=None):
     for file in data:
         if file in glb.knownFiles:
             fileName = f'{file.replace("/", "").replace(".json", "")}'
-            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".dmp", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
+            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".log", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
 
             foundFile = True
 

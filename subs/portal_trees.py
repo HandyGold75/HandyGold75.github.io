@@ -168,7 +168,7 @@ def main(args=None, sub=None):
 
     for file in data:
         if file in glb.knownTree:
-            fileName = f'{file.replace("/", "").replace(".json", "").replace(".dmp", "")}'
+            fileName = f'{file.replace("/", "").replace(".json", "").replace(".log", "")}'
             HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
             foundFile = True
 
