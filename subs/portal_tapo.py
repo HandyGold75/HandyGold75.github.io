@@ -10,13 +10,13 @@ class invoke:
 
         glb.lastUpdate = 0
 
+        WS.send(f'tapo history')
         getData()
 
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         WS.send(f'tapo state')
-        WS.send(f'tapo history')
 
         glb.lastUpdate = datetime.now().timestamp()
 

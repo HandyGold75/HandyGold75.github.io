@@ -12,12 +12,15 @@ class glb:
 
 
 def setup():
-    for item in ["token", "signin", "page_index", "page_links", "page_portal", "page_portalSub"]:
+    for item in ["token", "signin", "server", "page_index", "page_links", "page_portal", "page_portalSub"]:
         if JS.cache(item) is None:
             JS.cache(item, f'')
 
     if JS.cache(f'page_index') == "":
         JS.cache(f'page_index', f'Home')
+        
+    if JS.cache("server") == "":
+        JS.cache("server", "WSS://wss.HandyGold75.com:6900")
 
     if JS.cache(f'signin') == "Auto":
         JS.cache(f'page_index', f'Login')
@@ -93,7 +96,6 @@ def pageIndex(args=None, page=None):
         return None
 
     JS.setTitle(f'HandyGold75 - {JS.cache("page_index")}')
-
     HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")}')
 
     glb.allPages[JS.cache(f'page_index')]()
@@ -105,7 +107,6 @@ def pageIndex(args=None, page=None):
 def main():
     setup()
     mainPage()
-
     pageIndex(page=JS.cache(f'page_index'))
 
 
