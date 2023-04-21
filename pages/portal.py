@@ -37,9 +37,9 @@ def pagePortal(args=None, page=None):
         return None
 
     JS.setTitle(f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
+    HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
     HTML.set(f'div', f'page_portal_body', _id=f'SubPage', _align=f'left')
-    HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
     if JS.cache("page_portalSub") != "":
         glb.allSubs[JS.cache("page_portal")](sub=JS.cache("page_portalSub"))

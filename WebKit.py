@@ -812,6 +812,9 @@ class WS:
                 WS.reconnectTries = 99
                 WS.on.connectionError("Unable to reconnect to the server, token authetication failed!")
 
+            if not WS.loggedIn:
+                return None
+
             if window.localStorage.getItem("token") == "" or WS.reconnectTries > 4:
                 bridge.HTML.enable("page_Portal", False)
 
