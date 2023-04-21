@@ -30,11 +30,19 @@ class glb:
             "Active": True,
             "Modified": 0
         },
+        "M365.png": {
+            "url": "https://www.microsoft365.com/",
+            "text": "Microsoft 365",
+            "cat": "Microsoft/ Google",
+            "Index": 104,
+            "Active": True,
+            "Modified": 0
+        },
         "G-Mail.png": {
             "url": "https://mail.google.com/",
             "text": "Google Mail",
             "cat": "Microsoft/ Google",
-            "Index": 104,
+            "Index": 105,
             "Active": True,
             "Modified": 0
         },
@@ -42,7 +50,7 @@ class glb:
             "url": "https://drive.google.com/",
             "text": "Google Drive",
             "cat": "Microsoft/ Google",
-            "Index": 105,
+            "Index": 106,
             "Active": True,
             "Modified": 0
         },
@@ -50,7 +58,7 @@ class glb:
             "url": "https://photos.google.com/",
             "text": "Google Photos",
             "cat": "Microsoft/ Google",
-            "Index": 106,
+            "Index": 107,
             "Active": True,
             "Modified": 0
         },
@@ -58,7 +66,7 @@ class glb:
             "url": "https://calendar.google.com/",
             "text": "Google Calendar",
             "cat": "Microsoft/ Google",
-            "Index": 107,
+            "Index": 108,
             "Active": True,
             "Modified": 0
         },
@@ -83,54 +91,6 @@ class glb:
             "text": "Spotify",
             "cat": "Media",
             "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "GitHub.png": {
-            "url": "https://github.com/",
-            "text": "GitHub",
-            "cat": "Management",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "Linode.png": {
-            "url": "https://cloud.linode.com/",
-            "text": "Linode Cloud",
-            "cat": "Management",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "UniFi.png": {
-            "url": "https://unifi.ui.com/",
-            "text": "UniFi Portal",
-            "cat": "Management",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "Cloudflare.png": {
-            "url": "https://dash.cloudflare.com/",
-            "text": "CloudFlare",
-            "cat": "Management",
-            "Index": 104,
-            "Active": True,
-            "Modified": 0
-        },
-        "Sophos.png": {
-            "url": "https://my.sophos.com/",
-            "text": "Sophos Home",
-            "cat": "Management",
-            "Index": 105,
-            "Active": True,
-            "Modified": 0
-        },
-        "Nord.png": {
-            "url": "https://my.nordaccount.com/",
-            "text": "Nord Account",
-            "cat": "Management",
-            "Index": 106,
             "Active": True,
             "Modified": 0
         },
@@ -163,78 +123,6 @@ class glb:
             "text": "Cloud Convert",
             "cat": "Tools",
             "Index": 104,
-            "Active": True,
-            "Modified": 0
-        },
-        "NS.png": {
-            "url": "https://www.ns.nl/",
-            "text": "NS",
-            "cat": "Stores",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "Vodafone.png": {
-            "url": "https://www.Vodafone.nl/my",
-            "text": "Vodafone",
-            "cat": "Stores",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "SokPop.png": {
-            "url": "https://sokpop.co/patreon",
-            "text": "SokPop",
-            "cat": "Stores",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "LinusTechTips.png": {
-            "url": "https://www.lttstore.com/",
-            "text": "Linus Tech Tips",
-            "cat": "Stores",
-            "Index": 104,
-            "Active": True,
-            "Modified": 0
-        },
-        "Megekko.png": {
-            "url": "https://www.megekko.nl/",
-            "text": "Megekko",
-            "cat": "Stores",
-            "Index": 105,
-            "Active": True,
-            "Modified": 0
-        },
-        "Bol.png": {
-            "url": "https://www.bol.com/",
-            "text": "Bol",
-            "cat": "Stores",
-            "Index": 106,
-            "Active": True,
-            "Modified": 0
-        },
-        "Dell.png": {
-            "url": "https://www.dell.com/",
-            "text": "Dell",
-            "cat": "Stores",
-            "Index": 107,
-            "Active": True,
-            "Modified": 0
-        },
-        "Zwoofs.png": {
-            "url": "https://www.zwoofs.nl/",
-            "text": "Zwoofs",
-            "cat": "Stores",
-            "Index": 108,
-            "Active": True,
-            "Modified": 0
-        },
-        "RockStar.png": {
-            "url": "https://socialclub.rockstargames.com/events?gameId=GTAV",
-            "text": "RockStar GTA V Events",
-            "cat": "Other",
-            "Index": 101,
             "Active": True,
             "Modified": 0
         }

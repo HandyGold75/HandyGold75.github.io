@@ -199,10 +199,10 @@ class invoke:
 
         glb.optionsList = {
             "Links": [
-                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "Nord.png", "NS.png",
+                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "M365.png", "Nord.png", "NS.png",
                 "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png", "Zwoofs.png"
             ],
-            "Contact": ["discord.ico", "exchange.ico", "snapchat.ico", "spotify.ico", "steam.ico", "twitch.ico", "youtube.ico"]
+            "Contact": ["discord.png", "exchange.png", "snapchat.png", "spotify.png", "steam.png", "twitch.png", "youtube.png"]
         }
         glb.tagIsList = True
 
