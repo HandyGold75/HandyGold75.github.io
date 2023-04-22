@@ -18,7 +18,7 @@ def setup():
 
     if JS.cache(f'page_index') == "":
         JS.cache(f'page_index', f'Home')
-        
+
     if JS.cache("server") == "":
         JS.cache("server", "WSS://wss.HandyGold75.com:6900")
 

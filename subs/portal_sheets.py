@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, wkGlb
+from WebKit import HTML, CSS, JS, WS
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -43,7 +43,7 @@ class invoke:
         glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home"], "Logs": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+        glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "rpwmodify": "tkpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
 
         glb.extraButtons = (("Clean", "clean", clean, True), ("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
@@ -120,7 +120,7 @@ class invoke:
         glb.optionsList = {"Assignments": [], "Devices": [], "Assets": [], "Servers": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+        glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
 
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
@@ -176,7 +176,7 @@ class invoke:
         glb.optionsList = {"Assignments": [], "Devices": [], "Licenses": []}
         glb.tagIsList = False
 
-        glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+        glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
 
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
@@ -199,14 +199,14 @@ class invoke:
 
         glb.optionsList = {
             "Links": [
-                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "M365.png", "Nord.png", "NS.png",
-                "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png", "Zwoofs.png"
+                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "M365.png", "Nord.png",
+                "NS.png", "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png", "Zwoofs.png"
             ],
             "Contact": ["discord.png", "exchange.png", "snapchat.png", "spotify.png", "steam.png", "twitch.png", "youtube.png"]
         }
         glb.tagIsList = True
 
-        glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "kmodify": "kmodify", "delete": "delete", "clean": "clean"}
+        glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
 
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
@@ -381,14 +381,14 @@ def editRecord(args):
                 return None
 
             if value != "User":
-                password = str(encrypt(password.encode(), wkGlb.pk)).replace(" ", "%20")
+                password = str(encrypt(password.encode(), WS.PK)).replace(" ", "%20")
             else:
-                password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), wkGlb.pk)).replace(" ", "%20")
+                password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), WS.PK)).replace(" ", "%20")
 
             if not mainValue is None:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
             else:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace("User", "")}Password {password}')
+                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace("User", "")}Password {password}')
 
         if not mainValue is None:
             WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
@@ -432,9 +432,9 @@ def editRecord(args):
         elif knownValues[value] is bool:
             if el.innerHTML == "No":
                 if not mainValue is None:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
                 else:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
 
                 el.innerHTML = "Yes"
                 return None

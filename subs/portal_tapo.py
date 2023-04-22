@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, wkGlb
+from WebKit import HTML, CSS, JS, WS
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -50,8 +50,7 @@ def pageSub(args=None):
         if psw is None:
             return None
 
-        WS.send(f'<RAW>tapo<SPLIT>login<SPLIT>{usr}<SPLIT>{str(encrypt(psw.encode(), wkGlb.pk))}')
-
+        WS.send(f'tapo login {usr.replace(" ", "%20")} {str(encrypt(psw.encode(), WS.PK)).replace(" ", "%20")}')
         JS.afterDelay(pageSub, 2000)
 
     def plugs():
