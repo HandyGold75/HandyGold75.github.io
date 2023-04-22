@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, wkGlb
+from WebKit import HTML, CSS, JS, WS
 from datetime import datetime, timedelta
 from rsa import encrypt
 
@@ -103,7 +103,6 @@ def setupConnection():
         raise ValueError(f'Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]')
 
     if JS.cache("token") != "":
-        WS.onMsg(f'<LOGIN>', f'<LOGIN_TOKEN> {JS.cache("token")}')
         WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces)
         WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail)
 
@@ -123,7 +122,7 @@ def main(args=None):
             if WS.ws.readyState == 0:
                 JS.afterDelay(sendLogin, 100)
 
-            crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), wkGlb.pk))
+            crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.PK))
             WS.send(f'<LOGIN> {crypt}')
 
         if WS.loggedIn:
