@@ -27,14 +27,14 @@ class glb:
     lastUpdate = 0
 
     config = {}
-    knownConfig = {"costPerKw": float, "costFormat": str, "lineResolution": int, ":D": bool}
+    knownConfig = {"costPerKw": float, "costFormat": str, "lineResolution": int, "useMonthly": bool, ":D": bool}
     optionsList = []
 
 
 def pageSub(args=None):
     def setup(args):
         if JS.cache("page_portal_tapo") is None or JS.cache("page_portal_tapo") == "":
-            JS.cache("page_portal_tapo", dumps({"costPerKw": 0.00, "costFormat": "$", "lineResolution": 25, ":D": False}))
+            JS.cache("page_portal_tapo", dumps({"costPerKw": 0.00, "costFormat": "$", "lineResolution": 25, "useMonthly": False, ":D": False}))
 
         glb.config = loads(JS.cache("page_portal_tapo"))
 
@@ -50,8 +50,9 @@ def pageSub(args=None):
         if psw is None:
             return None
 
+        WS.onMsg("{\"tapo\":", pageSub, oneTime=True)
+        WS.onMsg("Failed", login, oneTime=True)
         WS.send(f'tapo login {usr.replace(" ", "%20")} {str(encrypt(psw.encode(), WS.PK)).replace(" ", "%20")}')
-        JS.afterDelay(pageSub, 2000)
 
     def plugs():
         def getDur(dur):
@@ -184,15 +185,20 @@ def pageSub(args=None):
 
                 data = WS.dict()["tapo"]["history"][plug]
 
+                usageDivision, costDivision, rowLimit, colLimit = (50, 10, 6, 13)
+                if not glb.config["useMonthly"]:
+                    usageDivision, costDivision, rowLimit, colLimit = (5, 1, 6, 4)
+
                 date = datetime.now()
                 dates = []
-                for i in range(0, 13):
+                for i in range(0, colLimit):
                     dates.append(date)
                     date = date - timedelta(days=date.day)
 
                 cordsUsage = []
                 cordsCost = []
                 for time in data:
+
                     dataDate = datetime.fromtimestamp(int(time))
                     col = None
 
@@ -205,8 +211,8 @@ def pageSub(args=None):
 
                     if col is None:
                         continue
-                    elif col >= 13:
-                        col = 12.99
+                    elif col >= colLimit:
+                        col = colLimit - 0.01
 
                     txt = f'date: {dataDate.strftime("%d %b %y")}<br>'
                     for key in data[time]:
@@ -228,14 +234,18 @@ def pageSub(args=None):
                     txt += f'todayCost: {((data[time]["todayPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}<br>'
                     txt += f'monthlyCost: {((data[time]["monthlyPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}<br>'
 
-                    row = data[time]["monthlyPower"] / 50000
-                    if row >= 6:
-                        row = 5.99
+                    dataPower = data[time]["monthlyPower"]
+                    if not glb.config["useMonthly"]:
+                        dataPower = data[time]["todayPower"]
+
+                    row = dataPower / (1000 * usageDivision)
+                    if row >= rowLimit:
+                        row = rowLimit - 0.01
                     cordsUsage.append((float(col), float(row), txt))
 
-                    row = (data[time]["monthlyPower"] / 10000) * glb.config["costPerKw"]
-                    if row >= 6:
-                        row = 5.99
+                    row = (dataPower / (1000 * costDivision)) * glb.config["costPerKw"]
+                    if row >= rowLimit:
+                        row = rowLimit - 0.01
                     cordsCost.append((float(col), float(row), txt))
 
                 JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
@@ -246,23 +256,27 @@ def pageSub(args=None):
             if not data[plug]["model"] in ["P115", "P110", "total"]:
                 return None
 
+            usageStep, costStep, rowLimit, colLimit = (50, 10, 6, 13)
+            if not glb.config["useMonthly"]:
+                usageStep, costStep, rowLimit, colLimit = (5, 1, 6, 4)
+
             date = datetime.now()
             dates = []
-            for i in range(0, 13):
+            for i in range(0, colLimit):
                 dates.append(date.strftime("%b (%y)"))
                 date = date - timedelta(days=date.day)
 
             txt = HTML.add("h1", _nest=f'Usage', _style=f'headerBig')
             HTML.set(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=6, rowStep=50, cols=13, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates))),
+                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates))),
                      _id=f'SubPage_page_graph_usage',
                      _style=f'divNormal')
 
             txt = HTML.add("h1", _nest=f'Cost', _style=f'headerBig')
             HTML.add(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=6, rowStep=10, cols=13, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates))),
+                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates))),
                      _id=f'SubPage_page_graph_cost',
                      _style=f'divNormal')
 

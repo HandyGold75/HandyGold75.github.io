@@ -782,14 +782,16 @@ class WS:
 
                     WS.msgDict[dict] = {**WS.msgDict[dict], **data[dict]}
 
-            elif msg.split(f' ')[0] in WS.msgReply:
+            if msg.split(f' ')[0] in WS.msgReply:
                 msg = msg.split(f' ')[0]
 
-                if callable(WS.msgReply[msg]):
-                    WS.msgReply[msg]()
+                if callable(WS.msgReply[msg][0]):
+                    WS.msgReply[msg][0]()
                     return None
+                WS.ws.send(WS.msgReply[msg][0])
 
-                WS.ws.send(WS.msgReply[msg])
+                if WS.msgReply[msg][1]:
+                    WS.msgReply.pop(msg)
 
         error = lambda arg=None: (console.error(arg), WS.close)
         close = lambda arg=None: WS.on.connectionError("The connection to the server was lost!")
@@ -831,8 +833,8 @@ class WS:
             WS.ws = None
             WS.reconnectTries += 1
 
-            WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces)
-            WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail)
+            WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces, oneTime=True)
+            WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail, oneTime=True)
 
             WS.start(WS.PROTO, WS.IP, WS.PORT)
 
@@ -856,9 +858,9 @@ class WS:
         WS.ws.onerror = WS.on.error
         WS.ws.onclose = WS.on.close
 
-        WS.onMsg("<LOGIN>", WS.on.login)
-        WS.onMsg("<LOGIN_CANCEL>", WS.close)
-        WS.onMsg("<CLOSE>", WS.close)
+        WS.onMsg("<LOGIN>", WS.on.login, oneTime=True)
+        WS.onMsg("<LOGIN_CANCEL>", WS.close, oneTime=True)
+        WS.onMsg("<CLOSE>", WS.close, oneTime=True)
 
     def close():
         WS.ws.close()
@@ -874,8 +876,8 @@ class WS:
 
         WS.ws.send(com)
 
-    def onMsg(msgRecv: str, msgOrFunc: msg):
-        WS.msgReply[msgRecv] = msgOrFunc
+    def onMsg(msgRecv: str, msgOrFunc: msg, oneTime: bool = False):
+        WS.msgReply[msgRecv] = (msgOrFunc, oneTime)
 
 
 class bridge:

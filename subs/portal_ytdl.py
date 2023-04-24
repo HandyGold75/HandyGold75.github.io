@@ -185,7 +185,7 @@ def pageSub(args=None):
         addDownload()
         addResults()
 
-        JS.afterDelay(slowUIRefresh, 500)
+        JS.afterDelay(slowUIRefresh, 50)
 
     def history():
         def update(data):
