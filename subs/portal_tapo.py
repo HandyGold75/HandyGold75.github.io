@@ -33,7 +33,7 @@ class glb:
 
 def pageSub(args=None):
     def setup(args):
-        if JS.cache("page_portal_tapo") is None or JS.cache("page_links") == "":
+        if JS.cache("page_portal_tapo") is None or JS.cache("page_portal_tapo") == "":
             JS.cache("page_portal_tapo", dumps({"costPerKw": 0.00, "costFormat": "$", "lineResolution": 25, ":D": False}))
 
         glb.config = loads(JS.cache("page_portal_tapo"))

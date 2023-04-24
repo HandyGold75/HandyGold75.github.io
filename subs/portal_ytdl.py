@@ -36,7 +36,7 @@ class glb:
 
 def pageSub(args=None):
     def setup(args):
-        if JS.cache("page_portal_ytdl") is None or JS.cache("page_links") == "":
+        if JS.cache("page_portal_ytdl") is None or JS.cache("page_portal_ytdl") == "":
             JS.cache("page_portal_ytdl", dumps({"quality": ["Medium"], "audioOnly": False}))
             pass
 
