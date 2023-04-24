@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 class invoke:
     def SO(args=None):
         glb.subPages = ["Player", "QR", "Config"]
-
         glb.lastUpdate = 0
 
         getData()
@@ -16,6 +15,7 @@ def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         WS.send(f'sonos state')
         WS.send(f'sonos que get')
+        WS.send(f'sonos playlist')
         WS.send(f'sonos ytinfo')
 
         glb.lastUpdate = datetime.now().timestamp()
@@ -28,13 +28,12 @@ class glb:
     ytPlayer = None
 
     config = {}
-    knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool, "disableMaxWidth (experimental)": bool}
+    knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool, "useQue": bool, "usePlaylist": bool, "disableMaxWidth (experimental)": bool}
     optionsList = []
     currentTitle = ""
     currentPosition = ""
     currentQueSize = 0
 
-    useAlbumArt = False
     videoScolling = False
     skipUiUpdate = True
 
@@ -137,8 +136,11 @@ class sonosControl:
     def remQue(index: int):
         WS.send(f'sonos queRemove {index}')
 
+    def clearQue():
+        WS.send(f'sonos queClear')
+
     def addQue(url: str, playNow: bool = False):
-        if not url.startswith("https://open.spotify.com/track/"):
+        if not url.startswith("https://open.spotify.com/track/") and not url.startswith("https://open.spotify.com/playlist/"):
             return None
 
         if not playNow:
@@ -146,11 +148,49 @@ class sonosControl:
         else:
             WS.send(f'sonos playNow {url}')
 
+    def addQueUri(uri: str, playNow: bool = False):
+        if not uri.startswith("x-rincon-stream:") and not uri.startswith("x-rincon-cpcontainer:"):
+            return None
+
+        if not playNow:
+            WS.send(f'sonos playNextUri {uri}')
+        else:
+            WS.send(f'sonos playNowUri {uri}')
+
+    def useAlbum(args=None):
+        glb.config = loads(JS.cache("page_portal_sonos"))
+        glb.config["useAlbumArt"] = not glb.config["useAlbumArt"]
+        JS.cache("page_portal_sonos", dumps(glb.config))
+
+        main(sub=JS.cache("page_portalSub"))
+
+    def useQue(args=None):
+        glb.config = loads(JS.cache("page_portal_sonos"))
+        glb.config["useQue"] = not glb.config["useQue"]
+
+        if glb.config["useQue"]:
+            glb.config["usePlaylist"] = False
+
+        JS.cache("page_portal_sonos", dumps(glb.config))
+
+        main(sub=JS.cache("page_portalSub"))
+
+    def usePlaylist(args=None):
+        glb.config = loads(JS.cache("page_portal_sonos"))
+        glb.config["usePlaylist"] = not glb.config["usePlaylist"]
+
+        if glb.config["usePlaylist"]:
+            glb.config["useQue"] = False
+
+        JS.cache("page_portal_sonos", dumps(glb.config))
+
+        main(sub=JS.cache("page_portalSub"))
+
 
 def pageSub(args):
     def setup(args):
         if JS.cache("page_portal_sonos") is None or JS.cache("page_links") == "":
-            JS.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "disableMaxWidth (experimental)": False}))
+            JS.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "useQue": True, "usePlaylist": False, "disableMaxWidth (experimental)": False}))
 
         glb.config = loads(JS.cache("page_portal_sonos"))
 
@@ -179,9 +219,14 @@ def pageSub(args):
 
                 if not data["device"]["shuffle"]:
                     CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#222'), (f'border', f'2px solid #222')))
-
                 if not data["device"]["repeat"]:
                     CSS.setStyles(f'SubPage_page_buttons_Repeat', ((f'background', f'#222'), (f'border', f'2px solid #222')))
+                if not glb.config["useAlbumArt"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Album', ((f'background', f'#222'), (f'border', f'2px solid #222')))
+                if not glb.config["usePlaylist"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Playlist', ((f'background', f'#222'), (f'border', f'2px solid #222')))
+                if not glb.config["useQue"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Que', ((f'background', f'#222'), (f'border', f'2px solid #222')))
 
                 if not glb.videoScolling:
                     HTML.get(f'SubPage_page_timeline_slider').max = dur
@@ -263,9 +308,10 @@ def pageSub(args):
 
             try:
                 controls()
-                que()
+                if glb.config["useQue"]:
+                    que()
 
-                if glb.useAlbumArt:
+                if glb.config["useAlbumArt"]:
                     albumArt()
                 else:
                     video()
@@ -284,6 +330,12 @@ def pageSub(args):
                     CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
                 if data["device"]["repeat"]:
                     CSS.setStyles(f'SubPage_page_buttons_Repeat', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
+                if glb.config["useAlbumArt"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Album', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
+                if glb.config["usePlaylist"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Playlist', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
+                if glb.config["useQue"]:
+                    CSS.setStyles(f'SubPage_page_buttons_Que', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
             if not JS.cache("page_portalSub") == "Player":
                 return False
@@ -298,7 +350,6 @@ def pageSub(args):
             JS.afterDelay(fastUIRefresh, 250)
 
         def addAlbumArt():
-            glb.useAlbumArt = True
             data = WS.dict()["sonos"]
 
             HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 75%; margin: -30px auto 15px auto;')
@@ -339,7 +390,6 @@ def pageSub(args):
             JS.afterDelay(doAction, 200)
 
         def addVideo():
-            glb.useAlbumArt = False
             data = WS.dict()["sonos"]
 
             pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
@@ -424,10 +474,10 @@ def pageSub(args):
                     glb.currentPosition = -1
                     return None
 
-            def playNext(args):
+            def playNext(args=None):
                 sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, False)
 
-            def playNow(args):
+            def playNow(args=None):
                 sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, True)
 
             data = WS.dict()["sonos"]
@@ -457,12 +507,12 @@ def pageSub(args):
             queHTML = ""
 
             for track in tracks:
-                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 20%; max-width: 50px; height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
                 remImg = HTML.add(f'img', _id=f'SubPage_page_que_rem_img_{track}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
                 remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_rem_{track}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
-                rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
+                rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'width: 5vw; height: 5vw; max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
                 title = HTML.add(f'div', _nest=f'{txt}{rem}', _style=f'flex %% margin: 0px;')
 
                 txt = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
@@ -471,7 +521,11 @@ def pageSub(args):
 
                 txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 90%; margin: auto 5px;')
 
-                queHTML += HTML.add(f'div', _nest=f'{img}{txtDiv}', _id=f'SubPage_page_que_{track}', _class=f'SubPage_page_que_tracks', _style=f'divNormal %% flex %% position: relative; margin: -5px -5px; z-index: 0; border: 5px solid #111;')
+                queHTML += HTML.add(f'div',
+                                    _nest=f'{img}{txtDiv}',
+                                    _id=f'SubPage_page_que_{track}',
+                                    _class=f'SubPage_page_que_tracks',
+                                    _style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
 
             HTML.addRaw(f'SubPage_page_queList', queHTML)
 
@@ -479,7 +533,7 @@ def pageSub(args):
 
             glb.currentPosition = data["que"]["position"]
 
-            inp = HTML.add(f'input', _id=f'SubPage_page_queAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;')
+            inp = HTML.add(f'input', _id=f'SubPage_page_queAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Spotify Sharelink"')
             btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_queAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
             btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_queAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
             div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
@@ -503,21 +557,150 @@ def pageSub(args):
 
             JS.afterDelay(doAction, 100)
 
+        def addPlaylist():
+            def playPlaylist(args):
+                el = args.target
+
+                for i in range(0, 4):
+                    if el.id == "":
+                        el = el.parentElement
+                        continue
+
+                    if el.id.split("_")[-1] in ["txt", "img"]:
+                        el = el.parentElement
+                        continue
+
+                    data = WS.dict()["sonos"]["playlists"]
+                    sonosControl.clearQue()
+                    sonosControl.addQueUri(f'{data[el.id.split("_")[-1]]["uri"]}', True)
+
+                    return None
+
+            def playNextUri(args=None):
+                sonosControl.addQueUri(HTML.get(f'SubPage_page_playlistAdd_input').value, False)
+
+            def playNowUri(args=None):
+                sonosControl.addQueUri(HTML.get(f'SubPage_page_playlistAdd_input').value, True)
+
+            data = WS.dict()["sonos"]
+
+            if HTML.get(f'SubPage_page_playlist') is None:
+                que = HTML.add(f'div', _id=f'SubPage_page_playlistList', _style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
+                queAdd = HTML.add(f'div', _id=f'SubPage_page_playlistAdd', _style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
+
+                if glb.config["useAlbumArt"]:
+                    HTML.add(f'div',
+                             f'SubPage_page_media',
+                             _id=f'SubPage_page_playlist',
+                             _nest=f'{que}{queAdd}',
+                             _style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+
+                else:
+                    HTML.add(f'div',
+                             f'SubPage_page_media',
+                             _id=f'SubPage_page_playlist',
+                             _nest=f'{que}{queAdd}',
+                             _style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+            else:
+                HTML.setRaw(f'SubPage_page_playlistList', "")
+
+            playlists = data["playlists"]
+
+            queHTML = ""
+
+            for playlist in reversed(playlists):
+                if playlists[playlist]["album_art"] is None:
+                    img = HTML.add(f'img', _id=f'SubPage_page_playlist_{playlist}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
+                else:
+                    img = HTML.add(f'img', _id=f'SubPage_page_playlist_{playlist}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
+
+                txt = HTML.add(f'p', _nest=f'{playlist}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
+                title = HTML.add(f'div', _nest=f'{txt}', _style=f'flex %% margin: 0px;')
+
+                txt = HTML.add(f'p', _nest=f'{playlists[playlist]["description"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
+                creator = HTML.add(f'div', _nest=f'{txt}', _style=f'flex %% font-size: 75%; margin: 0px;')
+
+                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_playlist_{playlist}_txt', _style=f'width: 90%; margin: auto 5px;')
+
+                queHTML += HTML.add(f'div',
+                                    _nest=f'{img}{txtDiv}',
+                                    _id=f'SubPage_page_playlist_{playlist}',
+                                    _class=f'SubPage_page_playlist_playlists',
+                                    _style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
+
+            HTML.addRaw(f'SubPage_page_playlistList', queHTML)
+
+            # CSS.setStyles(f'SubPage_page_playlist_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
+
+            # glb.currentPosition = data["que"]["position"]
+
+            inp = HTML.add(f'input', _id=f'SubPage_page_playlistAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Sonos URI"')
+            btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_playlistAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_playlistAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
+            HTML.set(f'div', f'SubPage_page_playlistAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
+
+            # CSS.get(f'SubPage_page_playlist_{data["que"]["position"]}', f'scrollIntoView')()
+
+            def doAction():
+                for track in HTML.get(f'SubPage_page_playlist_playlists', isClass=True):
+                    JS.addEvent(track, playPlaylist, "dblclick", isClass=True)
+
+                CSS.onHoverFocus(f'SubPage_page_playlistAdd_input', f'inputHover', f'inputFocus')
+
+                JS.addEvent(f'SubPage_page_playlistAdd_playNext', playNextUri)
+                CSS.onHoverClick(f'SubPage_page_playlistAdd_playNext', f'buttonHover', f'buttonClick')
+
+                JS.addEvent(f'SubPage_page_playlistAdd_playNow', playNowUri)
+                CSS.onHoverClick(f'SubPage_page_playlistAdd_playNow', f'buttonHover', f'buttonClick')
+
+            JS.afterDelay(doAction, 100)
+
         def addControls():
             data = WS.dict()["sonos"]
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% width: 100%; max-width: 550px; margin: 0px; padding: 0px;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% margin: 0px; padding: 0px;')
+            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_left', _style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
+            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_middle', _style=f'divNormal %% flex %% width: 70%; margin: 0px; padding: 0px;')
+            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_right', _style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
 
-            for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
+            leftActions = ["Repeat", "Shuffle"]
+            for i, action in enumerate(leftActions):
+                margin = " margin: 1%;"
+                if i >= len(leftActions) - 1:
+                    margin = " margin: 1% auto 1% 1%;"
+
                 img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
                 btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                HTML.add(f'div', f'SubPage_page_buttons', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px; margin: 10px auto 10px auto;')
+                HTML.add(f'div', f'SubPage_page_buttons_left', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
+
+            midActions = ["VolumeDown", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "VolumeUp"]
+            for i, action in enumerate(midActions):
+                margin = " margin: 1%;"
+                if i < 1:
+                    margin = " margin: 1% 1% 1% auto;"
+                elif i >= len(midActions) - 1:
+                    margin = " margin: 1% auto 1% 1%;"
+
+                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.add(f'div', f'SubPage_page_buttons_middle', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
+
+            rightActions = ["Album", "Playlist", "Que"]
+            for i, action in enumerate(rightActions):
+                margin = " margin: 1%;"
+                if i < 1:
+                    margin = " margin: 1% 1% 1% auto;"
+
+                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.add(f'div', f'SubPage_page_buttons_right', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
 
             if data["device"]["playback"] in ["standby", "inactive"]:
                 HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Play.png'
                 HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Play'
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 90%; max-width: 525px; margin: 0px; padding: 0px; justify-content: center;')
+            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 50%; margin: 0px; padding: 0px; justify-content: center;')
 
             options = ""
             for option in range(0, 101, int(glb.config["volumeMax"] / 10)):
@@ -532,19 +715,26 @@ def pageSub(args):
                      _style=f'inputRange %% width: 90%; height: 10px;',
                      _custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
 
-            JS.addEvent(f'SubPage_page_buttons_VolumeDown', sonosControl.volumeDown)
-            JS.addEvent(f'SubPage_page_buttons_Repeat', sonosControl.toggleRepeat)
-            JS.addEvent(f'SubPage_page_buttons_SeekBackward', sonosControl.seekBackward)
-            JS.addEvent(f'SubPage_page_buttons_Back', sonosControl.back)
-            JS.addEvent(f'SubPage_page_buttons_Pause', sonosControl.togglePlay)
-            JS.addEvent(f'SubPage_page_buttons_Next', sonosControl.next)
-            JS.addEvent(f'SubPage_page_buttons_VolumeUp', sonosControl.volumeUp)
-            JS.addEvent(f'SubPage_page_buttons_SeekForward', sonosControl.seekForward)
-            JS.addEvent(f'SubPage_page_buttons_Shuffle', sonosControl.toggleShuffle)
-            JS.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
+            fmap = {
+                "Repeat": sonosControl.toggleRepeat,
+                "Shuffle": sonosControl.toggleShuffle,
+                "VolumeDown": sonosControl.volumeDown,
+                "SeekBackward": sonosControl.seekBackward,
+                "Back": sonosControl.back,
+                "Pause": sonosControl.togglePlay,
+                "Next": sonosControl.next,
+                "SeekForward": sonosControl.seekForward,
+                "VolumeUp": sonosControl.volumeUp,
+                "Album": sonosControl.useAlbum,
+                "Playlist": sonosControl.usePlaylist,
+                "Que": sonosControl.useQue
+            }
 
-            for action in ["VolumeDown", "Repeat", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "Shuffle", "VolumeUp"]:
+            for action in fmap:
+                JS.addEvent(f'SubPage_page_buttons_{action}', fmap[action])
                 CSS.onHoverClick(f'SubPage_page_buttons_{action}', f'imgHover', f'imgClick')
+
+            JS.addEvent(f'SubPage_page_volume_slider', sonosControl.volume, f'input')
 
         if JS.cache("page_portalSub") != "Player":
             return None
@@ -563,7 +753,11 @@ def pageSub(args):
             addVideo()
 
         addControls()
-        addQue()
+
+        if glb.config["useQue"]:
+            addQue()
+        elif glb.config["usePlaylist"]:
+            addPlaylist()
 
         JS.onResize()
 
