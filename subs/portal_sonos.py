@@ -189,7 +189,7 @@ class sonosControl:
 
 def pageSub(args):
     def setup(args):
-        if JS.cache("page_portal_sonos") is None or JS.cache("page_links") == "":
+        if JS.cache("page_portal_sonos") is None or JS.cache("page_portal_sonos") == "":
             JS.cache("page_portal_sonos", dumps({"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "useQue": True, "usePlaylist": False, "disableMaxWidth (experimental)": False}))
 
         glb.config = loads(JS.cache("page_portal_sonos"))
