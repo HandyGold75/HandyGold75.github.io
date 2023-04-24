@@ -62,8 +62,8 @@ def setupConnection():
             el.innerHTML += ". "
             JS.afterDelay(loadingTxt, 500)
 
+        WS.onMsg("{\"access\":", getData, oneTime=True)
         WS.send(f'access')
-        JS.afterDelay(getData, 250)
         WS.loggedIn = True
 
         JS.clearEvents(f'footer_Login')
@@ -103,10 +103,10 @@ def setupConnection():
         raise ValueError(f'Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]')
 
     if JS.cache("token") != "":
-        WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces)
-        WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail)
+        WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces, oneTime=True)
+        WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail, oneTime=True)
 
-    WS.onMsg(f'<LOGIN_SUCCESS>', loginSucces)
+    WS.onMsg(f'<LOGIN_SUCCESS>', loginSucces, oneTime=True)
     WS.onMsg(f'<LOGIN_FAIL>', loginFail)
 
     WS.start(proto, ip, port)
@@ -120,7 +120,7 @@ def main(args=None):
                 return None
 
             if WS.ws.readyState == 0:
-                JS.afterDelay(sendLogin, 100)
+                JS.afterDelay(sendLogin, 50)
 
             crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.PK))
             WS.send(f'<LOGIN> {crypt}')

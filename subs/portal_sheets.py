@@ -510,14 +510,11 @@ def bulkAdd(args):
 
 def clean(args):
     def cleanResults():
-        if not "Cleaned" in WS.dict()["admin"]:
-            JS.afterDelay(cleanResults, 250)
-
         JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()["admin"]["Cleaned"])}')
 
     if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
+        WS.onMsg("{\"admin\":", cleanResults, oneTime=True)
         WS.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
-        JS.afterDelay(cleanResults, 250)
 
 
 def pageSub(args, extraData: dict = {}):
