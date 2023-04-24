@@ -387,7 +387,7 @@ def pageSub(args):
                 JS.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
                 JS.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
 
-            JS.afterDelay(doAction, 200)
+            JS.afterDelay(doAction, 50)
 
         def addVideo():
             data = WS.dict()["sonos"]
@@ -435,7 +435,7 @@ def pageSub(args):
                 JS.addEvent(f'SubPage_page_timeline_slider', videoScollTrue, f'mousedown')
                 JS.addEvent(f'SubPage_page_timeline_slider', videoScollFalse, f'mouseup')
 
-            JS.afterDelay(doAction, 200)
+            JS.afterDelay(doAction, 50)
 
         def addQue():
             def playFromQue(args):
@@ -555,7 +555,7 @@ def pageSub(args):
                 JS.addEvent(f'SubPage_page_queAdd_playNow', playNow)
                 CSS.onHoverClick(f'SubPage_page_queAdd_playNow', f'buttonHover', f'buttonClick')
 
-            JS.afterDelay(doAction, 100)
+            JS.afterDelay(doAction, 50)
 
         def addPlaylist():
             def playPlaylist(args):
@@ -654,7 +654,7 @@ def pageSub(args):
                 JS.addEvent(f'SubPage_page_playlistAdd_playNow', playNowUri)
                 CSS.onHoverClick(f'SubPage_page_playlistAdd_playNow', f'buttonHover', f'buttonClick')
 
-            JS.afterDelay(doAction, 100)
+            JS.afterDelay(doAction, 50)
 
         def addControls():
             data = WS.dict()["sonos"]
@@ -761,8 +761,8 @@ def pageSub(args):
 
         JS.onResize()
 
-        JS.afterDelay(fastUIRefresh, 250)
-        JS.afterDelay(slowUIRefresh, 1000)
+        JS.afterDelay(slowUIRefresh, 50)
+        JS.afterDelay(fastUIRefresh, 100)
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
@@ -958,7 +958,7 @@ def pageSub(args):
 
     if JS.cache("page_portalSub") == "Player":
         getData()
-        JS.afterDelay(pageSubMap[JS.cache("page_portalSub")], 1000)
+        JS.afterDelay(pageSubMap[JS.cache("page_portalSub")], 500)
 
     else:
         pageSubMap[JS.cache("page_portalSub")]()
