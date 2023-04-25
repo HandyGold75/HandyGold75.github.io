@@ -432,9 +432,9 @@ def editRecord(args):
         elif knownValues[value] is bool:
             if el.innerHTML == "No":
                 if not mainValue is None:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
                 else:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
 
                 el.innerHTML = "Yes"
                 return None
