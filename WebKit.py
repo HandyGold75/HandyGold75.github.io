@@ -586,7 +586,25 @@ class JS:
         lines = getLines(data)
         return lines
 
-    def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = ()):
+    def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = (), smallHeaders: bool = False):
+        rowHeightSmall = rowHeight
+        colsNormal = 100 / (cols + 1)
+        colsSmall = 100 / (cols + 1)
+        if smallHeaders:
+            rowHeightValue = ""
+            rowHeightFormat = ""
+            for i, char in enumerate(rowHeight):
+                if char in "0123456789":
+                    rowHeightValue += char
+                    continue
+
+                rowHeightFormat = rowHeight[i:]
+                break
+
+            rowHeightSmall = f'{int(rowHeightValue) / 2}{rowHeightFormat}'
+            colsSmall = 100 / ((cols + 1) * 2)
+            colsNormal = (100 / (cols + 1)) + (colsSmall / cols)
+
         htmlRows = ""
         for i1 in range(0, rows):
             borderStyle = ""
@@ -598,24 +616,25 @@ class JS:
                 txt += bridge.HTML.add(f'h1', _style=f'headerSmall %% height: 40%; margin: auto auto auto auto;')
                 txt += bridge.HTML.add(f'h1', _nest=f'{rowPrefix}{(rows - i1 - 1) * rowStep}{rowAfterfix}', _style=f'headerSmall %% height: 25%; margin: auto auto auto 5px;')
 
-            htmlCols = bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_{rows - i1 - 1}_col_header', _style=f'background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 2px solid #111;{borderStyle}')
+            htmlCols = bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_{rows - i1 - 1}_col_header', _style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeight}; border-right: 2px solid #111;{borderStyle}')
             for i2 in range(0, cols):
                 if i2 == cols - 1:
-                    htmlCols += bridge.HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {100 / cols}%; height: {rowHeight};{borderStyle}')
+                    htmlCols += bridge.HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight};{borderStyle}')
                 else:
-                    htmlCols += bridge.HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {100 / cols}%; height: {rowHeight}; border-right: 1px dashed #111;{borderStyle}')
+                    htmlCols += bridge.HTML.add(f'div', _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight}; border-right: 1px dashed #111;{borderStyle}')
 
             htmlRows += bridge.HTML.add(f'div', _nest=htmlCols, _id=f'{name}_row_{rows - i1 - 1}', _style=f'flex %% width: 100%; height: {rowHeight};')
 
         txt = ""
-        if len(origin) == 1:
-            txt += bridge.HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: auto;')
-        elif len(origin) > 1:
-            txt += bridge.HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: left;')
-            txt += bridge.HTML.add(f'h1', _nest=f'/', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: center;')
-            txt += bridge.HTML.add(f'h1', _nest=f'{origin[1]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: right;')
+        if not smallHeaders:
+            if len(origin) == 1:
+                txt += bridge.HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: auto;')
+            elif len(origin) > 1:
+                txt += bridge.HTML.add(f'h1', _nest=f'{origin[0]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: left;')
+                txt += bridge.HTML.add(f'h1', _nest=f'/', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: center;')
+                txt += bridge.HTML.add(f'h1', _nest=f'{origin[1]}', _style=f'headerSmall %% margin: 0px 5%; width: 90%; text-align: right;')
 
-        htmlCols = bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_header', _style=f'background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 2px solid #111; border-top: 2px solid #111;')
+        htmlCols = bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_header', _style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeightSmall}; border-right: 2px solid #111; border-top: 2px solid #111;')
         for i2 in range(0, cols):
             try:
                 txt = bridge.HTML.add(f'h1', _nest=f'{colNames[i2]}', _style=f'headerSmall %% margin: auto;')
@@ -623,11 +642,11 @@ class JS:
                 txt = bridge.HTML.add(f'h1', _nest=f'', _style=f'headerSmall %% margin: auto;')
 
             if i2 == cols - 1:
-                htmlCols += bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-top: 2px solid #111;')
+                htmlCols += bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-top: 2px solid #111;')
             else:
-                htmlCols += bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {100 / cols}%; height: {rowHeight}; border-right: 1px dashed #111; border-top: 2px solid #111;')
+                htmlCols += bridge.HTML.add(f'div', _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-right: 1px dashed #111; border-top: 2px solid #111;')
 
-        htmlRows += bridge.HTML.add(f'div', _nest=htmlCols, _id=f'{name}_row_header', _style=f'flex %% width: 100%; height: {rowHeight};')
+        htmlRows += bridge.HTML.add(f'div', _nest=htmlCols, _id=f'{name}_row_header', _style=f'flex %% width: 100%; height: {rowHeightSmall};')
 
         return bridge.HTML.add(f'div', _nest=htmlRows, _id=f'{name}', _style=f'margin: 10px; padding-bottom: 2px; border: 2px solid #111;')
 
@@ -707,7 +726,7 @@ class JS:
                     )
                 else:
                     vw = "-25vw"
-                    if int(colNum) < 4:
+                    if int(colNum) < 3:
                         vw = "0.5vw"
 
                     vh = "0.5vh"

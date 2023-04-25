@@ -2,6 +2,7 @@ from WebKit import HTML, CSS, JS, WS
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
+import math
 
 
 class invoke:
@@ -106,20 +107,18 @@ def pageSub(args=None):
                     HTML.setRaw(f'Gauge_{plug}_uptime', f'{getDur(data[plug]["duration"])}')
 
                     if not data[plug]["state"]:
-                        for i in range(1, 24):
+                        for i in range(0, 101):
                             CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
 
                         CSS.setStyles(f'Power_{plug}', ((f'background', f'#222'), (f'border', f'2px solid #222')))
                         continue
 
-                    CSS.setStyle(f'Gauge_{plug}_1', f'opacity', f'100%')
-
-                    for i in range(1, 23):
-                        if data[plug]["currentPower"] > i * 20000:
-                            CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'100%')
+                    for i in range(0, 101):
+                        if data[plug]["currentPower"] > i * 10000:
+                            CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'100%')
                             continue
 
-                        CSS.setStyle(f'Gauge_{plug}_{i + 1}', f'opacity', f'0%')
+                        CSS.setStyle(f'Gauge_{plug}_{i}', f'opacity', f'0%')
 
             if not JS.cache("page_portalSub") == "Plugs":
                 return False
@@ -187,7 +186,7 @@ def pageSub(args=None):
 
                 usageDivision, costDivision, rowLimit, colLimit = (50, 10, 6, 13)
                 if not glb.config["useMonthly"]:
-                    usageDivision, costDivision, rowLimit, colLimit = (5, 1, 6, 4)
+                    usageDivision, costDivision, rowLimit, colLimit = (5, 1, 4, 4)
 
                 date = datetime.now()
                 dates = []
@@ -258,7 +257,7 @@ def pageSub(args=None):
 
             usageStep, costStep, rowLimit, colLimit = (50, 10, 6, 13)
             if not glb.config["useMonthly"]:
-                usageStep, costStep, rowLimit, colLimit = (5, 1, 6, 4)
+                usageStep, costStep, rowLimit, colLimit = (5, 1, 4, 4)
 
             date = datetime.now()
             dates = []
@@ -266,17 +265,23 @@ def pageSub(args=None):
                 dates.append(date.strftime("%b (%y)"))
                 date = date - timedelta(days=date.day)
 
-            txt = HTML.add("h1", _nest=f'Usage', _style=f'headerBig')
+            txt = HTML.add("h1", _nest=f'Usage - Montly', _style=f'headerBig')
+            if not glb.config["useMonthly"]:
+                txt = HTML.add("h1", _nest=f'Usage - Daily', _style=f'headerBig')
+
             HTML.set(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates))),
+                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates)), smallHeaders=True),
                      _id=f'SubPage_page_graph_usage',
                      _style=f'divNormal')
 
-            txt = HTML.add("h1", _nest=f'Cost', _style=f'headerBig')
+            txt = HTML.add("h1", _nest=f'Cost - Montly', _style=f'headerBig')
+            if not glb.config["useMonthly"]:
+                txt = HTML.add("h1", _nest=f'Cost - Daily', _style=f'headerBig')
+
             HTML.add(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates))),
+                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates)), smallHeaders=True),
                      _id=f'SubPage_page_graph_cost',
                      _style=f'divNormal')
 
@@ -310,7 +315,7 @@ def pageSub(args=None):
                 btn = HTML.add(f'button', _nest=f'{img}', _id=f'Info_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
                 info = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
 
-                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 70%;')
+                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;')
 
                 img = HTML.add(f'img', _id=f'Power_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
                 btn = HTML.add(f'button', _nest=f'{img}', _id=f'Power_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
@@ -319,12 +324,22 @@ def pageSub(args=None):
                 return HTML.add(f'div', _nest=f'{info}{txt}{power}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
 
             def body(plug):
-                img = HTML.add(f'img', _style=f'z-index: 0; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge.png" alt="Gauge"')
-                for i in range(1, 24):
-                    img += HTML.add(f'img',
+                img = HTML.add(f'img', _style=f'z-index: 1; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge.png" alt="Gauge"')
+
+                svg = ""
+                for i in range(0, 101):
+                    if i < 50:
+                        r, g = (int(255 * (i / 50)), 255)
+                    else:
+                        r, g = (255, int(255 * ((50 - i % 50) / 50)))
+
+                    svg += HTML.add(f'line',
                                     _id=f'Gauge_{plug}_{i}',
-                                    _style=f'z-index: {i}; width: 100%; margin: auto auto auto -100%; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;',
-                                    _custom=f'src="docs/assets/Portal/Tapo/Gauge/Gauge_{i}.png" alt="Gauge {i}"')
+                                    _style=f'z-index: 0; stroke: {"#{:02x}{:02x}{:02x}".format(r, g, 0)}; stroke-width: 5; opacity: 0%; transition: opacity 0.25s;',
+                                    _custom=f'x1="50%" y1="50%" x2="{i}%" y2="{256.3 * math.sin(math.pi * ((i - 50) / 100)**4)}%"')
+
+                svg = HTML.add(f'svg', _nest=f'{svg}', _style=f'width: 80%; height: 110px; margin: auto auto auto -80%; left: -10%; top: -5px; position: relative; user-select:none;')
+
                 txt = HTML.add(f'p', _nest=f'0.00<br>Wh', _id=f'Gauge_{plug}_power', _style=f'z-index: 24; width: 100%; margin: auto auto auto -100%; padding: 0px 0px 5% 0px; line-height: 100%; font-weight: bold; position: relative; user-select:none;')
                 txt += HTML.add(f'p', _nest=f'0.00 s', _id=f'Gauge_{plug}_uptime', _style=f'z-index: 25; width: 100%; margin: auto auto auto -100%; padding: 50% 0px 0px 0px; font-weight: bold; position: relative; user-select:none;')
                 txt += HTML.add(f'h1',
@@ -332,7 +347,7 @@ def pageSub(args=None):
                                 _id=f'Gauge_{plug}_overheat',
                                 _style=f'headerMedium %% z-index: 26; width: 100%; margin: auto auto -20px -100%; color: #F00; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;')
 
-                return HTML.add(f'div', _nest=f'{img}{txt}', _style=f'flex %% padding: 20px 10px; border-bottom: 4px dotted #111;')
+                return HTML.add(f'div', _nest=f'{img}{svg}{txt}', _style=f'flex %% padding: 20px 10px; border-bottom: 4px dotted #111;')
 
             def footer(plug):
                 div = ""
