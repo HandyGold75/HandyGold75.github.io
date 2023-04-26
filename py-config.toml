@@ -1,0 +1,8 @@
+packages = ["rsa"]
+
+[[fetch]]
+files = [
+    "index.py", "WebKit.py",
+    "pages/home.py", "pages/links.py", "pages/portal.py", "pages/contact.py", "pages/login.py",
+    "subs/portal_sonos.py", "subs/portal_tapo.py", "subs/portal_ytdl.py", "subs/portal_sheets.py", "subs/portal_trees.py"
+]

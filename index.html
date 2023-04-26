@@ -4,24 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
     <script src="https://www.youtube.com/iframe_api"></script>
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <link href="docs/assets/;D.ico" rel="icon" type="image/x-icon">
 </head>
 
-<body id="body" style="margin: 0px auto; background: #111; color: #55F; max-width: 1440px;">
-    <py-config>
-        packages = ["rsa"]
-
-        [[fetch]]
-        files = [
-        "index.py", "WebKit.py",
-        "pages/home.py", "pages/links.py", "pages/portal.py", "pages/contact.py", "pages/login.py",
-        "subs/portal_sonos.py", "subs/portal_tapo.py", "subs/portal_ytdl.py", "subs/portal_sheets.py", "subs/portal_trees.py"
-        ]
-    </py-config>
+<body id="body" style="margin: auto; background: #111; color: #55F; max-width: 1440px;">
+    <py-config src="py-config.toml"></py-config>
     <py-script src="index.py"></py-script>
 </body>
 
