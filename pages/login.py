@@ -119,8 +119,9 @@ def main(args=None):
                 JS.popup("alert", "Failed to connect to server")
                 return None
 
-            if WS.ws.readyState == 0:
+            if WS.ws.readyState == 0 or WS.PK is None:
                 JS.afterDelay(sendLogin, 50)
+                return None
 
             crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.PK))
             WS.send(f'<LOGIN> {crypt}')
@@ -138,7 +139,7 @@ def main(args=None):
 
         srv = HTML.get("page_login_body_login_srv").value
 
-        if not srv == JS.cache("server") or WS.ws == None:
+        if not srv == JS.cache("server") or WS.ws == None or WS.ws.readyState > 1:
             JS.cache("server", srv)
 
             try:
@@ -184,7 +185,7 @@ def main(args=None):
     txt = HTML.add(f'p', _nest=f'Server', _style=f'margin: 3px; padding: 2px;')
     txt += HTML.add(f'p', _nest=f'Username', _style=f'margin: 3px; padding: 2px;')
     txt += HTML.add(f'p', _nest=f'Password', _style=f'margin: 3px; padding: 2px;')
-    inp = HTML.add(f'input', _id=f'page_login_body_login_srv', _type=f'url', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value=\"{JS.cache("server")}\"')
+    inp = HTML.add(f'input', _id=f'page_login_body_login_srv', _type=f'url', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{JS.cache("server")}"')
     inp += HTML.add(f'input', _id=f'page_login_body_login_usr', _type=f'email', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Username"')
     inp += HTML.add(f'input', _id=f'page_login_body_login_psw', _type=f'password', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Password"')
     HTML.add(f'div', f'page_login_body_login', _nest=txt, _id=f'page_login_body_login_txt', _align=f'center', _style=f'width: 25%;')
