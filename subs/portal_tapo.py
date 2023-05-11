@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS, WS, widgets
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -173,12 +173,12 @@ def pageSub(args=None):
                     return dur
 
                 if glb.config[":D"]:
-                    JS.graphDraw(f'graph_usage_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_usage_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_usage_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
-                    JS.graphDraw(f'graph_cost_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_usage_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_usage_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_usage_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_cost_{plug}', ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_cost_{plug}', ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=glb.config["lineResolution"])
+                    widgets.graphDraw(f'graph_cost_{plug}', ((8, 2, ":D"), (8, 3, ":D"), (9, 4, ":D"), (10, 4, ":D"), (11, 3, ":D"), (11, 2, ":D"), (10, 1, ":D"), (9, 1, ":D"), (8, 2, ":D")), lineRes=glb.config["lineResolution"])
 
                     return None
 
@@ -212,6 +212,8 @@ def pageSub(args=None):
                         continue
                     elif col >= colLimit:
                         col = colLimit - 0.01
+                    elif col < 0:
+                        col = 0
 
                     txt = f'date: {dataDate.strftime("%d %b %y")}<br>'
                     for key in data[time]:
@@ -240,15 +242,19 @@ def pageSub(args=None):
                     row = dataPower / (1000 * usageDivision)
                     if row >= rowLimit:
                         row = rowLimit - 0.01
+                    elif row < 0:
+                        row = 0
                     cordsUsage.append((float(col), float(row), txt))
 
                     row = (dataPower / (1000 * costDivision)) * glb.config["costPerKw"]
                     if row >= rowLimit:
                         row = rowLimit - 0.01
+                    elif row < 0:
+                        row = 0
                     cordsCost.append((float(col), float(row), txt))
 
-                JS.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
-                JS.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
+                widgets.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
+                widgets.graphDraw(f'graph_cost_{plug}', cordsCost, lineRes=glb.config["lineResolution"])
 
             data = WS.dict()["tapo"]["current"]
 
@@ -271,7 +277,7 @@ def pageSub(args=None):
 
             HTML.set(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates)), smallHeaders=True),
+                     _nest=txt + widgets.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates)), smallHeaders=True),
                      _id=f'SubPage_page_graph_usage',
                      _style=f'divNormal')
 
@@ -281,7 +287,8 @@ def pageSub(args=None):
 
             HTML.add(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + JS.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates)), smallHeaders=True),
+                     _nest=txt +
+                     widgets.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates)), smallHeaders=True),
                      _id=f'SubPage_page_graph_cost',
                      _style=f'divNormal')
 
