@@ -840,13 +840,13 @@ class widgets:
             def submit(args):
                 el = document.getElementById(args.target.id)
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
-                
+
                 JS.log(el.id)
 
             def submitList(args):
                 el = document.getElementById(args.target.id.replace("Div_", "Input_"))
                 maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
-                
+
                 JS.log(el.id)
 
             def submitBool(args):
@@ -1128,7 +1128,7 @@ class widgets:
 
             steps = getLineSteps(oldCords, curCords, lineRes)
 
-            JS.graphDraw(name, steps, lineRes=lineRes, disalowRecursive=True)
+            widgets.graphDraw(name, steps, lineRes=lineRes, disalowRecursive=True)
 
         for id in addOnHovers:
             el = document.getElementById(id)
