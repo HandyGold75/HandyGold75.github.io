@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS, WS, widgets
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -206,6 +206,7 @@ class invoke:
         }
         glb.tagIsList = True
 
+        glb.maincoms = {"Admin": "admin", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
         glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
 
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
@@ -231,6 +232,7 @@ class glb:
     optionsList = []
     tagIsList = None
 
+    maincoms = {}
     svcoms = {}
     logsLoaded = 0
 
@@ -313,7 +315,7 @@ def addRecord(args):
     WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {token.replace(" ", "%20")}')
     WS.send(f'{glb.svcoms["main"]} {glb.svcoms["modify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {token.replace(" ", "%20")} {str(data).replace(" ", "%20").replace("False", "false").replace("True", "true")}')
 
-    pageSub(args, {f'/{JS.cache("page_portalSub")}.json': data})
+    pageSub(args)
 
 
 def editRecord(args):
@@ -505,6 +507,7 @@ def bulkAdd(args):
                 WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
                 continue
 
+            WS.onMsg("{\"" + glb.svcoms["main"] + "\":", pageSub, oneTime=True)
             WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
 
@@ -517,15 +520,10 @@ def clean(args):
         WS.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
 
 
-def pageSub(args, extraData: dict = {}):
-    def setup(args, extraData={}):
+def pageSub(args=None):
+    def setup(args):
         data = WS.dict()[glb.svcoms["main"]]
-
         file = f'/{JS.cache("page_portalSub")}.json'
-
-        if extraData != {}:
-            for dic in extraData:
-                data[dic] = {**extraData[dic], **data[dic]}
 
         if not args is None:
             if args.target.id.split("_")[-1] == "compact":
@@ -581,229 +579,6 @@ def pageSub(args, extraData: dict = {}):
                 HTML.enable(f'SubPage_nav_options_{butId}', True)
 
         return data
-
-    def addFull(data):
-        def addHeader(data):
-            mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; background: #1F1F1F;'
-
-            rowC = -1
-            colC = 0
-
-            HTMLrows = f''
-            for record in data:
-                rowC += 1
-                colC += 0.5
-
-                HTMLcols = HTML.add(f'h1', _nest=f'{mainValue}', _id=f'header_{mainValue}', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
-
-                if mainValue in glb.halfView:
-                    colC += 0.5
-                else:
-                    colC += 1
-
-                for value in data[record]:
-                    if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
-                        continue
-
-                    HTMLcols += HTML.add(f'h1', _nest=f'{value}', _id=f'header_{value}', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
-
-                    if value in glb.halfView:
-                        colC += 0.5
-                        continue
-                    colC += 1
-
-                HTMLcols += HTML.add(f'h1', _nest=f'Action', _id=f'header_Action', _class=f'SubPage_page_header', _style=f'headerSmall %% {styleP}')
-                colC += 0.5
-
-                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-                break
-
-            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
-
-            for item in HTML.get(f'SubPage_page_header', isClass=True):
-                if item.id.split("_")[1] in glb.halfView:
-                    item.style.width = f'{110 / (colC * 2)}%'
-                    continue
-
-                item.style.width = f'{110 / colC}%'
-
-            return rowC, colC
-
-        def addInputRow(data, rowC, colC):
-            mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-            knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][mainValue]
-
-            styleInp = f'padding: 0px 1px 3px 1px; margin: 1px -1px; border: 2px solid #55F; border-radius: 0px;'
-            styleSlc = f'margin: 1px -1px; height: 28px; border: 2px solid #55F; border-radius: 0px;'
-            styleCbx = f'margin: 5px 2px; padding: 0px 0px;'
-
-            HTMLrows = f''
-            for record in data:
-                rowC += 1
-
-                if glb.tagIsList:
-                    if glb.optionsList[JS.cache("page_portalSub")] == []:
-                        allData = WS.dict()[glb.svcoms["main"]][f'/{mainValue}.json']
-                    else:
-                        allData = glb.optionsList[JS.cache("page_portalSub")]
-
-                    optionsHtml = f''
-
-                    for option in allData:
-                        optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
-
-                    name = f'{mainValue}_{len(allData)}'
-                    HTMLcols = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'SubPage_page_new_select_{name}', _class=f'SubPage_page_new', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{name}" size="1"')
-
-                else:
-                    HTMLcols = HTML.add(f'input', _id=f'SubPage_page_new_input_{mainValue}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{mainValue}"')
-
-                for value in data[record]:
-                    if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
-                        continue
-
-                    elif value in knownValues:
-                        if knownValues[value] is int:
-                            if value in glb.dates:
-                                HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'date', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
-                            else:
-                                HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
-
-                        elif knownValues[value] is bool:
-                            HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_checkbox_{value}', _class=f'SubPage_page_new', _type=f'checkbox', _style=f'inputMedium %% {styleCbx}', _custom=f'name="{value}" checked')
-
-                        elif knownValues[value] is list:
-                            if glb.optionsList[JS.cache("page_portalSub")] == []:
-                                allData = WS.dict()[glb.svcoms["main"]][f'/{value}.json']
-                            else:
-                                allData = glb.optionsList[JS.cache("page_portalSub")]
-
-                            optionsHtml = f''
-
-                            for option in allData:
-                                optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
-
-                            name = f'{value}_{len(allData)}'
-                            HTMLcols += HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'SubPage_page_new_select_{name}', _class=f'SubPage_page_new', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{name}" size="1" multiple')
-
-                        else:
-                            HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
-                            continue
-
-                    else:
-                        HTMLcols += HTML.add(f'input', _id=f'SubPage_page_new_input_{value}', _class=f'SubPage_page_new', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}"')
-
-                HTMLcols += HTML.add(f'button', _nest=f'Add', _id=f'SubPage_page_add', _type=f'submit', _style=f'buttonSmall %% color: #BFF; width: {110 / (colC * 2)}%;')
-                HTMLrows += HTML.add(f'form', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;', _custom=f'onsubmit="return false"')
-
-                break
-
-            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
-
-            for item in HTML.get(f'SubPage_page_new', isClass=True):
-                name = item.name.split("_")[0]
-
-                if item.localName == "select" and name in glb.halfView:
-                    item.style.width = f'{(110 / (colC * 2)) + 0.5}%'
-                    continue
-
-                elif item.localName == "select":
-                    item.style.width = f'{(110 / colC) + 0.5}%'
-                    continue
-
-                if name in glb.halfView:
-                    item.style.width = f'{110 / (colC * 2)}%'
-                    continue
-
-                item.style.width = f'{110 / colC}%'
-
-            return rowC
-
-        def addRows(data, rowC, colC):
-            mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-            knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][mainValue]
-            buttons = []
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
-
-            HTMLrows = f''
-            for record in data:
-                if glb.hideInactive and not data[record]["Active"]:
-                    continue
-
-                rowC += 1
-                HTMLcols = HTML.add(f'p', _nest=f'{record}', _id=f'{record}_{mainValue}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                for value in data[record]:
-                    if (glb.compactView and value in glb.excludeView) or (glb.hideInactive and value == "Active"):
-                        continue
-
-                    elif value in knownValues:
-                        if knownValues[value] is int:
-                            if value in glb.dates:
-                                HTMLcols += HTML.add(f'p', _nest=f'{datetime.fromtimestamp(data[record][value]).strftime("%d %b %y")}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                            else:
-                                HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                        elif knownValues[value] is bool:
-                            if data[record][value]:
-                                HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-                            else:
-                                HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                        elif knownValues[value] is list:
-                            HTMLcols += HTML.add(f'p', _nest=f'{", ".join(data[record][value])}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                        else:
-                            HTMLcols += HTML.add(f'p', _nest=f'{data[record][value]}', _id=f'{record}_{value}', _class=f'SubPage_page_records', _style=f'{styleP}')
-
-                HTMLcols += HTML.add(f'button', _nest=f'Del', _id=f'SubPage_page_del_{record}', _type=f'button', _style=f'buttonSmall %% padding: 1px 3px; width: {110 / (colC * 2)}%;')
-                buttons.append(f'SubPage_page_del_{record}')
-
-                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
-
-            for item in HTML.get(f'SubPage_page_records', isClass=True):
-                if item.id.split("_")[1] in glb.halfView:
-                    item.style.width = f'{110 / (colC * 2)}%'
-                    continue
-
-                item.style.width = f'{110 / colC}%'
-
-            return rowC, buttons
-
-        rowC, colC = addHeader(data)
-        rowC = addInputRow(data, rowC, colC)
-        rowC, buttons = addRows(data, rowC, colC)
-
-        for item in HTML.get(f'SubPage_page_new', isClass=True):
-            if not item.localName in ["input", "select"]:
-                continue
-
-            elif item.type == "text":
-                CSS.onHoverFocus(item.id, f'inputHover', f'inputFocus')
-            elif item.type == "select-multiple":
-                CSS.onHoverFocus(item.id, f'selectHover', f'selectFocus')
-
-            if item.name.split("_")[0] in glb.disabledInputs:
-                HTML.enable(item.id, False)
-
-        JS.addEvent(f'SubPage_page_add', addRecord)
-        CSS.onHoverClick(f'SubPage_page_add', f'buttonHover', f'buttonClick')
-
-        for button in buttons:
-            CSS.setStyle(f'{button}', f'width', f'{110 / (colC * 2)}%')
-            JS.addEvent(button, delRecord)
-            CSS.onHoverClick(button, f'buttonHover', f'buttonClick')
-
-        mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-
-        for item in HTML.get(f'SubPage_page_records', isClass=True):
-            if not item.id.split("_")[1] == mainValue:
-                JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
     def addMinimal(data):
         def addHeader():
@@ -926,9 +701,7 @@ def pageSub(args, extraData: dict = {}):
 
     HTML.clear(f'SubPage_page')
 
-    data = setup(args, extraData)
-
-    # JS.log(str(JS.sheet(data)))
+    data = setup(args)
 
     if data is None:
         return None
@@ -943,7 +716,23 @@ def pageSub(args, extraData: dict = {}):
         return None
 
     else:
-        addFull(data)
+        if glb.hideInactive:
+            for key in dict(data):
+                if not "Active" in data[key] or key == " " or len(data) < 2:
+                    continue
+                elif not data[key]["Active"]:
+                    data.pop(key)
+
+        htmlStr, eventConfig = widgets.sheet(maincom=glb.maincoms[JS.cache("page_portal")],
+                                             name=JS.cache("page_portalSub"),
+                                             data=dict(data),
+                                             dates=tuple(glb.dates),
+                                             halfView=list(glb.halfView),
+                                             excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
+                                             typeDict=dict(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]]),
+                                             optionsDict=dict(WS.dict()[glb.svcoms["main"]]))
+        HTML.setRaw("SubPage_page", htmlStr)
+        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig), 50)
 
 
 def main(args=None, sub=None):
