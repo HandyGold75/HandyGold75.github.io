@@ -11,6 +11,7 @@ class invoke:
                 "IP": str,
                 "PORT": int,
                 "LogLevel": int,
+                "SonosSubnet": int,
                 "Debug": bool,
                 "Modified": int
             },
@@ -153,7 +154,7 @@ class invoke:
                     "URL": str,
                     "DOP": int,
                     "EOL": int,
-                    "Cost": int,
+                    "Cost": float,
                     "Auto Renew": bool,
                     "Modified": int,
                     "Active": bool,

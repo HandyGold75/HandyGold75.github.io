@@ -788,7 +788,9 @@ class widgets:
                 if valueType == "NoneType":
                     typ = "text"
                 elif key in dates and valueType in ("int", "float"):
-                    typ, valueType = ("date", "date")
+                    typ, custom, valueType = ("date", f' value="{datetime.now().strftime("%Y-%m-%d")}"', "date")
+                elif valueType in ("int", "float"):
+                    typ = "number"
                 elif valueType == "bool":
                     typ, custom, styleInp = ("checkbox", " checked", " height: 75%; background: #333; color: #BFF;")
                 elif valueType in ["list", "tuple"]:
@@ -838,35 +840,95 @@ class widgets:
     def sheetMakeEvents(eventConfig: dict): # invokePasswordOnChange: tuple, comMap: tuple)
         def onDblClick(args):
             def submit(args):
+                if not args.key in ["Enter", "Escape"]:
+                    return None
+
                 el = document.getElementById(args.target.id)
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+                value = el.value
 
-                JS.log(el.id)
+                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
-            def submitList(args):
-                el = document.getElementById(args.target.id.replace("Div_", "Input_"))
-                maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
+                txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                el.parentElement.innerHTML = txt
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
 
-                JS.log(el.id)
+            def submitDate(args):
+                if not args.key in ["Enter", "Escape"]:
+                    return None
 
-            def submitBool(args):
-                value = not (lambda: False if args.target.innerHTML == "No" else True)()
+                el = document.getElementById(args.target.id)
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+                value = int(datetime.strptime(el.value, "%Y-%m-%d").timestamp())
+
+                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+
+                value = datetime.fromtimestamp(value).strftime("%d %b %y")
+                txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                el.parentElement.innerHTML = txt
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+
+            def submitNumber(args):
+                if not args.key in ["Enter", "Escape"]:
+                    return None
+
+                el = document.getElementById(args.target.id)
+                maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+                value = (lambda: float(el.value) if valueType == "float" else int(el.value))()
+
+                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+
+                txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                el.parentElement.innerHTML = txt
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+
+            
+            def submitBool(args):
+                el = document.getElementById(args.target.id)
+                maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+                value = not (lambda: False if el.innerHTML == "No" else True)()
 
                 brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
 
                 if value:
-                    args.target.innerHTML = "Yes"
+                    el.innerHTML = "Yes"
                     return None
-                args.target.innerHTML = "No"
+                el.innerHTML = "No"
+
+            def submitList(args):
+                if not args.key in ["Enter", "Escape"]:
+                    return None
+
+                el = document.getElementById(args.target.id.replace("Div_", "Input_"))
+                maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
+
+                value = []
+                for subEls in list(args.target.childNodes):
+                    if subEls.selected is True:
+                        value.append(subEls.value)
+                value = ", ".join(value)
+
+                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+
+                pel = el.parentElement
+                for style in ("z-index", "margin-bottom", "min-height", "color", "background", "overflow", "scrollbar-width", "transition", "margin-bottom", "min-height"):
+                    setattr(pel.style, style, "")
+
+                txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                pel.innerHTML = txt
+                pel.outerHTML = pel.outerHTML
+
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
 
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
 
             main, typ, custom, nest, styleInp = ("input", "text", f' value="{args.target.innerHTML}"', "", " height: 110%; top: -1px; background: #333; color: #BFF;")
             if valueType == "NoneType":
                 typ = "text"
-            elif key in ["dates"] and valueType in ("int", "float"): # dates needs to be dynamic
-                typ, valueType = ("date", "date")
+            elif valueType == "date": # dates needs to be dynamic
+                typ, custom, valueType = ("date", f' value="{datetime.strptime(args.target.innerHTML, "%d %b %y").strftime("%Y-%m-%d")}"', "date")
+            elif valueType in ("int", "float"):
+                typ = "number"
             elif valueType == "bool":
                 submitBool(args)
                 return None
@@ -885,14 +947,20 @@ class widgets:
             pel = args.target.parentElement
             pel.innerHTML = txt
 
-            if valueType == "list":
+            func = submit
+            if valueType == "date":
+                func = submitDate
+            elif valueType in ("int","float"):
+                func = submitNumber
+            elif valueType == "list":
                 pel.style.background = "#333"
                 pel.style.color = "#BFF"
                 brdg.CSS.onHoverFocus(pel.id, "selectHover %% margin-bottom: -135px; min-height: 159px", "selectFocus %% margin-bottom: -135px; min-height: 159px")
                 document.getElementById(pel.id).addEventListener("keyup", create_proxy(submitList))
-            else:
-                brdg.CSS.onHoverFocus(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}', "inputHover", "inputFocus")
-                document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(submit))
+                return None
+            
+            brdg.CSS.onHoverFocus(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}', "inputHover", "inputFocus")
+            document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(func))
 
         def addRecord(args):
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
