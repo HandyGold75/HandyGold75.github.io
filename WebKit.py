@@ -472,7 +472,6 @@ class JS:
     getWindow = lambda: window
     getVP = lambda: window.innerHeight, window.innerWidth
     afterDelay = lambda func, delay: setTimeout(create_once_callable(func), delay)
-    afterDelay = lambda func, delay: setTimeout(create_once_callable(func), delay)
     aSync = lambda func: setTimeout(create_once_callable(func), 0)
     atInterval = lambda func, delay: setInterval(create_proxy(func), delay)
     jsEval = lambda com: eval(str(com))
@@ -691,7 +690,26 @@ class WS:
 
 
 class widgets:
-    def sheet(maincom: str, name: str, data: dict, dates: tuple = (), halfView: list = [], excludeView: tuple = (), typeDict: dict = {}, optionsDict: dict = {}, showAddRem: bool = True):
+    def sheet(maincom: str,
+              name: str,
+              data: dict,
+              elId: str = None,
+              dates: tuple = (),
+              halfView: list = [],
+              excludeView: tuple = (),
+              typeDict: dict = {},
+              optionsDict: dict = {},
+              showAddRem: bool = True,
+              showTag: bool = True,
+              tagIsList: bool = True,
+              index: int = 0):
+        def recursion(args=None):
+            if document.getElementById(f'{maincom}_{name}_loadMore') is None:
+                return None
+            el = document.getElementById(f'{maincom}_{name}_loadMore')
+            el.outerHTML = el.outerHTML
+            widgets.sheet(maincom=maincom, name=name, data=data, elId=elId, dates=dates, halfView=halfView, excludeView=excludeView, typeDict=typeDict, optionsDict=optionsDict, showAddRem=showAddRem, showTag=showTag, index=index + 1)
+
         def getLines(data, exclude):
             headers = []
             for key in data:
@@ -709,16 +727,26 @@ class widgets:
             return lines
 
         lines = getLines(data, excludeView)
+
+        if not elId is None and index == 0:
+            brdg.HTML.add("div", elId, _id=f'{maincom}_{name}', _style="margin: 10px; border: 2px solid #111;")
+            brdg.HTML.add(f'button', elId, _id=f'{maincom}_{name}_loadMore', _nest=f'Load more (0 / {len(lines)})', _type=f'button', _style=f'buttonBig %% width: 50%;')
+            document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
+            brdg.CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
+
         halfViewTmp = list(halfView)
         halfView = (lambda: ["Action"] if showAddRem and "Action" in halfViewTmp else [])()
         for key in halfViewTmp:
             if key in lines[0]:
                 halfView.append(key)
 
-        defaultWidth = (lambda: 100 / (len(lines[0]) + 1 - (len(halfView) / 2)) if showAddRem else 100 / (len(lines[0]) - (len(halfView) / 2)))()
+        defaultWidth = 100 / (len(lines[0]) + (showAddRem - (not showTag)) - (len(halfView) / 2))
         rows = ""
         eventConfig = {"editIds": [], "inputIds": [], "actionIds": []}
-        for lineIndex, line in enumerate(lines):
+        for lineIndex, line in (lambda: enumerate(lines) if elId is None else enumerate([lines[index]]))():
+            if not elId is None:
+                lineIndex = index
+
             background = (lambda: " background: #191919;" if lineIndex == 0 else " background: #202020;")()
             borderBottom = (lambda: "" if lineIndex + 1 >= len(lines) else " border-bottom: 2px solid #111;")()
             fontStyle = (lambda: "headerSmall %% " if lineIndex == 0 else "font-size: 75%; ")()
@@ -728,6 +756,9 @@ class widgets:
             for valueIndex, value in enumerate(line):
                 borderRight = (lambda: "" if valueIndex + 1 >= len(line) and not showAddRem else " border-right: 2px solid #111;")()
                 key = lines[0][valueIndex]
+
+                if key == "Tag" and not showTag:
+                    continue
 
                 valueType = (lambda: typeDict[key].__name__ if key in typeDict else type(value).__name__)()
 
@@ -749,7 +780,7 @@ class widgets:
                 else:
                     cols += brdg.HTML.add("div", _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
 
-                if valueIndex + 1 < len(line):
+                if valueIndex + 1 < len(line) or not showAddRem:
                     continue
 
                 if lineIndex == 0:
@@ -769,9 +800,15 @@ class widgets:
                     _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden; margin: 0px -2px 0px 0px;')
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
-            rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px;{background}{borderBottom}')
+            if not elId is None:
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% min-height: 21px;{background}{borderBottom}')
+                brdg.HTML.setRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
+                if lineIndex > 100:
+                    document.getElementById(f'{maincom}_{name}_loadMore').scrollIntoView()
+            else:
+                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px;{background}{borderBottom}')
 
-            if lineIndex != 0:
+            if lineIndex != 0 or not showAddRem:
                 continue
 
             cols = ""
@@ -795,6 +832,19 @@ class widgets:
                     typ, custom, styleInp = ("checkbox", " checked", " height: 75%; background: #333; color: #BFF;")
                 elif valueType in ["list", "tuple"]:
                     main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\" multiple", " height: 110%; top: -1px; background: transparent; color: inherit;", " background: #333; color: #BFF;")
+
+                    allData = []
+                    if key in optionsDict:
+                        allData = optionsDict[key]
+                    elif f'/{key}.json' in optionsDict:
+                        allData = optionsDict[f'/{key}.json']
+
+                    for option in allData:
+                        nest += HTML.add(f'option', _nest=f'{option}', _style="margin: 0px 1px; background: transparent; color: inherit;", _custom=f'value="{option}"')
+
+                if valueIndex == 0 and tagIsList:
+                    valueType = "str"
+                    main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\"", " height: 110%; top: -1px; background: transparent; color: inherit;", " background: #333; color: #BFF;")
 
                     allData = []
                     if key in optionsDict:
@@ -833,11 +883,24 @@ class widgets:
                     _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
-            rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px; background: #202020;{borderBottom}')
+            if not elId is None:
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% min-height: 21px; background: #202020;{borderBottom}')
+            else:
+                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px; background: #202020;{borderBottom}')
+
+        if not elId is None and index + 1 < len(lines):
+            if index % 100 == 0 and not index == 0:
+                document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
+                brdg.CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
+                return None
+            JS.aSync(recursion)
+
+        elif not elId is None:
+            return eventConfig
 
         return (brdg.HTML.add("div", _id=f'{maincom}_{name}', _nest=rows, _style="margin: 10px; border: 2px solid #111;"), eventConfig)
 
-    def sheetMakeEvents(eventConfig: dict): # invokePasswordOnChange: tuple, comMap: tuple)
+    def sheetMakeEvents(eventConfig: dict): # invokePasswordOnChange: tuple)
         def onDblClick(args):
             def submit(args):
                 if not args.key in ["Enter", "Escape"]:
@@ -847,7 +910,7 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = el.value
 
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
@@ -861,7 +924,7 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = int(datetime.strptime(el.value, "%Y-%m-%d").timestamp())
 
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
 
                 value = datetime.fromtimestamp(value).strftime("%d %b %y")
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
@@ -876,19 +939,18 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = (lambda: float(el.value) if valueType == "float" else int(el.value))()
 
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
                 document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
 
-            
             def submitBool(args):
                 el = document.getElementById(args.target.id)
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = not (lambda: False if el.innerHTML == "No" else True)()
 
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
 
                 if value:
                     el.innerHTML = "Yes"
@@ -908,7 +970,7 @@ class widgets:
                         value.append(subEls.value)
                 value = ", ".join(value)
 
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
                 pel = el.parentElement
                 for style in ("z-index", "margin-bottom", "min-height", "color", "background", "overflow", "scrollbar-width", "transition", "margin-bottom", "min-height"):
@@ -950,7 +1012,7 @@ class widgets:
             func = submit
             if valueType == "date":
                 func = submitDate
-            elif valueType in ("int","float"):
+            elif valueType in ("int", "float"):
                 func = submitNumber
             elif valueType == "list":
                 pel.style.background = "#333"
@@ -958,7 +1020,7 @@ class widgets:
                 brdg.CSS.onHoverFocus(pel.id, "selectHover %% margin-bottom: -135px; min-height: 159px", "selectFocus %% margin-bottom: -135px; min-height: 159px")
                 document.getElementById(pel.id).addEventListener("keyup", create_proxy(submitList))
                 return None
-            
+
             brdg.CSS.onHoverFocus(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}', "inputHover", "inputFocus")
             document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(func))
 
@@ -986,12 +1048,12 @@ class widgets:
 
                 if i == 0:
                     tag = els.value
-                    brdg.WS.send(f'{maincom} add /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")}')
+                    brdg.WS.send(f'{maincom} add {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
                     continue
 
                 from subs.portal_sheets import pageSub
-                WS.onMsg("{\"lm\":", pageSub, oneTime=True)
-                brdg.WS.send(f'{maincom} rmodify /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                WS.onMsg("{\"" + maincom + "\":", pageSub, oneTime=True)
+                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
         def remRecord(args):
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
@@ -1000,8 +1062,8 @@ class widgets:
                 return None
 
             from subs.portal_sheets import pageSub
-            WS.onMsg("{\"lm\":", pageSub, oneTime=True)
-            brdg.WS.send(f'{maincom} delete /{sheet.replace(" ", "%20")}.json {tag.replace(" ", "%20")}')
+            WS.onMsg("{\"" + maincom + "\":", pageSub, oneTime=True)
+            brdg.WS.send(f'{maincom} delete {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
 
         for id in eventConfig["editIds"]:
             document.getElementById(id).addEventListener("dblclick", create_proxy(onDblClick))
@@ -1211,6 +1273,9 @@ class brdg:
 
         def set(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id: str = None, _class: str = None, _type: str = None, _align: str = None, _style: str = None, _custom: str = None):
             return HTML.set(type, id, _nest, _prepend, _id, _class, _type, _align, _style, _custom)
+
+        def setRaw(id: str, html: str):
+            return HTML.setRaw(id, html)
 
         def add(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id: str = None, _class: str = None, _type: str = None, _align: str = None, _style: str = None, _custom: str = None):
             return HTML.add(type, id, _nest, _prepend, _id, _class, _type, _align, _style, _custom)
