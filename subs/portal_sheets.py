@@ -6,12 +6,13 @@ from datetime import datetime, timedelta
 class invoke:
     def AP(args=None):
         glb.lastUpdate = 0
+
         glb.knownFiles = {
             "/Config.json": {
                 "IP": str,
                 "PORT": int,
                 "LogLevel": int,
-                "SonosSubnet": int,
+                "SonosSubnet": list,
                 "Debug": bool,
                 "Modified": int
             },
@@ -27,31 +28,31 @@ class invoke:
                     "Notes": str
                 }
             },
-            "/Server.log": str
+            "/Server.log": {
+                "Index": {
+                    "Date/ Time": str,
+                    "IP/ Port": str,
+                    "Command": str,
+                    "Status": str
+                }
+            }
         }
 
         glb.dates = ["Modified", "Expires"]
-
-        glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "TapoUser", "Action"]
-        glb.compactView = False
-
+        glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "TapoUser", "Action", "Date/ Time", "IP/ Port", "Status"]
         glb.excludeView = ["Expires", "Modified", "TapoUser", "Notes"]
-        glb.hideInactive = False
-
-        glb.disabledInputs = ["Token", "User", "Auth", "Roles", "Expires", "Modified", "Active", "TapoUser", "Notes"]
         glb.invokePasswordOnChange = ["User", "TapoUser"]
-
-        glb.optionsList = {"Config": [], "Tokens": ["Admin", "Home"], "Logs": []}
+        glb.optionsDict = {"/Tokens.json": {"Roles": ["Admin", "Home"]}}
         glb.tagIsList = False
-
         glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "rpwmodify": "tkpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
-
-        glb.extraButtons = (("Clean", "clean", clean, True), ("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
+        glb.mainCom = "admin"
+        glb.extraButtons = (("Clean", "clean", clean, True), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
     def AM(args=None):
         glb.lastUpdate = 0
+
         glb.knownFiles = {
             "/Assignments.json": {
                 "User": {
@@ -108,27 +109,20 @@ class invoke:
         }
 
         glb.dates = ["DOP", "EOL", "Modified"]
-
         glb.halfView = ["User", "Tag", "Brand", "Series", "Active", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Action"]
-        glb.compactView = False
-
         glb.excludeView = ["S/N", "MAC", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Notes"]
-        glb.hideInactive = False
-
-        glb.disabledInputs = ["Modified"]
         glb.invokePasswordOnChange = []
-
-        glb.optionsList = {"Assignments": [], "Devices": [], "Assets": [], "Servers": []}
+        glb.optionsDict = {}
         glb.tagIsList = False
-
         glb.svcoms = {"main": "am", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
-
+        glb.mainCom = "am"
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
     def LM(args=None):
         glb.lastUpdate = 0
+
         glb.knownFiles = {
             "/Assignments.json": {
                 "Tag": {
@@ -164,159 +158,70 @@ class invoke:
         }
 
         glb.dates = ["DOP", "EOL", "Modified"]
-
         glb.halfView = ["Tag", "DOP", "EOL", "Cost", "Auto Renew", "Modified", "Active", "Action"]
-        glb.compactView = False
-
         glb.excludeView = ["DOP", "EOL", "Cost", "Auto Renew", "Modified", "Notes"]
-        glb.hideInactive = False
-
-        glb.disabledInputs = ["Modified"]
         glb.invokePasswordOnChange = []
-
-        glb.optionsList = {"Assignments": [], "Devices": [], "Licenses": []}
+        glb.optionsDict = {}
         glb.tagIsList = False
-
         glb.svcoms = {"main": "lm", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
-
+        glb.mainCom = "lm"
         glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
     def QR(args=None):
         glb.lastUpdate = 0
+
         glb.knownFiles = {"/Links.json": {"Tag": {"url": str, "text": str, "cat": str, "Index": int, "Active": bool, "Modified": int}}, "/Contact.json": {"Tag": {"url": str, "text": str, "Index": int, "Active": bool, "Modified": int}}}
-
         glb.dates = ["Modified"]
-
         glb.halfView = ["Index", "Modified", "Active", "Action"]
-        glb.compactView = False
-
         glb.excludeView = ["Index", "Modified"]
-        glb.hideInactive = False
-
-        glb.disabledInputs = ["Modified"]
         glb.invokePasswordOnChange = []
-
-        glb.optionsList = {
-            "Links": [
-                "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "M365.png", "Nord.png",
-                "NS.png", "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png", "Zwoofs.png"
-            ],
-            "Contact": ["discord.png", "exchange.png", "snapchat.png", "spotify.png", "steam.png", "twitch.png", "youtube.png"]
+        glb.optionsDict = {
+            "/Links.json": {
+                "Tag": [
+                    "Bol.png", "CloudConvert.png", "Cloudflare.png", "Dell.png", "DownDetector.png", "G-Calendar.png", "G-Drive.png", "GitHub.png", "G-Mail.png", "G-Photos.png", "Linode.png", "LinusTechTips.png", "Megekko.png", "M365.png", "Nord.png",
+                    "NS.png", "OneDrive.png", "OneTimeSecret.png", "Outlook.png", "OutlookCalendar.png", "RockStar.png", "SokPop.png", "Sophos.png", "SpeedTest.png", "Spotify.png", "UniFi.png", "Vodafone.png", "YouTube.png", "YouTubeMusic.png",
+                    "Zwoofs.png"
+                ]
+            },
+            "/Contact.json": {
+                "Tag": ["discord.png", "exchange.png", "snapchat.png", "spotify.png", "steam.png", "twitch.png", "youtube.png"]
+            }
         }
         glb.tagIsList = True
-
         glb.maincoms = {"Admin": "admin", "Asset Manager": "am", "License Manager": "lm", "Query": "qr"}
         glb.svcoms = {"main": "qr", "read": "read", "add": "add", "modify": "modify", "rmodify": "rmodify", "rpwmodify": "rpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
-
-        glb.extraButtons = (("Bulk Add", "bulkadd", bulkAdd, False), ("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
+        glb.mainCom = "qr"
+        glb.extraButtons = (("Inactive", "active", pageSub, False), ("Expand", "compact", pageSub, False))
 
         getData()
 
 
 class glb:
     lastUpdate = 0
-    knownFiles = {}
-
-    dates = []
-
-    halfView = []
     compactView = None
-
-    excludeView = []
     hideInactive = None
 
-    disabledInputs = []
+    knownFiles = {}
+    dates = []
+    halfView = []
+    excludeView = []
     invokePasswordOnChange = []
-
-    optionsList = []
+    optionsDict = []
     tagIsList = None
-
     maincoms = {}
     svcoms = {}
-    logsLoaded = 0
-
+    mainCom = ""
     extraButtons = ()
 
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
         for file in glb.knownFiles:
-            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["read"]} {file}')
+            WS.send(f'{glb.mainCom} {glb.svcoms["read"]} {file}')
 
         glb.lastUpdate = datetime.now().timestamp()
-
-
-def addRecord(args):
-    if glb.svcoms["add"] == "uadd":
-        WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json')
-
-        JS.popup(f'alert', f'New user created.\nReload the subpage for changes to appear.')
-
-        return None
-
-    token = ""
-    data = {}
-
-    mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-    knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][mainValue]
-
-    for item in HTML.get(f'SubPage_page_new', isClass=True):
-        name = str(item.name.split("_")[0])
-        value = str(item.value)
-
-        if name == mainValue and ("_" in value):
-            JS.popup(f'alert', f'Invalid format for "{name}"!\n"{name}" may not include underscores ("_").')
-            return None
-
-        if name in knownValues:
-            if knownValues[name] is int:
-                if value == "":
-                    value = 0
-
-                if name in glb.dates:
-                    value = int(datetime.now().timestamp())
-
-                    if item.value != "":
-                        value = int(datetime.strptime(item.value, "%Y-%m-%d").timestamp())
-                else:
-                    value = int(value)
-
-            elif knownValues[name] is bool:
-                value = bool(item.checked)
-
-            elif knownValues[name] is list:
-                value = []
-
-                for i1 in range(0, int(item.name.split("_")[1])):
-                    if item.item(i1).selected is True:
-                        value.append(item.item(i1).value)
-
-            elif item.value == "":
-                value = knownValues[name]()
-            else:
-                value = knownValues[name](item.value)
-
-        if name == mainValue:
-            token = value
-            data[token] = {}
-
-            for knownValue in knownValues:
-                if knownValue != mainValue:
-                    if knownValues[knownValue] is bool:
-                        data[token][knownValue] = not knownValues[knownValue]()
-                        continue
-
-                    data[token][knownValue] = knownValues[knownValue]()
-            continue
-
-        data[token][name] = value
-
-    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {token.replace(" ", "%20")}')
-    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["modify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {token.replace(" ", "%20")} {str(data).replace(" ", "%20").replace("False", "false").replace("True", "true")}')
-
-    pageSub(args)
 
 
 def editRecord(args):
@@ -327,13 +232,13 @@ def editRecord(args):
         el = HTML.get(f'{args.target.id}')
 
         if "_" in el.id:
-            mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-            knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][mainValue]
+            mainValue = list(glb.knownFiles[JS.cache("page_portalSub")])[-1]
+            knownValues = glb.knownFiles[JS.cache("page_portalSub")][mainValue]
             value = el.id.split("_")[1]
 
         else:
             mainValue = None
-            knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json']
+            knownValues = glb.knownFiles[JS.cache("page_portalSub")]
             value = el.id
 
         data = el.value.replace(" ", "%20")
@@ -389,14 +294,14 @@ def editRecord(args):
                 password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), WS.PK)).replace(" ", "%20")
 
             if not mainValue is None:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
+                WS.send(f'{glb.mainCom} {glb.svcoms["rpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
             else:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kpwmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace("User", "")}Password {password}')
+                WS.send(f'{glb.mainCom} {glb.svcoms["kpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace("User", "")}Password {password}')
 
         if not mainValue is None:
-            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
+            WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
         else:
-            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} {data}')
+            WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
 
         el.outerHTML = html
 
@@ -410,13 +315,13 @@ def editRecord(args):
 
     if "_" in el.id:
         value = el.id.split("_")[1]
-        mainValue = list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]
-        knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][mainValue]
+        mainValue = list(glb.knownFiles[JS.cache("page_portalSub")])[-1]
+        knownValues = glb.knownFiles[JS.cache("page_portalSub")][mainValue]
 
     else:
         value = el.id
         mainValue = None
-        knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json']
+        knownValues = glb.knownFiles[JS.cache("page_portalSub")]
 
     if el.innerHTML == " ":
         el.innerHTML = ""
@@ -435,26 +340,26 @@ def editRecord(args):
         elif knownValues[value] is bool:
             if el.innerHTML == "No":
                 if not mainValue is None:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
                 else:
-                    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} True')
+                    WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} True')
 
                 el.innerHTML = "Yes"
                 return None
 
             if not mainValue is None:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["rmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
+                WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
             else:
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["kmodify"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {value.replace(" ", "%20")} False')
+                WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} False')
 
             el.innerHTML = "No"
             return None
 
         elif knownValues[value] is list:
-            if glb.optionsList[JS.cache("page_portalSub")] == []:
-                data = WS.dict()[glb.svcoms["main"]][f'/{el.id.split("_")[1]}.json']
+            if glb.optionsDict[JS.cache("page_portalSub")] == []:
+                data = WS.dict()[glb.mainCom][f'{el.id.split("_")[1]}']
             else:
-                data = glb.optionsList[JS.cache("page_portalSub")]
+                data = glb.optionsDict[JS.cache("page_portalSub")]
 
             optionsHtml = f''
 
@@ -477,15 +382,6 @@ def editRecord(args):
     JS.addEvent(el.id, submit, "keyup")
 
 
-def delRecord(args):
-    if not JS.popup(f'confirm', f'Are you sure you want to delete "{args.target.id.split("_")[-1]}"?\nThis can not be reverted!'):
-        return None
-
-    WS.send(f'{glb.svcoms["main"]} {glb.svcoms["delete"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {args.target.id.split("_")[-1].replace(" ", "%20")}')
-
-    HTML.get(HTML.get(f'{args.target.id}').parentNode.id).remove()
-
-
 def bulkAdd(args):
     if JS.cache("page_portalSub") == "":
         return None
@@ -505,11 +401,11 @@ def bulkAdd(args):
     if JS.popup(f'confirm', f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
         for i in range(0, amount):
             if glb.svcoms["add"] == "uadd":
-                WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
+                WS.send(f'{glb.mainCom} {glb.svcoms["add"]} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
                 continue
 
-            WS.onMsg("{\"" + glb.svcoms["main"] + "\":", pageSub, oneTime=True)
-            WS.send(f'{glb.svcoms["main"]} {glb.svcoms["add"]} /{JS.cache("page_portalSub").replace(" ", "%20")}.json {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
+            WS.onMsg("{\"" + glb.mainCom + "\":", pageSub, oneTime=True)
+            WS.send(f'{glb.mainCom} {glb.svcoms["add"]} {JS.cache("page_portalSub").replace(" ", "%20")} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
 
 def clean(args):
@@ -518,13 +414,13 @@ def clean(args):
 
     if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
         WS.onMsg("{\"admin\":", cleanResults, oneTime=True)
-        WS.send(f'{glb.svcoms["main"]} {glb.svcoms["clean"]}')
+        WS.send(f'{glb.mainCom} {glb.svcoms["clean"]}')
 
 
 def pageSub(args=None):
     def setup(args):
-        data = WS.dict()[glb.svcoms["main"]]
-        file = f'/{JS.cache("page_portalSub")}.json'
+        data = WS.dict()[glb.mainCom]
+        file = JS.cache("page_portalSub")
 
         if not args is None:
             if args.target.id.split("_")[-1] == "compact":
@@ -547,12 +443,12 @@ def pageSub(args=None):
                 else:
                     el.innerHTML = "Active"
 
-            elif f'/{args.target.id.split("_")[-1]}.json' in glb.knownFiles:
-                file = f'/{args.target.id.split("_")[-1]}.json'
+            elif f'{args.target.id.split("_")[-1]}' in glb.knownFiles:
+                file = f'{args.target.id.split("_")[-1]}'
                 JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
-            elif f'/{args.target.id.split("_")[-1]}' in glb.knownFiles:
-                file = f'/{args.target.id.split("_")[-1]}'
+            elif f'{args.target.id.split("_")[-1]}' in glb.knownFiles:
+                file = f'{args.target.id.split("_")[-1]}'
                 JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
         if not file in data:
@@ -594,7 +490,7 @@ def pageSub(args=None):
             return rowC
 
         def addRows(data, rowC):
-            knownValues = glb.knownFiles[f'/{JS.cache("page_portalSub")}.json']
+            knownValues = glb.knownFiles[JS.cache("page_portalSub")]
             styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
 
             HTMLrows = f''
@@ -639,78 +535,39 @@ def pageSub(args=None):
             if item.id != "":
                 JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
-    def addLogs(data):
-        def loadLogs(args=None):
-            rowC = glb.logsLoaded
-            styleP = f'margin: -1px ; padding: 3px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
-
-            cutInt = None
-            if rowC > 0:
-                cutInt = -rowC
-
-            endTime = (datetime.now() + timedelta(milliseconds=100)).timestamp()
-
-            HTMLrows = f''
-            for line in reversed(data.split("\n")[:cutInt]):
-                if line == "":
-                    continue
-
-                rowC += 1
-                HTMLcols = f''
-                for i, item in enumerate(line.split("%S%")):
-                    HTMLcols += HTML.add(f'p', _nest=f'{item}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP};')
-                    pass
-
-                if endTime < datetime.now().timestamp():
-                    break
-
-                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
-
-            glb.logsLoaded = rowC
-
-            for item in HTML.get(f'SubPage_page_lines', isClass=True):
-                item.classList.remove(f'SubPage_page_lines')
-                item.style.width = sizeDict[item.id.split("_")[-1]]
-
-                if item.id.split("_")[-1] == "col2":
-                    if item.id == "SubPage_page_row0_col2":
-                        continue
-
-                    item.style.textAlign = "left"
-
-            if not HTML.get(f'SubPage_page_buttons') is None:
-                HTML.remove(f'SubPage_page_buttons')
-
-            btn = HTML.add(f'button', _nest=f'Load More', _id=f'SubPage_page_buttons_loadMoreLogs', _type=f'button', _style=f'buttonMedium %% width: 75%; height: 40px;')
-            HTML.add(f'div', f'SubPage_page', _nest=f'{btn}', _id=f'SubPage_page_buttons', _align=f'center', _style=f'padding-top: 15px; display: flex; justify-content: center;')
-
-            JS.addEvent(f'SubPage_page_buttons_loadMoreLogs', loadLogs)
-            CSS.onHoverClick(f'SubPage_page_buttons_loadMoreLogs', f'buttonHover', f'buttonClick')
-
-        rowC = 0
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-        sizeDict = {"col0": "10%", "col1": "12.5%", "col2": "70%", "col3": "7.5%"}
-        styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
-
-        for i, header in enumerate(["Date/ Time", "IP/ Port", "Command", "Status"]):
-            HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _id=f'SubPage_page_row{rowC}_col{i}', _class=f'SubPage_page_lines', _style=f'{styleP}')
-
-        loadLogs()
-
     HTML.clear(f'SubPage_page')
 
     data = setup(args)
-
     if data is None:
         return None
 
     elif type(data) is str:
-        glb.logsLoaded = 0
-        addLogs(data)
-        return None
+        dataTemp, data = (data, {})
+
+        for i1, line in enumerate(reversed(dataTemp.split("\n"))):
+            if line == "":
+                continue
+
+            data[i1], lineSplit = ({}, line.split("%S%"))
+            for i2, key in enumerate(dict(glb.knownFiles[JS.cache("page_portalSub")][list(glb.knownFiles[JS.cache("page_portalSub")])[-1]])):
+                try:
+                    data[i1][key] = lineSplit[i2]
+                except IndexError:
+                    data[i1][key] = ""
+
+        def doAction():
+            widgets.sheet(maincom=glb.maincoms[JS.cache("page_portal")],
+                          name=JS.cache("page_portalSub"),
+                          data=dict(data),
+                          elId="SubPage_page",
+                          dates=tuple(glb.dates),
+                          halfView=list(glb.halfView),
+                          excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
+                          typeDict=dict(glb.knownFiles[JS.cache("page_portalSub")][list(glb.knownFiles[JS.cache("page_portalSub")])[-1]]),
+                          showAddRem=False,
+                          showTag=False)
+
+        JS.aSync(doAction)
 
     elif type(data[list(data)[-1]]) is not dict:
         addMinimal(data)
@@ -724,55 +581,60 @@ def pageSub(args=None):
                 elif not data[key]["Active"]:
                     data.pop(key)
 
-        htmlStr, eventConfig = widgets.sheet(maincom=glb.maincoms[JS.cache("page_portal")],
-                                             name=JS.cache("page_portalSub"),
-                                             data=dict(data),
-                                             dates=tuple(glb.dates),
-                                             halfView=list(glb.halfView),
-                                             excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
-                                             typeDict=dict(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'][list(glb.knownFiles[f'/{JS.cache("page_portalSub")}.json'])[-1]]),
-                                             optionsDict=dict(WS.dict()[glb.svcoms["main"]]))
+        htmlStr, eventConfig = widgets.sheet(
+            maincom=glb.maincoms[JS.cache("page_portal")],
+            name=JS.cache("page_portalSub"),
+            data=dict(data),
+            dates=tuple(glb.dates),
+            halfView=list(glb.halfView),
+            excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
+            typeDict=dict(glb.knownFiles[JS.cache("page_portalSub")][list(glb.knownFiles[JS.cache("page_portalSub")])[-1]]),
+            optionsDict=(lambda: {
+                **dict(WS.dict()[glb.mainCom]),
+                **dict(glb.optionsDict[JS.cache("page_portalSub")])
+            } if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))(),
+            tagIsList=glb.tagIsList,
+        )
         HTML.setRaw("SubPage_page", htmlStr)
         JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig), 50)
 
 
 def main(args=None, sub=None):
-    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
-
-    HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%;"')
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%;')
-
-    data = WS.dict()[glb.svcoms["main"]]
-
-    foundFile = False
-
-    for file in data:
-        if file in glb.knownFiles:
-            fileName = f'{file.replace("/", "").replace(".json", "")}'
-            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName.replace(".log", "")}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
-
-            foundFile = True
-
-    if not foundFile:
-        HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'center', _style=f'width: 100%;')
-        HTML.add(f'h2', f'SubPage_nav_main', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
-        HTML.enable(f'page_portal_{JS.cache(f"page_portal")}', False)
-
-        return None
-
+    data = WS.dict()[glb.mainCom]
     glb.hideInactive = True
     glb.compactView = True
 
+    btn = ""
+    for file in data:
+        if not file in glb.knownFiles:
+            continue
+        btn += HTML.add(f'button', _nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', _id=f'SubPage_nav_main_{file}', _type=f'button', _style=f'buttonSmall')
+
+    if btn == "":
+        txt = HTML.add(f'h2', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
+        HTML.set(f'div', f'SubPage', _id=f'SubPage_nav_main', _nest=txt, _align=f'center', _style=f'width: 100%;')
+        HTML.enable(f'page_portal_{JS.cache(f"page_portal")}', False)
+        return None
+
+    div = HTML.add(f'div', _id=f'SubPage_nav_main', _nest=btn, _align=f'left', _style=f'width: 60%;"')
+
+    btn = ""
     for butTxt, butId, butFunc, butAct in glb.extraButtons:
-        HTML.add(f'button', f'SubPage_nav_options', _nest=f'{butTxt}', _id=f'SubPage_nav_options_{butId}', _type=f'button', _align=f'right', _style=f'buttonSmall')
+        btn += HTML.add(f'button', _nest=f'{butTxt}', _id=f'SubPage_nav_options_{butId}', _type=f'button', _align=f'right', _style=f'buttonSmall')
+
+    div += HTML.add(f'div', _id=f'SubPage_nav_options', _nest=btn, _align=f'right', _style=f'width: 40%;')
+
+    mainDiv = HTML.add(f'div', _id=f'SubPage_nav', _nest=div, _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    mainDiv += HTML.add(f'div', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
+    HTML.setRaw(f'SubPage', mainDiv)
 
     for file in data:
-        if file in glb.knownFiles:
-            fileName = f'{file.replace("/", "").replace(".json", "")}'
-            JS.addEvent(f'SubPage_nav_main_{fileName}', pageSub)
-            JS.addEvent(f'SubPage_nav_main_{fileName}', getData, f'mousedown')
-            CSS.onHoverClick(f'SubPage_nav_main_{fileName}', f'buttonHover', f'buttonClick')
+        if not file in glb.knownFiles:
+            continue
+
+        JS.addEvent(f'SubPage_nav_main_{file}', pageSub)
+        JS.addEvent(f'SubPage_nav_main_{file}', getData, f'mousedown')
+        CSS.onHoverClick(f'SubPage_nav_main_{file}', f'buttonHover', f'buttonClick')
 
     for butTxt, butId, butFunc, butAct in glb.extraButtons:
         JS.addEvent(f'SubPage_nav_options_{butId}', butFunc)
