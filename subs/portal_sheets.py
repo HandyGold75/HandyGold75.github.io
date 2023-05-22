@@ -42,7 +42,7 @@ class invoke:
         glb.halfView = ["User", "Auth", "Expires", "Modified", "Active", "TapoUser", "Action", "Date/ Time", "IP/ Port", "Status"]
         glb.excludeView = ["Expires", "Modified", "TapoUser", "Notes"]
         glb.invokePasswordOnChange = ["User", "TapoUser"]
-        glb.optionsDict = {"/Tokens.json": {"Roles": ["Admin", "Home"]}}
+        glb.optionsDict = {"/Config.json": {"SonosSubnet": ["10.69.1.0/24", "10.69.2.0/24", "10.69.3.0/24", "10.69.4.0/24", "10.69.5.0/24"]}, "/Tokens.json": {"Roles": ["Admin", "Home"]}}
         glb.tagIsList = False
         glb.svcoms = {"main": "admin", "read": "read", "add": "uadd", "modify": "modify", "rmodify": "tkmodify", "rpwmodify": "tkpwmodify", "kmodify": "kmodify", "kpwmodify": "kpwmodify", "delete": "delete", "clean": "clean"}
         glb.mainCom = "admin"
@@ -224,164 +224,6 @@ def getData(args=None):
         glb.lastUpdate = datetime.now().timestamp()
 
 
-def editRecord(args):
-    def submit(args):
-        if not args.key in ["Enter", "Escape"]:
-            return None
-
-        el = HTML.get(f'{args.target.id}')
-
-        if "_" in el.id:
-            mainValue = list(glb.knownFiles[JS.cache("page_portalSub")])[-1]
-            knownValues = glb.knownFiles[JS.cache("page_portalSub")][mainValue]
-            value = el.id.split("_")[1]
-
-        else:
-            mainValue = None
-            knownValues = glb.knownFiles[JS.cache("page_portalSub")]
-            value = el.id
-
-        data = el.value.replace(" ", "%20")
-        width = el.style.width
-
-        if el.localName == "select":
-            width = f'{float(width.replace("%", "")) - 0.5}%'
-
-        if data == "":
-            data = "%20"
-
-        styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
-        html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
-
-        if value in knownValues:
-            if knownValues[value] is int:
-                if value in glb.dates:
-                    data = int(datetime.strptime(data, "%Y-%m-%d").timestamp())
-                    html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{datetime.fromtimestamp(data).strftime("%d %b %y")}</p>'
-                else:
-                    try:
-                        data = int(data)
-                    except ValueError:
-                        JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
-                        return None
-
-            elif knownValues[value] is float:
-                try:
-                    data = float(data)
-                except ValueError:
-                    JS.popup(f'alert', f'{data} is not a number!\nPlease enter a valid number.')
-                    return None
-
-            elif knownValues[value] is list:
-                data = []
-
-                for i in range(0, int(args.target.name.split("_")[1])):
-                    if args.target.item(i).selected is True:
-                        data.append(args.target.item(i).value)
-
-                data = ", ".join(data).replace(" ", "%20")
-                html = f'<p class="{el.className}" id="{el.id}" style="{styleP}">{data.replace("%20", " ")}</p>'
-
-        if value in glb.invokePasswordOnChange:
-            password = JS.popup(f'prompt', "Please enter the new password for the user.")
-
-            if password is None:
-                return None
-
-            if value != "User":
-                password = str(encrypt(password.encode(), WS.PK)).replace(" ", "%20")
-            else:
-                password = str(encrypt(data.encode() + "<SPLIT>".encode() + password.encode(), WS.PK)).replace(" ", "%20")
-
-            if not mainValue is None:
-                WS.send(f'{glb.mainCom} {glb.svcoms["rpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
-            else:
-                WS.send(f'{glb.mainCom} {glb.svcoms["kpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace("User", "")}Password {password}')
-
-        if not mainValue is None:
-            WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
-        else:
-            WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} {data}')
-
-        el.outerHTML = html
-
-        CSS.setStyle(f'{el.id}', f'width', f'{width}')
-
-        JS.addEvent(el.id, editRecord, "dblclick")
-
-    el = HTML.get(f'{args.target.id}')
-    width = el.style.width
-    parantHeight = HTML.get(el.parentElement.id).offsetHeight
-
-    if "_" in el.id:
-        value = el.id.split("_")[1]
-        mainValue = list(glb.knownFiles[JS.cache("page_portalSub")])[-1]
-        knownValues = glb.knownFiles[JS.cache("page_portalSub")][mainValue]
-
-    else:
-        value = el.id
-        mainValue = None
-        knownValues = glb.knownFiles[JS.cache("page_portalSub")]
-
-    if el.innerHTML == " ":
-        el.innerHTML = ""
-
-    styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-    styleSlc = f'height: {parantHeight + 4}px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-    html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
-
-    if value in knownValues:
-        if knownValues[value] is int:
-            if value in glb.dates:
-                html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'date', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{datetime.strptime(el.innerHTML, "%d %b %y").strftime("%Y-%m-%d")}"')
-            else:
-                html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
-
-        elif knownValues[value] is bool:
-            if el.innerHTML == "No":
-                if not mainValue is None:
-                    WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} True')
-                else:
-                    WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} True')
-
-                el.innerHTML = "Yes"
-                return None
-
-            if not mainValue is None:
-                WS.send(f'{glb.mainCom} {glb.svcoms["rmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace(" ", "%20")} False')
-            else:
-                WS.send(f'{glb.mainCom} {glb.svcoms["kmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace(" ", "%20")} False')
-
-            el.innerHTML = "No"
-            return None
-
-        elif knownValues[value] is list:
-            if glb.optionsDict[JS.cache("page_portalSub")] == []:
-                data = WS.dict()[glb.mainCom][f'{el.id.split("_")[1]}']
-            else:
-                data = glb.optionsDict[JS.cache("page_portalSub")]
-
-            optionsHtml = f''
-
-            for option in data:
-                optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
-
-            html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(data)}" size="1" multiple')
-
-    el.outerHTML = html
-
-    el = HTML.get(f'{el.id}')
-    el.style.width = width
-
-    if el.localName == "select":
-        el.style.width = f'{float(width.replace("%", "")) + 0.5}%'
-        CSS.onHoverFocus(el.id, f'selectHover %% margin-bottom: { - 105 + parantHeight}px;', f'selectFocus %% margin-bottom: { - 105 + parantHeight}px;')
-    else:
-        CSS.onHoverFocus(el.id, f'inputHover', f'inputFocus')
-
-    JS.addEvent(el.id, submit, "keyup")
-
-
 def bulkAdd(args):
     if JS.cache("page_portalSub") == "":
         return None
@@ -477,64 +319,6 @@ def pageSub(args=None):
 
         return data
 
-    def addMinimal(data):
-        def addHeader():
-            rowC = 0
-            HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
-
-            for header in ["Key", "Value"]:
-                HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-            return rowC
-
-        def addRows(data, rowC):
-            knownValues = glb.knownFiles[JS.cache("page_portalSub")]
-            styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 75%; word-wrap: break-word; background: #1F1F1F; color: #44F;'
-
-            HTMLrows = f''
-            for key in data:
-                rowC += 1
-                HTMLcols = HTML.add(f'p', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-                value = data[key]
-
-                if knownValues[key] is int:
-                    if key in glb.dates:
-                        HTMLcols += HTML.add(f'p', _nest=f'{datetime.fromtimestamp(value).strftime("%d %b %y")}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                    else:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                elif knownValues[key] is bool:
-                    if value:
-                        HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                    else:
-                        HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                elif knownValues[key] is list:
-                    HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                else:
-                    HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
-
-                HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
-
-            HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
-
-            return rowC
-
-        rowC = addHeader()
-        rowC = addRows(data, rowC)
-
-        for item in HTML.get(f'SubPage_page_keys', isClass=True):
-            item.style.width = "50%"
-
-        for item in HTML.get(f'SubPage_page_keys', isClass=True):
-            if item.id != "":
-                JS.addEvent(item, editRecord, "dblclick", isClass=True)
-
     HTML.clear(f'SubPage_page')
 
     data = setup(args)
@@ -570,8 +354,33 @@ def pageSub(args=None):
         JS.aSync(doAction)
 
     elif type(data[list(data)[-1]]) is not dict:
-        addMinimal(data)
-        return None
+        dataTemp, data = (data, {})
+
+        for i, key in enumerate(dict(glb.knownFiles[JS.cache("page_portalSub")])):
+            data[key] = {}
+            try:
+                data[key]["Value"] = dataTemp[key]
+            except IndexError:
+                data[key]["Value"] = ""
+
+        options = (lambda: {**dict(WS.dict()[glb.mainCom]), **dict(glb.optionsDict[JS.cache("page_portalSub")])} if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))()
+
+        htmlStr, eventConfig = widgets.sheet(
+            maincom=glb.maincoms[JS.cache("page_portal")],
+            name=JS.cache("page_portalSub"),
+            data=dict(data),
+            dates=tuple(glb.dates),
+            halfView=list(glb.halfView),
+            excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
+            typeDict=dict(glb.knownFiles[JS.cache("page_portalSub")]),
+            optionsDict=options,
+            showAddRem=False,
+        )
+        HTML.setRaw("SubPage_page", htmlStr)
+        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig, optionsDict=options, sendKey=False), 50)
+
+        # addMinimal(data)
+        # return None
 
     else:
         if glb.hideInactive:
@@ -581,6 +390,8 @@ def pageSub(args=None):
                 elif not data[key]["Active"]:
                     data.pop(key)
 
+        options = (lambda: {**dict(WS.dict()[glb.mainCom]), **dict(glb.optionsDict[JS.cache("page_portalSub")])} if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))()
+
         htmlStr, eventConfig = widgets.sheet(
             maincom=glb.maincoms[JS.cache("page_portal")],
             name=JS.cache("page_portalSub"),
@@ -589,14 +400,11 @@ def pageSub(args=None):
             halfView=list(glb.halfView),
             excludeView=(lambda: list(glb.excludeView) if glb.compactView else [])() + (lambda: ["Active"] if glb.hideInactive else [])(),
             typeDict=dict(glb.knownFiles[JS.cache("page_portalSub")][list(glb.knownFiles[JS.cache("page_portalSub")])[-1]]),
-            optionsDict=(lambda: {
-                **dict(WS.dict()[glb.mainCom]),
-                **dict(glb.optionsDict[JS.cache("page_portalSub")])
-            } if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))(),
+            optionsDict=options,
             tagIsList=glb.tagIsList,
         )
         HTML.setRaw("SubPage_page", htmlStr)
-        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig), 50)
+        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig, optionsDict=options), 50)
 
 
 def main(args=None, sub=None):

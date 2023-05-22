@@ -4,6 +4,7 @@ from rsa import PublicKey
 from json import loads
 from datetime import datetime
 from copy import deepcopy
+from rsa import encrypt
 
 
 class CSS:
@@ -742,7 +743,7 @@ class widgets:
 
         defaultWidth = 100 / (len(lines[0]) + (showAddRem - (not showTag)) - (len(halfView) / 2))
         rows = ""
-        eventConfig = {"editIds": [], "inputIds": [], "actionIds": []}
+        eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
         for lineIndex, line in (lambda: enumerate(lines) if elId is None else enumerate([lines[index]]))():
             if not elId is None:
                 lineIndex = index
@@ -777,6 +778,14 @@ class widgets:
                 if lineIndex != 0 and valueIndex != 0:
                     cols += brdg.HTML.add("div", _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
                     eventConfig["editIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
+                    if valueType in ["str", "list", "tuple"]:
+                        eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
+
+                elif lineIndex != 0:
+                    cols += brdg.HTML.add("div", _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
+                    if valueType in ["str", "list", "tuple"]:
+                        eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
+
                 else:
                     cols += brdg.HTML.add("div", _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
 
@@ -793,7 +802,7 @@ class widgets:
                 btn = brdg.HTML.add("button",
                                     _id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
                                     _nest=value,
-                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 110%; top: -1px; background: #333; color: #BFF;')
+                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -6px; background: #333; color: #BFF;')
                 cols += brdg.HTML.add(
                     "div",
                     _nest=btn,
@@ -801,12 +810,15 @@ class widgets:
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             if not elId is None:
-                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% min-height: 21px;{background}{borderBottom}')
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 21px;{background}{borderBottom}')
                 brdg.HTML.setRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
                 if lineIndex > 100:
                     document.getElementById(f'{maincom}_{name}_loadMore').scrollIntoView()
             else:
-                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px;{background}{borderBottom}')
+                if lineIndex == 0:
+                    rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 29px;{background}{borderBottom}')
+                else:
+                    rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 21px;{background}{borderBottom}')
 
             if lineIndex != 0 or not showAddRem:
                 continue
@@ -821,7 +833,7 @@ class widgets:
                 except IndexError:
                     valueType = "NoneType"
 
-                main, typ, custom, nest, styleInp, styleDiv = ("input", "text", "", "", " height: 110%; top: -1px; background: #333; color: #BFF;", "")
+                main, typ, custom, nest, styleInp, styleDiv = ("input", "text", "", "", " height: 100%; top: -1px; background: #333; color: #BFF; overflow: hidden;", " overflow: hidden;")
                 if valueType == "NoneType":
                     typ = "text"
                 elif key in dates and valueType in ("int", "float"):
@@ -829,9 +841,9 @@ class widgets:
                 elif valueType in ("int", "float"):
                     typ = "number"
                 elif valueType == "bool":
-                    typ, custom, styleInp = ("checkbox", " checked", " height: 75%; background: #333; color: #BFF;")
+                    typ, custom, styleInp = ("checkbox", " checked", " height: 75%; top: 1px; background: #333; color: #BFF; overflow: hidden;")
                 elif valueType in ["list", "tuple"]:
-                    main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\" multiple", " height: 110%; top: -1px; background: transparent; color: inherit;", " background: #333; color: #BFF;")
+                    main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\" multiple", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;", " background: #333; color: #BFF; overflow: hidden;")
 
                     allData = []
                     if key in optionsDict:
@@ -844,7 +856,7 @@ class widgets:
 
                 if valueIndex == 0 and tagIsList:
                     valueType = "str"
-                    main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\"", " height: 110%; top: -1px; background: transparent; color: inherit;", " background: #333; color: #BFF;")
+                    main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\"", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;", " background: #333; color: #BFF; overflow: hidden;")
 
                     allData = []
                     if key in optionsDict:
@@ -860,12 +872,12 @@ class widgets:
                                     _class=f'Input_{maincom}_{name}_{tag}',
                                     _nest=nest,
                                     _type=typ,
-                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden;{styleInp}',
+                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
                                     _custom=f'placeholder="{value}"{custom}')
                 cols += brdg.HTML.add("div",
                                       _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
                                       _nest=txt,
-                                      _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
+                                      _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px;{styleDiv}{margin}')
                 eventConfig["inputIds"].append(f'Input_{maincom}_{name}_{tag}_{key}_{valueType}')
 
                 if valueIndex + 1 < len(line):
@@ -875,7 +887,7 @@ class widgets:
                 btn = brdg.HTML.add("button",
                                     _id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
                                     _nest=value,
-                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 110%; top: -1px; background: #333; color: #BFF')
+                                    _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -1px; background: #333; color: #BFF')
                 cols += brdg.HTML.add(
                     "div",
                     _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
@@ -884,9 +896,9 @@ class widgets:
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             if not elId is None:
-                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% min-height: 21px; background: #202020;{borderBottom}')
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 21px; background: #202020;{borderBottom}')
             else:
-                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% min-height: 21px; background: #202020;{borderBottom}')
+                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 29px; background: #202020;{borderBottom}')
 
         if not elId is None and index + 1 < len(lines):
             if index % 100 == 0 and not index == 0:
@@ -900,8 +912,25 @@ class widgets:
 
         return (brdg.HTML.add("div", _id=f'{maincom}_{name}', _nest=rows, _style="margin: 10px; border: 2px solid #111;"), eventConfig)
 
-    def sheetMakeEvents(eventConfig: dict): # invokePasswordOnChange: tuple)
-        def onDblClick(args):
+    def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, sendKey: bool = True): # invokePasswordOnChange: tuple
+        # def passwordTemplate(value, mainValue, glb, name):
+            # if value in glb.invokePasswordOnChange:
+            #     password = JS.popup(f'prompt', "Please enter the new password for the user.")
+
+            #     if password is None:
+            #         return None
+
+            #     if value != "User":
+            #         password = str(encrypt(password.encode(), WS.PK)).replace(" ", "%20")
+            #     else:
+            #         password = str(encrypt(name.encode() + "<SPLIT>".encode() + password.encode(), WS.PK)).replace(" ", "%20")
+
+            #     if not mainValue is None:
+            #         WS.send(f'{glb.mainCom} {glb.svcoms["rpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
+            #     else:
+            #         WS.send(f'{glb.mainCom} {glb.svcoms["kpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace("User", "")}Password {password}')
+
+        def onContextMenu(args):
             def submit(args):
                 if not args.key in ["Enter", "Escape"]:
                     return None
@@ -910,7 +939,10 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = el.value
 
-                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                if sendKey:
+                    brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                else:
+                    brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
@@ -924,7 +956,10 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = int(datetime.strptime(el.value, "%Y-%m-%d").timestamp())
 
-                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                if sendKey:
+                    brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                else:
+                    brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
                 value = datetime.fromtimestamp(value).strftime("%d %b %y")
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
@@ -939,7 +974,10 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = (lambda: float(el.value) if valueType == "float" else int(el.value))()
 
-                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                if sendKey:
+                    brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                else:
+                    brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
@@ -950,7 +988,10 @@ class widgets:
                 maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
                 value = not (lambda: False if el.innerHTML == "No" else True)()
 
-                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                if sendKey:
+                    brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+                else:
+                    brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
                 if value:
                     el.innerHTML = "Yes"
@@ -970,7 +1011,10 @@ class widgets:
                         value.append(subEls.value)
                 value = ", ".join(value)
 
-                brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                if sendKey:
+                    brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                else:
+                    brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
                 pel = el.parentElement
                 for style in ("z-index", "margin-bottom", "min-height", "color", "background", "overflow", "scrollbar-width", "transition", "margin-bottom", "min-height"):
@@ -982,12 +1026,13 @@ class widgets:
 
                 document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
 
+            args.preventDefault()
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
 
-            main, typ, custom, nest, styleInp = ("input", "text", f' value="{args.target.innerHTML}"', "", " height: 110%; top: -1px; background: #333; color: #BFF;")
+            main, typ, custom, nest, styleInp = ("input", "text", f' value="{args.target.innerHTML}"', "", " height: 100%; top: -3px; background: #333; color: #BFF; overflow-x: hidden;")
             if valueType == "NoneType":
                 typ = "text"
-            elif valueType == "date": # dates needs to be dynamic
+            elif valueType == "date":
                 typ, custom, valueType = ("date", f' value="{datetime.strptime(args.target.innerHTML, "%d %b %y").strftime("%Y-%m-%d")}"', "date")
             elif valueType in ("int", "float"):
                 typ = "number"
@@ -995,16 +1040,27 @@ class widgets:
                 submitBool(args)
                 return None
             elif valueType in ["list", "tuple"]:
-                main, typ, custom, styleInp = ("select", "", " size=\"1\" multiple", " height: 110%; top: -1px; background: transparent; color: inherit;")
-                rtag = f'_{tag}_'
-                nest = document.getElementById(f'Input_{args.target.id.replace(rtag, "_Tag_")}').innerHTML
+                main, typ, custom, styleInp = ("select", "", " size=\"1\" multiple", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;")
+
+                keyTmp = key
+                if not sendKey:
+                    keyTmp = tag
+
+                allData = []
+                if keyTmp in optionsDict:
+                    allData = optionsDict[keyTmp]
+                elif f'/{keyTmp}.json' in optionsDict:
+                    allData = optionsDict[f'/{keyTmp}.json']
+
+                for option in allData:
+                    nest += HTML.add(f'option', _nest=f'{option}', _style="margin: 0px 1px; background: transparent; color: inherit;", _custom=f'value="{option}"')
 
             txt = brdg.HTML.add(main,
                                 _id=f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}',
                                 _class=f'Input_{maincom}_{sheet}_{tag}',
                                 _nest=nest,
                                 _type=typ,
-                                _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden;{styleInp}',
+                                _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
                                 _custom=f'placeholder="{key}"{custom}')
             pel = args.target.parentElement
             pel.innerHTML = txt
@@ -1017,12 +1073,15 @@ class widgets:
             elif valueType == "list":
                 pel.style.background = "#333"
                 pel.style.color = "#BFF"
-                brdg.CSS.onHoverFocus(pel.id, "selectHover %% margin-bottom: -135px; min-height: 159px", "selectFocus %% margin-bottom: -135px; min-height: 159px")
+                brdg.CSS.onHoverFocus(pel.id, "selectHover %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;", "selectFocus %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;")
                 document.getElementById(pel.id).addEventListener("keyup", create_proxy(submitList))
                 return None
 
             brdg.CSS.onHoverFocus(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}', "inputHover", "inputFocus")
             document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(func))
+
+        def onDblClick(args):
+            window.alert(str(args.target.innerHTML))
 
         def addRecord(args):
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
@@ -1066,7 +1125,7 @@ class widgets:
             brdg.WS.send(f'{maincom} delete {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
 
         for id in eventConfig["editIds"]:
-            document.getElementById(id).addEventListener("dblclick", create_proxy(onDblClick))
+            document.getElementById(id).addEventListener("contextmenu", create_proxy(onContextMenu))
 
         for id in eventConfig["inputIds"]:
             el = document.getElementById(id)
@@ -1074,7 +1133,7 @@ class widgets:
 
             if valueType == "list":
                 el = document.getElementById(el.id.replace("Input_", "Div_"))
-                brdg.CSS.onHoverFocus(el.id, "selectHover %% margin-bottom: -135px; min-height: 159px", "selectFocus %% margin-bottom: -135px; min-height: 159px")
+                brdg.CSS.onHoverFocus(el.id, "selectHover %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;", "selectFocus %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;")
             else:
                 brdg.CSS.onHoverFocus(el.id, "inputHover", "inputFocus")
 
@@ -1084,6 +1143,9 @@ class widgets:
 
             (lambda: document.getElementById(el.id).addEventListener("click", create_proxy(remRecord)) if valueType == "rem" else document.getElementById(el.id).addEventListener("click", create_proxy(addRecord)))()
             brdg.CSS.onHoverClick(el.id, "buttonHover", "buttonClick")
+
+        for id in eventConfig["popupIds"]:
+            document.getElementById(id).addEventListener("dblclick", create_proxy(onDblClick))
 
     def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = (), smallHeaders: bool = False):
         rowHeightSmall = rowHeight
