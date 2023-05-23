@@ -700,16 +700,18 @@ class widgets:
               excludeView: tuple = (),
               typeDict: dict = {},
               optionsDict: dict = {},
-              showAddRem: bool = True,
+              showInput: bool = True,
+              showAction: bool = True,
               showTag: bool = True,
               tagIsList: bool = True,
               index: int = 0):
         def recursion(args=None):
-            if document.getElementById(f'{maincom}_{name}_loadMore') is None:
-                return None
             el = document.getElementById(f'{maincom}_{name}_loadMore')
+            if el is None:
+                return None
+
             el.outerHTML = el.outerHTML
-            widgets.sheet(maincom=maincom, name=name, data=data, elId=elId, dates=dates, halfView=halfView, excludeView=excludeView, typeDict=typeDict, optionsDict=optionsDict, showAddRem=showAddRem, showTag=showTag, index=index + 1)
+            widgets.sheet(maincom=maincom, name=name, data=data, elId=elId, dates=dates, halfView=halfView, excludeView=excludeView, typeDict=typeDict, optionsDict=optionsDict, showAction=showAction, showTag=showTag, index=index + 1)
 
         def getLines(data, exclude):
             headers = []
@@ -736,12 +738,12 @@ class widgets:
             brdg.CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
 
         halfViewTmp = list(halfView)
-        halfView = (lambda: ["Action"] if showAddRem and "Action" in halfViewTmp else [])()
+        halfView = (lambda: ["Action"] if showAction and "Action" in halfViewTmp else [])()
         for key in halfViewTmp:
             if key in lines[0]:
                 halfView.append(key)
 
-        defaultWidth = 100 / (len(lines[0]) + (showAddRem - (not showTag)) - (len(halfView) / 2))
+        defaultWidth = 100 / (len(lines[0]) + (showAction - (not showTag)) - (len(halfView) / 2))
         rows = ""
         eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
         for lineIndex, line in (lambda: enumerate(lines) if elId is None else enumerate([lines[index]]))():
@@ -755,7 +757,7 @@ class widgets:
 
             cols = ""
             for valueIndex, value in enumerate(line):
-                borderRight = (lambda: "" if valueIndex + 1 >= len(line) and not showAddRem else " border-right: 2px solid #111;")()
+                borderRight = (lambda: "" if valueIndex + 1 >= len(line) and not showAction else " border-right: 2px solid #111;")()
                 key = lines[0][valueIndex]
 
                 if key == "Tag" and not showTag:
@@ -789,7 +791,7 @@ class widgets:
                 else:
                     cols += brdg.HTML.add("div", _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
 
-                if valueIndex + 1 < len(line) or not showAddRem:
+                if valueIndex + 1 < len(line) or not showAction:
                     continue
 
                 if lineIndex == 0:
@@ -810,17 +812,14 @@ class widgets:
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             if not elId is None:
-                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 21px;{background}{borderBottom}')
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else "")()}{background}{borderBottom}')
                 brdg.HTML.setRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
                 if lineIndex > 100:
                     document.getElementById(f'{maincom}_{name}_loadMore').scrollIntoView()
             else:
-                if lineIndex == 0:
-                    rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 29px;{background}{borderBottom}')
-                else:
-                    rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 21px;{background}{borderBottom}')
+                rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else " height: 21px;")()}{background}{borderBottom}')
 
-            if lineIndex != 0 or not showAddRem:
+            if lineIndex != 0 or not showInput:
                 continue
 
             cols = ""
@@ -896,7 +895,7 @@ class widgets:
                 eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             if not elId is None:
-                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 21px; background: #202020;{borderBottom}')
+                brdg.HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 29px; background: #202020;{borderBottom}')
             else:
                 rows += brdg.HTML.add("div", _nest=cols, _style=f'flex %% height: 29px; background: #202020;{borderBottom}')
 
@@ -912,24 +911,7 @@ class widgets:
 
         return (brdg.HTML.add("div", _id=f'{maincom}_{name}', _nest=rows, _style="margin: 10px; border: 2px solid #111;"), eventConfig)
 
-    def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, sendKey: bool = True): # invokePasswordOnChange: tuple
-        # def passwordTemplate(value, mainValue, glb, name):
-            # if value in glb.invokePasswordOnChange:
-            #     password = JS.popup(f'prompt', "Please enter the new password for the user.")
-
-            #     if password is None:
-            #         return None
-
-            #     if value != "User":
-            #         password = str(encrypt(password.encode(), WS.PK)).replace(" ", "%20")
-            #     else:
-            #         password = str(encrypt(name.encode() + "<SPLIT>".encode() + password.encode(), WS.PK)).replace(" ", "%20")
-
-            #     if not mainValue is None:
-            #         WS.send(f'{glb.mainCom} {glb.svcoms["rpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {el.id.split("_")[0].replace(" ", "%20")} {value.replace("User", "")}Password {password}')
-            #     else:
-            #         WS.send(f'{glb.mainCom} {glb.svcoms["kpwmodify"]} {JS.cache("page_portalSub").replace(" ", "%20")} {value.replace("User", "")}Password {password}')
-
+    def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: dict = {}, sendKey: bool = True):
         def onContextMenu(args):
             def submit(args):
                 if not args.key in ["Enter", "Escape"]:
@@ -940,13 +922,28 @@ class widgets:
                 value = el.value
 
                 if sendKey:
+                    if key in pswChangeDict:
+                        psw = JS.popup(f'prompt', "Please enter the new password -for the user.")
+                        if psw is None or psw == "":
+                            return None
+                        psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.PK)) if key == "User" else str(encrypt(psw.encode(), WS.PK)).replace(" ", "%20"))()
+                        brdg.WS.send(f'{maincom} rpwmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {pswChangeDict[key].replace(" ", "%20")} {psw.replace(" ", "%20")}')
+
                     brdg.WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+
                 else:
+                    if tag in pswChangeDict:
+                        psw = JS.popup(f'prompt', "Please enter the new password for the user.")
+                        if psw is None or psw == "":
+                            return None
+                        psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.PK)) if tag == "User" else str(encrypt(psw.encode(), WS.PK)).replace(" ", "%20"))()
+                        brdg.WS.send(f'{maincom} kpwmodify {sheet.replace(" ", "%20")} {pswChangeDict[tag].replace(" ", "%20")} {psw.replace(" ", "%20")}')
+
                     brdg.WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
-                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
             def submitDate(args):
                 if not args.key in ["Enter", "Escape"]:
@@ -964,7 +961,7 @@ class widgets:
                 value = datetime.fromtimestamp(value).strftime("%d %b %y")
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
-                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
             def submitNumber(args):
                 if not args.key in ["Enter", "Escape"]:
@@ -981,7 +978,7 @@ class widgets:
 
                 txt = brdg.HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
                 el.parentElement.innerHTML = txt
-                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
             def submitBool(args):
                 el = document.getElementById(args.target.id)
@@ -1024,7 +1021,7 @@ class widgets:
                 pel.innerHTML = txt
                 pel.outerHTML = pel.outerHTML
 
-                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("dblclick", create_proxy(onDblClick))
+                document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
             args.preventDefault()
             maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
@@ -1125,10 +1122,16 @@ class widgets:
             brdg.WS.send(f'{maincom} delete {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
 
         for id in eventConfig["editIds"]:
-            document.getElementById(id).addEventListener("contextmenu", create_proxy(onContextMenu))
+            el = document.getElementById(id)
+            if el is None:
+                return None
+            el.addEventListener("contextmenu", create_proxy(onContextMenu))
 
         for id in eventConfig["inputIds"]:
             el = document.getElementById(id)
+            if el is None:
+                return None
+
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
 
             if valueType == "list":
@@ -1139,13 +1142,19 @@ class widgets:
 
         for id in eventConfig["actionIds"]:
             el = document.getElementById(id)
+            if el is None:
+                return None
+
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
 
             (lambda: document.getElementById(el.id).addEventListener("click", create_proxy(remRecord)) if valueType == "rem" else document.getElementById(el.id).addEventListener("click", create_proxy(addRecord)))()
             brdg.CSS.onHoverClick(el.id, "buttonHover", "buttonClick")
 
         for id in eventConfig["popupIds"]:
-            document.getElementById(id).addEventListener("dblclick", create_proxy(onDblClick))
+            el = document.getElementById(id)
+            if el is None:
+                return None
+            el.addEventListener("dblclick", create_proxy(onDblClick))
 
     def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = (), smallHeaders: bool = False):
         rowHeightSmall = rowHeight
