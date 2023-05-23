@@ -197,7 +197,6 @@ def pageSub(args=None):
                 cordsUsage = []
                 cordsCost = []
                 for time in data:
-
                     dataDate = datetime.fromtimestamp(int(time))
                     col = None
 
@@ -212,8 +211,8 @@ def pageSub(args=None):
                         continue
                     elif col >= colLimit:
                         col = colLimit - 0.01
-                    elif col < 0:
-                        col = 0
+                    elif col < 0.01:
+                        col = 0.01
 
                     txt = f'date: {dataDate.strftime("%d %b %y")}<br>'
                     for key in data[time]:
@@ -242,15 +241,15 @@ def pageSub(args=None):
                     row = dataPower / (1000 * usageDivision)
                     if row >= rowLimit:
                         row = rowLimit - 0.01
-                    elif row < 0:
-                        row = 0
+                    elif row < 0.01:
+                        row = 0.01
                     cordsUsage.append((float(col), float(row), txt))
 
                     row = (dataPower / (1000 * costDivision)) * glb.config["costPerKw"]
                     if row >= rowLimit:
                         row = rowLimit - 0.01
-                    elif row < 0:
-                        row = 0
+                    elif row < 0.01:
+                        row = 0.01
                     cordsCost.append((float(col), float(row), txt))
 
                 widgets.graphDraw(f'graph_usage_{plug}', cordsUsage, lineRes=glb.config["lineResolution"])
