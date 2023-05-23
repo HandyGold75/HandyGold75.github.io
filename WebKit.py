@@ -904,7 +904,7 @@ class widgets:
                 document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
                 brdg.CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
                 return None
-            JS.aSync(recursion)
+            setTimeout(create_once_callable(recursion), 0)
 
         elif not elId is None:
             return eventConfig
