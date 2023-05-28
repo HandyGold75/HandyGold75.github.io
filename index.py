@@ -20,7 +20,7 @@ def setup():
         JS.cache(f'page_index', f'Home')
 
     if JS.cache("server") == "":
-        JS.cache("server", "WSS://wss.HandyGold75.com:6900")
+        JS.cache("server", "WSS://wss.HandyGold75.com:17500")
 
     if JS.cache(f'signin') == "Auto":
         JS.cache(f'page_index', f'Login')
