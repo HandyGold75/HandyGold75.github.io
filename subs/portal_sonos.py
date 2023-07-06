@@ -1,6 +1,7 @@
 from WebKit import HTML, CSS, JS, WS
 from json import dumps, loads
 from datetime import datetime, timedelta
+from traceback import format_exc
 
 
 class invoke:
@@ -13,7 +14,9 @@ class invoke:
 
 def getData(args=None):
     if (datetime.now() - timedelta(seconds=1)).timestamp() > glb.lastUpdate:
-        WS.send(f'sonos state')
+        WS.send(f'sonos position')
+        WS.send(f'sonos device')
+        WS.send(f'sonos track')
         WS.send(f'sonos que get')
         WS.send(f'sonos playlist')
         WS.send(f'sonos ytinfo')
@@ -30,7 +33,6 @@ class glb:
     config = {}
     knownConfig = {"volumeMax": int, "seekStep": int, "useAlbumArt": bool, "useQue": bool, "usePlaylist": bool, "disableMaxWidth (experimental)": bool}
     optionsList = []
-    currentTitle = ""
     currentPosition = ""
     currentQueSize = 0
 
@@ -39,11 +41,11 @@ class glb:
 
 
 class sonosControl:
-    def state(args=None):
-        WS.send(f'sonos state')
+    def enableStream(args=None):
+        WS.send(f'sonos enableStream')
 
-    def ytinfo(args=None):
-        WS.send(f'sonos ytinfo')
+    def disableStream(args=None):
+        WS.send(f'sonos disableStream')
 
     def togglePlay(args=None):
         data = WS.dict()["sonos"]
@@ -104,7 +106,7 @@ class sonosControl:
     def seekForward(args=None):
         data = WS.dict()["sonos"]
 
-        newPos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+        newPos = datetime.strptime(data["position"], "%H:%M:%S")
         newPos = ((newPos.hour * 3600) + (newPos.minute * 60) + newPos.second) + glb.config["seekStep"]
         dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
         dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
@@ -118,7 +120,7 @@ class sonosControl:
     def seekBackward(args=None):
         data = WS.dict()["sonos"]
 
-        newPos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+        newPos = datetime.strptime(data["position"], "%H:%M:%S")
         newPos = ((newPos.hour * 3600) + (newPos.minute * 60) + newPos.second) - glb.config["seekStep"]
 
         if newPos < 0:
@@ -198,24 +200,49 @@ def pageSub(args):
             JS.cache("page_portalSub", f'{args.target.id.split("_")[-1]}')
 
     def player():
-        def slowUIRefresh():
-            def controls():
+        def uiRefresh():
+            def position():
+                if not JS.cache("page_portalSub") == "Player":
+                    return False
+
                 data = WS.dict()["sonos"]
 
-                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+                pos = datetime.strptime(data["position"], "%H:%M:%S")
                 pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
                 dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
                 dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
 
-                posStr = WS.dict()["sonos"]["track"]["position"]
-                if int(WS.dict()["sonos"]["track"]["position"].split(":")[0]) == 0:
-                    posStr = ":".join(WS.dict()["sonos"]["track"]["position"].split(":")[1:])
+                posStr = WS.dict()["sonos"]["position"]
+                if int(WS.dict()["sonos"]["position"].split(":")[0]) == 0:
+                    posStr = ":".join(WS.dict()["sonos"]["position"].split(":")[1:])
                 durStr = WS.dict()["sonos"]["track"]["duration"]
                 if int(WS.dict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                     durStr = ":".join(WS.dict()["sonos"]["track"]["duration"].split(":")[1:])
 
                 HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
                 HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
+
+                if not glb.videoScolling:
+                    HTML.get(f'SubPage_page_timeline_slider').max = dur
+                    HTML.get(f'SubPage_page_timeline_slider').value = pos
+
+                if not glb.config["useAlbumArt"]:
+                    newPos = pos + 1
+                    oldPos = glb.ytPlayer.getCurrentTime()
+                    if oldPos is None:
+                        oldPos = 0
+
+                    if not glb.ytPlayer.getDuration() is None and newPos <= glb.ytPlayer.getDuration():
+                        if not newPos < oldPos + 1 or not newPos > oldPos - 1:
+                            glb.ytPlayer.seekTo(newPos)
+
+                WS.onMsg("{\"sonos\": {\"position\":", position, oneTime=True)
+
+            def device():
+                if not JS.cache("page_portalSub") == "Player":
+                    return False
+
+                data = WS.dict()["sonos"]
 
                 if not data["device"]["shuffle"]:
                     CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#222'), (f'border', f'2px solid #222')))
@@ -228,10 +255,6 @@ def pageSub(args):
                 if not glb.config["useQue"]:
                     CSS.setStyles(f'SubPage_page_buttons_Que', ((f'background', f'#222'), (f'border', f'2px solid #222')))
 
-                if not glb.videoScolling:
-                    HTML.get(f'SubPage_page_timeline_slider').max = dur
-                    HTML.get(f'SubPage_page_timeline_slider').value = pos
-
                 if data["device"]["playback"] == "active":
                     HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Pause.png'
                     HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Pause'
@@ -241,91 +264,76 @@ def pageSub(args):
 
                 HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
 
+                if not glb.config["useAlbumArt"]:
+                    if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
+                        glb.ytPlayer.playVideo()
+                    elif data["device"]["playback"] != "active":
+                        glb.ytPlayer.pauseVideo()
+
+                WS.onMsg("{\"sonos\": {\"device\":", device, oneTime=True)
+
             def que():
+                if not JS.cache("page_portalSub") == "Player":
+                    return False
+
                 data = WS.dict()["sonos"]
 
-                if data["que"]["position"] != glb.currentPosition or data["que"]["size"] != glb.currentQueSize:
-                    addQue()
+                addQue()
+                CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex ', f'100')))
+                CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
 
-                    CSS.setStyles(f'SubPage_page_que_{glb.currentPosition}', ((f'background', f'#222'), (f'color', f'#55F'), (f'border', f'5px solid #111'), (f'borderRadius ', f'10px'), (f'zIndex ', f'0')))
-                    CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex ', f'100')))
+                WS.onMsg("{\"sonos\": {\"que\":", que, oneTime=True)
 
-                    CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+            def track():
+                if not JS.cache("page_portalSub") == "Player":
+                    return False
 
-                    glb.currentPosition = data["que"]["position"]
-                    glb.currentQueSize = data["que"]["size"]
-
-            def albumArt():
                 data = WS.dict()["sonos"]
 
-                HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
-                HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+                if glb.config["useAlbumArt"]:
+                    HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
+                    HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
 
-            def video():
+                WS.onMsg("{\"sonos\": {\"track\":", track, oneTime=True)
+
+            def ytinfo():
+                if not JS.cache("page_portalSub") == "Player":
+                    return False
+
                 data = WS.dict()["sonos"]
 
-                pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
-                pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
+                if not glb.config["useAlbumArt"]:
+                    glb.ytPlayer.setVolume(0)
+                    glb.ytPlayer.mute()
 
-                glb.ytPlayer.setVolume(0)
-                glb.ytPlayer.mute(0)
+                    if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
+                        glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
 
-                if not data["ytinfo"]["id"] in glb.ytPlayer.getVideoUrl():
-                    glb.ytPlayer.loadVideoById(f'{data["ytinfo"]["id"]}')
-
-                if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
-                    glb.ytPlayer.playVideo()
-                elif data["device"]["playback"] != "active":
-                    glb.ytPlayer.pauseVideo()
-
-                newPos = pos + 1
-                oldPos = glb.ytPlayer.getCurrentTime()
-
-                if oldPos is None:
-                    oldPos = 0
-
-                if not newPos < oldPos + 1 or not newPos > oldPos - 1:
-                    glb.ytPlayer.seekTo(newPos)
+                WS.onMsg("{\"sonos\": {\"ytinfo\":", ytinfo, oneTime=True)
 
             if not JS.cache("page_portalSub") == "Player":
                 return False
 
-            data = WS.dict()["sonos"]
-
-            if data["track"]["title"] != glb.currentTitle:
-                sonosControl.getQue()
-                sonosControl.ytinfo()
-            glb.currentTitle = data["track"]["title"]
-
-            if data["device"]["playback"] == "busy" or glb.skipUiUpdate:
-                glb.skipUiUpdate = False
-
-                JS.afterDelay(sonosControl.state, 500)
-                JS.afterDelay(sonosControl.getQue, 500)
-                JS.afterDelay(slowUIRefresh, 1000)
-
+            if not hasattr(glb.ytPlayer, "setVolume"):
+                JS.afterDelay(uiRefresh, 50)
                 return None
 
-            try:
-                controls()
-                if glb.config["useQue"]:
-                    que()
+            WS.onMsg("{\"sonos\": {\"position\":", position, oneTime=True)
+            WS.onMsg("{\"sonos\": {\"device\":", device, oneTime=True)
 
-                if glb.config["useAlbumArt"]:
-                    albumArt()
-                else:
-                    video()
-            except AttributeError:
-                return None
+            if glb.config["useQue"]:
+                WS.onMsg("{\"sonos\": {\"que\":", que, oneTime=True)
+            if glb.config["useAlbumArt"]:
+                WS.onMsg("{\"sonos\": {\"track\":", track, oneTime=True)
+            else:
+                WS.onMsg("{\"sonos\": {\"ytinfo\":", ytinfo, oneTime=True)
+                
+            sonosControl.enableStream()
 
-            CSS.get(f'SubPage_nav', f'scrollIntoView')()
+        def activeUIRefresh():
+            def controls():
+                data = WS.dict()["sonos"]
 
-            JS.afterDelay(sonosControl.state, 500)
-            JS.afterDelay(sonosControl.getQue, 500)
-            JS.afterDelay(slowUIRefresh, 1000)
-
-        def fastUIRefresh():
-            def controls(data):
                 if data["device"]["shuffle"]:
                     CSS.setStyles(f'SubPage_page_buttons_Shuffle', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
                 if data["device"]["repeat"]:
@@ -338,16 +346,16 @@ def pageSub(args):
                     CSS.setStyles(f'SubPage_page_buttons_Que', ((f'background', f'#444'), (f'border', f'3px solid #FBDF56')))
 
             if not JS.cache("page_portalSub") == "Player":
+                sonosControl.disableStream()
                 return False
 
-            data = WS.dict()["sonos"]
-
             try:
-                controls(data)
+                controls()
             except AttributeError:
+                sonosControl.disableStream()
                 return None
 
-            JS.afterDelay(fastUIRefresh, 250)
+            JS.afterDelay(activeUIRefresh, 250)
 
         def addAlbumArt():
             data = WS.dict()["sonos"]
@@ -359,14 +367,14 @@ def pageSub(args):
 
             HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
-            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            pos = datetime.strptime(data["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
             dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
             dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
 
-            posStr = WS.dict()["sonos"]["track"]["position"]
-            if int(WS.dict()["sonos"]["track"]["position"].split(":")[0]) == 0:
-                posStr = ":".join(WS.dict()["sonos"]["track"]["position"].split(":")[1:])
+            posStr = WS.dict()["sonos"]["position"]
+            if int(WS.dict()["sonos"]["position"].split(":")[0]) == 0:
+                posStr = ":".join(WS.dict()["sonos"]["position"].split(":")[1:])
 
             durStr = WS.dict()["sonos"]["track"]["duration"]
             if int(WS.dict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
@@ -392,14 +400,14 @@ def pageSub(args):
         def addVideo():
             data = WS.dict()["sonos"]
 
-            pos = datetime.strptime(data["track"]["position"], "%H:%M:%S")
+            pos = datetime.strptime(data["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
             dur = datetime.strptime(data["track"]["duration"], "%H:%M:%S")
             dur = (dur.hour * 3600) + (dur.minute * 60) + dur.second
 
-            posStr = WS.dict()["sonos"]["track"]["position"]
-            if int(WS.dict()["sonos"]["track"]["position"].split(":")[0]) == 0:
-                posStr = ":".join(WS.dict()["sonos"]["track"]["position"].split(":")[1:])
+            posStr = WS.dict()["sonos"]["position"]
+            if int(WS.dict()["sonos"]["position"].split(":")[0]) == 0:
+                posStr = ":".join(WS.dict()["sonos"]["position"].split(":")[1:])
 
             durStr = WS.dict()["sonos"]["track"]["duration"]
             if int(WS.dict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
@@ -453,7 +461,6 @@ def pageSub(args):
                         continue
 
                     sonosControl.setQue(f'{el.id.split("_")[-1]}')
-                    glb.currentPosition = -1
                     return None
 
             def removeFromQue(args):
@@ -471,7 +478,6 @@ def pageSub(args):
                         continue
 
                     sonosControl.remQue(f'{el.id.split("_")[-1]}')
-                    glb.currentPosition = -1
                     return None
 
             def playNext(args=None):
@@ -530,8 +536,6 @@ def pageSub(args):
             HTML.addRaw(f'SubPage_page_queList', queHTML)
 
             CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
-
-            glb.currentPosition = data["que"]["position"]
 
             inp = HTML.add(f'input', _id=f'SubPage_page_queAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Spotify Sharelink"')
             btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_queAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
@@ -630,17 +634,13 @@ def pageSub(args):
 
             HTML.addRaw(f'SubPage_page_playlistList', queHTML)
 
-            # CSS.setStyles(f'SubPage_page_playlist_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
-
-            # glb.currentPosition = data["que"]["position"]
+            CSS.setStyles(f'SubPage_page_playlist_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
 
             inp = HTML.add(f'input', _id=f'SubPage_page_playlistAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Sonos URI"')
             btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_playlistAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
             btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_playlistAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
             div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
             HTML.set(f'div', f'SubPage_page_playlistAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
-
-            # CSS.get(f'SubPage_page_playlist_{data["que"]["position"]}', f'scrollIntoView')()
 
             def doAction():
                 for track in HTML.get(f'SubPage_page_playlist_playlists', isClass=True):
@@ -761,8 +761,8 @@ def pageSub(args):
 
         JS.onResize()
 
-        JS.afterDelay(slowUIRefresh, 50)
-        JS.afterDelay(fastUIRefresh, 100)
+        JS.afterDelay(uiRefresh, 50)
+        JS.afterDelay(activeUIRefresh, 50)
 
     def qr():
         HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
