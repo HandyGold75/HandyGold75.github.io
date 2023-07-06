@@ -592,14 +592,19 @@ class WS:
 
             if msg.split(" ")[0] in WS.msgReply:
                 msg = msg.split(" ")[0]
+            elif " ".join(msg.split(" ")[:2]) in WS.msgReply:
+                msg = " ".join(msg.split(" ")[:2])
+            else:
+                return None
 
-                if callable(WS.msgReply[msg][0]):
-                    WS.msgReply[msg][0]()
-                    return None
-                WS.ws.send(WS.msgReply[msg][0])
+            msgOrFunc = WS.msgReply[msg][0]
+            if WS.msgReply[msg][1]:
+                WS.msgReply.pop(msg)
 
-                if WS.msgReply[msg][1]:
-                    WS.msgReply.pop(msg)
+            if callable(msgOrFunc):
+                msgOrFunc()
+            else:
+                WS.ws.send(msgOrFunc)
 
         error = lambda arg=None: (console.error(arg), WS.close)
         close = lambda arg=None: WS.on.connectionError("The connection to the server was lost!")
