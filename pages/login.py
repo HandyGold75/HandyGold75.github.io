@@ -19,7 +19,7 @@ def setupConnection():
         WS.send(f'logout')
 
         JS.cache("token", "")
-        WS.loggedIn = False
+        WS.glb.loggedIn = False
 
         JS.f5()
 
@@ -64,7 +64,7 @@ def setupConnection():
 
         WS.onMsg("{\"access\":", getData, oneTime=True)
         WS.send(f'access')
-        WS.loggedIn = True
+        WS.glb.loggedIn = True
 
         JS.clearEvents(f'footer_Login')
         HTML.setRaw(f'footer_Login', f'Logout')
@@ -87,7 +87,7 @@ def setupConnection():
 
     def loginTokenFail():
         JS.cache("token", "")
-        WS.loggedIn = False
+        WS.glb.loggedIn = False
 
         HTML.enable(f'page_login_body_login_usr', True)
         HTML.enable(f'page_login_body_login_psw', True)
@@ -115,18 +115,18 @@ def setupConnection():
 def main(args=None):
     def login(args):
         def sendLogin():
-            if WS.ws.readyState > 1:
+            if not WS.glb.ws.readyState > 1:
                 JS.popup("alert", "Failed to connect to server")
                 return None
 
-            if WS.ws.readyState == 0 or WS.PK is None:
+            if WS.glb.ws.readyState == 0 or WS.glb.pub is None:
                 JS.afterDelay(sendLogin, 50)
                 return None
 
-            crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.PK))
+            crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.glb.pub))
             WS.send(f'<LOGIN> {crypt}')
 
-        if WS.loggedIn:
+        if WS.glb.loggedIn:
             return None
 
         if hasattr(args, "key") and args.key != "Enter":
@@ -139,7 +139,7 @@ def main(args=None):
 
         srv = HTML.get("page_login_body_login_srv").value
 
-        if not srv == JS.cache("server") or WS.ws == None or WS.ws.readyState > 1:
+        if not srv == JS.cache("server") or WS.glb.ws == None or WS.glb.ws.readyState > 1:
             JS.cache("server", srv)
 
             try:
@@ -170,7 +170,7 @@ def main(args=None):
 
     HTML.set(f'div', f'page', _id=f'page_login', _align=f'center', _style="flex")
 
-    if WS.loggedIn:
+    if WS.glb.loggedIn:
         return None
 
     setup()
