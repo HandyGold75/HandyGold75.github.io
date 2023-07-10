@@ -1,132 +1,13 @@
 from WebKit import HTML, CSS, JS, WS
-from json import dumps, loads
+from json import dumps, loads, load
+from os import path as osPath
 
 
 class glb:
     allLinks = {}
 
-    defaultLinks = {
-        "Outlook.png": {
-            "url": "https://outlook.office.com/",
-            "text": "Outlook",
-            "cat": "Microsoft/ Google",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "OutlookCalendar.png": {
-            "url": "https://outlook.office.com/calendar/",
-            "text": "Outlook Calendar",
-            "cat": "Microsoft/ Google",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "OneDrive.png": {
-            "url": "https://www.office.com/login?ru=%2Flaunch%2Fonedrive",
-            "text": "OneDrive",
-            "cat": "Microsoft/ Google",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "M365.png": {
-            "url": "https://www.microsoft365.com/",
-            "text": "Microsoft 365",
-            "cat": "Microsoft/ Google",
-            "Index": 104,
-            "Active": True,
-            "Modified": 0
-        },
-        "G-Mail.png": {
-            "url": "https://mail.google.com/",
-            "text": "Google Mail",
-            "cat": "Microsoft/ Google",
-            "Index": 105,
-            "Active": True,
-            "Modified": 0
-        },
-        "G-Drive.png": {
-            "url": "https://drive.google.com/",
-            "text": "Google Drive",
-            "cat": "Microsoft/ Google",
-            "Index": 106,
-            "Active": True,
-            "Modified": 0
-        },
-        "G-Photos.png": {
-            "url": "https://photos.google.com/",
-            "text": "Google Photos",
-            "cat": "Microsoft/ Google",
-            "Index": 107,
-            "Active": True,
-            "Modified": 0
-        },
-        "G-Calendar.png": {
-            "url": "https://calendar.google.com/",
-            "text": "Google Calendar",
-            "cat": "Microsoft/ Google",
-            "Index": 108,
-            "Active": True,
-            "Modified": 0
-        },
-        "YouTube.png": {
-            "url": "https://www.youtube.com/",
-            "text": "YouTube",
-            "cat": "Media",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "YouTubeMusic.png": {
-            "url": "https://music.youtube.com/",
-            "text": "YouTube Music",
-            "cat": "Media",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "Spotify.png": {
-            "url": "https://open.spotify.com/",
-            "text": "Spotify",
-            "cat": "Media",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "OneTimeSecret.png": {
-            "url": "https://onetimesecret.com/",
-            "text": "One Time Secret",
-            "cat": "Tools",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "SpeedTest.png": {
-            "url": "https://www.speedtest.net/",
-            "text": "SpeedTest Ookla",
-            "cat": "Tools",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "DownDetector.png": {
-            "url": "https://downdetector.com/",
-            "text": "Down Detector",
-            "cat": "Tools",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "CloudConvert.png": {
-            "url": "https://cloudconvert.com/",
-            "text": "Cloud Convert",
-            "cat": "Tools",
-            "Index": 104,
-            "Active": True,
-            "Modified": 0
-        }
-    }
+    with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        defaultLinks = load(fileR)["defaultLinks"]
 
     columns = 4
 
@@ -142,7 +23,7 @@ def setup():
 
     HTML.set(f'div', f'page', _id=f'page_links', _align=f'center')
 
-    if not WS.loggedIn:
+    if not WS.glb.loggedIn:
         return None
 
     msgDict = WS.dict()

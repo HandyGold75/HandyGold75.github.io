@@ -52,7 +52,7 @@ def pagePortal(args=None, page=None):
 def main():
     HTML.set(f'div', f'page', _id=f'page_portal', _align=f'center', _style="flex")
 
-    if not WS.loggedIn:
+    if not WS.glb.loggedIn:
         HTML.add(f'h1', f'page_portal', _nest=f'Please log in first!', _style=f'headerBig')
         return None
 

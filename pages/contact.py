@@ -1,60 +1,13 @@
 from WebKit import HTML, WS
+from json import load
+from os import path as osPath
 
 
 class glb:
     allContacts = {}
 
-    defaultContacts = {
-        "Discord.png": {
-            "url": "https://discordapp.com/users/296000826588004352",
-            "text": "HandyGold75#1539",
-            "Index": 101,
-            "Active": True,
-            "Modified": 0
-        },
-        "Steam.png": {
-            "url": "https://steamcommunity.com/id/HandyGold75",
-            "text": "HandyGold75",
-            "Index": 102,
-            "Active": True,
-            "Modified": 0
-        },
-        "YouTube.png": {
-            "url": "https://youtube.com/@HandyGold75",
-            "text": "HandyGold75",
-            "Index": 103,
-            "Active": True,
-            "Modified": 0
-        },
-        "Twitch.png": {
-            "url": "https://www.twitch.tv/handygold75",
-            "text": "HandyGold75",
-            "Index": 104,
-            "Active": True,
-            "Modified": 0
-        },
-        "Snapchat.png": {
-            "url": "https://www.snapchat.com/add/handygold75",
-            "text": "HandyGold75",
-            "Index": 105,
-            "Active": True,
-            "Modified": 0
-        },
-        "Spotify.png": {
-            "url": "https://open.spotify.com/user/11153222914",
-            "text": "HandyGold75",
-            "Index": 106,
-            "Active": True,
-            "Modified": 0
-        },
-        "Exchange.png": {
-            "url": "mailto:IZO@HandyGold75.com",
-            "text": "IZO@HandyGold75.com",
-            "Index": 107,
-            "Active": True,
-            "Modified": 0
-        }
-    }
+    with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        defaultContacts = load(fileR)["defaultContacts"]
 
 
 def setup():
@@ -62,7 +15,7 @@ def setup():
 
     HTML.set(f'div', f'page', _id="page_contact")
 
-    if not WS.loggedIn:
+    if not WS.glb.loggedIn:
         return None
 
     msgDict = WS.dict()
