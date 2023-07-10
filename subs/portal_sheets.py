@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS, widgets
+from WebKit import HTML, CSS, JS, WS, Widget
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -349,7 +349,7 @@ def pageSub(args=None):
                     data[i1][key] = ""
 
         def doAction():
-            widgets.sheet(
+            Widget.sheet(
                 maincom=glb.maincoms[JS.cache("page_portal")],
                 name=JS.cache("page_portalSub"),
                 data=dict(data),
@@ -377,7 +377,7 @@ def pageSub(args=None):
 
         options = (lambda: {**dict(WS.dict()[glb.mainCom]), **dict(glb.optionsDict[JS.cache("page_portalSub")])} if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))()
 
-        htmlStr, eventConfig = widgets.sheet(
+        htmlStr, eventConfig = Widget.sheet(
             maincom=glb.maincoms[JS.cache("page_portal")],
             name=JS.cache("page_portalSub"),
             data=dict(data),
@@ -390,7 +390,7 @@ def pageSub(args=None):
             showAction=False,
         )
         HTML.setRaw("SubPage_page", htmlStr)
-        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange, sendKey=False), 50)
+        JS.afterDelay(lambda: Widget.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange, sendKey=False), 50)
 
     else:
         if glb.hideInactive:
@@ -402,7 +402,7 @@ def pageSub(args=None):
 
         options = (lambda: {**dict(WS.dict()[glb.mainCom]), **dict(glb.optionsDict[JS.cache("page_portalSub")])} if JS.cache("page_portalSub") in glb.optionsDict else dict(WS.dict()[glb.mainCom]))()
 
-        htmlStr, eventConfig = widgets.sheet(
+        htmlStr, eventConfig = Widget.sheet(
             maincom=glb.maincoms[JS.cache("page_portal")],
             name=JS.cache("page_portalSub"),
             data=dict(data),
@@ -415,7 +415,7 @@ def pageSub(args=None):
             tagIsList=glb.tagIsList,
         )
         HTML.setRaw("SubPage_page", htmlStr)
-        JS.afterDelay(lambda: widgets.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange), 50)
+        JS.afterDelay(lambda: Widget.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange), 50)
 
 
 def main(args=None, sub=None):
