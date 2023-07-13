@@ -1,7 +1,7 @@
 from js import document
 from WebKit import CSS
 from json import load
-from os import path as osPath 
+from os import path as osPath
 
 
 class bridgedCSS:
@@ -9,108 +9,70 @@ class bridgedCSS:
     onClickStyles = lambda: CSS.onClickStyles
     onFocusStyles = lambda: CSS.onFocusStyles
 
+
 with open(f'{osPath.split(__file__)[0]}/styleMap.json', "r", encoding="UTF-8") as fileR:
     styleMap = load(fileR)["HTML"]
-    
+
 disabledStyles = {}
 
 get = lambda id, isClass=False: list(document.getElementsByClassName(id)) if isClass else document.getElementById(id)
 move = lambda sourceId, targetId: document.getElementById(targetId).appendChild(document.getElementById(sourceId))
 
 
-def getLink(href: str, _nest: str = None, _style: str = None):
-    if not _style is None and _style.split(" %% ")[0] in styleMap:
-        subStyleMerged = ""
-        _styleTmp = _style.split(" %% ")
+def expandStyle(style):
+    if style is None or not " %% " in style:
+        return style
 
-        for style in _styleTmp:
-            if not style in styleMap:
+    subStyleMerged = ""
+    styleTmp = style.split(" %% ")
+
+    for styleKey in styleTmp:
+        if not styleKey in styleMap:
+            continue
+
+        for subStyle in styleMap[styleKey].split(";"):
+            subStyleKey, subStyleValue = subStyle.split(":")
+            subStyleKey = subStyleKey.replace(" ", "")
+
+            if subStyleKey in subStyleMerged or subStyleKey in style:
                 continue
+            subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
 
-            for subStyle in styleMap[style].split(";"):
-                subStyleKey, subStyleValue = subStyle.split(":")
-                subStyleKey = subStyleKey.replace(" ", "")
+        style = style.replace(styleKey, "")
 
-                if subStyleKey in subStyleMerged or subStyleKey in _style:
-                    continue
-
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
-
-            _style = _style.replace(style, "")
-
-        _style = f'{subStyleMerged}{_style.split(" %% ")[-1]}'
-
-    style = "color: #44F;"
-
-    if not _style is None:
-        style = f'{style} {_style}'
-
-    htmlStr = f'<a href="{href}" target="_blank" style="{style}">'
-
-    if not _nest is None:
-        htmlStr += f'{_nest}'
-
-    htmlStr += "</a>"
-
-    return htmlStr
+    return f'{subStyleMerged}{style.split(" %% ")[-1]}'
 
 
-def add(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id: str = None, _class: str = None, _type: str = None, _align: str = None, _style: str = None, _custom: str = None):
-    if not _style is None and _style.split(" %% ")[0] in styleMap:
-        subStyleMerged = ""
-        _styleTmp = _style.split(" %% ")
+def getLink(href: str, nest: str = "", style: str = ""):
+    return f'<a href="{href}" target="_blank" style="color: #44F; {expandStyle(style)}">{nest}</a>'
 
-        for style in _styleTmp:
-            if not style in styleMap:
-                continue
 
-            for subStyle in styleMap[style].split(";"):
-                subStyleKey, subStyleValue = subStyle.split(":")
-                subStyleKey = subStyleKey.replace(" ", "")
-
-                if subStyleKey in subStyleMerged or subStyleKey in _style:
-                    continue
-
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
-
-            _style = _style.replace(style, "")
-
-        _style = f'{subStyleMerged}{_style.split(" %% ")[-1]}'
-
-    args = {"id": _id, "class": _class, "type": _type, "align": _align, "style": _style}
+def add(tag: str, targetId: str = None, nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
+    args = {"id": id, "class": clas, "type": type, "align": align, "style": expandStyle(style)}
     additionsStr = ""
-
     for arg in args:
-        if args[arg] is None:
+        if args[arg] == "":
             continue
 
         additionsStr += f' {arg}="{args[arg]}"'
 
-    if not _custom is None:
-        additionsStr += f' {_custom}'
+    additionsStr += f' {custom}'
 
-    htmlStr = f'<{type}{additionsStr}>'
+    htmlStr = f'{prepend}<{tag}{additionsStr}>{nest}'
+    if not tag in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
+        htmlStr += f'</{tag}>'
 
-    if not _nest is None:
-        htmlStr += _nest
-
-    if not type in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
-        htmlStr += f'</{type}>'
-
-    if not _prepend is None:
-        htmlStr = f'{_prepend}{htmlStr}'
-
-    if not id is None:
-        document.getElementById(id).innerHTML += htmlStr
+    if not targetId is None:
+        document.getElementById(targetId).innerHTML += htmlStr
 
     return htmlStr
 
 
-def set(type: str, id: str = None, _nest: str = None, _prepend: str = None, _id: str = None, _class: str = None, _type: str = None, _align: str = None, _style: str = None, _custom: str = None):
-    htmlStr = add(type, None, _nest, _prepend, _id, _class, _type, _align, _style, _custom)
+def set(tag: str, targetId: str = None, nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
+    htmlStr = add(tag, None, nest, prepend, id, clas, type, align, style, custom)
 
-    if not id is None:
-        document.getElementById(id).innerHTML = htmlStr
+    if not targetId is None:
+        document.getElementById(targetId).innerHTML = htmlStr
 
     return htmlStr
 
@@ -208,7 +170,7 @@ def clear(id: str, isClass: bool = False):
     if isClass:
         for item in document.getElementsByClassName(id):
             item.innerHTML = ""
-            return None
+        return None
 
     document.getElementById(id).innerHTML = ""
 
@@ -217,7 +179,6 @@ def remove(id: str, isClass: bool = False):
     if isClass:
         for item in document.getElementsByClassName(id):
             item.remove()
-
         return None
 
     document.getElementById(id).remove()

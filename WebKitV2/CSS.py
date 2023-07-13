@@ -17,6 +17,29 @@ setStyle = lambda id, key, value: setattr(document.getElementById(id).style, key
 onHoverClick = lambda id, styleHover, styleClick: (onHover(id, styleHover), onClick(id, styleClick))
 onHoverFocus = lambda id, styleHover, styleClick: (onHover(id, styleHover), onFocus(id, styleClick))
 
+def expandStyle(style):
+    if style is None or not " %% " in style:
+        return style
+    
+    subStyleMerged = ""
+    styleTmp = style.split(" %% ")
+
+    for styleKey in styleTmp:
+        if not styleKey in styleMap:
+            continue
+
+        for subStyle in styleMap[styleKey].split(";"):
+            subStyleKey, subStyleValue = subStyle.split(":")
+            subStyleKey = subStyleKey.replace(" ", "")
+
+            if subStyleKey in subStyleMerged or subStyleKey in style:
+                continue
+
+            subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
+
+        style = style.replace(styleKey, "")
+
+    return f'{subStyleMerged}{style.split(" %% ")[-1]}'
 
 def sets(id: str, keyValue: tuple):
     for key, value in keyValue:
@@ -59,26 +82,7 @@ def onHover(id: str, style: str):
     onHoverStyles[f'{id}_mouseover'] = []
     onHoverStyles[f'{id}_mouseout'] = []
 
-    if style.split(" %% ")[0] in styleMap:
-        subStyleMerged = ""
-        styleTmp = style.split(" %% ")
-
-        for styleKey in styleTmp:
-            if not styleKey in styleMap:
-                continue
-
-            for subStyle in styleMap[styleKey].split(";"):
-                subStyleKey, subStyleValue = subStyle.split(":")
-                subStyleKey = subStyleKey.replace(" ", "")
-
-                if subStyleKey in subStyleMerged or subStyleKey in style:
-                    continue
-
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
-
-            style = style.replace(styleKey, "")
-
-        style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
+    style = expandStyle(style)
 
     for prop in style.split(";")[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
@@ -127,26 +131,7 @@ def onClick(id: str, style: str):
     onClickStyles[f'{id}_mousedown'] = []
     onClickStyles[f'{id}_mouseup'] = []
 
-    if style.split(" %% ")[0] in styleMap:
-        subStyleMerged = ""
-        styleTmp = style.split(" %% ")
-
-        for styleKey in styleTmp:
-            if not styleKey in styleMap:
-                continue
-
-            for subStyle in styleMap[styleKey].split(";"):
-                subStyleKey, subStyleValue = subStyle.split(":")
-                subStyleKey = subStyleKey.replace(" ", "")
-
-                if subStyleKey in subStyleMerged or subStyleKey in style:
-                    continue
-
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
-
-            style = style.replace(styleKey, "")
-
-        style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
+    style = expandStyle(style)
 
     for prop in style.split(";")[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
@@ -157,7 +142,7 @@ def onClick(id: str, style: str):
             continue
 
         if styleKey == "transition":
-            el.style.transition = prop.split(": ")[1]
+            el.style.transition = f'{prop.split(": ")[1]}'
             continue
 
         onClickStyles[f'{id}_mouseup'].append(f'{styleKey}: {getattr(el.style, styleKey)}')
@@ -195,26 +180,7 @@ def onFocus(id: str, style: str):
     onFocusStyles[f'{id}_focusin'] = []
     onFocusStyles[f'{id}_focusout'] = []
 
-    if style.split(" %% ")[0] in styleMap:
-        subStyleMerged = ""
-        styleTmp = style.split(" %% ")
-
-        for styleKey in styleTmp:
-            if not styleKey in styleMap:
-                continue
-
-            for subStyle in styleMap[styleKey].split(";"):
-                subStyleKey, subStyleValue = subStyle.split(":")
-                subStyleKey = subStyleKey.replace(" ", "")
-
-                if subStyleKey in subStyleMerged or subStyleKey in style:
-                    continue
-
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
-
-            style = style.replace(styleKey, "")
-
-        style = f'{subStyleMerged}{style.split(" %% ")[-1]}'
+    style = expandStyle(style)
 
     for prop in style.split(";")[:-1]:
         styleKey = prop.split(": ")[0].replace(" ", "")
@@ -225,7 +191,7 @@ def onFocus(id: str, style: str):
             continue
 
         if styleKey == "transition":
-            el.style.transition = prop.split(": ")[1]
+            el.style.transition = f'{prop.split(": ")[1]}'
             continue
 
         onFocusStyles[f'{id}_focusout'].append(f'{styleKey}: {getattr(el.style, styleKey)}')
