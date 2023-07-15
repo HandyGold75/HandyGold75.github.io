@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 from json import dumps, loads
 from datetime import datetime, timedelta
 
@@ -73,53 +74,53 @@ def pageSub(args=None):
                 glb.lastDataPackage = data
 
                 for index in reversed(data["downloads"]):
-                    values = HTML.add("h1", _nest=f'{index}', _style=f'headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;')
+                    values = HTML.genElement("h1", nest=f'{index}', style=f'headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;')
 
-                    remImg = HTML.add(f'img', _id=f'SubPage_page_results_rem_img_{index}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
-                    remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_results_rem_{index}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
-                    rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;')
-                    values += HTML.add(f'div', _nest=f'{rem}', _style=f'flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;')
+                    remImg = HTML.genElement(f'img', id=f'SubPage_page_results_rem_img_{index}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                    remBtn = HTML.genElement(f'button', nest=f'{remImg}', id=f'SubPage_page_results_rem_{index}', style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                    rem = HTML.genElement(f'div', nest=f'{remBtn}', align=f'right', style=f'max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;')
+                    values += HTML.genElement(f'div', nest=f'{rem}', style=f'flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;')
 
                     if type(data["downloads"][index]["Modified"]) is int:
                         data["downloads"][index]["Modified"] = f'{datetime.fromtimestamp(data["downloads"][index]["Modified"]).strftime("%d %b %y - %H:%M")}'
 
                     for key1, key2 in (("Title", None), ("Link", None), ("URL", None), ("State", "Modified"), ("Resolution", "AudioBitrate")):
                         if not key2 is None:
-                            txt = HTML.add("p", _nest=key1, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            txt = HTML.genElement("p", nest=key1, style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
                             if key1 == "State":
                                 if data["downloads"][index][key1] == "Done":
-                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #0F5; overflow: hidden;')
+                                    txt += HTML.genElement("p", nest=f'{data["downloads"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #0F5; overflow: hidden;')
                                 elif data["downloads"][index][key1] == "Failed":
-                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F05; overflow: hidden;')
+                                    txt += HTML.genElement("p", nest=f'{data["downloads"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #F05; overflow: hidden;')
                                 else:
-                                    txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F85; overflow: hidden;')
+                                    txt += HTML.genElement("p", nest=f'{data["downloads"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #F85; overflow: hidden;')
                             else:
-                                txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
-                            div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;')
+                                txt += HTML.genElement("p", nest=f'{data["downloads"][index][key1]}', style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                            div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;')
                         else:
-                            txt = HTML.add("p", _nest=key1, _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key1]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
-                            div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
+                            txt = HTML.genElement("p", nest=key1, style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            txt += HTML.genElement("p", nest=f'{data["downloads"][index][key1]}', style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                            div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
 
                         if not key2 is None:
-                            txt = HTML.add("p", _nest=key2, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                            txt += HTML.add("p", _nest=f'{data["downloads"][index][key2]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
-                            div += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px;')
+                            txt = HTML.genElement("p", nest=key2, style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                            txt += HTML.genElement("p", nest=f'{data["downloads"][index][key2]}', style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                            div += HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px;')
 
-                            values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                            values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
                             continue
 
-                        values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                        values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
 
                     if not data["downloads"][index]["Error"] == "":
-                        txt = HTML.add("p", _nest=f'Error', _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                        txt += HTML.add("p", _nest=f'{data["downloads"][index]["Error"]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
-                        div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
-                        values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                        txt = HTML.genElement("p", nest=f'Error', style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                        txt += HTML.genElement("p", nest=f'{data["downloads"][index]["Error"]}', style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                        div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
+                        values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
 
-                    records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto -6px auto; border: 6px solid #FBDF56; border-radius: 4px;')
+                    records += HTML.genElement("div", nest=f'{values}', style=f'divNormal %% margin: 0px auto -6px auto; border: 6px solid #FBDF56; border-radius: 4px;')
 
-                HTML.set("div", f'SubPage_page_results_out', _nest=f'{records}', _style=f'divNormal')
+                HTML.setElement("div", f'SubPage_page_results_out', nest=f'{records}', style=f'divNormal')
 
                 for index in reversed(data["downloads"]):
                     JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
@@ -139,14 +140,14 @@ def pageSub(args=None):
             JS.afterDelay(slowUIRefresh, 2500)
 
         def addHeader():
-            HTML.add(f'h1', f'SubPage_page_header', _nest=f'YouTube Downloader', _style=f'headerBig %% margin: 0px auto;')
+            HTML.addElement(f'h1', f'SubPage_page_header', nest=f'YouTube Downloader', style=f'headerBig %% margin: 0px auto;')
 
         def addDownload():
             def submitDownload(args):
                 if hasattr(args, "key") and not args.key in ["Enter"]:
                     return None
 
-                input = HTML.get(f'download_input').value
+                input = HTML.getElement("download_input").value
 
                 if not input.startswith("https://www.youtube.com/watch?v=") and not input.startswith("https://www.youtube.com/shorts/"):
                     return None
@@ -162,8 +163,8 @@ def pageSub(args=None):
                 else:
                     WS.send(f'yt download video {glb.config["quality"][0]} {input}')
 
-            HTML.add(f'input', f'SubPage_page_download', _id=f'download_input', _type=f'text', _style=f'inputMedium %% width: 75%;')
-            HTML.add(f'button', f'SubPage_page_download', _nest=f'Download', _id=f'download_button', _type=f'button', _style=f'buttonMedium %% width: 25%;')
+            HTML.addElement(f'input', f'SubPage_page_download', id=f'download_input', type=f'text', style=f'inputMedium %% width: 75%;')
+            HTML.addElement(f'button', f'SubPage_page_download', nest=f'Download', id=f'download_button', type=f'button', style=f'buttonMedium %% width: 25%;')
 
             JS.addEvent(f'download_input', submitDownload, "keyup")
             CSS.onHoverFocus(f'download_input', f'inputHover', f'inputFocus')
@@ -174,12 +175,12 @@ def pageSub(args=None):
         def addResults():
             data = WS.dict()["yt"]
 
-            HTML.add(f'h1', f'SubPage_page_results', _nest=f'Recent Downloads', _style=f'headerBig %% margin: 0px auto;')
-            HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
+            HTML.addElement(f'h1', f'SubPage_page_results', nest=f'Recent Downloads', style=f'headerBig %% margin: 0px auto;')
+            HTML.addElement(f'div', f'SubPage_page_results', id=f'SubPage_page_results_out', style=f'divNormal %% margin-bottom: 0px;')
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex %% width: 95%;')
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_download', _style=f'divNormal %% flex %% width: 75%;')
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_results', _style=f'divNormal %% width: 95%; margin-top: 50px;')
+        HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_header', style=f'divNormal %% flex %% width: 95%;')
+        HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_download', style=f'divNormal %% flex %% width: 75%;')
+        HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_results', style=f'divNormal %% width: 95%; margin-top: 50px;')
 
         addHeader()
         addDownload()
@@ -214,69 +215,69 @@ def pageSub(args=None):
             glb.lastDataPackage = data
 
             for index in reversed(data["history"]):
-                values = HTML.add("h1", _nest=f'{index}', _style=f'headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;')
+                values = HTML.genElement("h1", nest=f'{index}', style=f'headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;')
 
-                remImg = HTML.add(f'img', _id=f'SubPage_page_results_rem_img_{index}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
-                remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_results_rem_{index}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
-                rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;')
-                values += HTML.add(f'div', _nest=f'{rem}', _style=f'flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;')
+                remImg = HTML.genElement(f'img', id=f'SubPage_page_results_rem_img_{index}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                remBtn = HTML.genElement(f'button', nest=f'{remImg}', id=f'SubPage_page_results_rem_{index}', style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                rem = HTML.genElement(f'div', nest=f'{remBtn}', align=f'right', style=f'max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;')
+                values += HTML.genElement(f'div', nest=f'{rem}', style=f'flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;')
 
                 if type(data["history"][index]["Modified"]) is int:
                     data["history"][index]["Modified"] = f'{datetime.fromtimestamp(data["history"][index]["Modified"]).strftime("%d %b %y - %H:%M")}'
 
                 for key1, key2 in (("Title", None), ("Link", None), ("URL", None), ("State", "Modified"), ("Resolution", "AudioBitrate")):
                     if not key2 is None:
-                        txt = HTML.add("p", _nest=key1, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                        txt = HTML.genElement("p", nest=key1, style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
                         if key1 == "State":
                             if data["history"][index][key1] == "Done":
-                                txt += HTML.add("p", _nest=f'{data["history"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #0F5; overflow: hidden;')
+                                txt += HTML.genElement("p", nest=f'{data["history"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #0F5; overflow: hidden;')
                             elif data["history"][index][key1] == "Failed":
-                                txt += HTML.add("p", _nest=f'{data["history"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F05; overflow: hidden;')
+                                txt += HTML.genElement("p", nest=f'{data["history"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #F05; overflow: hidden;')
                             else:
-                                txt += HTML.add("p", _nest=f'{data["history"][index][key1]}', _style=f'width: 50%; margin: 0px auto; color: #F85; overflow: hidden;')
+                                txt += HTML.genElement("p", nest=f'{data["history"][index][key1]}', style=f'width: 50%; margin: 0px auto; color: #F85; overflow: hidden;')
                         else:
-                            txt += HTML.add("p", _nest=f'{data["history"][index][key1]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
-                        div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;')
+                            txt += HTML.genElement("p", nest=f'{data["history"][index][key1]}', style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                        div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;')
                     else:
-                        txt = HTML.add("p", _nest=key1, _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                        txt += HTML.add("p", _nest=f'{data["history"][index][key1]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
-                        div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
+                        txt = HTML.genElement("p", nest=key1, style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                        txt += HTML.genElement("p", nest=f'{data["history"][index][key1]}', style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                        div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
 
                     if not key2 is None:
-                        txt = HTML.add("p", _nest=key2, _style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                        txt += HTML.add("p", _nest=f'{data["history"][index][key2]}', _style=f'width: 50%; margin: 0px auto; overflow: hidden;')
-                        div += HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px;')
+                        txt = HTML.genElement("p", nest=key2, style=f'width: 50%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                        txt += HTML.genElement("p", nest=f'{data["history"][index][key2]}', style=f'width: 50%; margin: 0px auto; overflow: hidden;')
+                        div += HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px;')
 
-                        values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                        values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
                         continue
 
-                    values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                    values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
 
                 if not data["history"][index]["Error"] == "":
-                    txt = HTML.add("p", _nest=f'Error', _style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
-                    txt += HTML.add("p", _nest=f'{data["history"][index]["Error"]}', _style=f'width: 75%; margin: 0px auto; overflow: hidden;')
-                    div = HTML.add("div", _nest=f'{txt}', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
-                    values += HTML.add("div", _nest=f'{div}', _style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
+                    txt = HTML.genElement("p", nest=f'Error', style=f'width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;')
+                    txt += HTML.genElement("p", nest=f'{data["history"][index]["Error"]}', style=f'width: 75%; margin: 0px auto; overflow: hidden;')
+                    div = HTML.genElement("div", nest=f'{txt}', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;')
+                    values += HTML.genElement("div", nest=f'{div}', style=f'divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;')
 
-                records += HTML.add("div", _nest=f'{values}', _style=f'divNormal %% margin: 0px auto -6px auto; border: 6px solid #FBDF56; border-radius: 4px;')
+                records += HTML.genElement("div", nest=f'{values}', style=f'divNormal %% margin: 0px auto -6px auto; border: 6px solid #FBDF56; border-radius: 4px;')
 
-            HTML.set("div", f'SubPage_page_results_out', _nest=f'{records}', _style=f'divNormal')
+            HTML.setElement("div", f'SubPage_page_results_out', nest=f'{records}', style=f'divNormal')
 
             for index in reversed(data["history"]):
                 JS.addEvent(f'SubPage_page_results_rem_{index}', removeFromDownload)
                 CSS.onHoverClick(f'SubPage_page_results_rem_{index}', f'imgHover', f'imgClick')
 
         def addHeader():
-            HTML.add(f'h1', f'SubPage_page_header', _nest=f'History', _style=f'headerBig %% margin: 0px auto;')
+            HTML.addElement(f'h1', f'SubPage_page_header', nest=f'History', style=f'headerBig %% margin: 0px auto;')
 
         def addResults():
             data = WS.dict()["yt"]
 
-            HTML.add(f'div', f'SubPage_page_results', _id=f'SubPage_page_results_out', _style=f'divNormal %% margin-bottom: 0px;')
+            HTML.addElement(f'div', f'SubPage_page_results', id=f'SubPage_page_results_out', style=f'divNormal %% margin-bottom: 0px;')
             update(data)
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_header', _style=f'divNormal %% flex %% width: 95%;')
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_results', _style=f'divNormal %% width: 95%; margin-top: 50px;')
+        HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_header', style=f'divNormal %% flex %% width: 95%;')
+        HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_results', style=f'divNormal %% width: 95%; margin-top: 50px;')
 
         addHeader()
         addResults()
@@ -287,7 +288,7 @@ def pageSub(args=None):
                 if not args.key in ["Enter", "Escape"]:
                     return None
 
-                el = HTML.get(f'{args.target.id}')
+                el = HTML.getElement(args.target.id)
 
                 if "_" in el.id:
                     mainValue = list(glb.knownConfig)[-1]
@@ -340,13 +341,13 @@ def pageSub(args=None):
 
                 el.outerHTML = html
 
-                CSS.setStyle(f'{el.id}', f'width', f'{width}')
+                CSS.setStyle(el.id, "width", str(width))
 
                 JS.addEvent(el.id, editRecord, "dblclick")
 
-            el = HTML.get(f'{args.target.id}')
+            el = HTML.getElement(args.target.id)
             width = el.style.width
-            parantHeight = HTML.get(el.parentElement.id).offsetHeight
+            parantHeight = HTML.getElement(el.parentElement.id).offsetHeight
 
             if "_" in el.id:
                 value = el.id.split("_")[1]
@@ -363,7 +364,7 @@ def pageSub(args=None):
 
             styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
             styleSlc = f'height: {parantHeight + 4}px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-            html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
+            html = HTML.genElement(f'input', id=f'{el.id}', clas=f'{el.className}', type=f'text', style=f'inputMedium %% {styleInp}', custom=f'name="{value}" value="{el.innerHTML}"')
 
             if value in knownValues:
                 if knownValues[value] is bool:
@@ -384,13 +385,13 @@ def pageSub(args=None):
                     optionsHtml = f''
 
                     for option in glb.optionsList:
-                        optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
+                        optionsHtml += HTML.genElement(f'option', nest=f'{option}', custom=f'value="{option}"')
 
-                    html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
+                    html = HTML.genElement(f'select', nest=f'{optionsHtml}', id=f'{el.id}', clas=f'{el.className}', style=f'selectSmall %% {styleSlc}', custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
 
             el.outerHTML = html
 
-            el = HTML.get(f'{el.id}')
+            el = HTML.getElement(el.id)
             el.style.width = width
 
             if el.localName == "select":
@@ -404,12 +405,12 @@ def pageSub(args=None):
         def addMinimal(data):
             def addHeader():
                 rowC = 0
-                HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
                 styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
                 for header in ["Key", "Value"]:
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{header}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                 return rowC
 
@@ -420,38 +421,38 @@ def pageSub(args=None):
                 HTMLrows = f''
                 for key in data:
                     rowC += 1
-                    HTMLcols = HTML.add(f'p', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTMLcols = HTML.genElement(f'p', nest=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
                     value = data[key]
 
                     if knownValues[key] is int:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is bool:
                         if value:
-                            HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'Yes', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                         else:
-                            HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'No', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is list:
-                        HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{", ".join(value)}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     else:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
-                    HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                    HTMLrows += HTML.genElement(f'div', nest=f'{HTMLcols}', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
-                HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
+                HTML.addElementRaw(f'SubPage_page', f'{HTMLrows}')
 
                 return rowC
 
             rowC = addHeader()
             rowC = addRows(data, rowC)
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 item.style.width = "50%"
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 if item.id != "":
                     JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
@@ -459,7 +460,7 @@ def pageSub(args=None):
 
     pageSubMap = {"Download": download, "History": history, "Config": config}
 
-    HTML.clear(f'SubPage_page')
+    HTML.clrElement(f'SubPage_page')
     glb.lastDataPackage = {}
 
     setup(args)
@@ -468,14 +469,14 @@ def pageSub(args=None):
 
 
 def main(args=None, sub=None):
-    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
+    HTML.setElement(f'div', f'SubPage', id=f'SubPage_nav', align=f'center', style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    HTML.addElement(f'div', f'SubPage', id=f'SubPage_page', align=f'center', style=f'margin: 10px 10px 10px 0px;')
 
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%')
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_main', align=f'left', style=f'width: 60%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_options', align=f'right', style=f'width: 40%')
 
     for subPage in glb.subPages:
-        HTML.add(f'button', f'SubPage_nav_main', _nest=f'{subPage}', _id=f'SubPage_nav_main_{subPage}', _type=f'button', _style=f'buttonSmall')
+        HTML.addElement(f'button', f'SubPage_nav_main', nest=f'{subPage}', id=f'SubPage_nav_main_{subPage}', type=f'button', style=f'buttonSmall')
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)

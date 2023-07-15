@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS, Widget
+from WebKit import HTML, CSS, JS, Widget
+from WebKit.WebSocket import WS
 from rsa import encrypt
 from json import dumps, loads
 from datetime import datetime, timedelta
@@ -76,12 +77,12 @@ def pageSub(args=None):
         def verySlowUIRefresh():
             def update(data):
                 for plug in data:
-                    HTML.setRaw(f'Details_{plug}_todayCost', f'{((data[plug]["todayPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
-                    HTML.setRaw(f'Details_{plug}_monthlyCost', f'{((data[plug]["monthlyPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
-                    HTML.setRaw(f'Details_{plug}_todayPower', f'{(data[plug]["todayPower"] / 1000):.2f} kW')
-                    HTML.setRaw(f'Details_{plug}_monthlyPower', f'{(data[plug]["monthlyPower"] / 1000):.2f} kW')
-                    HTML.setRaw(f'Details_{plug}_todayTime', f'{getDur(data[plug]["todayTime"] * 60)}')
-                    HTML.setRaw(f'Details_{plug}_monthlyTime', f'{getDur(data[plug]["monthlyTime"] * 60)}')
+                    HTML.setElementRaw(f'Details_{plug}_todayCost', f'{((data[plug]["todayPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
+                    HTML.setElementRaw(f'Details_{plug}_monthlyCost', f'{((data[plug]["monthlyPower"] / 1000) * glb.config["costPerKw"]):.2f} {glb.config["costFormat"]}')
+                    HTML.setElementRaw(f'Details_{plug}_todayPower', f'{(data[plug]["todayPower"] / 1000):.2f} kW')
+                    HTML.setElementRaw(f'Details_{plug}_monthlyPower', f'{(data[plug]["monthlyPower"] / 1000):.2f} kW')
+                    HTML.setElementRaw(f'Details_{plug}_todayTime', f'{getDur(data[plug]["todayTime"] * 60)}')
+                    HTML.setElementRaw(f'Details_{plug}_monthlyTime', f'{getDur(data[plug]["monthlyTime"] * 60)}')
 
                     if data[plug]["overheated"]:
                         CSS.setStyle(f'Gauge_{plug}_overheat', f'opacity', f'100%')
@@ -103,8 +104,8 @@ def pageSub(args=None):
         def slowUIRefresh():
             def update(data):
                 for plug in data:
-                    HTML.setRaw(f'Gauge_{plug}_power', f'{(data[plug]["currentPower"] / 1000):.2f}<br>Wh')
-                    HTML.setRaw(f'Gauge_{plug}_uptime', f'{getDur(data[plug]["duration"])}')
+                    HTML.setElementRaw(f'Gauge_{plug}_power', f'{(data[plug]["currentPower"] / 1000):.2f}<br>Wh')
+                    HTML.setElementRaw(f'Gauge_{plug}_uptime', f'{getDur(data[plug]["duration"])}')
 
                     if not data[plug]["state"]:
                         for i in range(0, 101):
@@ -270,26 +271,26 @@ def pageSub(args=None):
                 dates.append(date.strftime("%b (%y)"))
                 date = date - timedelta(days=date.day)
 
-            txt = HTML.add("h1", _nest=f'Usage - Montly', _style=f'headerBig')
+            txt = HTML.genElement("h1", nest=f'Usage - Montly', style=f'headerBig')
             if not glb.config["useMonthly"]:
-                txt = HTML.add("h1", _nest=f'Usage - Daily', _style=f'headerBig')
+                txt = HTML.genElement("h1", nest=f'Usage - Daily', style=f'headerBig')
 
-            HTML.set(f'div',
+            HTML.setElement(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt + Widget.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates)), smallHeaders=True),
-                     _id=f'SubPage_page_graph_usage',
-                     _style=f'divNormal')
+                     nest=txt + Widget.graph(f'graph_usage_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=usageStep, cols=colLimit, origin=("power", "date"), rowAfterfix=" kW", colNames=tuple(reversed(dates)), smallHeaders=True),
+                     id=f'SubPage_page_graph_usage',
+                     style=f'divNormal')
 
-            txt = HTML.add("h1", _nest=f'Cost - Montly', _style=f'headerBig')
+            txt = HTML.genElement("h1", nest=f'Cost - Montly', style=f'headerBig')
             if not glb.config["useMonthly"]:
-                txt = HTML.add("h1", _nest=f'Cost - Daily', _style=f'headerBig')
+                txt = HTML.genElement("h1", nest=f'Cost - Daily', style=f'headerBig')
 
-            HTML.add(f'div',
+            HTML.addElement(f'div',
                      f'SubPage_page_graph',
-                     _nest=txt +
+                     nest=txt +
                      Widget.graph(f'graph_cost_{plug}', rowHeight=f'75px', rows=rowLimit, rowStep=costStep, cols=colLimit, origin=("cost", "date"), rowAfterfix=f' {glb.config["costFormat"]}', colNames=tuple(reversed(dates)), smallHeaders=True),
-                     _id=f'SubPage_page_graph_cost',
-                     _style=f'divNormal')
+                     id=f'SubPage_page_graph_cost',
+                     style=f'divNormal')
 
             JS.aSync(drawLines)
 
@@ -317,20 +318,20 @@ def pageSub(args=None):
                 addGraph(plug)
 
             def header(plug):
-                img = HTML.add(f'img', _id=f'Info_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Info.png" alt="Info"')
-                btn = HTML.add(f'button', _nest=f'{img}', _id=f'Info_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                info = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
+                img = HTML.genElement(f'img', id=f'Info_img_{plug}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Tapo/Info.png" alt="Info"')
+                btn = HTML.genElement(f'button', nest=f'{img}', id=f'Info_{plug}', style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                info = HTML.genElement(f'div', nest=f'{btn}', align=f'center', style=f'width: 15%; min-width: 30px; margin: auto;')
 
-                txt = HTML.add(f'h1', _nest=f'{plug}', _style=f'headerMedium %% width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;')
+                txt = HTML.genElement(f'h1', nest=f'{plug}', style=f'headerMedium %% width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;')
 
-                img = HTML.add(f'img', _id=f'Power_img_{plug}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
-                btn = HTML.add(f'button', _nest=f'{img}', _id=f'Power_{plug}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                power = HTML.add(f'div', _nest=f'{btn}', _align=f'center', _style=f'width: 15%; min-width: 30px; margin: auto;')
+                img = HTML.genElement(f'img', id=f'Power_img_{plug}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
+                btn = HTML.genElement(f'button', nest=f'{img}', id=f'Power_{plug}', style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                power = HTML.genElement(f'div', nest=f'{btn}', align=f'center', style=f'width: 15%; min-width: 30px; margin: auto;')
 
-                return HTML.add(f'div', _nest=f'{info}{txt}{power}', _style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
+                return HTML.genElement(f'div', nest=f'{info}{txt}{power}', style=f'flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;')
 
             def body(plug):
-                img = HTML.add(f'img', _style=f'z-index: 1; width: 100%; margin: auto; position: relative; user-select:none;', _custom=f'src="docs/assets/Portal/Tapo/Gauge.png" alt="Gauge"')
+                img = HTML.genElement(f'img', style=f'z-index: 1; width: 100%; margin: auto; position: relative; user-select:none;', custom=f'src="docs/assets/Portal/Tapo/Gauge.png" alt="Gauge"')
 
                 svg = ""
                 for i in range(0, 101):
@@ -339,21 +340,21 @@ def pageSub(args=None):
                     else:
                         r, g = (255, int(255 * ((50 - i % 50) / 50)))
 
-                    svg += HTML.add(f'line',
-                                    _id=f'Gauge_{plug}_{i}',
-                                    _style=f'z-index: 0; stroke: {"#{:02x}{:02x}{:02x}".format(r, g, 0)}; stroke-width: 5; opacity: 0%; transition: opacity 0.25s;',
-                                    _custom=f'x1="50%" y1="50%" x2="{i}%" y2="{256.3 * math.sin(math.pi * ((i - 50) / 100)**4)}%"')
+                    svg += HTML.genElement(f'line',
+                                    id=f'Gauge_{plug}_{i}',
+                                    style=f'z-index: 0; stroke: {"#{:02x}{:02x}{:02x}".format(r, g, 0)}; stroke-width: 5; opacity: 0%; transition: opacity 0.25s;',
+                                    custom=f'x1="50%" y1="50%" x2="{i}%" y2="{256.3 * math.sin(math.pi * ((i - 50) / 100)**4)}%"')
 
-                svg = HTML.add(f'svg', _nest=f'{svg}', _style=f'width: 80%; height: 110px; margin: auto auto auto -80%; left: -10%; top: -5px; position: relative; user-select:none;')
+                svg = HTML.genElement(f'svg', nest=f'{svg}', style=f'width: 80%; height: 110px; margin: auto auto auto -80%; left: -10%; top: -5px; position: relative; user-select:none;')
 
-                txt = HTML.add(f'p', _nest=f'0.00<br>Wh', _id=f'Gauge_{plug}_power', _style=f'z-index: 24; width: 100%; margin: auto auto auto -100%; padding: 0px 0px 5% 0px; line-height: 100%; font-weight: bold; position: relative; user-select:none;')
-                txt += HTML.add(f'p', _nest=f'0.00 s', _id=f'Gauge_{plug}_uptime', _style=f'z-index: 25; width: 100%; margin: auto auto auto -100%; padding: 50% 0px 0px 0px; font-weight: bold; position: relative; user-select:none;')
-                txt += HTML.add(f'h1',
-                                _nest=f'Overheated!',
-                                _id=f'Gauge_{plug}_overheat',
-                                _style=f'headerMedium %% z-index: 26; width: 100%; margin: auto auto -20px -100%; color: #F00; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;')
+                txt = HTML.genElement(f'p', nest=f'0.00<br>Wh', id=f'Gauge_{plug}_power', style=f'z-index: 24; width: 100%; margin: auto auto auto -100%; padding: 0px 0px 5% 0px; line-height: 100%; font-weight: bold; position: relative; user-select:none;')
+                txt += HTML.genElement(f'p', nest=f'0.00 s', id=f'Gauge_{plug}_uptime', style=f'z-index: 25; width: 100%; margin: auto auto auto -100%; padding: 50% 0px 0px 0px; font-weight: bold; position: relative; user-select:none;')
+                txt += HTML.genElement(f'h1',
+                                nest=f'Overheated!',
+                                id=f'Gauge_{plug}_overheat',
+                                style=f'headerMedium %% z-index: 26; width: 100%; margin: auto auto -20px -100%; color: #F00; position: relative; opacity: 0%; transition: opacity 0.25s; user-select:none;')
 
-                return HTML.add(f'div', _nest=f'{img}{svg}{txt}', _style=f'flex %% padding: 20px 10px; border-bottom: 4px dotted #111;')
+                return HTML.genElement(f'div', nest=f'{img}{svg}{txt}', style=f'flex %% padding: 20px 10px; border-bottom: 4px dotted #111;')
 
             def footer(plug):
                 div = ""
@@ -361,14 +362,14 @@ def pageSub(args=None):
                 for visKey, key, format in (("Today", "", ""), ("Cost:", "todayCost", f'0 {glb.config["costFormat"]}'), ("Power:", "todayPower", "0 kW"), ("Time:", "todayTime", "0 s"), ("Monthly", "", ""),
                                             ("Cost:", "monthlyCost", f'0 {glb.config["costFormat"]}'), ("Power:", "monthlyPower", "0 kW"), ("Time:", "monthlyTime", "0 s")):
 
-                    txt = HTML.add(f'p', _nest=f'{visKey}', _style=f'width: 45%; margin: auto; font-weight: bold; user-select:none;')
+                    txt = HTML.genElement(f'p', nest=f'{visKey}', style=f'width: 45%; margin: auto; font-weight: bold; user-select:none;')
 
                     if not key == "":
-                        txt += HTML.add(f'p', _nest=f'{format}', _id=f'Details_{plug}_{key}', _style=f'width: 55%; margin: auto; font-weight: bold;')
+                        txt += HTML.genElement(f'p', nest=f'{format}', id=f'Details_{plug}_{key}', style=f'width: 55%; margin: auto; font-weight: bold;')
 
-                    div += HTML.add(f'div', _nest=f'{txt}', _align=f'center', _style=f'flex')
+                    div += HTML.genElement(f'div', nest=f'{txt}', align=f'center', style=f'flex')
 
-                return HTML.add(f'div', _nest=f'{div}', _style=f'padding-top: 10px;')
+                return HTML.genElement(f'div', nest=f'{div}', style=f'padding-top: 10px;')
 
             data = WS.dict()["tapo"]["current"]
 
@@ -376,11 +377,11 @@ def pageSub(args=None):
                 if not data[plug]["model"] in ["P115", "P110", "total"]:
                     continue
 
-                HTML.add(f'div',
+                HTML.addElement(f'div',
                          f'SubPage_page_main',
-                         _nest=f'{header(plug)}{body(plug)}{footer(plug)}',
-                         _id=f'SubPage_page_main_{plug}',
-                         _style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
+                         nest=f'{header(plug)}{body(plug)}{footer(plug)}',
+                         id=f'SubPage_page_main_{plug}',
+                         style=f'divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;')
 
             for plug in data:
                 if not data[plug]["model"] in ["P115", "P110", "total"]:
@@ -392,8 +393,8 @@ def pageSub(args=None):
                 JS.addEvent(f'Power_{plug}', togglePower)
                 CSS.onHoverClick(f'Power_{plug}', f'imgHover', f'imgClick')
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
-        HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_graph', _style=f'divNormal %% margin: 0px; padding 0px;')
+        HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_main', style=f'divNormal %% flex %% margin: 15px 30px 15px auto; overflow-y: hidden;')
+        HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_graph', style=f'divNormal %% margin: 0px; padding 0px;')
 
         addPlugs()
 
@@ -407,7 +408,7 @@ def pageSub(args=None):
                 if not args.key in ["Enter", "Escape"]:
                     return None
 
-                el = HTML.get(f'{args.target.id}')
+                el = HTML.getElement(args.target.id)
 
                 if "_" in el.id:
                     mainValue = list(glb.knownConfig)[-1]
@@ -463,9 +464,9 @@ def pageSub(args=None):
                 JS.addEvent(el.id, editRecord, "dblclick")
                 CSS.setStyle(f'{el.id}', f'width', f'{width}')
 
-            el = HTML.get(f'{args.target.id}')
+            el = HTML.getElement(args.target.id)
             width = el.style.width
-            parantHeight = HTML.get(el.parentElement.id).offsetHeight
+            parantHeight = HTML.getElement(el.parentElement.id).offsetHeight
 
             if "_" in el.id:
                 value = el.id.split("_")[1]
@@ -482,7 +483,7 @@ def pageSub(args=None):
 
             styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
             styleSlc = f'height: {parantHeight + 4}px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-            html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
+            html = HTML.genElement(f'input', id=f'{el.id}', clas=f'{el.className}', type=f'text', style=f'inputMedium %% {styleInp}', custom=f'name="{value}" value="{el.innerHTML}"')
 
             if value in knownValues:
                 if knownValues[value] is bool:
@@ -503,13 +504,13 @@ def pageSub(args=None):
                     optionsHtml = f''
 
                     for option in glb.optionsList:
-                        optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
+                        optionsHtml += HTML.genElement(f'option', nest=f'{option}', custom=f'value="{option}"')
 
-                    html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
+                    html = HTML.genElement(f'select', nest=f'{optionsHtml}', id=f'{el.id}', clas=f'{el.className}', style=f'selectSmall %% {styleSlc}', custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
 
             el.outerHTML = html
 
-            el = HTML.get(f'{el.id}')
+            el = HTML.getElement(el.id)
             el.style.width = width
 
             if el.localName == "select":
@@ -523,12 +524,12 @@ def pageSub(args=None):
         def addMinimal(data):
             def addHeader():
                 rowC = 0
-                HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
                 styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
                 for header in ["Key", "Value"]:
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{header}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                 return rowC
 
@@ -539,38 +540,38 @@ def pageSub(args=None):
                 HTMLrows = f''
                 for key in data:
                     rowC += 1
-                    HTMLcols = HTML.add(f'p', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTMLcols = HTML.genElement(f'p', nest=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
                     value = data[key]
 
                     if knownValues[key] is int:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is bool:
                         if value:
-                            HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'Yes', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                         else:
-                            HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'No', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is list:
-                        HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{", ".join(value)}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     else:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
-                    HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                    HTMLrows += HTML.genElement(f'div', nest=f'{HTMLcols}', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
-                HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
+                HTML.addElementRaw(f'SubPage_page', f'{HTMLrows}')
 
                 return rowC
 
             rowC = addHeader()
             rowC = addRows(data, rowC)
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 item.style.width = "50%"
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 if item.id != "":
                     JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
@@ -578,7 +579,7 @@ def pageSub(args=None):
 
     pageSubMap = {"Plugs": plugs, "Config": config}
 
-    HTML.clear(f'SubPage_page')
+    HTML.clrElement(f'SubPage_page')
 
     setup(args)
 
@@ -590,14 +591,14 @@ def pageSub(args=None):
 
 
 def main(args=None, sub=None):
-    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
+    HTML.setElement(f'div', f'SubPage', id=f'SubPage_nav', align=f'center', style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    HTML.addElement(f'div', f'SubPage', id=f'SubPage_page', align=f'center', style=f'margin: 10px 10px 10px 0px;')
 
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%')
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_main', align=f'left', style=f'width: 60%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_options', align=f'right', style=f'width: 40%')
 
     for subPage in glb.subPages:
-        HTML.add(f'button', f'SubPage_nav_main', _nest=f'{subPage}', _id=f'SubPage_nav_main_{subPage}', _type=f'button', _style=f'buttonSmall')
+        HTML.addElement(f'button', f'SubPage_nav_main', nest=f'{subPage}', id=f'SubPage_nav_main_{subPage}', type=f'button', style=f'buttonSmall')
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)

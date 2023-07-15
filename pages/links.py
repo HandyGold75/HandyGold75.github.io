@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 from json import dumps, loads, load
 from os import path as osPath
 
@@ -21,9 +22,9 @@ def setup():
     if JS.cache("page_links_colums") is None or JS.cache("page_links_colums") == "":
         JS.cache("page_links_colums", 4)
 
-    HTML.set(f'div', f'page', _id=f'page_links', _align=f'center')
+    HTML.setElement(f'div', f'page', id=f'page_links', align=f'center')
 
-    if not WS.glb.loggedIn:
+    if not WS.loggedIn:
         return None
 
     msgDict = WS.dict()
@@ -59,11 +60,11 @@ def toggleCat(args: any):
 def main():
     def newCat(cat: dict, visable: bool):
         if visable:
-            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 2px solid #111; user-select: none;')
-            HTML.add(f'div', f'page_links', _id=f'page_links_{cat}', _align=f'center', _style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 1;')
+            HTML.addElement(f'h1', f'page_links', id=f'page_links_{cat}_header', nest=f'{cat}', align=f'center', style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 2px solid #111; user-select: none;')
+            HTML.addElement(f'div', f'page_links', id=f'page_links_{cat}', align=f'center', style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 1;')
         else:
-            HTML.add(f'h1', f'page_links', _id=f'page_links_{cat}_header', _nest=f'{cat}', _align=f'center', _style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 4px solid #111; user-select: none;')
-            HTML.add(f'div', f'page_links', _id=f'page_links_{cat}', _align=f'center', _style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 0; margin-top: -9999px; position: absolute;')
+            HTML.addElement(f'h1', f'page_links', id=f'page_links_{cat}_header', nest=f'{cat}', align=f'center', style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 4px solid #111; user-select: none;')
+            HTML.addElement(f'div', f'page_links', id=f'page_links_{cat}', align=f'center', style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 0; margin-top: -9999px; position: absolute;')
 
     setup()
 
@@ -84,13 +85,13 @@ def main():
 
         if catColCount[currentCat] % int(JS.cache("page_links_colums")) == 0:
             catRowCount[currentCat] += 1
-            HTML.add(f'div', f'page_links_{currentCat}', _id=f'page_links_{currentCat}_row{catRowCount[currentCat]}', _align=f'center', _style=f'flex')
+            HTML.addElement(f'div', f'page_links_{currentCat}', id=f'page_links_{currentCat}_row{catRowCount[currentCat]}', align=f'center', style=f'flex')
 
         catColCount[currentCat] += 1
 
-        img = HTML.getLink(glb.allLinks[link]["url"], _nest=f'<img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
-        txt = HTML.add(f'p', _nest=HTML.getLink(glb.allLinks[link]["url"], _nest=glb.allLinks[link]["text"]))
-        HTML.add(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', _nest=f'{img}{txt}', _style=f'width: {100 / int(JS.cache("page_links_colums"))}%; margin: 0px auto;')
+        img = HTML.linkWrap(glb.allLinks[link]["url"], nest=f'<img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
+        txt = HTML.genElement(f'p', nest=HTML.linkWrap(glb.allLinks[link]["url"], nest=glb.allLinks[link]["text"]))
+        HTML.addElement(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', nest=f'{img}{txt}', style=f'width: {100 / int(JS.cache("page_links_colums"))}%; margin: 0px auto;')
 
     for cat in catRowCount:
         JS.addEvent(f'page_links_{cat}_header', toggleCat, "click")

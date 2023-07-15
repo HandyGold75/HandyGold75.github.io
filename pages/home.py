@@ -6,5 +6,5 @@ class glb:
 
 
 def main():
-    HTML.set(f'div', f'page', _id=f'page_home', _align=f'left')
-    HTML.set(f'p', f'page_home', _nest=f'Page content for home.')
+    HTML.setElement(f'div', f'page', id=f'page_home', align=f'left')
+    HTML.setElement(f'p', f'page_home', nest=f'Page content for home.')
