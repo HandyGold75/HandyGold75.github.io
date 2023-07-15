@@ -115,7 +115,7 @@ def setupConnection():
 def main(args=None):
     def login(args):
         def sendLogin():
-            if not WS.glb.ws.readyState > 1:
+            if WS.glb.ws.readyState > 1:
                 JS.popup("alert", "Failed to connect to server")
                 return None
 
