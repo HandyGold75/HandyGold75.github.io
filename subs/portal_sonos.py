@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS, Widget
+from WebKit import HTML, CSS, JS, Widget
+from WebKit.WebSocket import WS
 from json import dumps, loads
 from datetime import datetime, timedelta
 from traceback import format_exc
@@ -216,12 +217,11 @@ def pageSub(args):
                     durStr = ":".join(WS.dict()["sonos"]["track"]["duration"].split(":")[1:])
 
                 try:
-                    HTML.get(f'SubPage_page_timeline_position').innerHTML = posStr
-                    HTML.get(f'SubPage_page_timeline_duration').innerHTML = durStr
+                    HTML.setElementRaw("SubPage_page_timeline_position", posStr)
+                    HTML.setElementRaw("SubPage_page_timeline_duration", durStr)
 
                     if not glb.videoScolling:
-                        HTML.get(f'SubPage_page_timeline_slider').max = dur
-                        HTML.get(f'SubPage_page_timeline_slider').value = pos
+                        CSS.setAttributes("SubPage_page_timeline_slider", (("max", dur), ("value", pos)))
 
                     if not glb.config["useAlbumArt"]:
                         newPos = pos + 1
@@ -256,13 +256,11 @@ def pageSub(args):
                         CSS.setStyles(f'SubPage_page_buttons_Que', ((f'background', f'#222'), (f'border', f'2px solid #222')))
 
                     if data["device"]["playback"] == "active":
-                        HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Pause.png'
-                        HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Pause'
+                        CSS.setAttributes("SubPage_page_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Pause.png"), ("alt", "Pause")))
                     elif data["device"]["playback"] in ["standby", "inactive"]:
-                        HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Play.png'
-                        HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Play'
+                        CSS.setAttributes("SubPage_page_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.png"), ("alt", "Play")))
 
-                    HTML.get(f'SubPage_page_volume_slider').value = data["device"]["volume"]
+                    CSS.setAttribute("SubPage_page_volume_slider", "value", data["device"]["volume"])
 
                     if not glb.config["useAlbumArt"]:
                         if data["device"]["playback"] == "active" and glb.ytPlayer.getPlayerState() != 1:
@@ -283,7 +281,7 @@ def pageSub(args):
                 try:
                     addQue()
                     CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex ', f'100')))
-                    CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+                    CSS.getAttribute(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
                 except AttributeError:
                     return None
 
@@ -297,8 +295,7 @@ def pageSub(args):
 
                 try:
                     if glb.config["useAlbumArt"]:
-                        HTML.get(f'Image_AlbumArt').src = data["track"]["album_art"]
-                        HTML.get(f'Image_AlbumArt').alt = data["track"]["title"]
+                        CSS.setAttributes("Image_AlbumArt", (("src", data["track"]["album_art"]), ("alt", data["track"]["title"])))
                 except AttributeError:
                     return None
 
@@ -370,12 +367,12 @@ def pageSub(args):
         def addAlbumArt():
             data = WS.dict()["sonos"]
 
-            HTML.set(f'div', f'SubPage_page_media', _id=f'SubPage_page_art', _style=f'divNormal %% width: 75%; margin: -30px auto 15px auto;')
+            HTML.setElement(f'div', f'SubPage_page_media', id=f'SubPage_page_art', style=f'divNormal %% width: 75%; margin: -30px auto 15px auto;')
 
-            img = HTML.add(f'img', _id="Image_AlbumArt", _style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
-            HTML.set(f'div', f'SubPage_page_art', _nest=f'{img}', _id=f'SubPage_page_art_albumArt', _style=f'divNormal %% width: 75%;')
+            img = HTML.genElement(f'img', id="Image_AlbumArt", style="width: 100%; max-width: 69vh; max-height: 69vh; margin: 15px auto -10px auto; user-select:none;", custom=f'src="{data["track"]["album_art"]}" alt="{data["track"]["title"]}"')
+            HTML.setElement(f'div', f'SubPage_page_art', nest=f'{img}', id=f'SubPage_page_art_albumArt', style=f'divNormal %% width: 75%;')
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
+            HTML.addElement(f'div', f'SubPage_page_main', id=f'SubPage_page_timeline', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
             pos = datetime.strptime(data["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
@@ -390,9 +387,9 @@ def pageSub(args):
             if int(WS.dict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                 durStr = ":".join(WS.dict()["sonos"]["track"]["duration"].split(":")[1:])
 
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{posStr}', _id=f'SubPage_page_timeline_position', _style=f'color: #F7E163; width: 10%;')
-            HTML.add(f'input', f'SubPage_page_timeline', _id=f'SubPage_page_timeline_slider', _type=f'range', _style=f'inputRange %% width: 80%; user-select: none;', _custom=f'min="0" max="{dur}" value="{pos}"')
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{durStr}', _id=f'SubPage_page_timeline_duration', _style=f'color: #F7E163; width: 10%;')
+            HTML.addElement(f'p', f'SubPage_page_timeline', nest=f'{posStr}', id=f'SubPage_page_timeline_position', style=f'color: #F7E163; width: 10%;')
+            HTML.addElement(f'input', f'SubPage_page_timeline', id=f'SubPage_page_timeline_slider', type=f'range', style=f'inputRange %% width: 80%; user-select: none;', custom=f'min="0" max="{dur}" value="{pos}"')
+            HTML.addElement(f'p', f'SubPage_page_timeline', nest=f'{durStr}', id=f'SubPage_page_timeline_duration', style=f'color: #F7E163; width: 10%;')
 
             def doAction():
                 def videoScollFalse(args=None):
@@ -423,18 +420,18 @@ def pageSub(args):
             if int(WS.dict()["sonos"]["track"]["duration"].split(":")[0]) == 0:
                 durStr = ":".join(WS.dict()["sonos"]["track"]["duration"].split(":")[1:])
 
-            HTML.setRaw(f'SubPage_page_media', Widget.ytVideo("SonosYTPlayer"))
+            HTML.setElementRaw(f'SubPage_page_media', Widget.ytVideo("SonosYTPlayer"))
 
             def loadYtPlayer():
                 glb.ytPlayer = Widget.ytVideoGetControl("SonosYTPlayer")
 
             JS.aSync(loadYtPlayer)
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_timeline', _style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
+            HTML.addElement(f'div', f'SubPage_page_main', id=f'SubPage_page_timeline', style=f'divNormal %% flex %% width: 100%; margin: 0px auto; justify-content: center;')
 
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{posStr}', _id=f'SubPage_page_timeline_position', _style=f'color: #F7E163; width: 10%;')
-            HTML.add(f'input', f'SubPage_page_timeline', _id=f'SubPage_page_timeline_slider', _type=f'range', _style=f'inputRange %% width: 80%; user-select: none;', _custom=f'min="0" max="{dur}" value="{pos}"')
-            HTML.add(f'p', f'SubPage_page_timeline', _nest=f'{durStr}', _id=f'SubPage_page_timeline_duration', _style=f'color: #F7E163; width: 10%;')
+            HTML.addElement(f'p', f'SubPage_page_timeline', nest=f'{posStr}', id=f'SubPage_page_timeline_position', style=f'color: #F7E163; width: 10%;')
+            HTML.addElement(f'input', f'SubPage_page_timeline', id=f'SubPage_page_timeline_slider', type=f'range', style=f'inputRange %% width: 80%; user-select: none;', custom=f'min="0" max="{dur}" value="{pos}"')
+            HTML.addElement(f'p', f'SubPage_page_timeline', nest=f'{durStr}', id=f'SubPage_page_timeline_duration', style=f'color: #F7E163; width: 10%;')
 
             def doAction():
                 def videoScollFalse(args=None):
@@ -485,83 +482,83 @@ def pageSub(args):
                     return None
 
             def playNext(args=None):
-                sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, False)
+                sonosControl.addQue(CSS.getAttribute("SubPage_page_queAdd_input", "value"), False)
 
             def playNow(args=None):
-                sonosControl.addQue(HTML.get(f'SubPage_page_queAdd_input').value, True)
+                sonosControl.addQue(CSS.getAttribute("SubPage_page_queAdd_input", "value"), True)
 
             data = WS.dict()["sonos"]
 
-            if HTML.get(f'SubPage_page_que') is None:
-                que = HTML.add(f'div', _id=f'SubPage_page_queList', _style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
-                queAdd = HTML.add(f'div', _id=f'SubPage_page_queAdd', _style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
+            if HTML.getElement("SubPage_page_que") is None:
+                que = HTML.genElement(f'div', id=f'SubPage_page_queList', style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
+                queAdd = HTML.genElement(f'div', id=f'SubPage_page_queAdd', style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
 
                 if glb.config["useAlbumArt"]:
-                    HTML.add(f'div',
-                             f'SubPage_page_media',
-                             _id=f'SubPage_page_que',
-                             _nest=f'{que}{queAdd}',
-                             _style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+                    HTML.addElement(f'div',
+                                    f'SubPage_page_media',
+                                    id=f'SubPage_page_que',
+                                    nest=f'{que}{queAdd}',
+                                    style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
 
                 else:
-                    HTML.add(f'div',
-                             f'SubPage_page_media',
-                             _id=f'SubPage_page_que',
-                             _nest=f'{que}{queAdd}',
-                             _style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+                    HTML.addElement(f'div',
+                                    f'SubPage_page_media',
+                                    id=f'SubPage_page_que',
+                                    nest=f'{que}{queAdd}',
+                                    style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
             else:
-                HTML.setRaw(f'SubPage_page_queList', "")
+                HTML.setElementRaw(f'SubPage_page_queList', "")
 
             tracks = data["que"]["tracks"]
 
             queHTML = ""
 
             for track in tracks:
-                img = HTML.add(f'img', _id=f'SubPage_page_que_{track}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+                img = HTML.genElement(f'img', id=f'SubPage_page_que_{track}_img', style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', align=f'left', custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
-                txt = HTML.add(f'p', _nest=f'{tracks[track]["title"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                remImg = HTML.add(f'img', _id=f'SubPage_page_que_rem_img_{track}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
-                remBtn = HTML.add(f'button', _nest=f'{remImg}', _id=f'SubPage_page_que_rem_{track}', _style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
-                rem = HTML.add(f'div', _nest=f'{remBtn}', _align=f'right', _style=f'width: 5vw; height: 5vw; max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
-                title = HTML.add(f'div', _nest=f'{txt}{rem}', _style=f'flex %% margin: 0px;')
+                txt = HTML.genElement(f'p', nest=f'{tracks[track]["title"]}', style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', align=f'left')
+                remImg = HTML.genElement(f'img', id=f'SubPage_page_que_rem_img_{track}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+                remBtn = HTML.genElement(f'button', nest=f'{remImg}', id=f'SubPage_page_que_rem_{track}', style=f'buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;')
+                rem = HTML.genElement(f'div', nest=f'{remBtn}', align=f'right', style=f'width: 5vw; height: 5vw; max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;')
+                title = HTML.genElement(f'div', nest=f'{txt}{rem}', style=f'flex %% margin: 0px;')
 
-                txt = HTML.add(f'p', _nest=f'{tracks[track]["creator"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                dur = HTML.add(f'p', _nest=f'{tracks[track]["duration"][-5:]}', _style=f'margin: 0px 0px 0px auto;', _align=f'right')
-                creator = HTML.add(f'div', _nest=f'{txt}{dur}', _style=f'flex %% font-size: 75%; margin: 0px;')
+                txt = HTML.genElement(f'p', nest=f'{tracks[track]["creator"]}', style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', align=f'left')
+                dur = HTML.genElement(f'p', nest=f'{tracks[track]["duration"][-5:]}', style=f'margin: 0px 0px 0px auto;', align=f'right')
+                creator = HTML.genElement(f'div', nest=f'{txt}{dur}', style=f'flex %% font-size: 75%; margin: 0px;')
 
-                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_que_{track}_txt', _style=f'width: 90%; margin: auto 5px;')
+                txtDiv = HTML.genElement(f'div', nest=f'{title}{creator}', id=f'SubPage_page_que_{track}_txt', style=f'width: 90%; margin: auto 5px;')
 
-                queHTML += HTML.add(f'div',
-                                    _nest=f'{img}{txtDiv}',
-                                    _id=f'SubPage_page_que_{track}',
-                                    _class=f'SubPage_page_que_tracks',
-                                    _style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
+                queHTML += HTML.genElement(f'div',
+                                           nest=f'{img}{txtDiv}',
+                                           id=f'SubPage_page_que_{track}',
+                                           clas=f'SubPage_page_que_tracks',
+                                           style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
 
-            HTML.addRaw(f'SubPage_page_queList', queHTML)
+            HTML.addElementRaw(f'SubPage_page_queList', queHTML)
 
-            CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
+            inp = HTML.genElement(f'input', id=f'SubPage_page_queAdd_input', type=f'text', style=f'inputMedium %% width: 75%; font-size: 75%;', custom=f'placeholder="Spotify Sharelink"')
+            btn = HTML.genElement(f'button', nest=f'Play Next', id=f'SubPage_page_queAdd_playNext', type=f'button', style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            btn += HTML.genElement(f'button', nest=f'Play Now', id=f'SubPage_page_queAdd_playNow', type=f'button', style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            div = HTML.genElement(f'div', nest=f'{btn}', style=f'width: 25%;')
+            HTML.setElement(f'div', f'SubPage_page_queAdd', nest=f'{inp}{div}', style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
 
-            inp = HTML.add(f'input', _id=f'SubPage_page_queAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Spotify Sharelink"')
-            btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_queAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
-            btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_queAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
-            div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
-            HTML.set(f'div', f'SubPage_page_queAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
-
-            CSS.get(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
+            if data["que"]["position"] != -1:
+                CSS.setStyles(f'SubPage_page_que_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
+                CSS.getAttribute(f'SubPage_page_que_{data["que"]["position"]}', f'scrollIntoView')()
 
             def doAction():
-                for track in HTML.get(f'SubPage_page_que_tracks', isClass=True):
+                for track in HTML.getElements("SubPage_page_que_tracks"):
                     JS.addEvent(track, playFromQue, "dblclick", isClass=True)
                     JS.addEvent(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', removeFromQue)
                     CSS.onHoverClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', f'imgHover', f'imgClick')
 
-                CSS.onHoverFocus(f'SubPage_page_queAdd_input', f'inputHover', f'inputFocus')
+                CSS.onHoverFocus("SubPage_page_queAdd_input", "inputHover", "inputFocus")
 
-                JS.addEvent(f'SubPage_page_queAdd_playNext', playNext)
-                CSS.onHoverClick(f'SubPage_page_queAdd_playNext', f'buttonHover', f'buttonClick')
+                JS.addEvent("SubPage_page_queAdd_playNext", playNext)
+                CSS.onHoverClick("SubPage_page_queAdd_playNext", "buttonHover", "buttonClick")
 
-                JS.addEvent(f'SubPage_page_queAdd_playNow', playNow)
-                CSS.onHoverClick(f'SubPage_page_queAdd_playNow', f'buttonHover', f'buttonClick')
+                JS.addEvent("SubPage_page_queAdd_playNow", playNow)
+                CSS.onHoverClick("SubPage_page_queAdd_playNow", "buttonHover", "buttonClick")
 
             JS.afterDelay(doAction, 50)
 
@@ -585,32 +582,32 @@ def pageSub(args):
                     return None
 
             def playNextUri(args=None):
-                sonosControl.addQueUri(HTML.get(f'SubPage_page_playlistAdd_input').value, False)
+                sonosControl.addQueUri(CSS.getAttribute("SubPage_page_playlistAdd_input", "value"), False)
 
             def playNowUri(args=None):
-                sonosControl.addQueUri(HTML.get(f'SubPage_page_playlistAdd_input').value, True)
+                sonosControl.addQueUri(CSS.getAttribute("SubPage_page_playlistAdd_input", "value"), True)
 
             data = WS.dict()["sonos"]
 
-            if HTML.get(f'SubPage_page_playlist') is None:
-                que = HTML.add(f'div', _id=f'SubPage_page_playlistList', _style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
-                queAdd = HTML.add(f'div', _id=f'SubPage_page_playlistAdd', _style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
+            if HTML.getElement("SubPage_page_playlist") is None:
+                que = HTML.genElement(f'div', id=f'SubPage_page_playlistList', style=f'divNormal %% position: relative; height: 90%; padding: 0px; margin: -5px; border: 5px solid #111; overflow-x: hidden;')
+                queAdd = HTML.genElement(f'div', id=f'SubPage_page_playlistAdd', style=f'divNormal %% position: relative; height: 10%; min-height: 55px; padding: 0px; margin: -5px; border: 5px solid #111;')
 
                 if glb.config["useAlbumArt"]:
-                    HTML.add(f'div',
-                             f'SubPage_page_media',
-                             _id=f'SubPage_page_playlist',
-                             _nest=f'{que}{queAdd}',
-                             _style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+                    HTML.addElement(f'div',
+                                    f'SubPage_page_media',
+                                    id=f'SubPage_page_playlist',
+                                    nest=f'{que}{queAdd}',
+                                    style=f'divNormal %% position: relative; width: 50%; height: 37vw; max-height: 540px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
 
                 else:
-                    HTML.add(f'div',
-                             f'SubPage_page_media',
-                             _id=f'SubPage_page_playlist',
-                             _nest=f'{que}{queAdd}',
-                             _style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
+                    HTML.addElement(f'div',
+                                    f'SubPage_page_media',
+                                    id=f'SubPage_page_playlist',
+                                    nest=f'{que}{queAdd}',
+                                    style=f'divNormal %% position: relative; width: 25%; height: 36vw; max-height: 545px; padding: 0px; margin: 0px -2.25% 0px auto; border: 5px solid #111;')
             else:
-                HTML.setRaw(f'SubPage_page_playlistList', "")
+                HTML.setElementRaw(f'SubPage_page_playlistList', "")
 
             playlists = data["playlists"]
 
@@ -618,36 +615,36 @@ def pageSub(args):
 
             for playlist in reversed(playlists):
                 if playlists[playlist]["album_art"] is None:
-                    img = HTML.add(f'img', _id=f'SubPage_page_playlist_{playlist}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
+                    img = HTML.genElement(f'img', id=f'SubPage_page_playlist_{playlist}_img', style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', align=f'left', custom=f'src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
                 else:
-                    img = HTML.add(f'img', _id=f'SubPage_page_playlist_{playlist}_img', _style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', _align=f'left', _custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
+                    img = HTML.genElement(f'img', id=f'SubPage_page_playlist_{playlist}_img', style=f'width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;', align=f'left', custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
 
-                txt = HTML.add(f'p', _nest=f'{playlist}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                title = HTML.add(f'div', _nest=f'{txt}', _style=f'flex %% margin: 0px;')
+                txt = HTML.genElement(f'p', nest=f'{playlist}', style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', align=f'left')
+                title = HTML.genElement(f'div', nest=f'{txt}', style=f'flex %% margin: 0px;')
 
-                txt = HTML.add(f'p', _nest=f'{playlists[playlist]["description"]}', _style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', _align=f'left')
-                creator = HTML.add(f'div', _nest=f'{txt}', _style=f'flex %% font-size: 75%; margin: 0px;')
+                txt = HTML.genElement(f'p', nest=f'{playlists[playlist]["description"]}', style=f'margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;', align=f'left')
+                creator = HTML.genElement(f'div', nest=f'{txt}', style=f'flex %% font-size: 75%; margin: 0px;')
 
-                txtDiv = HTML.add(f'div', _nest=f'{title}{creator}', _id=f'SubPage_page_playlist_{playlist}_txt', _style=f'width: 90%; margin: auto 5px;')
+                txtDiv = HTML.genElement(f'div', nest=f'{title}{creator}', id=f'SubPage_page_playlist_{playlist}_txt', style=f'width: 90%; margin: auto 5px;')
 
-                queHTML += HTML.add(f'div',
-                                    _nest=f'{img}{txtDiv}',
-                                    _id=f'SubPage_page_playlist_{playlist}',
-                                    _class=f'SubPage_page_playlist_playlists',
-                                    _style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
+                queHTML += HTML.genElement(f'div',
+                                           nest=f'{img}{txtDiv}',
+                                           id=f'SubPage_page_playlist_{playlist}',
+                                           clas=f'SubPage_page_playlist_playlists',
+                                           style=f'divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; z-index: 0; border: 5px solid #111;')
 
-            HTML.addRaw(f'SubPage_page_playlistList', queHTML)
+            HTML.addElementRaw(f'SubPage_page_playlistList', queHTML)
 
             CSS.setStyles(f'SubPage_page_playlist_{data["que"]["position"]}', ((f'background', f'#444'), (f'color', f'#F7E163'), (f'border', f'5px solid #F7E163'), (f'borderRadius', f'0px'), (f'zIndex', f'100')))
 
-            inp = HTML.add(f'input', _id=f'SubPage_page_playlistAdd_input', _type=f'text', _style=f'inputMedium %% width: 75%; font-size: 75%;', _custom=f'placeholder="Sonos URI"')
-            btn = HTML.add(f'button', _nest=f'Play Next', _id=f'SubPage_page_playlistAdd_playNext', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
-            btn += HTML.add(f'button', _nest=f'Play Now', _id=f'SubPage_page_playlistAdd_playNow', _type=f'button', _style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
-            div = HTML.add(f'div', _nest=f'{btn}', _style=f'width: 25%;')
-            HTML.set(f'div', f'SubPage_page_playlistAdd', _nest=f'{inp}{div}', _style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
+            inp = HTML.genElement(f'input', id=f'SubPage_page_playlistAdd_input', type=f'text', style=f'inputMedium %% width: 75%; font-size: 75%;', custom=f'placeholder="Sonos URI"')
+            btn = HTML.genElement(f'button', nest=f'Play Next', id=f'SubPage_page_playlistAdd_playNext', type=f'button', style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            btn += HTML.genElement(f'button', nest=f'Play Now', id=f'SubPage_page_playlistAdd_playNow', type=f'button', style=f'buttonSmall %% width: 100%; margin: 0px; white-space: nowrap;')
+            div = HTML.genElement(f'div', nest=f'{btn}', style=f'width: 25%;')
+            HTML.setElement(f'div', f'SubPage_page_playlistAdd', nest=f'{inp}{div}', style=f'flex %% width: 100%; height: 100%; border-radius: 10px; overflow: hidden;')
 
             def doAction():
-                for track in HTML.get(f'SubPage_page_playlist_playlists', isClass=True):
+                for track in HTML.getElements("SubPage_page_playlist_playlists"):
                     JS.addEvent(track, playPlaylist, "dblclick", isClass=True)
 
                 CSS.onHoverFocus(f'SubPage_page_playlistAdd_input', f'inputHover', f'inputFocus')
@@ -663,10 +660,10 @@ def pageSub(args):
         def addControls():
             data = WS.dict()["sonos"]
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_buttons', _style=f'divNormal %% flex %% margin: 0px; padding: 0px;')
-            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_left', _style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
-            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_middle', _style=f'divNormal %% flex %% width: 70%; margin: 0px; padding: 0px;')
-            HTML.add(f'div', f'SubPage_page_buttons', _id=f'SubPage_page_buttons_right', _style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
+            HTML.addElement(f'div', f'SubPage_page_main', id=f'SubPage_page_buttons', style=f'divNormal %% flex %% margin: 0px; padding: 0px;')
+            HTML.addElement(f'div', f'SubPage_page_buttons', id=f'SubPage_page_buttons_left', style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
+            HTML.addElement(f'div', f'SubPage_page_buttons', id=f'SubPage_page_buttons_middle', style=f'divNormal %% flex %% width: 70%; margin: 0px; padding: 0px;')
+            HTML.addElement(f'div', f'SubPage_page_buttons', id=f'SubPage_page_buttons_right', style=f'divNormal %% flex %% width: 15%; margin: 0px; padding: 0px;')
 
             leftActions = ["Repeat", "Shuffle"]
             for i, action in enumerate(leftActions):
@@ -674,9 +671,9 @@ def pageSub(args):
                 if i >= len(leftActions) - 1:
                     margin = " margin: 1% auto 1% 1%;"
 
-                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
-                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                HTML.add(f'div', f'SubPage_page_buttons_left', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
+                img = HTML.genElement(f'img', id=f'SubPage_page_buttons_img_{action}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.genElement(f'button', nest=f'{img}', id=f'SubPage_page_buttons_{action}', style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.addElement(f'div', f'SubPage_page_buttons_left', nest=f'{btn}', align=f'center', style=f'max-width: 55px;{margin}')
 
             midActions = ["VolumeDown", "SeekBackward", "Back", "Pause", "Next", "SeekForward", "VolumeUp"]
             for i, action in enumerate(midActions):
@@ -686,9 +683,9 @@ def pageSub(args):
                 elif i >= len(midActions) - 1:
                     margin = " margin: 1% auto 1% 1%;"
 
-                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
-                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                HTML.add(f'div', f'SubPage_page_buttons_middle', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
+                img = HTML.genElement(f'img', id=f'SubPage_page_buttons_img_{action}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.genElement(f'button', nest=f'{img}', id=f'SubPage_page_buttons_{action}', style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.addElement(f'div', f'SubPage_page_buttons_middle', nest=f'{btn}', align=f'center', style=f'max-width: 55px;{margin}')
 
             rightActions = ["Album", "Playlist", "Que"]
             for i, action in enumerate(rightActions):
@@ -696,28 +693,27 @@ def pageSub(args):
                 if i < 1:
                     margin = " margin: 1% 1% 1% auto;"
 
-                img = HTML.add(f'img', _id=f'SubPage_page_buttons_img_{action}', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
-                btn = HTML.add(f'button', _nest=f'{img}', _id=f'SubPage_page_buttons_{action}', _style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
-                HTML.add(f'div', f'SubPage_page_buttons_right', _nest=f'{btn}', _align=f'center', _style=f'max-width: 55px;{margin}')
+                img = HTML.genElement(f'img', id=f'SubPage_page_buttons_img_{action}', style=f'width: 100%;', custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+                btn = HTML.genElement(f'button', nest=f'{img}', id=f'SubPage_page_buttons_{action}', style=f'buttonImg %% border: 0px solid #222; border-radius: 16px;')
+                HTML.addElement(f'div', f'SubPage_page_buttons_right', nest=f'{btn}', align=f'center', style=f'max-width: 55px;{margin}')
 
             if data["device"]["playback"] in ["standby", "inactive"]:
-                HTML.get(f'SubPage_page_buttons_img_Pause').src = f'docs/assets/Portal/Sonos/Play.png'
-                HTML.get(f'SubPage_page_buttons_img_Pause').alt = f'Play'
+                CSS.setAttributes("SubPage_page_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.png"), ("alt", "Play")))
 
-            HTML.add(f'div', f'SubPage_page_main', _id=f'SubPage_page_volume', _style=f'divNormal %% flex %% width: 50%; margin: 0px; padding: 0px; justify-content: center;')
+            HTML.addElement(f'div', f'SubPage_page_main', id=f'SubPage_page_volume', style=f'divNormal %% flex %% width: 50%; margin: 0px; padding: 0px; justify-content: center;')
 
             options = ""
             for option in range(0, 101, int(glb.config["volumeMax"] / 10)):
-                options += HTML.add(f'option', _custom=f'value="{option}" label="{option}"')
+                options += HTML.genElement(f'option', custom=f'value="{option}" label="{option}"')
 
-            HTML.add(f'datalist', f'SubPage_page_volume', _nest=f'{options}', _id=f'SubPage_page_volume_datalist')
+            HTML.addElement(f'datalist', f'SubPage_page_volume', nest=f'{options}', id=f'SubPage_page_volume_datalist')
 
-            HTML.add(f'input',
-                     f'SubPage_page_volume',
-                     _id=f'SubPage_page_volume_slider',
-                     _type=f'range',
-                     _style=f'inputRange %% width: 90%; height: 10px;',
-                     _custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
+            HTML.addElement(f'input',
+                            f'SubPage_page_volume',
+                            id=f'SubPage_page_volume_slider',
+                            type=f'range',
+                            style=f'inputRange %% width: 90%; height: 10px;',
+                            custom=f'min="0" max="{glb.config["volumeMax"]}" value="{data["device"]["volume"]}" list="SubPage_page_volume_datalist"')
 
             fmap = {
                 "Repeat": sonosControl.toggleRepeat,
@@ -748,8 +744,8 @@ def pageSub(args):
         else:
             CSS.setStyle(f'body', f'max-width', f'1440px')
 
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal')
-        HTML.set(f'div', f'SubPage_page_main', _id=f'SubPage_page_media', _style=f'divNormal %% flex %% margin: 0px auto;')
+        HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_main', style=f'divNormal')
+        HTML.setElement(f'div', f'SubPage_page_main', id=f'SubPage_page_media', style=f'divNormal %% flex %% margin: 0px auto;')
 
         if glb.config["useAlbumArt"]:
             addAlbumArt()
@@ -769,15 +765,15 @@ def pageSub(args):
         JS.afterDelay(activeUIRefresh, 50)
 
     def qr():
-        HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_main', _style=f'divNormal %% flex %% justify-content: center;')
+        HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_main', style=f'divNormal %% flex %% justify-content: center;')
 
-        txt = HTML.add(f'h1', _nest=f'Sonos S2 - Android', _style=f'headerBig')
-        img = HTML.add(f'img', _id="Image_SonosAndroidQR", _style="width: 100%; max-width: 75vh; max-height: 75vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Sonos/SonosAndroidQR.png" alt="Sonos Android QR"')
-        HTML.add(f'div', f'SubPage_page_main', _nest=f'{txt}{img}', _id=f'SubPage_page_main_qrAndroid', _style=f'divNormal %% margin: 15px 50px;')
+        txt = HTML.genElement(f'h1', nest=f'Sonos S2 - Android', style=f'headerBig')
+        img = HTML.genElement(f'img', id="Image_SonosAndroidQR", style="width: 100%; max-width: 75vh; max-height: 75vh; margin: 15px auto -10px auto; user-select:none;", custom=f'src="docs/assets/Portal/Sonos/SonosAndroidQR.png" alt="Sonos Android QR"')
+        HTML.addElement(f'div', f'SubPage_page_main', nest=f'{txt}{img}', id=f'SubPage_page_main_qrAndroid', style=f'divNormal %% margin: 15px 50px;')
 
-        txt = HTML.add(f'h1', _nest=f'Sonos S2 - iOS', _style=f'headerBig')
-        img = HTML.add(f'img', _id="Image_SonosIosQR", _style="width: 100%; max-width: 75vh; max-height: 75vh; margin: 15px auto -10px auto; user-select:none;", _custom=f'src="docs/assets/Portal/Sonos/SonosIosQR.png" alt="Sonos iOS QR"')
-        HTML.add(f'div', f'SubPage_page_main', _nest=f'{txt}{img}', _id=f'SubPage_page_main_qrIos', _style=f'divNormal %% margin: 15px 50px;')
+        txt = HTML.genElement(f'h1', nest=f'Sonos S2 - iOS', style=f'headerBig')
+        img = HTML.genElement(f'img', id="Image_SonosIosQR", style="width: 100%; max-width: 75vh; max-height: 75vh; margin: 15px auto -10px auto; user-select:none;", custom=f'src="docs/assets/Portal/Sonos/SonosIosQR.png" alt="Sonos iOS QR"')
+        HTML.addElement(f'div', f'SubPage_page_main', nest=f'{txt}{img}', id=f'SubPage_page_main_qrIos', style=f'divNormal %% margin: 15px 50px;')
 
     def config():
         def editRecord(args):
@@ -785,7 +781,7 @@ def pageSub(args):
                 if not args.key in ["Enter", "Escape"]:
                     return None
 
-                el = HTML.get(f'{args.target.id}')
+                el = HTML.getElement(args.target.id)
 
                 if "_" in el.id:
                     mainValue = list(glb.knownConfig)[-1]
@@ -841,9 +837,9 @@ def pageSub(args):
                 CSS.setStyle(f'{el.id}', f'width', f'{width}')
                 JS.addEvent(el.id, editRecord, "dblclick")
 
-            el = HTML.get(f'{args.target.id}')
+            el = HTML.getElement(args.target.id)
             width = el.style.width
-            parantHeight = HTML.get(el.parentElement.id).offsetHeight
+            parantHeight = CSS.getAttribute(el.parentElement.id, "offsetHeight")
 
             if "_" in el.id:
                 value = el.id.split("_")[1]
@@ -860,7 +856,7 @@ def pageSub(args):
 
             styleInp = f'margin: -1px -1px; padding: 1px 1px 4px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
             styleSlc = f'height: {parantHeight + 4}px; margin: -1px -1px; padding: 1px 1px; background: #333; font-size: 75%; border-radius: 0px; border: 2px solid #111;'
-            html = HTML.add(f'input', _id=f'{el.id}', _class=f'{el.className}', _type=f'text', _style=f'inputMedium %% {styleInp}', _custom=f'name="{value}" value="{el.innerHTML}"')
+            html = HTML.genElement(f'input', id=f'{el.id}', clas=f'{el.className}', type=f'text', style=f'inputMedium %% {styleInp}', custom=f'name="{value}" value="{el.innerHTML}"')
 
             if value in knownValues:
                 if knownValues[value] is bool:
@@ -881,13 +877,13 @@ def pageSub(args):
                     optionsHtml = f''
 
                     for option in glb.optionsList:
-                        optionsHtml += HTML.add(f'option', _nest=f'{option}', _custom=f'value="{option}"')
+                        optionsHtml += HTML.genElement(f'option', nest=f'{option}', custom=f'value="{option}"')
 
-                    html = HTML.add(f'select', _nest=f'{optionsHtml}', _id=f'{el.id}', _class=f'{el.className}', _style=f'selectSmall %% {styleSlc}', _custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
+                    html = HTML.genElement(f'select', nest=f'{optionsHtml}', id=f'{el.id}', clas=f'{el.className}', style=f'selectSmall %% {styleSlc}', custom=f'name="{value}_{len(glb.optionsList)}" size="1" multiple')
 
             el.outerHTML = html
 
-            el = HTML.get(f'{el.id}')
+            el = HTML.getElement(el.id)
             el.style.width = width
 
             if el.localName == "select":
@@ -901,12 +897,12 @@ def pageSub(args):
         def addMinimal(data):
             def addHeader():
                 rowC = 0
-                HTML.set(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                HTML.setElement(f'div', f'SubPage_page', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
                 styleP = f'margin: -1px -1px; padding: 0px 1px; border: 2px solid #111; text-align: center; font-size: 100%; word-wrap: break-word; background: #1F1F1F; color: #44F; font-weight: bold;'
 
                 for header in ["Key", "Value"]:
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{header}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{header}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                 return rowC
 
@@ -917,38 +913,38 @@ def pageSub(args):
                 HTMLrows = f''
                 for key in data:
                     rowC += 1
-                    HTMLcols = HTML.add(f'p', _nest=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                    HTMLcols = HTML.genElement(f'p', nest=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
                     value = data[key]
 
                     if knownValues[key] is int:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is bool:
                         if value:
-                            HTMLcols += HTML.add(f'p', _nest=f'Yes', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'Yes', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                         else:
-                            HTMLcols += HTML.add(f'p', _nest=f'No', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                            HTMLcols += HTML.genElement(f'p', nest=f'No', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     elif knownValues[key] is list:
-                        HTMLcols += HTML.add(f'p', _nest=f'{", ".join(value)}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{", ".join(value)}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
                     else:
-                        HTMLcols += HTML.add(f'p', _nest=f'{value}', _id=f'{key}', _class=f'SubPage_page_keys', _style=f'{styleP}')
+                        HTMLcols += HTML.genElement(f'p', nest=f'{value}', id=f'{key}', clas=f'SubPage_page_keys', style=f'{styleP}')
 
-                    HTMLrows += HTML.add(f'div', _nest=f'{HTMLcols}', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                    HTMLrows += HTML.genElement(f'div', nest=f'{HTMLcols}', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
-                HTML.addRaw(f'SubPage_page', f'{HTMLrows}')
+                HTML.addElementRaw(f'SubPage_page', f'{HTMLrows}')
 
                 return rowC
 
             rowC = addHeader()
             rowC = addRows(data, rowC)
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 item.style.width = "50%"
 
-            for item in HTML.get(f'SubPage_page_keys', isClass=True):
+            for item in HTML.getElements("SubPage_page_keys"):
                 if item.id != "":
                     JS.addEvent(item, editRecord, "dblclick", isClass=True)
 
@@ -956,7 +952,7 @@ def pageSub(args):
 
     pageSubMap = {"Player": player, "QR": qr, "Config": config}
 
-    HTML.clear(f'SubPage_page')
+    HTML.clrElement(f'SubPage_page')
 
     setup(args)
 
@@ -969,14 +965,14 @@ def pageSub(args):
 
 
 def main(args=None, sub=None):
-    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
+    HTML.setElement(f'div', f'SubPage', id=f'SubPage_nav', align=f'center', style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    HTML.addElement(f'div', f'SubPage', id=f'SubPage_page', align=f'center', style=f'margin: 10px 10px 10px 0px;')
 
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%')
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_main', align=f'left', style=f'width: 60%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_options', align=f'right', style=f'width: 40%')
 
     for subPage in glb.subPages:
-        HTML.add(f'button', f'SubPage_nav_main', _nest=f'{subPage}', _id=f'SubPage_nav_main_{subPage}', _type=f'button', _style=f'buttonSmall')
+        HTML.addElement(f'button', f'SubPage_nav_main', nest=f'{subPage}', id=f'SubPage_nav_main_{subPage}', type=f'button', style=f'buttonSmall')
 
     for subPage in glb.subPages:
         JS.addEvent(f'SubPage_nav_main_{subPage}', pageSub)

@@ -54,30 +54,30 @@ def mainPage():
     for page in glb.allPages:
         if page in glb.exludeMainNav:
             continue
-        buttons += HTML.add(f'button', _nest=f'{page}', _id=f'page_{page}', _type=f'button', _style=f'buttonBig')
+        buttons += HTML.genElement(f'button', nest=f'{page}', id=f'page_{page}', type=f'button', style=f'buttonBig')
 
-    nav = HTML.add(f'img', _id=f'nav_logo', _align=f'left', _style=f'width: 20%; max-width: 100px; user-select: none;', _custom=f'src="docs/assets/;D.png"')
-    nav += HTML.add(f'h1', _nest=f'HandyGold75 - {JS.cache("page_index")}', _id=f'nav_title', _align=f'center', _style=f'headerBig %% width: 80%;')
-    nav += HTML.add(f'div', _nest=buttons, _id=f'nav_buttons', _align=f'center', _style=f'width: 80%; padding: 4px; margin: 0px auto;')
+    nav = HTML.genElement(f'img', id=f'nav_logo', align=f'left', style=f'width: 20%; max-width: 100px; user-select: none;', custom=f'src="docs/assets/;D.png"')
+    nav += HTML.genElement(f'h1', nest=f'HandyGold75 - {JS.cache("page_index")}', id=f'nav_title', align=f'center', style=f'headerBig %% width: 80%;')
+    nav += HTML.genElement(f'div', nest=buttons, id=f'nav_buttons', align=f'center', style=f'width: 80%; padding: 4px; margin: 0px auto;')
 
-    txt = HTML.add(f'p', _nest=f'HandyGold75 - 2022 / 2023', _style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
-    footer = HTML.set(f'div', _nest=txt, _id=f'footer_note', _style=f'width: 50%; padding: 5px; margin: 0px auto;')
+    txt = HTML.genElement(f'p', nest=f'HandyGold75 - 2022 / 2023', style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
+    footer = HTML.genElement(f'div', nest=txt, id=f'footer_note', style=f'width: 50%; padding: 5px; margin: 0px auto;')
 
-    butToTop = HTML.add(f'button', _nest=f'Back to top', _id=f'footer_toTop', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butClearCache = HTML.add(f'button', _nest=f'Clear cache', _id=f'footer_ClearCache', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butLogin = HTML.add(f'button', _nest=f'Login', _id=f'footer_Login', _type=f'button', _style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    footer += HTML.add(f'div', _nest=butLogin + butClearCache + butToTop, _id=f'footer_buttons', _align=f'right', _style=f'width: 50%; padding: 3px; margin: 0px auto;')
+    butToTop = HTML.genElement(f'button', nest=f'Back to top', id=f'footer_toTop', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butClearCache = HTML.genElement(f'button', nest=f'Clear cache', id=f'footer_ClearCache', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    butLogin = HTML.genElement(f'button', nest=f'Login', id=f'footer_Login', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
+    footer += HTML.genElement(f'div', nest=butLogin + butClearCache + butToTop, id=f'footer_buttons', align=f'right', style=f'width: 50%; padding: 3px; margin: 0px auto;')
 
-    main = HTML.add(f'div', _nest=nav, _id=f'nav', _style=f'divNormal')
-    main += HTML.add(f'div', _id=f'page', _style=f'divNormal')
-    main += HTML.add(f'div', _nest=footer, _id=f'footer', _style=f'divAlt %% flex')
+    main = HTML.genElement(f'div', nest=nav, id=f'nav', style=f'divNormal')
+    main += HTML.genElement(f'div', id=f'page', style=f'divNormal')
+    main += HTML.genElement(f'div', nest=footer, id=f'footer', style=f'divAlt %% flex')
 
-    HTML.setRaw(f'body', main)
+    HTML.setElementRaw(f'body', main)
     JS.afterDelay(addEvents, 100)
 
 
 def pageIndex(args=None, page=None):
-    HTML.clear(f'page')
+    HTML.clrElement(f'page')
 
     if page in glb.allPages:
         JS.cache(f'page_index', page)
@@ -96,7 +96,7 @@ def pageIndex(args=None, page=None):
         return None
 
     JS.setTitle(f'HandyGold75 - {JS.cache("page_index")}')
-    HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")}')
+    HTML.setElementRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")}')
 
     glb.allPages[JS.cache(f'page_index')]()
 

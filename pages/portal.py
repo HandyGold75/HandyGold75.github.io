@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 import subs.portal_sonos as so
 import subs.portal_tapo as tp
 import subs.portal_ytdl as ytdl
@@ -15,7 +16,7 @@ class glb:
 
 
 def pagePortal(args=None, page=None):
-    HTML.clear(f'page_portal_body')
+    HTML.clrElement(f'page_portal_body')
 
     if page in glb.allSubs:
         JS.cache("page_portal", page)
@@ -37,9 +38,9 @@ def pagePortal(args=None, page=None):
         return None
 
     JS.setTitle(f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
-    HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
+    HTML.setElementRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
-    HTML.set(f'div', f'page_portal_body', _id=f'SubPage', _align=f'left')
+    HTML.setElement(f'div', f'page_portal_body', id=f'SubPage', align=f'left')
 
     if JS.cache("page_portalSub") != "":
         glb.allSubs[JS.cache("page_portal")](sub=JS.cache("page_portalSub"))
@@ -50,10 +51,10 @@ def pagePortal(args=None, page=None):
 
 
 def main():
-    HTML.set(f'div', f'page', _id=f'page_portal', _align=f'center', _style="flex")
+    HTML.setElement(f'div', f'page', id=f'page_portal', align=f'center', style="flex")
 
-    if not WS.glb.loggedIn:
-        HTML.add(f'h1', f'page_portal', _nest=f'Please log in first!', _style=f'headerBig')
+    if not WS.loggedIn:
+        HTML.addElement(f'h1', f'page_portal', nest=f'Please log in first!', style=f'headerBig')
         return None
 
     allSubsTmp = dict(glb.allSubs)
@@ -63,16 +64,16 @@ def main():
             glb.allInvokes.pop(page)
 
     if glb.allSubs == {}:
-        HTML.add(f'h1', f'page_portal', _nest=f'You don\'t have access to any portals!<br>Please request access if you think this is a mistake.', _style=f'headerBig')
+        HTML.addElement(f'h1', f'page_portal', nest=f'You don\'t have access to any portals!<br>Please request access if you think this is a mistake.', style=f'headerBig')
         return None
 
-    HTML.add(f'div', f'page_portal', _id=f'page_portal_buttons', _align=f'left', _style="width: 5%; min-width: 50px; font-size: 75%; border-right: 10px solid #111; margin-right: 10px;")
-    HTML.add(f'div', f'page_portal', _id=f'page_portal_body', _align=f'left', _style="width: 95%;")
+    HTML.addElement(f'div', f'page_portal', id=f'page_portal_buttons', align=f'left', style="width: 5%; min-width: 50px; font-size: 75%; border-right: 10px solid #111; margin-right: 10px;")
+    HTML.addElement(f'div', f'page_portal', id=f'page_portal_body', align=f'left', style="width: 95%;")
 
     for page in glb.allSubs:
-        img = HTML.add(f'img', _style=f'width: 100%;', _custom=f'src="docs/assets/Portal/{page}.png" alt="{page.split(" ")[0]}"')
-        btn = HTML.add(f'button', _id=f'page_portal_{page}', _nest=f'{img}', _style=f'buttonImg')
-        HTML.add(f'div', f'page_portal_buttons', _nest=f'{btn}', _align=f'center', _style=f'margin: 10px 5px 10px auto;')
+        img = HTML.genElement(f'img', style=f'width: 100%;', custom=f'src="docs/assets/Portal/{page}.png" alt="{page.split(" ")[0]}"')
+        btn = HTML.genElement(f'button', id=f'page_portal_{page}', nest=f'{img}', style=f'buttonImg')
+        HTML.addElement(f'div', f'page_portal_buttons', nest=f'{btn}', align=f'center', style=f'margin: 10px 5px 10px auto;')
 
     for page in glb.allSubs:
         JS.addEvent(f'page_portal_{page}', pagePortal)
