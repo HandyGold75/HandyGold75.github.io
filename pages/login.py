@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 from datetime import datetime, timedelta
 from rsa import encrypt
 
@@ -19,7 +20,7 @@ def setupConnection():
         WS.send(f'logout')
 
         JS.cache("token", "")
-        WS.glb.loggedIn = False
+        WS.loggedIn = False
 
         JS.f5()
 
@@ -46,13 +47,13 @@ def setupConnection():
 
                 JS.cache(f'page_index', f'Portal')
                 JS.setTitle(f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
-                HTML.setRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
+                HTML.setElementRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
 
                 JS.afterDelay(pMain, max(250, (250 * len(access)) - 250))
                 JS.afterDelay(pagePortal, max(500, 250 * len(access)))
 
         def loadingTxt():
-            el = HTML.get(f'page_login_loadingTxt')
+            el = HTML.getElement("page_login_loadingTxt")
             if el is None:
                 return None
 
@@ -64,10 +65,10 @@ def setupConnection():
 
         WS.onMsg("{\"access\":", getData, oneTime=True)
         WS.send(f'access')
-        WS.glb.loggedIn = True
+        WS.loggedIn = True
 
         JS.clearEvents(f'footer_Login')
-        HTML.setRaw(f'footer_Login', f'Logout')
+        HTML.setElementRaw(f'footer_Login', f'Logout')
 
         JS.addEvent(f'footer_Login', logout)
         CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
@@ -75,11 +76,11 @@ def setupConnection():
         if JS.cache("page_index") != "Login":
             return None
 
-        content = HTML.add(f'h1', _nest=f'Logged in succesfully', _style=f'headerBig')
+        content = HTML.genElement(f'h1', nest=f'Logged in succesfully', style=f'headerBig')
         if JS.cache("page_portal") != "":
-            content += HTML.add(f'h1', _nest=f'Loading last used page', _id=f'page_login_loadingTxt', _style=f'headerMedium')
+            content += HTML.genElement(f'h1', nest=f'Loading last used page', id=f'page_login_loadingTxt', style=f'headerMedium')
 
-        HTML.set(f'div', f'page_login', _nest=f'{content}', _id=f'page_login_summary', _style=f'divNormal')
+        HTML.setElement(f'div', f'page_login', nest=f'{content}', id=f'page_login_summary', style=f'divNormal')
         JS.aSync(loadingTxt)
 
     def loginFail():
@@ -87,10 +88,10 @@ def setupConnection():
 
     def loginTokenFail():
         JS.cache("token", "")
-        WS.glb.loggedIn = False
+        WS.loggedIn = False
 
-        HTML.enable(f'page_login_body_login_usr', True)
-        HTML.enable(f'page_login_body_login_psw', True)
+        HTML.enableElement(f'page_login_body_login_usr')
+        HTML.enableElement(f'page_login_body_login_psw')
 
     if JS.cache("server") == "" or not "://" in JS.cache("server") or not JS.cache("server").count(":") == 2:
         raise ValueError(f'Invalid server: {JS.cache("server")}\nFormat: [WS, WSS]://[Server]:[1-65535]')
@@ -115,18 +116,18 @@ def setupConnection():
 def main(args=None):
     def login(args):
         def sendLogin():
-            if WS.glb.ws.readyState > 1:
+            if WS.ws.readyState > 1:
                 JS.popup("alert", "Failed to connect to server")
                 return None
 
-            if WS.glb.ws.readyState == 0 or WS.glb.pub is None:
+            if WS.ws.readyState == 0 or WS.pub is None:
                 JS.afterDelay(sendLogin, 50)
                 return None
 
-            crypt = str(encrypt(HTML.get("page_login_body_login_usr").value.encode() + "<SPLIT>".encode() + HTML.get("page_login_body_login_psw").value.encode(), WS.glb.pub))
+            crypt = str(encrypt(CSS.getAttribute("page_login_body_login_usr", "value").encode() + "<SPLIT>".encode() + CSS.getAttribute("page_login_body_login_psw", "value").encode(), WS.pub))
             WS.send(f'<LOGIN> {crypt}')
 
-        if WS.glb.loggedIn:
+        if WS.loggedIn:
             return None
 
         if hasattr(args, "key") and args.key != "Enter":
@@ -137,9 +138,9 @@ def main(args=None):
 
         glb.lastLogin = datetime.now().timestamp()
 
-        srv = HTML.get("page_login_body_login_srv").value
+        srv = CSS.getAttribute("page_login_body_login_srv", "value")
 
-        if not srv == JS.cache("server") or WS.glb.ws == None or WS.glb.ws.readyState > 1:
+        if not srv == JS.cache("server") or WS.ws == None or WS.ws.readyState > 1:
             JS.cache("server", srv)
 
             try:
@@ -152,7 +153,7 @@ def main(args=None):
 
     def signinRemember(args):
         if args.target.checked:
-            CSS.set(f'page_login_body_options_auto', f'checked', f'')
+            CSS.setAttribute(f'page_login_body_options_auto', f'checked', f'')
             JS.cache(f'signin', f'Remember')
 
             return None
@@ -161,50 +162,50 @@ def main(args=None):
 
     def signinAuto(args):
         if args.target.checked:
-            CSS.set(f'page_login_body_options_remember', f'checked', f'')
+            CSS.setAttribute(f'page_login_body_options_remember', f'checked', f'')
             JS.cache(f'signin', f'Auto')
 
             return None
 
         JS.cache(f'signin', f'None')
 
-    HTML.set(f'div', f'page', _id=f'page_login', _align=f'center', _style="flex")
+    HTML.setElement(f'div', f'page', id=f'page_login', align=f'center', style="flex")
 
-    if WS.glb.loggedIn:
+    if WS.loggedIn:
         return None
 
     setup()
     setupConnection()
 
-    HTML.add(f'div', f'page_login', _id=f'page_login_body', _align=f'center', _style="width: 100%;")
+    HTML.addElement(f'div', f'page_login', id=f'page_login_body', align=f'center', style="width: 100%;")
 
-    HTML.add(f'h1', f'page_login_body', _nest=f'Login', _style=f'headerBig')
-    HTML.add(f'form', f'page_login_body', _id=f'page_login_body_login', _style=f'width: 75%; display: flex; margin: 0 auto 20px auto; max-width: 750px;', _custom=f'onsubmit="return false"')
-    HTML.add(f'div', f'page_login_body', _id=f'page_login_body_options', _align=f'center', _style=f'divNormal %% flex %% width: 50%; max-width: 500px;')
+    HTML.addElement(f'h1', f'page_login_body', nest=f'Login', style=f'headerBig')
+    HTML.addElement(f'form', f'page_login_body', id=f'page_login_body_login', style=f'width: 75%; display: flex; margin: 0 auto 20px auto; max-width: 750px;', custom=f'onsubmit="return false"')
+    HTML.addElement(f'div', f'page_login_body', id=f'page_login_body_options', align=f'center', style=f'divNormal %% flex %% width: 50%; max-width: 500px;')
 
-    txt = HTML.add(f'p', _nest=f'Server', _style=f'margin: 3px; padding: 2px;')
-    txt += HTML.add(f'p', _nest=f'Username', _style=f'margin: 3px; padding: 2px;')
-    txt += HTML.add(f'p', _nest=f'Password', _style=f'margin: 3px; padding: 2px;')
-    inp = HTML.add(f'input', _id=f'page_login_body_login_srv', _type=f'url', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{JS.cache("server")}"')
-    inp += HTML.add(f'input', _id=f'page_login_body_login_usr', _type=f'email', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Username"')
-    inp += HTML.add(f'input', _id=f'page_login_body_login_psw', _type=f'password', _style=f'inputMedium %% width: 90%;', _custom=f'placeholder="Password"')
-    HTML.add(f'div', f'page_login_body_login', _nest=txt, _id=f'page_login_body_login_txt', _align=f'center', _style=f'width: 25%;')
-    HTML.add(f'div', f'page_login_body_login', _nest=inp, _id=f'page_login_body_login_inp', _align=f'center', _style=f'width: 75%;')
+    txt = HTML.genElement(f'p', nest=f'Server', style=f'margin: 3px; padding: 2px;')
+    txt += HTML.genElement(f'p', nest=f'Username', style=f'margin: 3px; padding: 2px;')
+    txt += HTML.genElement(f'p', nest=f'Password', style=f'margin: 3px; padding: 2px;')
+    inp = HTML.genElement(f'input', id=f'page_login_body_login_srv', type=f'url', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{JS.cache("server")}"')
+    inp += HTML.genElement(f'input', id=f'page_login_body_login_usr', type=f'email', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Username"')
+    inp += HTML.genElement(f'input', id=f'page_login_body_login_psw', type=f'password', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Password"')
+    HTML.addElement(f'div', f'page_login_body_login', nest=txt, id=f'page_login_body_login_txt', align=f'center', style=f'width: 25%;')
+    HTML.addElement(f'div', f'page_login_body_login', nest=inp, id=f'page_login_body_login_inp', align=f'center', style=f'width: 75%;')
 
-    inp1 = HTML.add(f'input', _id=f'page_login_body_options_remember', _type=f'checkbox', _align=f'right', _style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
-    inp2 = HTML.add(f'input', _id=f'page_login_body_options_auto', _type=f'checkbox', _align=f'right', _style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
+    inp1 = HTML.genElement(f'input', id=f'page_login_body_options_remember', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
+    inp2 = HTML.genElement(f'input', id=f'page_login_body_options_auto', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
     if JS.cache(f'signin') == f'Remember':
-        inp1 = HTML.add(f'input', _id=f'page_login_body_options_remember', _type=f'checkbox', _align=f'right', _style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', _custom=f'checked')
+        inp1 = HTML.genElement(f'input', id=f'page_login_body_options_remember', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', custom=f'checked')
     if JS.cache(f'signin') == f'Auto':
-        inp2 = HTML.add(f'input', _id=f'page_login_body_options_auto', _type=f'checkbox', _align=f'right', _style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', _custom=f'checked')
-    HTML.add(f'div', f'page_login_body_options', _nest=f'{inp1}{inp2}', _style=f'width: 5%; margin: auto;')
+        inp2 = HTML.genElement(f'input', id=f'page_login_body_options_auto', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', custom=f'checked')
+    HTML.addElement(f'div', f'page_login_body_options', nest=f'{inp1}{inp2}', style=f'width: 5%; margin: auto;')
 
-    txt1 = HTML.add(f'p', _nest=f'Remember Sign in', _align=f'left', _style=f'width: 100%; margin: auto auto;')
-    txt2 = HTML.add(f'p', _nest=f'Auto Sign in', _align=f'left', _style=f'width: 100%; margin: auto auto;')
-    HTML.add(f'div', f'page_login_body_options', _nest=f'{txt1}{txt2}', _style=f'width: 47.5%; margin: auto;')
+    txt1 = HTML.genElement(f'p', nest=f'Remember Sign in', align=f'left', style=f'width: 100%; margin: auto auto;')
+    txt2 = HTML.genElement(f'p', nest=f'Auto Sign in', align=f'left', style=f'width: 100%; margin: auto auto;')
+    HTML.addElement(f'div', f'page_login_body_options', nest=f'{txt1}{txt2}', style=f'width: 47.5%; margin: auto;')
 
-    btn = HTML.add(f'button', _nest=f'Login', _id=f'page_login_body_options_submit', _type=f'button', _style=f'buttonMedium %% width: 50%; height: 50%;')
-    HTML.add(f'div', f'page_login_body_options', _nest=f'{btn}', _style=f'width: 47.5%; margin: auto;')
+    btn = HTML.genElement(f'button', nest=f'Login', id=f'page_login_body_options_submit', type=f'button', style=f'buttonMedium %% width: 50%; height: 50%;')
+    HTML.addElement(f'div', f'page_login_body_options', nest=f'{btn}', style=f'width: 47.5%; margin: auto;')
 
     JS.addEvent(f'page_login_body_login_srv', login, f'keyup')
     JS.addEvent(f'page_login_body_login_usr', login, f'keyup')

@@ -1,19 +1,20 @@
 from js import document, window, setTimeout
 from pyodide.ffi import create_proxy, create_once_callable # type: ignore
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 from datetime import datetime
 from rsa import encrypt
 
 
 def raiseError(header: str, msg: str, disableIds: list = ()):
     for id in disableIds:
-        HTML.enable(str(id), False)
+        HTML.disableElement(str(id))
 
-    error = HTML.add("h1", _nest="WARNING!", _style="headerVeryBig")
+    error = HTML.genElement("h1", nest=str(header), style="headerVeryBig")
     for line in msg.split("\n"):
-        error = HTML.add("p", _nest=str(line))
+        error = HTML.genElement("p", nest=str(line))
 
-    HTML.set("div", "page", _nest=error, _id="page_error", _align="center")
+    HTML.setElement("div", "page", nest=error, id="page_error", align="center")
 
 
 def sheet(maincom: str,
@@ -57,8 +58,8 @@ def sheet(maincom: str,
     lines = getLines(data, excludeView)
 
     if not elId is None and index == 0:
-        HTML.add("div", elId, _id=f'{maincom}_{name}', _style="margin: 10px; border: 2px solid #111;")
-        HTML.add(f'button', elId, _id=f'{maincom}_{name}_loadMore', _nest=f'Load more (0 / {len(lines)})', _type=f'button', _style=f'buttonBig %% width: 50%;')
+        HTML.addElement("div", elId, id=f'{maincom}_{name}', style="margin: 10px; border: 2px solid #111;")
+        HTML.addElement(f'button', elId, id=f'{maincom}_{name}_loadMore', nest=f'Load more (0 / {len(lines)})', type=f'button', style=f'buttonBig %% width: 50%;')
         document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
         CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
 
@@ -100,48 +101,49 @@ def sheet(maincom: str,
             elif type(value) is type(None):
                 value = ""
 
-            txt = HTML.add("p", _id=f'{maincom}_{name}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
 
             if lineIndex != 0 and valueIndex != 0:
-                cols += HTML.add("div", _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
+                cols += HTML.genElement("div", id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
                 eventConfig["editIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
                 if valueType in ["str", "list", "tuple"]:
                     eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             elif lineIndex != 0:
-                cols += HTML.add("div", _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
+                cols += HTML.genElement("div", id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
                 if valueType in ["str", "list", "tuple"]:
                     eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
             else:
-                cols += HTML.add("div", _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
+                cols += HTML.genElement("div", nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
 
             if valueIndex + 1 < len(line) or not showAction:
                 continue
 
             if lineIndex == 0:
                 valueType, value, key = ("none", "Action", "Action")
-                txt = HTML.add("p", _id=f'{maincom}_{name}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
-                cols += HTML.add("div", _nest=txt, _style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;')
+                txt = HTML.genElement("p", id=f'{maincom}_{name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                cols += HTML.genElement("div", nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;')
                 continue
 
             valueType, value, key = ("rem", "Remove", "Action")
-            btn = HTML.add("button",
-                           _id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
-                           _nest=value,
-                           _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -6px; background: #333; color: #BFF;')
-            cols += HTML.add("div",
-                             _nest=btn,
-                             _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden; margin: 0px -2px 0px 0px;')
+            btn = HTML.genElement("button",
+                                  id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
+                                  nest=value,
+                                  style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -6px; background: #333; color: #BFF;')
+            cols += HTML.genElement(
+                "div",
+                nest=btn,
+                style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden; margin: 0px -2px 0px 0px;')
             eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
         if not elId is None:
-            HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else "")()}{background}{borderBottom}')
-            HTML.setRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
+            HTML.addElement("div", f'{maincom}_{name}', nest=cols, style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else "")()}{background}{borderBottom}')
+            HTML.setElementRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
             if lineIndex > 100:
                 document.getElementById(f'{maincom}_{name}_loadMore').scrollIntoView()
         else:
-            rows += HTML.add("div", _nest=cols, _style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else " height: 21px;")()}{background}{borderBottom}')
+            rows += HTML.genElement("div", nest=cols, style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else " height: 21px;")()}{background}{borderBottom}')
 
         if lineIndex != 0 or not showInput:
             continue
@@ -175,7 +177,7 @@ def sheet(maincom: str,
                     allData = optionsDict[f'/{key}.json']
 
                 for option in allData:
-                    nest += HTML.add(f'option', _nest=f'{option}', _style="margin: 0px 1px; background: transparent; color: inherit;", _custom=f'value="{option}"')
+                    nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
             if valueIndex == 0 and tagIsList:
                 valueType = "str"
@@ -188,39 +190,39 @@ def sheet(maincom: str,
                     allData = optionsDict[f'/{key}.json']
 
                 for option in allData:
-                    nest += HTML.add(f'option', _nest=f'{option}', _style="margin: 0px 1px; background: transparent; color: inherit;", _custom=f'value="{option}"')
+                    nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
-            txt = HTML.add(main,
-                           _id=f'Input_{maincom}_{name}_{tag}_{key}_{valueType}',
-                           _class=f'Input_{maincom}_{name}_{tag}',
-                           _nest=nest,
-                           _type=typ,
-                           _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
-                           _custom=f'placeholder="{value}"{custom}')
-            cols += HTML.add("div",
-                             _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
-                             _nest=txt,
-                             _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px;{styleDiv}{margin}')
+            txt = HTML.genElement(main,
+                                  id=f'Input_{maincom}_{name}_{tag}_{key}_{valueType}',
+                                  clas=f'Input_{maincom}_{name}_{tag}',
+                                  nest=nest,
+                                  type=typ,
+                                  style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
+                                  custom=f'placeholder="{value}"{custom}')
+            cols += HTML.genElement("div",
+                                    id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
+                                    nest=txt,
+                                    style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px;{styleDiv}{margin}')
             eventConfig["inputIds"].append(f'Input_{maincom}_{name}_{tag}_{key}_{valueType}')
 
             if valueIndex + 1 < len(line):
                 continue
 
             valueType, value, key = "add", "Add", "Action"
-            btn = HTML.add("button",
-                           _id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
-                           _nest=value,
-                           _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -1px; background: #333; color: #BFF')
-            cols += HTML.add("div",
-                             _id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
-                             _nest=btn,
-                             _style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
+            btn = HTML.genElement("button",
+                                  id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
+                                  nest=value,
+                                  style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -1px; background: #333; color: #BFF')
+            cols += HTML.genElement("div",
+                                    id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
+                                    nest=btn,
+                                    style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
             eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
 
         if not elId is None:
-            HTML.add("div", f'{maincom}_{name}', _nest=cols, _style=f'flex %% height: 29px; background: #202020;{borderBottom}')
+            HTML.addElement("div", f'{maincom}_{name}', nest=cols, style=f'flex %% height: 29px; background: #202020;{borderBottom}')
         else:
-            rows += HTML.add("div", _nest=cols, _style=f'flex %% height: 29px; background: #202020;{borderBottom}')
+            rows += HTML.genElement("div", nest=cols, style=f'flex %% height: 29px; background: #202020;{borderBottom}')
 
     if not elId is None and index + 1 < len(lines):
         if index % 100 == 0 and not index == 0:
@@ -232,7 +234,7 @@ def sheet(maincom: str,
     elif not elId is None:
         return eventConfig
 
-    return (HTML.add("div", _id=f'{maincom}_{name}', _nest=rows, _style="margin: 10px; border: 2px solid #111;"), eventConfig)
+    return (HTML.genElement("div", id=f'{maincom}_{name}', nest=rows, style="margin: 10px; border: 2px solid #111;"), eventConfig)
 
 
 def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: dict = {}, sendKey: bool = True):
@@ -250,7 +252,7 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
                     psw = JS.popup(f'prompt', "Please enter the new password -for the user.")
                     if psw is None or psw == "":
                         return None
-                    psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.glb.pub)) if key == "User" else str(encrypt(psw.encode(), WS.glb.pub)).replace(" ", "%20"))()
+                    psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.pub)) if key == "User" else str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20"))()
                     WS.send(f'{maincom} rpwmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {pswChangeDict[key].replace(" ", "%20")} {psw.replace(" ", "%20")}')
 
                 WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
@@ -260,12 +262,12 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
                     psw = JS.popup(f'prompt', "Please enter the new password for the user.")
                     if psw is None or psw == "":
                         return None
-                    psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.glb.pub)) if tag == "User" else str(encrypt(psw.encode(), WS.glb.pub)).replace(" ", "%20"))()
+                    psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.pub)) if tag == "User" else str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20"))()
                     WS.send(f'{maincom} kpwmodify {sheet.replace(" ", "%20")} {pswChangeDict[tag].replace(" ", "%20")} {psw.replace(" ", "%20")}')
 
                 WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
-            txt = HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
             el.parentElement.innerHTML = txt
             document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
@@ -283,7 +285,7 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
                 WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
             value = datetime.fromtimestamp(value).strftime("%d %b %y")
-            txt = HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
             el.parentElement.innerHTML = txt
             document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
@@ -300,7 +302,7 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             else:
                 WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
-            txt = HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
             el.parentElement.innerHTML = txt
             document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
 
@@ -341,7 +343,7 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             for style in ("z-index", "margin-bottom", "min-height", "color", "background", "overflow", "scrollbar-width", "transition", "margin-bottom", "min-height"):
                 setattr(pel.style, style, "")
 
-            txt = HTML.add("p", _id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', _nest=str(value), _style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
             pel.innerHTML = txt
             pel.outerHTML = pel.outerHTML
 
@@ -374,15 +376,15 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
                 allData = optionsDict[f'/{keyTmp}.json']
 
             for option in allData:
-                nest += HTML.add(f'option', _nest=f'{option}', _style="margin: 0px 1px; background: transparent; color: inherit;", _custom=f'value="{option}"')
+                nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
-        txt = HTML.add(main,
-                       _id=f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}',
-                       _class=f'Input_{maincom}_{sheet}_{tag}',
-                       _nest=nest,
-                       _type=typ,
-                       _style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
-                       _custom=f'placeholder="{key}"{custom}')
+        txt = HTML.genElement(main,
+                              id=f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}',
+                              clas=f'Input_{maincom}_{sheet}_{tag}',
+                              nest=nest,
+                              type=typ,
+                              style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
+                              custom=f'placeholder="{key}"{custom}')
         pel = args.target.parentElement
         pel.innerHTML = txt
 
@@ -506,44 +508,44 @@ def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep
         if i1 > 0:
             borderStyle = " border-top: 2px dashed #111;"
 
-        txt = HTML.add("h1", _nest=f'{rowPrefix}{(rows - i1) * rowStep}{rowAfterfix}', _style="headerSmall %% height: 25%; margin: 0px auto auto auto;")
+        txt = HTML.genElement("h1", nest=f'{rowPrefix}{(rows - i1) * rowStep}{rowAfterfix}', style="headerSmall %% height: 25%; margin: 0px auto auto auto;")
         if i1 == rows - 1:
-            txt += HTML.add("h1", _style="headerSmall %% height: 40%; margin: auto auto auto auto;")
-            txt += HTML.add("h1", _nest=f'{rowPrefix}{(rows - i1 - 1) * rowStep}{rowAfterfix}', _style="headerSmall %% height: 25%; margin: auto auto auto 5px;")
+            txt += HTML.genElement("h1", style="headerSmall %% height: 40%; margin: auto auto auto auto;")
+            txt += HTML.genElement("h1", nest=f'{rowPrefix}{(rows - i1 - 1) * rowStep}{rowAfterfix}', style="headerSmall %% height: 25%; margin: auto auto auto 5px;")
 
-        htmlCols = HTML.add("div", _nest=txt, _id=f'{name}_row_{rows - i1 - 1}_col_header', _style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeight}; border-right: 2px solid #111;{borderStyle}')
+        htmlCols = HTML.genElement("div", nest=txt, id=f'{name}_row_{rows - i1 - 1}_col_header', style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeight}; border-right: 2px solid #111;{borderStyle}')
         for i2 in range(0, cols):
             if i2 == cols - 1:
-                htmlCols += HTML.add("div", _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight};{borderStyle}')
+                htmlCols += HTML.genElement("div", id=f'{name}_row_{rows - i1 - 1}_col_{i2}', style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight};{borderStyle}')
             else:
-                htmlCols += HTML.add("div", _id=f'{name}_row_{rows - i1 - 1}_col_{i2}', _style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight}; border-right: 1px dashed #111;{borderStyle}')
+                htmlCols += HTML.genElement("div", id=f'{name}_row_{rows - i1 - 1}_col_{i2}', style=f'flex %% background: #333; width: {colsNormal}%; height: {rowHeight}; border-right: 1px dashed #111;{borderStyle}')
 
-        htmlRows += HTML.add("div", _nest=htmlCols, _id=f'{name}_row_{rows - i1 - 1}', _style=f'flex %% width: 100%; height: {rowHeight};')
+        htmlRows += HTML.genElement("div", nest=htmlCols, id=f'{name}_row_{rows - i1 - 1}', style=f'flex %% width: 100%; height: {rowHeight};')
 
     txt = ""
     if not smallHeaders:
         if len(origin) == 1:
-            txt += HTML.add("h1", _nest=f'{origin[0]}', _style="headerSmall %% margin: auto;")
+            txt += HTML.genElement("h1", nest=f'{origin[0]}', style="headerSmall %% margin: auto;")
         elif len(origin) > 1:
-            txt += HTML.add("h1", _nest=f'{origin[0]}', _style="headerSmall %% margin: 0px 5%; width: 90%; text-align: left;")
-            txt += HTML.add("h1", _nest="/", _style="headerSmall %% margin: 0px 5%; width: 90%; text-align: center;")
-            txt += HTML.add("h1", _nest=f'{origin[1]}', _style="headerSmall %% margin: 0px 5%; width: 90%; text-align: right;")
+            txt += HTML.genElement("h1", nest=f'{origin[0]}', style="headerSmall %% margin: 0px 5%; width: 90%; text-align: left;")
+            txt += HTML.genElement("h1", nest="/", style="headerSmall %% margin: 0px 5%; width: 90%; text-align: center;")
+            txt += HTML.genElement("h1", nest=f'{origin[1]}', style="headerSmall %% margin: 0px 5%; width: 90%; text-align: right;")
 
-    htmlCols = HTML.add("div", _nest=txt, _id=f'{name}_row_header_col_header', _style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeightSmall}; border-right: 2px solid #111; border-top: 2px solid #111;')
+    htmlCols = HTML.genElement("div", nest=txt, id=f'{name}_row_header_col_header', style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeightSmall}; border-right: 2px solid #111; border-top: 2px solid #111;')
     for i2 in range(0, cols):
         try:
-            txt = HTML.add("h1", _nest=f'{colNames[i2]}', _style="headerSmall %% margin: auto;")
+            txt = HTML.genElement("h1", nest=f'{colNames[i2]}', style="headerSmall %% margin: auto;")
         except IndexError:
-            txt = HTML.add("h1", _nest="", _style="headerSmall %% margin: auto;")
+            txt = HTML.genElement("h1", nest="", style="headerSmall %% margin: auto;")
 
         if i2 == cols - 1:
-            htmlCols += HTML.add("div", _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-top: 2px solid #111;')
+            htmlCols += HTML.genElement("div", nest=txt, id=f'{name}_row_header_col_{i2}', style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-top: 2px solid #111;')
         else:
-            htmlCols += HTML.add("div", _nest=txt, _id=f'{name}_row_header_col_{i2}', _style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-right: 1px dashed #111; border-top: 2px solid #111;')
+            htmlCols += HTML.genElement("div", nest=txt, id=f'{name}_row_header_col_{i2}', style=f'flex %% background: #FBDF56; width: {colsNormal}%; height: {rowHeightSmall}; border-right: 1px dashed #111; border-top: 2px solid #111;')
 
-    htmlRows += HTML.add("div", _nest=htmlCols, _id=f'{name}_row_header', _style=f'flex %% width: 100%; height: {rowHeightSmall};')
+    htmlRows += HTML.genElement("div", nest=htmlCols, id=f'{name}_row_header', style=f'flex %% width: 100%; height: {rowHeightSmall};')
 
-    return HTML.add("div", _nest=htmlRows, _id=name, _style="margin: 10px; padding-bottom: 2px; border: 2px solid #111;")
+    return HTML.genElement("div", nest=htmlRows, id=name, style="margin: 10px; padding-bottom: 2px; border: 2px solid #111;")
 
 
 def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: bool = False):
@@ -614,10 +616,10 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
 
         try:
             if onHoverTxt is None:
-                HTML.add(
+                HTML.addElement(
                     "div",
                     f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
-                    _style=
+                    style=
                     f'z-index: 10; width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%'
                 )
             else:
@@ -629,17 +631,17 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
                 if int(rowNum) < 3:
                     vh = "-25vh"
 
-                txt = HTML.add("h1", _nest=onHoverTxt, _style="headerSmall %% white-space: nowrap; text-overflow: ellipsis;")
-                details = HTML.add("div",
-                                   _nest=txt,
-                                   _id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHoverTxt',
-                                   _style=f'divNormal %% z-index: 12; width: 0vw; height: 25vh; margin: {vh} 0px 0px {vw}; padding: 0px; position: relative; opacity: 0%; transition: width 0.25s, opacity 0.5s; overflow-x: hidden;')
-                HTML.add(
+                txt = HTML.genElement("h1", nest=onHoverTxt, style="headerSmall %% white-space: nowrap; text-overflow: ellipsis;")
+                details = HTML.genElement("div",
+                                          nest=txt,
+                                          id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHoverTxt',
+                                          style=f'divNormal %% z-index: 12; width: 0vw; height: 25vh; margin: {vh} 0px 0px {vw}; padding: 0px; position: relative; opacity: 0%; transition: width 0.25s, opacity 0.5s; overflow-x: hidden;')
+                HTML.addElement(
                     "div",
                     f'{name}_row_{rowNum[:2]}_col_{colNum[:2]}',
-                    _nest=details,
-                    _id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHover',
-                    _style=
+                    nest=details,
+                    id=f'{name}_row_{rowNum[:2]}-{rowFloat[:2]}_col_{colNum[:2]}-{colFloat[:2]}_onHover',
+                    style=
                     f'z-index: 11; width: 10px; height: 10px; margin: -5px; background: #55F; border-radius: 10px; position: relative; top: {95 - int(rowFloat[:2] + "0" * (2 - len(rowFloat[:2])))}%; left: {-5 + int(colFloat[:2] + "0" * (2 - len(colFloat[:2])))}%'
                 )
 
@@ -664,13 +666,14 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
 
 
 def ytVideo(name: str):
-    img = HTML.add(f'img', _style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'src="docs/assets/Widgets/Transparent.png" alt="Black"')
-    img = HTML.add(f'div', _nest=f'{img}', _id=f'{name}_img', _style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+    img = HTML.genElement(f'img', style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', custom=f'src="docs/assets/Widgets/Transparent.png" alt="Black"')
+    img = HTML.genElement(f'div', nest=f'{img}', id=f'{name}_img', style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
 
-    ifr = HTML.add(f'div', _id=f'{name}_ifr', _style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', _custom=f'frameborder="0"')
-    ifr = HTML.add(f'div', _nest=f'{ifr}', _id=f'{name}_div', _style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
-    
-    return HTML.add(f'div', _nest=f'{img}{ifr}', _id=f'{name}', _style=f'divNormal %% width: 75%; margin: 0px auto;')
+    ifr = HTML.genElement(f'div', id=f'{name}_ifr', style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', custom=f'frameborder="0"')
+    ifr = HTML.genElement(f'div', nest=f'{ifr}', id=f'{name}_div', style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+
+    return HTML.genElement(f'div', nest=f'{img}{ifr}', id=f'{name}', style=f'divNormal %% width: 75%; margin: 0px auto;')
+
 
 def ytVideoGetControl(name):
     return JS.jsEval("new YT.Player('" + str(name) + "_ifr', { videoId: '', playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'fs': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'rel': 0 } } );")

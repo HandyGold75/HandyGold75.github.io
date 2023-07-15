@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS, Widget
+from WebKit import HTML, CSS, JS, Widget
+from WebKit.WebSocket import WS
 from rsa import encrypt
 from datetime import datetime, timedelta
 
@@ -276,23 +277,17 @@ def pageSub(args=None):
         if not args is None:
             if args.target.id.split("_")[-1] == "compact":
                 glb.compactView = not glb.compactView
-
-                el = HTML.get(f'{args.target.id}')
-
                 if glb.compactView:
-                    el.innerHTML = "Expand"
+                    CSS.setAttribute(args.target.id, "innerHTML", "Expand")
                 else:
-                    el.innerHTML = "Compact"
+                    CSS.setAttribute(args.target.id, "innerHTML", "Compact")
 
             elif args.target.id.split("_")[-1] == "active":
                 glb.hideInactive = not glb.hideInactive
-
-                el = HTML.get(f'{args.target.id}')
-
                 if glb.hideInactive:
-                    el.innerHTML = "Inactive"
+                    CSS.setAttribute(args.target.id, "innerHTML", "Inactive")
                 else:
-                    el.innerHTML = "Active"
+                    CSS.setAttribute(args.target.id, "innerHTML", "Active")
 
             elif f'{args.target.id.split("_")[-1]}' in glb.knownFiles:
                 file = f'{args.target.id.split("_")[-1]}'
@@ -317,18 +312,18 @@ def pageSub(args=None):
 
         for butTxt, butId, butFunc, butAct in glb.extraButtons:
             if not butAct:
-                HTML.enable(f'SubPage_nav_options_{butId}', False)
+                HTML.disableElement(f'SubPage_nav_options_{butId}')
 
         if glb.knownFiles[file] is str:
             return data
 
         if type(glb.knownFiles[file][list(glb.knownFiles[file])[-1]]) is dict:
             for butTxt, butId, butFunc, butAct in glb.extraButtons:
-                HTML.enable(f'SubPage_nav_options_{butId}', True)
+                HTML.enableElement(f'SubPage_nav_options_{butId}')
 
         return data
 
-    HTML.clear(f'SubPage_page')
+    HTML.clrElement(f'SubPage_page')
 
     data = setup(args)
     if data is None:
@@ -389,7 +384,7 @@ def pageSub(args=None):
             showInput=False,
             showAction=False,
         )
-        HTML.setRaw("SubPage_page", htmlStr)
+        HTML.setElementRaw("SubPage_page", htmlStr)
         JS.afterDelay(lambda: Widget.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange, sendKey=False), 50)
 
     else:
@@ -414,7 +409,7 @@ def pageSub(args=None):
             showInput=(not glb.hideInput),
             tagIsList=glb.tagIsList,
         )
-        HTML.setRaw("SubPage_page", htmlStr)
+        HTML.setElementRaw("SubPage_page", htmlStr)
         JS.afterDelay(lambda: Widget.sheetMakeEvents(eventConfig, optionsDict=options, pswChangeDict=glb.invokePswChange), 50)
 
 
@@ -427,25 +422,25 @@ def main(args=None, sub=None):
     for file in data:
         if not file in glb.knownFiles:
             continue
-        btn += HTML.add(f'button', _nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', _id=f'SubPage_nav_main_{file}', _type=f'button', _style=f'buttonSmall')
+        btn += HTML.genElement(f'button', nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f'SubPage_nav_main_{file}', type=f'button', style=f'buttonSmall')
 
     if btn == "":
-        txt = HTML.add(f'h2', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
-        HTML.set(f'div', f'SubPage', _id=f'SubPage_nav_main', _nest=txt, _align=f'center', _style=f'width: 100%;')
-        HTML.enable(f'page_portal_{JS.cache(f"page_portal")}', False)
+        txt = HTML.genElement(f'h2', nest=f'Unauthorized!', style=f'margin: 10px auto; text-align: center;')
+        HTML.setElement(f'div', f'SubPage', id=f'SubPage_nav_main', nest=txt, align=f'center', style=f'width: 100%;')
+        HTML.disableElement(f'page_portal_{JS.cache(f"page_portal")}')
         return None
 
-    div = HTML.add(f'div', _id=f'SubPage_nav_main', _nest=btn, _align=f'left', _style=f'width: 60%;"')
+    div = HTML.genElement(f'div', id=f'SubPage_nav_main', nest=btn, align=f'left', style=f'width: 60%;"')
 
     btn = ""
     for butTxt, butId, butFunc, butAct in glb.extraButtons:
-        btn += HTML.add(f'button', _nest=f'{butTxt}', _id=f'SubPage_nav_options_{butId}', _type=f'button', _align=f'right', _style=f'buttonSmall')
+        btn += HTML.genElement(f'button', nest=f'{butTxt}', id=f'SubPage_nav_options_{butId}', type=f'button', align=f'right', style=f'buttonSmall')
 
-    div += HTML.add(f'div', _id=f'SubPage_nav_options', _nest=btn, _align=f'right', _style=f'width: 40%;')
+    div += HTML.genElement(f'div', id=f'SubPage_nav_options', nest=btn, align=f'right', style=f'width: 40%;')
 
-    mainDiv = HTML.add(f'div', _id=f'SubPage_nav', _nest=div, _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    mainDiv += HTML.add(f'div', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
-    HTML.setRaw(f'SubPage', mainDiv)
+    mainDiv = HTML.genElement(f'div', id=f'SubPage_nav', nest=div, align=f'center', style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    mainDiv += HTML.genElement(f'div', id=f'SubPage_page', align=f'center', style=f'margin: 10px 10px 10px 0px;')
+    HTML.setElementRaw(f'SubPage', mainDiv)
 
     for file in data:
         if not file in glb.knownFiles:
@@ -460,7 +455,7 @@ def main(args=None, sub=None):
         CSS.onHoverClick(f'SubPage_nav_options_{butId}', f'buttonHover', f'buttonClick')
 
         if not butAct:
-            HTML.enable(f'SubPage_nav_options_{butId}', False)
+            HTML.disableElement(f'SubPage_nav_options_{butId}')
 
     if sub is not None:
         JS.cache("page_portalSub", f'{sub}')

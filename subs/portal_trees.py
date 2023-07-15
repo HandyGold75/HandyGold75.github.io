@@ -1,4 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit import HTML, CSS, JS
+from WebKit.WebSocket import WS
 from datetime import datetime, timedelta
 
 
@@ -71,26 +72,26 @@ def pageSub(args):
                 if layer > 1:
                     for i1 in range(1, layer):
                         if prtSpc[str(i1)]:
-                            spacer += HTML.add(f'p', _class=f'SubPage_page_bLeft', _style=f'{styleP}')
+                            spacer += HTML.genElement(f'p', clas=f'SubPage_page_bLeft', style=f'{styleP}')
                             continue
 
-                        spacer += HTML.add(f'p', _class=f'SubPage_page_rows_p1', _style=f'{styleP}')
+                        spacer += HTML.genElement(f'p', clas=f'SubPage_page_rows_p1', style=f'{styleP}')
 
                 if layer > 0:
                     if prtChar == "bCross":
-                        spacer += HTML.add(f'p', _nest=f'───────────────', _class=f'SubPage_page_bCross', _style=f'{styleP}')
+                        spacer += HTML.genElement(f'p', nest=f'───────────────', clas=f'SubPage_page_bCross', style=f'{styleP}')
                     elif prtChar == "bEnd":
-                        spacer += HTML.add(f'p', _class=f'SubPage_page_bEnd', _style=f'{styleP}')
+                        spacer += HTML.genElement(f'p', clas=f'SubPage_page_bEnd', style=f'{styleP}')
 
                 if type(data[record]) is dict:
-                    HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                    HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{record}', _prepend=f'{spacer}', _class=f'SubPage_page_rows_p1', _style=f'{styleP.replace("left", "center")}')
+                    HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{record}', prepend=f'{spacer}', clas=f'SubPage_page_rows_p1', style=f'{styleP.replace("left", "center")}')
 
                     rowC, colC = recursive(data[record], rowC + 1, colC, layer + 1, prtSpc)
 
                 else:
-                    HTML.add(f'div', f'SubPage_page', _id=f'SubPage_page_row{rowC}', _align=f'left', _style=f'display: flex;')
+                    HTML.addElement(f'div', f'SubPage_page', id=f'SubPage_page_row{rowC}', align=f'left', style=f'display: flex;')
 
                     value = data[record]
 
@@ -98,11 +99,11 @@ def pageSub(args):
                         value = datetime.fromtimestamp(value).strftime("%d-%m-%y %H:%M")
 
                     if layer > 0:
-                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{record}:', _prepend=f'{spacer}', _class=f'SubPage_page_rows_p1', _style=f'{styleP}')
+                        HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{record}:', prepend=f'{spacer}', clas=f'SubPage_page_rows_p1', style=f'{styleP}')
                     else:
-                        HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{record}:', _prepend=f'{spacer}', _class=f'SubPage_page_rows_p1', _style=f'{styleP.replace("left", "center")}')
+                        HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{record}:', prepend=f'{spacer}', clas=f'SubPage_page_rows_p1', style=f'{styleP.replace("left", "center")}')
 
-                    HTML.add(f'p', f'SubPage_page_row{rowC}', _nest=f'{value}', _class=f'SubPage_page_rows_p2', _style=f'{styleP}')
+                    HTML.addElement(f'p', f'SubPage_page_row{rowC}', nest=f'{value}', clas=f'SubPage_page_rows_p2', style=f'{styleP}')
 
                     rowC += 1
 
@@ -110,42 +111,42 @@ def pageSub(args):
 
         rowC, colC = recursive(data, 0, 0, 0)
 
-        for item in HTML.get(f'SubPage_page_rows_p1', isClass=True):
+        for item in HTML.getElements("SubPage_page_rows_p1"):
             item.style.width = f'{80 / colC}%'
-            item.style.marginTop = f'3px'
+            item.style.marginTop = "3px"
 
-        for item in HTML.get(f'SubPage_page_rows_p2', isClass=True):
+        for item in HTML.getElements("SubPage_page_rows_p2"):
             item.style.width = f'{140 / colC}%'
-            item.style.marginTop = f'3px'
-            item.style.whiteSpace = f'normal'
-            item.style.wordWrap = f'break-word'
+            item.style.marginTop = "3px"
+            item.style.whiteSpace = "normal"
+            item.style.wordWrap = "break-word"
 
-        for item in HTML.get(f'SubPage_page_bCross', isClass=True):
+        for item in HTML.getElements("SubPage_page_bCross"):
             item.style.width = f'{40/ colC}%'
             item.style.margin = f'0px 0px 0px {40 / colC}%'
-            item.style.fontSize = f'100%'
-            item.style.overflow = f'hidden'
-            item.style.borderLeft = f'2px solid #44F'
-            item.style.userSelect = f'none'
+            item.style.fontSize = "100%"
+            item.style.overflow = "hidden"
+            item.style.borderLeft = "2px solid #44F"
+            item.style.userSelect = "none"
 
-        for item in HTML.get(f'SubPage_page_bEnd', isClass=True):
+        for item in HTML.getElements("SubPage_page_bEnd"):
             item.style.width = f'{40/ colC}%'
-            item.style.height = f'12px'
+            item.style.height = "12px"
             item.style.margin = f'0px 0px 0px {40 / colC}%'
-            item.style.borderLeft = f'2px solid #44F'
-            item.style.borderBottom = f'2px solid #44F'
+            item.style.borderLeft = "2px solid #44F"
+            item.style.borderBottom = "2px solid #44F"
 
-        for item in HTML.get(f'SubPage_page_bLeft', isClass=True):
+        for item in HTML.getElements("SubPage_page_bLeft"):
             item.style.width = f'{40/ colC}%'
             item.style.margin = f'0px 0px 0px {40 / colC}%'
-            item.style.borderLeft = f'2px solid #44F'
+            item.style.borderLeft = "2px solid #44F"
 
-        for item in HTML.get(f'SubPage_page_bBottom', isClass=True):
+        for item in HTML.getElements("SubPage_page_bBottom"):
             item.style.width = f'{80/ colC}%'
-            item.style.height = f'9px'
-            item.style.borderBottom = f'2px solid #44F'
+            item.style.height = "9px"
+            item.style.borderBottom = "2px solid #44F"
 
-    HTML.clear(f'SubPage_page')
+    HTML.clrElement(f'SubPage_page')
 
     data = setup(args)
 
@@ -156,11 +157,11 @@ def pageSub(args):
 
 
 def main(args=None, sub=None):
-    HTML.set(f'div', f'SubPage', _id=f'SubPage_nav', _align=f'center', _style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
-    HTML.add(f'div', f'SubPage', _id=f'SubPage_page', _align=f'center', _style=f'margin: 10px 10px 10px 0px;')
+    HTML.setElement(f'div', f'SubPage', id=f'SubPage_nav', align=f'center', style=f'width: 95%; padding: 6px 0px; margin: 0px auto 10px auto; border-bottom: 4px dotted #111; display: flex;')
+    HTML.addElement(f'div', f'SubPage', id=f'SubPage_page', align=f'center', style=f'margin: 10px 10px 10px 0px;')
 
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'left', _style=f'width: 60%')
-    HTML.add(f'div', f'SubPage_nav', _id=f'SubPage_nav_options', _align=f'right', _style=f'width: 40%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_main', align=f'left', style=f'width: 60%')
+    HTML.addElement(f'div', f'SubPage_nav', id=f'SubPage_nav_options', align=f'right', style=f'width: 40%')
 
     data = WS.dict()[glb.svcoms["main"]]
 
@@ -169,13 +170,13 @@ def main(args=None, sub=None):
     for file in data:
         if file in glb.knownTree:
             fileName = f'{file.replace("/", "").replace(".json", "").replace(".log", "")}'
-            HTML.add(f'button', f'SubPage_nav_main', _nest=f'{fileName}', _id=f'SubPage_nav_main_{fileName}', _type=f'button', _style=f'buttonSmall')
+            HTML.addElement(f'button', f'SubPage_nav_main', nest=f'{fileName}', id=f'SubPage_nav_main_{fileName}', type=f'button', style=f'buttonSmall')
             foundFile = True
 
     if not foundFile:
-        HTML.set(f'div', f'SubPage_nav', _id=f'SubPage_nav_main', _align=f'center', _style=f'width: 100%')
-        HTML.add(f'h2', f'SubPage_nav_main', _nest=f'Unauthorized!', _style=f'margin: 10px auto; text-align: center;')
-        HTML.enable(f'page_portal_{JS.cache("page_portal")}', False)
+        HTML.setElement(f'div', f'SubPage_nav', id=f'SubPage_nav_main', align=f'center', style=f'width: 100%')
+        HTML.addElement(f'h2', f'SubPage_nav_main', nest=f'Unauthorized!', style=f'margin: 10px auto; text-align: center;')
+        HTML.disableElement(f'page_portal_{JS.cache("page_portal")}')
 
         return None
 
