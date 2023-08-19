@@ -1,7 +1,6 @@
-from js import document, window, setTimeout
+from js import document, window, setTimeout, console
 from pyodide.ffi import create_proxy, create_once_callable # type: ignore
-from WebKit import HTML, CSS, JS
-from WebKit.WebSocket import WS
+from WebKit import HTML, CSS, JS, WS
 from datetime import datetime
 from rsa import encrypt
 
@@ -17,151 +16,109 @@ def raiseError(header: str, msg: str, disableIds: list = ()):
     HTML.setElement("div", "page", nest=error, id="page_error", align="center")
 
 
-def sheet(maincom: str,
-          name: str,
-          data: dict,
-          elId: str = None,
-          dates: tuple = (),
-          halfView: list = [],
-          excludeView: tuple = (),
-          typeDict: dict = {},
-          optionsDict: dict = {},
-          showInput: bool = True,
-          showAction: bool = True,
-          showTag: bool = True,
-          tagIsList: bool = True,
-          index: int = 0):
-    def recursion(args=None):
-        el = document.getElementById(f'{maincom}_{name}_loadMore')
+class sheet:
+    __all__ = ["generate", "generateEvents"]
+
+    def __init__(self,
+                 maincom: str,
+                 name: str,
+                 elId: str = None,
+                 dates: tuple = (),
+                 halfView: list = [],
+                 quarterView: list = [],
+                 excludeView: tuple = (),
+                 typeDict: dict = {},
+                 optionsDict: dict = {},
+                 pswChangeDict: dict = {},
+                 sendKey: bool = True,
+                 showInput: bool = True,
+                 showAction: bool = True,
+                 showTag: bool = True,
+                 tagIsList: bool = True,
+                 wordWrap: bool = False):
+        self.maincom = maincom
+        self.name = name
+        self.elId = elId
+        self.dates = dates
+        self.halfView = halfView
+        self.quarterView = quarterView
+        self.excludeView = excludeView
+        self.typeDict = typeDict
+        self.optionsDict = optionsDict
+        self.pswChangeDict = pswChangeDict
+        self.sendKey = sendKey
+        self.showInput = showInput
+        self.showAction = showAction
+        self.showTag = showTag
+        self.tagIsList = tagIsList
+        self.wordWrap = wordWrap
+
+        self.index = 0
+        self.defaultWidth = 0
+        self.eventConfig = {}
+        self.fastLoad = False
+        self.loadCountPerLoad = 100
+        self.rememberRows = ""
+
+    def recursion(self):
+        el = document.getElementById(f'{self.maincom}_{self.name}_loadMore')
         if el is None:
             return None
 
         el.outerHTML = el.outerHTML
-        sheet(maincom=maincom, name=name, data=data, elId=elId, dates=dates, halfView=halfView, excludeView=excludeView, typeDict=typeDict, optionsDict=optionsDict, showAction=showAction, showTag=showTag, index=index + 1)
+        self.index += 1
+        self.generate(False)
 
-    def getLines(data, exclude):
+    def prepareData(self, data):
         headers = []
         for key in data:
             for item in data[key]:
-                (lambda: None if item in headers or item in exclude else headers.append(item))()
+                (lambda: None if item in headers or item in self.excludeView else headers.append(item))()
 
         lines = [["Tag"] + headers]
         for key in data:
             line = [key]
             for header in headers:
                 (lambda: line.append(None) if not header in data[key] else line.append(data[key][header]))()
-
             lines.append(line)
+        self.lines = lines
 
-        return lines
+        halfViewTmp = (lambda: ["Action"] if self.showAction and "Action" in self.halfView else [])()
+        for key in list(self.halfView):
+            if key in self.lines[0]:
+                halfViewTmp.append(key)
+        self.halfView = halfViewTmp
 
-    lines = getLines(data, excludeView)
+        quarterViewTmp = (lambda: ["Action"] if self.showAction and "Action" in self.quarterView else [])()
+        for key in list(self.quarterView):
+            if key in self.lines[0] and not key in self.halfView:
+                quarterViewTmp.append(key)
+        self.quarterView = quarterViewTmp
 
-    if not elId is None and index == 0:
-        HTML.addElement("div", elId, id=f'{maincom}_{name}', style="margin: 10px; border: 2px solid #111;")
-        HTML.addElement(f'button', elId, id=f'{maincom}_{name}_loadMore', nest=f'Load more (0 / {len(lines)})', type=f'button', style=f'buttonBig %% width: 50%;')
-        document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
-        CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
+        self.defaultWidth = 100 / (len(self.lines[0]) + self.showAction - (not self.showTag) - (len(self.halfView) * 0.5) - (len(self.quarterView) * 0.75))
 
-    halfViewTmp = list(halfView)
-    halfView = (lambda: ["Action"] if showAction and "Action" in halfViewTmp else [])()
-    for key in halfViewTmp:
-        if key in lines[0]:
-            halfView.append(key)
-
-    defaultWidth = 100 / (len(lines[0]) + (showAction - (not showTag)) - (len(halfView) / 2))
-    rows = ""
-    eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
-    for lineIndex, line in (lambda: enumerate(lines) if elId is None else enumerate([lines[index]]))():
-        if not elId is None:
-            lineIndex = index
-
-        background = (lambda: " background: #191919;" if lineIndex == 0 else " background: #202020;")()
-        borderBottom = (lambda: "" if lineIndex + 1 >= len(lines) else " border-bottom: 2px solid #111;")()
-        fontStyle = (lambda: "headerSmall %% " if lineIndex == 0 else "font-size: 75%; ")()
-        tag = line[0]
+    def getInputRow(self, tag, line, lineIndex):
+        def getAdaptiveWidth(key):
+            if key in self.halfView:
+                return self.defaultWidth / 2
+            elif key in self.quarterView:
+                return self.defaultWidth / 4
+            return self.defaultWidth
 
         cols = ""
         for valueIndex, value in enumerate(line):
-            borderRight = (lambda: "" if valueIndex + 1 >= len(line) and not showAction else " border-right: 2px solid #111;")()
-            key = lines[0][valueIndex]
-
-            if key == "Tag" and not showTag:
-                continue
-
-            valueType = (lambda: typeDict[key].__name__ if key in typeDict else type(value).__name__)()
-
-            if key in dates and type(value) in (int, float):
-                value = datetime.fromtimestamp(value).strftime("%d %b %y")
-                valueType = "date"
-            elif type(value) is bool:
-                value = (lambda: "Yes" if value else "No")()
-            elif type(value) in [list, tuple]:
-                value = ", ".join(value)
-            elif type(value) is type(None):
-                value = ""
-
-            txt = HTML.genElement("p", id=f'{maincom}_{name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
-
-            if lineIndex != 0 and valueIndex != 0:
-                cols += HTML.genElement("div", id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
-                eventConfig["editIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
-                if valueType in ["str", "list", "tuple"]:
-                    eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
-
-            elif lineIndex != 0:
-                cols += HTML.genElement("div", id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
-                if valueType in ["str", "list", "tuple"]:
-                    eventConfig["popupIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
-
-            else:
-                cols += HTML.genElement("div", nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;{borderRight}')
-
-            if valueIndex + 1 < len(line) or not showAction:
-                continue
-
-            if lineIndex == 0:
-                valueType, value, key = ("none", "Action", "Action")
-                txt = HTML.genElement("p", id=f'{maincom}_{name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
-                cols += HTML.genElement("div", nest=txt, style=f'width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; overflow: hidden;')
-                continue
-
-            valueType, value, key = ("rem", "Remove", "Action")
-            btn = HTML.genElement("button",
-                                  id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
-                                  nest=value,
-                                  style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -6px; background: #333; color: #BFF;')
-            cols += HTML.genElement(
-                "div",
-                nest=btn,
-                style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden; margin: 0px -2px 0px 0px;')
-            eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
-
-        if not elId is None:
-            HTML.addElement("div", f'{maincom}_{name}', nest=cols, style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else "")()}{background}{borderBottom}')
-            HTML.setElementRaw(f'{maincom}_{name}_loadMore', f'Load more ({lineIndex} / {len(lines)})')
-            if lineIndex > 100:
-                document.getElementById(f'{maincom}_{name}_loadMore').scrollIntoView()
-        else:
-            rows += HTML.genElement("div", nest=cols, style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else " height: 21px;")()}{background}{borderBottom}')
-
-        if lineIndex != 0 or not showInput:
-            continue
-
-        cols = ""
-        for valueIndex, value in enumerate(line):
-            key = lines[0][valueIndex]
+            key = self.lines[0][valueIndex]
             margin = (lambda: " margin: 0px -2px;" if valueIndex == 0 else " margin: 0px -2px 0px 0px;")()
 
             try:
-                valueType = (lambda: typeDict[key].__name__ if key in typeDict else type(lines[1][valueIndex]).__name__)()
+                valueType = (lambda: type(self.typeDict[key]).__name__ if key in self.typeDict else type(self.lines[1][valueIndex]).__name__)()
             except IndexError:
                 valueType = "NoneType"
 
             main, typ, custom, nest, styleInp, styleDiv = ("input", "text", "", "", " height: 100%; top: -1px; background: #333; color: #BFF; overflow: hidden;", " overflow: hidden;")
             if valueType == "NoneType":
                 typ = "text"
-            elif key in dates and valueType in ("int", "float"):
+            elif key in self.dates and valueType in ("int", "float"):
                 typ, custom, valueType = ("date", f' value="{datetime.now().strftime("%Y-%m-%d")}"', "date")
             elif valueType in ("int", "float"):
                 typ = "number"
@@ -171,75 +128,190 @@ def sheet(maincom: str,
                 main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\" multiple", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;", " background: #333; color: #BFF; overflow: hidden;")
 
                 allData = []
-                if key in optionsDict:
-                    allData = optionsDict[key]
-                elif f'/{key}.json' in optionsDict:
-                    allData = optionsDict[f'/{key}.json']
+                if key in self.optionsDict:
+                    allData = self.optionsDict[key]
+                elif f'/{key}.json' in self.optionsDict:
+                    allData = self.optionsDict[f'/{key}.json']
 
                 for option in allData:
-                    nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
+                    nest += HTML.genElement("option", nest=option, style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
-            if valueIndex == 0 and tagIsList:
+            if valueIndex == 0 and self.tagIsList:
                 valueType = "str"
                 main, typ, custom, styleInp, styleDiv = ("select", "", " size=\"1\"", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;", " background: #333; color: #BFF; overflow: hidden;")
 
                 allData = []
-                if key in optionsDict:
-                    allData = optionsDict[key]
-                elif f'/{key}.json' in optionsDict:
-                    allData = optionsDict[f'/{key}.json']
+                if key in self.optionsDict:
+                    allData = self.optionsDict[key]
+                elif f'/{key}.json' in self.optionsDict:
+                    allData = self.optionsDict[f'/{key}.json']
 
                 for option in allData:
-                    nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
+                    nest += HTML.genElement("option", nest=option, style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
             txt = HTML.genElement(main,
-                                  id=f'Input_{maincom}_{name}_{tag}_{key}_{valueType}',
-                                  clas=f'Input_{maincom}_{name}_{tag}',
+                                  id=f'Input_{self.maincom}_{self.name}_{tag}_{key}_{valueType}',
+                                  classes=f'Input_{self.maincom}_{self.name}_{tag}',
                                   nest=nest,
                                   type=typ,
                                   style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
                                   custom=f'placeholder="{value}"{custom}')
-            cols += HTML.genElement("div",
-                                    id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
-                                    nest=txt,
-                                    style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px;{styleDiv}{margin}')
-            eventConfig["inputIds"].append(f'Input_{maincom}_{name}_{tag}_{key}_{valueType}')
+            cols += HTML.genElement("div", id=f'Div_{self.maincom}_{self.name}_{tag}_{key}_{valueType}', nest=txt, style=f'z-index: 111; width: {getAdaptiveWidth(key)}%; min-height: 0px; border: 2px solid #55F; border-radius: 0px;{styleDiv}{margin}')
+            self.eventConfig["inputIds"].append(f'Input_{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
 
             if valueIndex + 1 < len(line):
                 continue
 
             valueType, value, key = "add", "Add", "Action"
             btn = HTML.genElement("button",
-                                  id=f'{maincom}_{name}_{tag}_{key}_{valueType}',
+                                  id=f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}',
                                   nest=value,
-                                  style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -1px; background: #333; color: #BFF')
+                                  style="z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -1px; background: #333; color: #BFF")
             cols += HTML.genElement("div",
-                                    id=f'Div_{maincom}_{name}_{tag}_{key}_{valueType}',
+                                    id=f'Div_{self.maincom}_{self.name}_{tag}_{key}_{valueType}',
                                     nest=btn,
-                                    style=f'z-index: 111; width: {(lambda: defaultWidth / 2 if key in halfView else defaultWidth)()}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
-            eventConfig["actionIds"].append(f'{maincom}_{name}_{tag}_{key}_{valueType}')
+                                    style=f'z-index: 111; width: {getAdaptiveWidth(key)}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden;{styleDiv}{margin}')
+            self.eventConfig["actionIds"].append(f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
 
-        if not elId is None:
-            HTML.addElement("div", f'{maincom}_{name}', nest=cols, style=f'flex %% height: 29px; background: #202020;{borderBottom}')
-        else:
-            rows += HTML.genElement("div", nest=cols, style=f'flex %% height: 29px; background: #202020;{borderBottom}')
+        borderBottom = (lambda: "" if lineIndex + 1 >= len(self.lines) else " border-bottom: 2px solid #111;")()
+        return HTML.genElement("div", nest=cols, style=f'flex %% height: 29px; background: #202020;{borderBottom}')
 
-    if not elId is None and index + 1 < len(lines):
-        if index % 100 == 0 and not index == 0:
-            document.getElementById(f'{maincom}_{name}_loadMore').addEventListener("click", create_proxy(recursion))
-            CSS.onHoverClick(f'{maincom}_{name}_loadMore', f'buttonHover', f'buttonClick')
-            return None
-        setTimeout(create_once_callable(recursion), 0)
+    def getRow(self, tag, line, lineIndex):
+        def getAdaptiveWidth(key):
+            if key in self.halfView:
+                return self.defaultWidth / 2
+            elif key in self.quarterView:
+                return self.defaultWidth / 4
+            return self.defaultWidth
 
-    elif not elId is None:
-        return eventConfig
+        cols = ""
+        for valueIndex, value in enumerate(line):
+            borderRight = (lambda: "" if valueIndex + 1 >= len(line) and not self.showAction else " border-right: 2px solid #111;")()
+            key = self.lines[0][valueIndex]
 
-    return (HTML.genElement("div", id=f'{maincom}_{name}', nest=rows, style="margin: 10px; border: 2px solid #111;"), eventConfig)
+            if key == "Tag" and not self.showTag:
+                continue
 
+            valueType = (lambda: type(self.typeDict[key]).__name__ if key in self.typeDict else type(value).__name__)()
 
-def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: dict = {}, sendKey: bool = True):
-    def onContextMenu(args):
-        def submit(args):
+            if key in self.dates and type(value) in (int, float):
+                value = datetime.fromtimestamp(value).strftime("%d %b %y")
+                valueType = "date"
+            elif type(value) is bool:
+                value = (lambda: "Yes" if value else "No")()
+            elif type(value) in [list, tuple]:
+                value = ", ".join(value)
+            elif type(value) is type(None):
+                value = ""
+
+            fontStyle = (lambda: "headerSmall %% " if lineIndex == 0 else "font-size: 75%; ")()
+            txt = HTML.genElement("p", id=f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+
+            if lineIndex != 0 and valueIndex != 0:
+                cols += HTML.genElement("div", id=f'Div_{self.maincom}_{self.name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {getAdaptiveWidth(key)}%; overflow: hidden;{borderRight}')
+                self.eventConfig["editIds"].append(f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
+                if valueType in ["str", "list", "tuple"]:
+                    self.eventConfig["popupIds"].append(f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
+
+            elif lineIndex != 0:
+                cols += HTML.genElement("div", id=f'Div_{self.maincom}_{self.name}_{tag}_{key}_{valueType}', nest=txt, style=f'width: {getAdaptiveWidth(key)}%; overflow: hidden;{borderRight}')
+                if valueType in ["str", "list", "tuple"]:
+                    self.eventConfig["popupIds"].append(f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
+
+            else:
+                cols += HTML.genElement("div", nest=txt, style=f'width: {getAdaptiveWidth(key)}%; overflow: hidden;{borderRight}')
+
+            if valueIndex + 1 < len(line) or not self.showAction:
+                continue
+
+            if lineIndex == 0:
+                valueType, value, key = ("none", "Action", "Action")
+                txt = HTML.genElement("p", id=f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}', nest=str(value), style=f'{fontStyle}height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                cols += HTML.genElement("div", nest=txt, style=f'width: {getAdaptiveWidth(key)}%; overflow: hidden;')
+                continue
+
+            valueType, value, key = ("rem", "Remove", "Action")
+            btn = HTML.genElement("button",
+                                  id=f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}',
+                                  nest=value,
+                                  style="z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center; overflow: hidden; height: 100%; top: -6px; background: #333; color: #BFF;")
+            cols += HTML.genElement("div", nest=btn, style=f'z-index: 111; width: {getAdaptiveWidth(key)}%; min-height: 0px; background: #212121; border: 2px solid #55F; border-radius: 0px; overflow: hidden; margin: 0px -2px 0px 0px;')
+            self.eventConfig["actionIds"].append(f'{self.maincom}_{self.name}_{tag}_{key}_{valueType}')
+
+        background = (lambda: " background: #191919;" if lineIndex == 0 else " background: #202020;")()
+        borderBottom = (lambda: "" if lineIndex + 1 >= len(self.lines) else " border-bottom: 2px solid #111;")()
+        wrapStyle = " word-break: break-all;" if self.wordWrap else " height: 21px;"
+        return HTML.genElement("div", nest=cols, id=f'DivRow_{self.maincom}_{self.name}_{tag}', style=f'flex %%{(lambda: " height: 29px;" if lineIndex == 0 else wrapStyle)()}{background}{borderBottom}')
+
+    def getAllRows(self):
+        rows = ""
+        for lineIndex, line in (lambda: enumerate(self.lines) if self.elId is None else enumerate([self.lines[self.index]]))():
+            if not self.elId is None:
+                lineIndex = self.index
+
+            tag = line[0]
+
+            row = self.getRow(tag, line, lineIndex)
+            rows += row
+            if not self.elId is None:
+                if not self.fastLoad:
+                    HTML.addElementRaw(f'{self.maincom}_{self.name}', row)
+                HTML.setElementRaw(f'{self.maincom}_{self.name}_loadMore', f'Load more ({lineIndex} / {len(self.lines)})')
+
+            if lineIndex != 0 or not self.showInput:
+                continue
+
+            row = self.getInputRow(tag, line, lineIndex)
+            rows += row
+            if not self.elId is None and not self.fastLoad:
+                HTML.addElementRaw(f'{self.maincom}_{self.name}', row)
+
+        return rows
+
+    def generate(self, data, rememberRows: str = None):
+        if not data is False:
+            self.prepareData(data)
+
+            if not self.elId is None and self.index == 0:
+                HTML.addElement("div", self.elId, id=f'{self.maincom}_{self.name}', style="margin: 10px; border: 2px solid #111;")
+                HTML.addElement("button", self.elId, id=f'{self.maincom}_{self.name}_loadMore', nest=f'Load more (0 / {len(self.lines)})', type="button", style="buttonBig %% width: 50%;")
+                document.getElementById(f'{self.maincom}_{self.name}_loadMore').addEventListener("click", create_proxy(lambda element=None: self.recursion()))
+                CSS.onHoverClick(f'{self.maincom}_{self.name}_loadMore', "buttonHover", "buttonClick")
+
+        self.eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
+        rows = self.getAllRows()
+
+        if not self.elId is None:
+            if self.index + 1 >= len(self.lines):
+                if self.fastLoad:
+                    self.rememberRows += rows
+                    HTML.addElementRaw(f'{self.maincom}_{self.name}', self.rememberRows)
+                    HTML.setElementRaw(f'{self.maincom}_{self.name}_loadMore', f'Load more ({self.index + 1} / {len(self.lines)})')
+                    HTML.disableElement(f'{self.maincom}_{self.name}_loadMore')
+                    self.rememberRows = ""
+                return None
+
+            if self.fastLoad:
+                self.rememberRows += rows
+
+            if self.index % self.loadCountPerLoad == 0 and not self.index == 0:
+                document.getElementById(f'{self.maincom}_{self.name}_loadMore').addEventListener("click", create_proxy(lambda element=None: self.recursion()))
+                CSS.onHoverClick(f'{self.maincom}_{self.name}_loadMore', "buttonHover", "buttonClick")
+
+                if self.fastLoad:
+                    HTML.addElementRaw(f'{self.maincom}_{self.name}', self.rememberRows)
+                    self.rememberRows = ""
+
+                self.fastLoad = True
+                self.loadCountPerLoad = 1000
+                return None
+
+            setTimeout(create_once_callable(lambda element=None: self.recursion()), 1)
+
+        return HTML.genElement("div", id=f'{self.maincom}_{self.name}', nest=rows, style="margin: 10px; border: 2px solid #111;")
+
+    def onContextMenu(self, args, onSubmit: object = None):
+        def submit(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None
 
@@ -247,31 +319,45 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
             value = el.value
 
-            if sendKey:
-                if key in pswChangeDict:
-                    psw = JS.popup(f'prompt', "Please enter the new password -for the user.")
+            if self.sendKey:
+                if key in self.pswChangeDict:
+                    psw = JS.popup("prompt", "Please enter the new password -for the user.")
                     if psw is None or psw == "":
                         return None
                     psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.pub)) if key == "User" else str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20"))()
-                    WS.send(f'{maincom} rpwmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {pswChangeDict[key].replace(" ", "%20")} {psw.replace(" ", "%20")}')
 
-                WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                    if not callFunc is None:
+                        callFunc(self.pswChangeDict[key], psw)
+                    else:
+                        WS.send(f'{maincom} rpwmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {self.pswChangeDict[key].replace(" ", "%20")} {psw.replace(" ", "%20")}')
+
+                if not callFunc is None:
+                    callFunc(key, value)
+                else:
+                    WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
             else:
-                if tag in pswChangeDict:
-                    psw = JS.popup(f'prompt', "Please enter the new password for the user.")
+                if tag in self.pswChangeDict:
+                    psw = JS.popup("prompt", "Please enter the new password for the user.")
                     if psw is None or psw == "":
                         return None
                     psw = (lambda: str(encrypt(value.encode() + "<SPLIT>".encode() + psw.encode(), WS.pub)) if tag == "User" else str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20"))()
-                    WS.send(f'{maincom} kpwmodify {sheet.replace(" ", "%20")} {pswChangeDict[tag].replace(" ", "%20")} {psw.replace(" ", "%20")}')
 
-                WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                    if not callFunc is None:
+                        callFunc(self.pswChangeDict[tag], psw)
+                    else:
+                        WS.send(f'{maincom} kpwmodify {sheet.replace(" ", "%20")} {self.pswChangeDict[tag].replace(" ", "%20")} {psw.replace(" ", "%20")}')
 
-            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+                if not callFunc is None:
+                    callFunc(tag, value)
+                else:
+                    WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
+
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             el.parentElement.innerHTML = txt
-            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
+            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
 
-        def submitDate(args):
+        def submitDate(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None
 
@@ -279,17 +365,23 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
             value = int(datetime.strptime(el.value, "%Y-%m-%d").timestamp())
 
-            if sendKey:
-                WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+            if self.sendKey:
+                if not callFunc is None:
+                    callFunc(key, value)
+                else:
+                    WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
             else:
-                WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
+                if not callFunc is None:
+                    callFunc(tag, value)
+                else:
+                    WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
             value = datetime.fromtimestamp(value).strftime("%d %b %y")
-            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             el.parentElement.innerHTML = txt
-            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
+            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
 
-        def submitNumber(args):
+        def submitNumber(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None
 
@@ -297,31 +389,43 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
             value = (lambda: float(el.value) if valueType == "float" else int(el.value))()
 
-            if sendKey:
-                WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+            if self.sendKey:
+                if not callFunc is None:
+                    callFunc(key, value)
+                else:
+                    WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
             else:
-                WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
+                if not callFunc is None:
+                    callFunc(tag, value)
+                else:
+                    WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
-            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             el.parentElement.innerHTML = txt
-            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
+            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
 
-        def submitBool(args):
+        def submitBool(args, callFunc: object = None):
             el = document.getElementById(args.target.id)
             maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
             value = not (lambda: False if el.innerHTML == "No" else True)()
 
-            if sendKey:
-                WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
+            if self.sendKey:
+                if not callFunc is None:
+                    callFunc(key, value)
+                else:
+                    WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value}')
             else:
-                WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
+                if not callFunc is None:
+                    callFunc(tag, value)
+                else:
+                    WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value}')
 
             if value:
                 el.innerHTML = "Yes"
                 return None
             el.innerHTML = "No"
 
-        def submitList(args):
+        def submitList(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None
 
@@ -331,23 +435,28 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             value = []
             for subEls in list(args.target.childNodes):
                 if subEls.selected is True:
-                    value.append(subEls.value)
+                    value.append(subEls.value.replace(", ", ","))
             value = ", ".join(value)
 
-            if sendKey:
-                WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+            if self.sendKey:
+                if not callFunc is None:
+                    callFunc(key, value.split(", "))
+                else:
+                    WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
             else:
-                WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
+                if not callFunc is None:
+                    callFunc(tag, value.split(", "))
+                else:
+                    WS.send(f'{maincom} kmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {value.replace(" ", "%20")}')
 
             pel = el.parentElement
-            for style in ("z-index", "margin-bottom", "min-height", "color", "background", "overflow", "scrollbar-width", "transition", "margin-bottom", "min-height"):
-                setattr(pel.style, style, "")
-
-            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style=f'font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;')
+            txt = HTML.genElement("p", id=f'{maincom}_{sheet}_{tag}_{key}_{valueType}', nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             pel.innerHTML = txt
+            for style in ("color", "background", "transition"):
+                setattr(pel.style, style, "")
             pel.outerHTML = pel.outerHTML
 
-            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(onContextMenu))
+            document.getElementById(f'{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
 
         args.preventDefault()
         maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
@@ -360,27 +469,27 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
         elif valueType in ("int", "float"):
             typ = "number"
         elif valueType == "bool":
-            submitBool(args)
+            submitBool(args, onSubmit)
             return None
         elif valueType in ["list", "tuple"]:
             main, typ, custom, styleInp = ("select", "", " size=\"1\" multiple", " height: 100%; top: -1px; background: transparent; color: inherit; overflow-x: hidden;")
 
             keyTmp = key
-            if not sendKey:
+            if not self.sendKey:
                 keyTmp = tag
 
             allData = []
-            if keyTmp in optionsDict:
-                allData = optionsDict[keyTmp]
-            elif f'/{keyTmp}.json' in optionsDict:
-                allData = optionsDict[f'/{keyTmp}.json']
+            if keyTmp in self.optionsDict:
+                allData = self.optionsDict[keyTmp]
+            elif f'/{keyTmp}.json' in self.optionsDict:
+                allData = self.optionsDict[f'/{keyTmp}.json']
 
             for option in allData:
-                nest += HTML.genElement(f'option', nest=f'{option}', style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
+                nest += HTML.genElement("option", nest=option, style="margin: 0px 1px; background: transparent; color: inherit;", custom=f'value="{option}"')
 
         txt = HTML.genElement(main,
                               id=f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}',
-                              clas=f'Input_{maincom}_{sheet}_{tag}',
+                              classes=f'Input_{maincom}_{sheet}_{tag}',
                               nest=nest,
                               type=typ,
                               style=f'z-index: 110; width: 100%; position: relative; padding: 0px; margin: 0px; border: 0px none #55F; font-size: 75%; text-align: center;{styleInp}',
@@ -397,18 +506,18 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
             pel.style.background = "#333"
             pel.style.color = "#BFF"
             CSS.onHoverFocus(pel.id, "selectHover %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;", "selectFocus %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;")
-            document.getElementById(pel.id).addEventListener("keyup", create_proxy(submitList))
+            document.getElementById(pel.id).addEventListener("keyup", create_proxy(lambda args: submitList(args, onSubmit)))
             return None
 
         CSS.onHoverFocus(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}', "inputHover", "inputFocus")
-        document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(func))
+        document.getElementById(f'Input_{maincom}_{sheet}_{tag}_{key}_{valueType}').addEventListener("keyup", create_proxy(lambda args: func(args, onSubmit)))
 
-    def onDblClick(args):
+    def onDblClick(self, args):
         window.alert(str(args.target.innerHTML))
 
-    def addRecord(args):
+    def addRecord(self, args, reloadFunction: object = None):
         maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
-
+        toSend = []
         for i, els in enumerate(list(document.getElementsByClassName(f'Input_{maincom}_{sheet}_{tag}'))):
             if els.value in ["", " "]:
                 continue
@@ -430,57 +539,165 @@ def sheetMakeEvents(eventConfig: dict, optionsDict: dict = {}, pswChangeDict: di
 
             if i == 0:
                 tag = els.value
-                WS.send(f'{maincom} add {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
+                toSend.append(lambda: WS.send(f'{maincom} add {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}'))
                 continue
 
-            from subs.portal_sheets import pageSub
-            WS.onMsg("{\"" + maincom + "\":", pageSub, oneTime=True)
-            WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}')
+            toSend.append(lambda: WS.send(f'{maincom} rmodify {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")} {key.replace(" ", "%20")} {value.replace(" ", "%20")}'))
 
-    def remRecord(args):
+        for i, sendFunc in enumerate(toSend):
+            if not reloadFunction is None and i + 1 >= len(toSend):
+                WS.onMsg("{\"" + maincom + "\": {\"" + sheet + "\":", lambda: setTimeout(create_once_callable(reloadFunction), 1), oneTime=True)
+            sendFunc()
+
+    def remRecord(self, args):
         maincom, sheet, tag, key, valueType = args.target.id.split("_")[-5:]
 
         if not JS.popup("confirm", f'Are you sure you want to delete "{tag}"?\nThis can not be reverted!'):
             return None
 
-        from subs.portal_sheets import pageSub
-        WS.onMsg("{\"" + maincom + "\":", pageSub, oneTime=True)
         WS.send(f'{maincom} delete {sheet.replace(" ", "%20")} {tag.replace(" ", "%20")}')
+        HTML.remElement(f'DivRow_{maincom}_{sheet}_{tag}')
 
-    for id in eventConfig["editIds"]:
-        el = document.getElementById(id)
-        if el is None:
-            return None
-        el.addEventListener("contextmenu", create_proxy(onContextMenu))
+    def generateEvents(self, onReloadCall: object = None, onSubmit: object = None):
+        for id in self.eventConfig["editIds"]:
+            el = document.getElementById(id)
+            if el is None:
+                return None
+            el.addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
 
-    for id in eventConfig["inputIds"]:
-        el = document.getElementById(id)
-        if el is None:
-            return None
+        for id in self.eventConfig["inputIds"]:
+            el = document.getElementById(id)
+            if el is None:
+                return None
 
-        maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+            maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
 
-        if valueType == "list":
-            el = document.getElementById(el.id.replace("Input_", "Div_"))
-            CSS.onHoverFocus(el.id, "selectHover %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;", "selectFocus %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;")
-        else:
-            CSS.onHoverFocus(el.id, "inputHover", "inputFocus")
+            if valueType == "list":
+                el = document.getElementById(el.id.replace("Input_", "Div_"))
+                CSS.onHoverFocus(el.id, "selectHover %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;", "selectFocus %% margin-bottom: -135px; min-height: 159px; overflow-y: hidden;")
+            else:
+                CSS.onHoverFocus(el.id, "inputHover", "inputFocus")
 
-    for id in eventConfig["actionIds"]:
-        el = document.getElementById(id)
-        if el is None:
-            return None
+        for id in self.eventConfig["actionIds"]:
+            el = document.getElementById(id)
+            if el is None:
+                return None
 
-        maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
+            maincom, sheet, tag, key, valueType = el.id.split("_")[-5:]
 
-        (lambda: document.getElementById(el.id).addEventListener("click", create_proxy(remRecord)) if valueType == "rem" else document.getElementById(el.id).addEventListener("click", create_proxy(addRecord)))()
-        CSS.onHoverClick(el.id, "buttonHover", "buttonClick")
+            if valueType == "rem":
+                func = self.remRecord
+            else:
+                func = lambda args: self.addRecord(args, reloadFunction=onReloadCall)
+            document.getElementById(el.id).addEventListener("click", create_proxy(func))
 
-    for id in eventConfig["popupIds"]:
-        el = document.getElementById(id)
-        if el is None:
-            return None
-        el.addEventListener("dblclick", create_proxy(onDblClick))
+            CSS.onHoverClick(el.id, "buttonHover", "buttonClick")
+
+        for id in self.eventConfig["popupIds"]:
+            el = document.getElementById(id)
+            if el is None:
+                return None
+            el.addEventListener("dblclick", create_proxy(self.onDblClick))
+
+
+class tree:
+    __all__ = ["generate"]
+
+    def __init__(self, name: str, elId: str, dates: tuple = (), wordWrap: bool = False):
+        self.name = name
+        self.elId = elId
+        self.dates = dates
+        self.wordWrap = wordWrap
+
+    def recursive(self, data, rowC, colC, layer, prtSpc={}):
+        if layer + 2 > colC:
+            colC = layer + 2
+
+        wrapStyle = " word-break: break-all;" if self.wordWrap else " height: 15px;"
+        styleP = "margin: 0px; padding: 0px; text-align: left; font-size: 75%; overflow: hidden;"
+        prtChar = "bCross"
+        prtSpc[str(layer)] = True
+        for i, record in enumerate(data):
+            if len(data) - 1 == i:
+                prtChar = "bEnd"
+                if record == list(data)[-1]:
+                    prtSpc[str(layer)] = False
+
+            spacer = ""
+            if layer > 1:
+                for i1 in range(1, layer):
+                    if prtSpc[str(i1)]:
+                        spacer += HTML.genElement("p", classes=f'{self.name}_bLeft', style=styleP)
+                        continue
+                    spacer += HTML.genElement("p", classes=f'{self.name}_rows_p1', style=styleP + wrapStyle)
+
+            if layer > 0:
+                if prtChar == "bCross":
+                    spacer += HTML.genElement("p", nest="───────────────", classes=f'{self.name}_bCross', style=styleP)
+                elif prtChar == "bEnd":
+                    spacer += HTML.genElement("p", classes=f'{self.name}_bEnd', style=styleP)
+
+            if type(data[record]) is dict:
+                HTML.addElement("div", self.elId, id=f'{self.name}_row{rowC}', align="left", style="display: flex;")
+                HTML.addElement("p", f'{self.name}_row{rowC}', nest=record, prepend=spacer, classes=f'{self.name}_rows_p1', style=styleP.replace("left", "center") + wrapStyle)
+                rowC, colC = self.recursive(data[record], rowC + 1, colC, layer + 1, prtSpc)
+
+            else:
+                HTML.addElement("div", self.elId, id=f'{self.name}_row{rowC}', align="left", style="display: flex;")
+                value = data[record]
+                if record in self.dates:
+                    value = datetime.fromtimestamp(value).strftime("%d-%m-%y %H:%M")
+
+                if layer > 0:
+                    HTML.addElement("p", f'{self.name}_row{rowC}', nest=f'{record}:', prepend=spacer, classes=f'{self.name}_rows_p1', style=styleP + wrapStyle)
+                else:
+                    HTML.addElement("p", f'{self.name}_row{rowC}', nest=f'{record}:', prepend=spacer, classes=f'{self.name}_rows_p1', style=styleP.replace("left", "center") + wrapStyle)
+
+                HTML.addElement("p", f'{self.name}_row{rowC}', nest=str(value), classes=f'{self.name}_rows_p2', style=styleP + wrapStyle)
+                rowC += 1
+
+        return rowC, colC
+
+    def setStyling(self, colC):
+        for item in HTML.getElements(f'{self.name}_rows_p1'):
+            item.style.width = f'{80 / colC}%'
+            item.style.marginTop = "3px"
+
+        for item in HTML.getElements(f'{self.name}_rows_p2'):
+            item.style.width = f'{140 / colC}%'
+            item.style.marginTop = "3px"
+            item.style.whiteSpace = "normal"
+            item.style.wordWrap = "break-word"
+
+        for item in HTML.getElements(f'{self.name}_bCross'):
+            item.style.width = f'{40/ colC}%'
+            item.style.margin = f'0px 0px 0px {40 / colC}%'
+            item.style.fontSize = "100%"
+            item.style.overflow = "hidden"
+            item.style.borderLeft = "2px solid #44F"
+            item.style.userSelect = "none"
+
+        for item in HTML.getElements(f'{self.name}_bEnd'):
+            item.style.width = f'{40/ colC}%'
+            item.style.height = "12px"
+            item.style.margin = f'0px 0px 0px {40 / colC}%'
+            item.style.borderLeft = "2px solid #44F"
+            item.style.borderBottom = "2px solid #44F"
+
+        for item in HTML.getElements(f'{self.name}_bLeft'):
+            item.style.width = f'{40/ colC}%'
+            item.style.margin = f'0px 0px 0px {40 / colC}%'
+            item.style.borderLeft = "2px solid #44F"
+
+        for item in HTML.getElements(f'{self.name}_bBottom'):
+            item.style.width = f'{80/ colC}%'
+            item.style.height = "9px"
+            item.style.borderBottom = "2px solid #44F"
+
+    def generate(self, data):
+        HTML.clrElement(self.elId)
+        rowC, colC = self.recursive(data, 0, 0, 0)
+        self.setStyling(colC)
 
 
 def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep: int = None, origin: tuple = (), rowPrefix: str = "", rowAfterfix: str = "", colNames: tuple = (), smallHeaders: bool = False):
@@ -525,11 +742,11 @@ def graph(name: str, rowHeight: str, rows: int, rowStep: int, cols: int, colStep
     txt = ""
     if not smallHeaders:
         if len(origin) == 1:
-            txt += HTML.genElement("h1", nest=f'{origin[0]}', style="headerSmall %% margin: auto;")
+            txt += HTML.genElement("h1", nest=str(origin[0]), style="headerSmall %% margin: auto;")
         elif len(origin) > 1:
-            txt += HTML.genElement("h1", nest=f'{origin[0]}', style="headerSmall %% margin: 0px 5%; width: 90%; text-align: left;")
+            txt += HTML.genElement("h1", nest=str(origin[0]), style="headerSmall %% margin: 0px 5%; width: 90%; text-align: left;")
             txt += HTML.genElement("h1", nest="/", style="headerSmall %% margin: 0px 5%; width: 90%; text-align: center;")
-            txt += HTML.genElement("h1", nest=f'{origin[1]}', style="headerSmall %% margin: 0px 5%; width: 90%; text-align: right;")
+            txt += HTML.genElement("h1", nest=str(origin[1]), style="headerSmall %% margin: 0px 5%; width: 90%; text-align: right;")
 
     htmlCols = HTML.genElement("div", nest=txt, id=f'{name}_row_header_col_header', style=f'background: #FBDF56; width: {colsSmall}%; height: {rowHeightSmall}; border-right: 2px solid #111; border-top: 2px solid #111;')
     for i2 in range(0, cols):
@@ -666,13 +883,13 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
 
 
 def ytVideo(name: str):
-    img = HTML.genElement(f'img', style=f'z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;', custom=f'src="docs/assets/Widgets/Transparent.png" alt="Black"')
-    img = HTML.genElement(f'div', nest=f'{img}', id=f'{name}_img', style=f'margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+    img = HTML.genElement("img", style="z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;", custom='src="docs/assets/Widgets/Transparent.png" alt="Black"')
+    img = HTML.genElement("div", nest=img, id=f'{name}_img', style="margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;")
 
-    ifr = HTML.genElement(f'div', id=f'{name}_ifr', style=f'position: absolute; top: 0; left: 0; width: 100%; height: 100%;', custom=f'frameborder="0"')
-    ifr = HTML.genElement(f'div', nest=f'{ifr}', id=f'{name}_div', style=f'position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;')
+    ifr = HTML.genElement("div", id=f'{name}_ifr', style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;", custom='frameborder="0"')
+    ifr = HTML.genElement("div", nest=ifr, id=f'{name}_div', style="position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;")
 
-    return HTML.genElement(f'div', nest=f'{img}{ifr}', id=f'{name}', style=f'divNormal %% width: 75%; margin: 0px auto;')
+    return HTML.genElement("div", nest=img + ifr, id=name, style="divNormalNoEdge %% max-width: 96%; margin: auto 1%; border-radius: 10px; overflow: hidden;")
 
 
 def ytVideoGetControl(name):
