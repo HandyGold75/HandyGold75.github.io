@@ -1,5 +1,5 @@
-from WebKit import HTML, CSS, JS, WS
-from pages import home, links, portal, contact, login
+from WebKit.init import HTML, CSS, JS, WS
+from pages.init import home, links, portal, contact, login
 from json import loads
 
 
