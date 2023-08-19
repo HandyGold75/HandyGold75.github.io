@@ -1,13 +1,13 @@
 from js import document, console
-from WebKit.CSS import glb as glbCSS
+from WebKit import CSS 
 from json import load
 from os import path as osPath
 
 
 class glb:
-    onHoverStyles = glbCSS.onHoverStyles
-    onClickStyles = glbCSS.onClickStyles
-    onFocusStyles = glbCSS.onFocusStyles
+    onHoverStyles = CSS.glb.onHoverStyles
+    onClickStyles = CSS.glb.onClickStyles
+    onFocusStyles = CSS.glb.onFocusStyles
     disabledStyles = {}
 
     with open(f'{osPath.split(__file__)[0]}/styleMap.json', "r", encoding="UTF-8") as fileR:

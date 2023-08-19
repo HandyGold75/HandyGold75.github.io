@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit.init import HTML, CSS, JS, WS
 from datetime import datetime, timedelta
 from rsa import encrypt
 from json import dumps, loads
