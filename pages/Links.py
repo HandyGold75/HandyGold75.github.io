@@ -53,6 +53,7 @@ class links:
         self.columns = 5
 
         if not WS.loginState():
+            self.busy = False
             return None
 
         def finalize(self):

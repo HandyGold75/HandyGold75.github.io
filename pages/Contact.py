@@ -39,6 +39,7 @@ class contact:
     def preload(self):
         self.busy = True
         if not WS.loginState():
+            self.busy = False
             return None
 
         def finalize(self):
