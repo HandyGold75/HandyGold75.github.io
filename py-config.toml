@@ -2,8 +2,8 @@ packages = ["rsa"]
 
 [[fetch]]
 files = [
-    "WebKit/styleMap.json", "WebKit/__init__.py", "WebKit/HTML.py", "WebKit/CSS.py", "WebKit/JS.py", "WebKit/WS.py", "WebKit/Widget.py",
+    "WebKit/styleMap.json", "WebKit/init.py", "WebKit/HTML.py", "WebKit/CSS.py", "WebKit/JS.py", "WebKit/WS.py", "WebKit/Widget.py",
     "index.py",
-    "pages/__init__.py", "pages/config.json", "pages/Home.py", "pages/Links.py", "pages/Portal.py", "pages/Contact.py", "pages/Login.py",
-    "subsPortal/__init__.py", "subsPortal/config.json", "subsPortal/Sonos.py", "subsPortal/Tapo.py", "subsPortal/YTDL.py", "subsPortal/Sheets.py", "subsPortal/Trees.py"
+    "pages/init.py", "pages/config.json", "pages/Home.py", "pages/Links.py", "pages/Portal.py", "pages/Contact.py", "pages/Login.py",
+    "subsPortal/init.py", "subsPortal/config.json", "subsPortal/Sonos.py", "subsPortal/Tapo.py", "subsPortal/YTDL.py", "subsPortal/Sheets.py", "subsPortal/Trees.py"
 ]

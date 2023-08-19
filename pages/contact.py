@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, WS
+from WebKit.init import HTML, CSS, JS, WS
 from json import load
 from os import path as osPath
 from locale import LC_ALL
