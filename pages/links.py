@@ -1,99 +1,165 @@
-from WebKit import HTML, CSS, JS
-from WebKit.WebSocket import WS
+from WebKit import HTML, CSS, JS, WS
 from json import dumps, loads, load
 from os import path as osPath
 
 
-class glb:
-    allLinks = {}
+class links:
+    __all__ = ["main", "preload", "deload"]
 
-    with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
-        defaultLinks = load(fileR)["defaultLinks"]
+    def __init__(self):
+        self.busy = False
+        self.requireLogin = False
 
-    columns = 4
+        if JS.cache("configLinks") is None:
+            JS.cache("configLinks", dumps({"folded": {}}))
 
+        with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+            self.defaultLinks = load(fileR)["defaultLinks"]
 
-def setup():
-    glb.allLinks = dict(sorted(glb.defaultLinks.items(), key=lambda x: x[1]['Index']))
+        self.allLinks = dict(sorted(self.defaultLinks.items(), key=lambda x: x[1]['Index']))
+        self.foldedStates = loads(JS.cache("configLinks"))["folded"]
 
-    if JS.cache("page_links") is None or JS.cache("page_links") == "":
-        JS.cache("page_links", dumps({}))
+        self.columns = 5
+        if JS.getWindow().innerWidth < 500:
+            self.columns = 3
+        elif JS.getWindow().innerWidth < 1000:
+            self.columns = 4
 
-    if JS.cache("page_links_colums") is None or JS.cache("page_links_colums") == "":
-        JS.cache("page_links_colums", 4)
-
-    HTML.setElement(f'div', f'page', id=f'page_links', align=f'center')
-
-    if not WS.loggedIn:
-        return None
-
-    msgDict = WS.dict()
-
-    if "qr" in msgDict:
-        if " " in msgDict["qr"]["/Links.json"]:
-            msgDict["qr"]["/Links.json"].pop(" ")
-
-        glb.allLinks = {**glb.defaultLinks, **msgDict["qr"]["/Links.json"]}
-
-    glb.allLinks = dict(sorted(glb.allLinks.items(), key=lambda x: x[1]['Index']))
-
-
-def toggleCat(args: any):
-    id = args.target.id
-
-    if id == "":
-        id = args.target.parentElement.id
-
-    catStates = loads(JS.cache("page_links"))
-    catStates[id.split("_")[2]] = not catStates[id.split("_")[2]]
-
-    CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'2px solid #111')
-    CSS.setStyles(f'page_links_{id.split("_")[2]}', ((f'position', f'unset'), (f'marginTop', f'0px'), (f'opacity', f'1')))
-
-    if not catStates[id.split("_")[2]]:
-        CSS.setStyle(f'page_links_{id.split("_")[2]}_header', f'borderBottom', f'4px solid #111')
-        CSS.setStyles(f'page_links_{id.split("_")[2]}', ((f'position', f'absolute'), (f'marginTop', f'-9999px'), (f'opacity', f'0')))
-
-    JS.cache("page_links", dumps(catStates))
-
-
-def main():
-    def newCat(cat: dict, visable: bool):
-        if visable:
-            HTML.addElement(f'h1', f'page_links', id=f'page_links_{cat}_header', nest=f'{cat}', align=f'center', style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 2px solid #111; user-select: none;')
-            HTML.addElement(f'div', f'page_links', id=f'page_links_{cat}', align=f'center', style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 1;')
+    def onResize(self):
+        oldColumns = self.columns
+        if JS.getWindow().innerWidth < 500:
+            self.columns = 3
+        elif JS.getWindow().innerWidth < 1000:
+            self.columns = 4
         else:
-            HTML.addElement(f'h1', f'page_links', id=f'page_links_{cat}_header', nest=f'{cat}', align=f'center', style=f'headerBig %% pageLinks_Base %% border-top: 4px solid #111; border-bottom: 4px solid #111; user-select: none;')
-            HTML.addElement(f'div', f'page_links', id=f'page_links_{cat}', align=f'center', style=f'pageLinks_Base %% border-bottom: 4px solid #111; opacity: 0; margin-top: -9999px; position: absolute;')
+            self.columns = 5
 
-    setup()
+        if self.columns != oldColumns:
+            self.layout()
 
-    catStates = loads(JS.cache("page_links"))
-    catRowCount = {}
-    catColCount = {}
+            for el in HTML.getElements("linksPage_Subs"):
+                JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
+                if self.foldedStates[el.id.split("_")[-2]]:
+                    setattr(el.style, "marginTop", f'-{CSS.getAttribute(el.id.replace("_Sub", ""), "offsetWidth")}px')
+                else:
+                    setattr(el.style, "marginTop", "0px")
 
-    for link in glb.allLinks:
-        currentCat = glb.allLinks[link]["cat"]
+    def preload(self):
+        self.busy = True
+        if JS.getWindow().innerWidth < 500:
+            self.columns = 3
+        elif JS.getWindow().innerWidth < 1000:
+            self.columns = 4
+        self.columns = 5
 
-        if not currentCat in catRowCount:
-            if not currentCat in catStates:
-                catStates[currentCat] = True
+        if not WS.loginState():
+            return None
 
-            newCat(currentCat, catStates[currentCat])
-            catRowCount[currentCat] = 0
-            catColCount[currentCat] = 0
+        def finalize(self):
+            msgDict = WS.dict()
+            if "qr" in msgDict:
+                if " " in msgDict["qr"]["/Links.json"]:
+                    msgDict["qr"]["/Links.json"].pop(" ")
 
-        if catColCount[currentCat] % int(JS.cache("page_links_colums")) == 0:
-            catRowCount[currentCat] += 1
-            HTML.addElement(f'div', f'page_links_{currentCat}', id=f'page_links_{currentCat}_row{catRowCount[currentCat]}', align=f'center', style=f'flex')
+                self.allLinks = dict(sorted({**self.defaultLinks, **msgDict["qr"]["/Links.json"]}.items(), key=lambda x: x[1]['Index']))
+            self.busy = False
 
-        catColCount[currentCat] += 1
+        if "qr" in WS.dict()["access"]:
+            WS.onMsg("{\"qr\": {\"/Links.json\":", finalize, (self, ), oneTime=True)
+            WS.send("qr read /Links.json")
 
-        img = HTML.linkWrap(glb.allLinks[link]["url"], nest=f'<img id="Image_{glb.allLinks[link]["text"]}" src="docs/assets/Links/{link}" alt="{glb.allLinks[link]["text"]}" style="width: 30%; margin: 15px auto -10px auto; user-select:none;">')
-        txt = HTML.genElement(f'p', nest=HTML.linkWrap(glb.allLinks[link]["url"], nest=glb.allLinks[link]["text"]))
-        HTML.addElement(f'div', f'page_links_{currentCat}_row{catRowCount[currentCat]}', nest=f'{img}{txt}', style=f'width: {100 / int(JS.cache("page_links_colums"))}%; margin: 0px auto;')
+    def deload(self):
+        self.busy = True
+        JS.onResize("links", None)
+        self.busy = False
 
-    for cat in catRowCount:
-        JS.addEvent(f'page_links_{cat}_header', toggleCat, "click")
+    def layout(self):
+        sortedCats = {}
+        for link in self.allLinks:
+            if not self.allLinks[link]["cat"] in sortedCats:
+                sortedCats[self.allLinks[link]["cat"]] = []
+            sortedCats[self.allLinks[link]["cat"]].append(link)
+            if not self.allLinks[link]["cat"] in self.foldedStates:
+                self.foldedStates[self.allLinks[link]["cat"]] = False
 
-    JS.cache("page_links", dumps(catStates))
+        configLinks = loads(JS.cache("configLinks"))
+        configLinks["folded"] = self.foldedStates
+        JS.cache("configLinks", dumps(configLinks))
+
+        catDivs = ""
+        for cat in sortedCats:
+            linkDivs = ""
+            linksRows = ""
+
+            for colIndex, link in enumerate(sortedCats[cat]):
+                linkImg = HTML.genElement("img", style="width: 30%; user-select:none;", custom=f'src="docs/assets/Links/{link}" alt="{self.allLinks[link]["text"]}"')
+                linkImg = HTML.linkWrap(self.allLinks[link]["url"], nest=linkImg)
+                linkTxt = HTML.linkWrap(self.allLinks[link]["url"], nest=self.allLinks[link]["text"])
+                linkTxt = HTML.genElement("p", nest=linkTxt, style="margin: 0px auto;")
+                linkDivs += HTML.genElement("div", nest=linkImg + linkTxt, style=f'width: {100 / int(self.columns)}%; margin: 25px auto;')
+
+                if (colIndex + 1) % int(self.columns) == 0:
+                    linksRows += HTML.genElement("div", nest=linkDivs, align="center", style="flex")
+                    linkDivs = ""
+
+            if linkDivs != "":
+                linksRows += HTML.genElement("div", nest=linkDivs, align="center", style="flex")
+
+            catDivs += HTML.genElement("h1", id=f'linksPage_{cat}_Header', nest=cat, align="center", style="headerMain %% width: auto; margin: 10px auto -4px auto; font-size: 150%;")
+            catSub = HTML.genElement("div", nest=linksRows, id=f'linksPage_{cat}_Sub', classes="linksPage_Subs")
+            catDivs += HTML.genElement("div", nest=catSub, id=f'linksPage_{cat}', align="center", style="background %% min-height: 10px; margin: 0px auto 25px auto; overflow: hidden;")
+
+        HTML.setElement("div", "mainPage", nest=catDivs, id="linksPage", align="center")
+
+        def addEvents():
+            self.busy = True
+            for cat in sortedCats:
+                JS.addEvent(f'linksPage_{cat}_Header', self.toggleCat, (cat, ))
+            self.busy = False
+
+        JS.afterDelay(addEvents, delay=50)
+
+    def flyin(self):
+        CSS.setStyle("linksPage", "marginTop", f'-{CSS.getAttribute("linksPage", "offsetHeight")}px')
+        JS.aSync(CSS.setStyles, ("linksPage", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
+
+    def loadAnimation(self):
+        def doAnimations(index: int = 0):
+            if not JS.cache("mainPage") == "Links":
+                return None
+
+            el = HTML.getElements("linksPage_Subs")[index]
+
+            JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
+            if self.foldedStates[el.id.split("_")[-2]]:
+                if index < len(HTML.getElements("linksPage_Subs")) - 1:
+                    JS.aSync(doAnimations, (index + 1, ))
+                return None
+            JS.aSync(setattr, (el.style, "marginTop", "0px"))
+
+            if index < len(HTML.getElements("linksPage_Subs")) - 1:
+                JS.afterDelay(doAnimations, (index + 1, ), delay=250)
+
+        for els in HTML.getElements("linksPage_Subs"):
+            setattr(els.style, "marginTop", f'-{CSS.getAttribute(els.id.replace("_Sub", ""), "offsetWidth")}px')
+
+        JS.aSync(doAnimations)
+
+    def toggleCat(self, cat):
+        self.foldedStates[cat] = not self.foldedStates[cat]
+
+        CSS.setStyle(f'linksPage_{cat}_Sub', "marginTop", "0px")
+
+        if self.foldedStates[cat]:
+            CSS.setStyle(f'linksPage_{cat}_Sub', "marginTop", f'-{CSS.getAttribute("linksPage_" + cat, "offsetHeight")}px')
+
+        configLinks = loads(JS.cache("configLinks"))
+        configLinks["folded"] = self.foldedStates
+        JS.cache("configLinks", dumps(configLinks))
+
+    def main(self):
+        self.layout()
+        self.flyin()
+        self.loadAnimation()
+
+        JS.onResize("links", self.onResize)

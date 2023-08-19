@@ -1,221 +1,225 @@
-from WebKit import HTML, CSS, JS
-from WebKit.WebSocket import WS
+from WebKit import HTML, CSS, JS, WS
 from datetime import datetime, timedelta
 from rsa import encrypt
+from json import dumps, loads
 
 
-class glb:
-    lastLogin = 0
+class login:
+    __all__ = ["main", "preload", "deload", "indexRedirectHook"]
 
+    def __init__(self):
+        self.busy = False
+        self.requireLogin = False
+        self.indexRedirect = None
 
-def setup():
-    JS.cache(f'page_index', f'Login')
+        if JS.cache("configWS") is None:
+            JS.cache("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17500", "autoSignIn": False, "token": ""}))
 
+        self.config = lambda: loads(JS.cache("configWS"))
+        self.lastLogin = 0
 
-def setupConnection():
-    def logout(args=None):
-        if not JS.popup(f'confirm', f'Log off?'):
+    def onResize(self):
+        if JS.getWindow().innerWidth < 500:
+            CSS.setStyle("loginPage_login", "width", "100%")
+            CSS.setStyle("loginPage_buttons", "width", "100%")
+            for els in HTML.getElements("loginPage_inputHints"):
+                setattr(els.style, "padding", "7px 0px")
             return None
 
-        WS.send(f'logout')
+        elif JS.getWindow().innerWidth < 1000:
+            CSS.setStyle("loginPage_login", "width", "75%")
+            CSS.setStyle("loginPage_buttons", "width", "75%")
+            for els in HTML.getElements("loginPage_inputHints"):
+                setattr(els.style, "padding", "4px 0px")
+            return None
 
-        JS.cache("token", "")
-        WS.loggedIn = False
+        CSS.setStyle("loginPage_login", "width", "75%")
+        CSS.setStyle("loginPage_buttons", "width", "75%")
+        for els in HTML.getElements("loginPage_inputHints"):
+            setattr(els.style, "padding", "4px 0px")
 
-        JS.f5()
+    def preload(self):
+        pass
 
-    def loginSucces():
-        msg = WS.msg()
+    def deload(self):
+        self.busy = True
+        JS.onResize("login", None)
+        self.busy = False
 
-        JS.cache("token", f'{msg.split("<LOGIN_SUCCESS> ")[1]}')
+    def indexRedirectHook(self, function):
+        self.indexRedirect = function
 
-        loginTokenSucces()
+    def layout(self):
+        def rememberSubmit():
+            newConfig = self.config()
+            newConfig["autoSignIn"] = not newConfig["autoSignIn"]
+            WS.config = newConfig
+            JS.cache("configWS", dumps(newConfig))
 
-    def loginTokenSucces():
-        def getData():
-            from pages.portal import glb as pGlb, pagePortal, main as pMain
-
-            access = WS.dict()["access"]
-            for invoke in reversed(pGlb.allInvokes):
-                if not pGlb.allCommands[invoke] in access:
-                    continue
-
-                pGlb.allInvokes[invoke]()
-
-            if JS.cache("page_portal") != "":
-                pGlb.allInvokes[JS.cache("page_portal")]()
-
-                JS.cache(f'page_index', f'Portal')
-                JS.setTitle(f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
-                HTML.setElementRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")} - {JS.cache("page_portal")}')
-
-                JS.afterDelay(pMain, max(250, (250 * len(access)) - 250))
-                JS.afterDelay(pagePortal, max(500, 250 * len(access)))
-
-        def loadingTxt():
-            el = HTML.getElement("page_login_loadingTxt")
-            if el is None:
+            if self.config()["autoSignIn"]:
+                JS.clearEvents("loginPage_remember")
+                CSS.onClick("loginPage_remember", "imgClick")
+                JS.addEvent("loginPage_remember", rememberSubmit)
+                CSS.setStyles("loginPage_remember", "imgHover")
                 return None
 
-            if el.innerHTML.endswith(". . . "):
-                el.innerHTML = el.innerHTML.replace(". . . ", "")
+            JS.clearEvents("loginPage_remember")
+            CSS.onHoverClick("loginPage_remember", "imgHover", "imgClick")
+            JS.addEvent("loginPage_remember", rememberSubmit)
 
-            el.innerHTML += ". "
-            JS.afterDelay(loadingTxt, 500)
+        header = HTML.genElement("h1", nest="Login", style="headerMain")
 
-        WS.onMsg("{\"access\":", getData, oneTime=True)
-        WS.send(f'access')
-        WS.loggedIn = True
+        bodyTxt = HTML.genElement("p", nest="Server", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyInp = HTML.genElement("input", id="loginPage_server", type="url", style="inputMedium %% width: 80%; height: 25px;", custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{self.config()["server"]}"')
+        bodyDiv = HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
 
-        JS.clearEvents(f'footer_Login')
-        HTML.setElementRaw(f'footer_Login', f'Logout')
+        bodyTxt = HTML.genElement("p", nest="Username", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyInp = HTML.genElement("input", id="loginPage_username", type="email", style="inputMedium %% width: 80%; height: 25px;", custom='placeholder="Username"')
+        bodyDiv += HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
 
-        JS.addEvent(f'footer_Login', logout)
-        CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+        bodyTxt = HTML.genElement("p", nest="Password", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyInp = HTML.genElement("input", id="loginPage_password", type="password", style="inputMedium %% width: 80%; height: 25px;", custom='placeholder="Password"')
+        bodyDiv += HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
+        body = HTML.genElement("div", id="loginPage_login", nest=bodyDiv, style="width: 75%; margin: 20px auto; max-width: 750px; transition: width 0.25s;")
 
-        if JS.cache("page_index") != "Login":
-            return None
+        footerImg = HTML.genElement("img", id="loginPage_rememberImg", style="width: 100%;", custom='src="docs/assets/Login/Pin.png" alt="Remember"')
+        footerBtn = HTML.genElement("button", id="loginPage_remember", nest=footerImg, style="buttonImg")
+        footerDiv = HTML.genElement("div", nest=footerBtn, id="loginPage_rememberDiv", align="right", style="width: 20%; max-width: 50px; margin: auto auto auto 5px;")
 
-        content = HTML.genElement(f'h1', nest=f'Logged in succesfully', style=f'headerBig')
-        if JS.cache("page_portal") != "":
-            content += HTML.genElement(f'h1', nest=f'Loading last used page', id=f'page_login_loadingTxt', style=f'headerMedium')
+        footerBtn = HTML.genElement("button", nest="Login", id="loginPage_submit", type="button", style="buttonMedium %% width: 25%;")
+        footerDiv += HTML.genElement("div", nest=footerBtn, align="right", style="width: 80%; margin: auto 5px auto auto;")
+        footer = HTML.genElement("div", id="loginPage_buttons", nest=footerDiv, align="center", style="divNormal %% background %% flex %% width: 50%; max-width: 500px; margin: 10px auto; transition: width 0.25s;")
 
-        HTML.setElement(f'div', f'page_login', nest=f'{content}', id=f'page_login_summary', style=f'divNormal')
-        JS.aSync(loadingTxt)
+        HTML.setElement("div", "mainPage", nest=header + body + footer, id="loginPage", align="center")
 
-    def loginFail():
-        JS.popup(f'alert', f'Log in failed!')
+        def addEvents():
+            self.busy = True
+            for id in ("loginPage_server", "loginPage_username", "loginPage_password"):
+                JS.addEvent(id, self.loginSubmit, action="keyup", includeElement=True)
+                CSS.onHoverFocus(id, "inputHover", "inputFocus")
 
-    def loginTokenFail():
-        JS.cache("token", "")
-        WS.loggedIn = False
+            JS.addEvent("loginPage_submit", self.loginSubmit, includeElement=True)
+            CSS.onHoverClick("loginPage_submit", "buttonHover", "buttonClick")
 
-        HTML.enableElement(f'page_login_body_login_usr')
-        HTML.enableElement(f'page_login_body_login_psw')
+            if self.config()["autoSignIn"]:
+                CSS.onClick("loginPage_remember", "imgClick")
+                JS.addEvent("loginPage_remember", rememberSubmit)
+                CSS.setStyles("loginPage_remember", "imgHover")
+                return None
 
-    if JS.cache("server") == "" or not "://" in JS.cache("server") or not JS.cache("server").count(":") == 2:
-        raise ValueError(f'Invalid server: {JS.cache("server")}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+            JS.addEvent("loginPage_remember", rememberSubmit)
+            CSS.onHoverClick("loginPage_remember", "imgHover", "imgClick")
+            self.busy = False
 
-    proto = JS.cache("server").split("://")[0]
-    ip = JS.cache("server").split("://")[-1].split(":")[0]
-    port = int(JS.cache("server").split("://")[-1].split(":")[-1])
+        JS.afterDelay(addEvents, delay=50)
 
-    if not proto.lower() in ["ws", "wss"] or port < 1 or port > 65535:
-        raise ValueError(f'Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+    def flyin(self):
+        CSS.setStyle("loginPage", "marginTop", f'-{CSS.getAttribute("loginPage", "offsetHeight")}px')
+        JS.aSync(CSS.setStyles, ("loginPage", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
 
-    if JS.cache("token") != "":
-        WS.onMsg(f'<LOGIN_TOKEN_SUCCESS>', loginTokenSucces, oneTime=True)
-        WS.onMsg(f'<LOGIN_TOKEN_FAIL>', loginTokenFail, oneTime=True)
-
-    WS.onMsg(f'<LOGIN_SUCCESS>', loginSucces, oneTime=True)
-    WS.onMsg(f'<LOGIN_FAIL>', loginFail)
-
-    WS.start(proto, ip, port)
-
-
-def main(args=None):
-    def login(args):
+    def loginSubmit(self, element):
         def sendLogin():
-            if WS.ws.readyState > 1:
+            if WS.state() == 0 or WS.pub is None:
+                JS.afterDelay(sendLogin, delay=50)
+                return None
+            if WS.state() > 1:
                 JS.popup("alert", "Failed to connect to server")
                 return None
 
-            if WS.ws.readyState == 0 or WS.pub is None:
-                JS.afterDelay(sendLogin, 50)
-                return None
-
-            crypt = str(encrypt(CSS.getAttribute("page_login_body_login_usr", "value").encode() + "<SPLIT>".encode() + CSS.getAttribute("page_login_body_login_psw", "value").encode(), WS.pub))
+            crypt = str(encrypt(CSS.getAttribute("loginPage_username", "value").encode() + "<SPLIT>".encode() + CSS.getAttribute("loginPage_password", "value").encode(), WS.pub))
             WS.send(f'<LOGIN> {crypt}')
 
-        if WS.loggedIn:
+        if WS.loginState() or (hasattr(element, "key") and element.key != "Enter") or ((datetime.now() - timedelta(seconds=1)).timestamp() < self.lastLogin):
             return None
 
-        if hasattr(args, "key") and args.key != "Enter":
-            return None
-
-        if (datetime.now() - timedelta(seconds=1)).timestamp() < glb.lastLogin:
-            return None
-
-        glb.lastLogin = datetime.now().timestamp()
-
-        srv = CSS.getAttribute("page_login_body_login_srv", "value")
-
-        if not srv == JS.cache("server") or WS.ws == None or WS.ws.readyState > 1:
-            JS.cache("server", srv)
+        self.lastLogin = datetime.now().timestamp()
+        server = CSS.getAttribute("loginPage_server", "value")
+        if not server == self.config()["server"] or WS.ws == None or WS.state() > 1:
+            newConfig = self.config()
+            newConfig["server"] = server
+            WS.config = newConfig
+            JS.cache("configWS", dumps(newConfig))
 
             try:
-                setupConnection()
+                self.setupConnection()
             except ValueError as err:
                 JS.popup("alert", str(err))
                 return None
 
         JS.aSync(sendLogin)
 
-    def signinRemember(args):
-        if args.target.checked:
-            CSS.setAttribute(f'page_login_body_options_auto', f'checked', f'')
-            JS.cache(f'signin', f'Remember')
+    def setupConnection(self):
+        def loginSucces():
+            def loadingTxt():
+                el = HTML.getElement("loginPage_loadingTxt")
+                if el is None:
+                    return None
 
+                if el.innerHTML.endswith(". . . "):
+                    el.innerHTML = el.innerHTML.replace(". . . ", "")
+
+                el.innerHTML += ". "
+                JS.afterDelay(loadingTxt, delay=500)
+
+            WS.onMsg("{\"access\":", self.indexRedirect, oneTime=True)
+            WS.send("access")
+
+            JS.clearEvents("mainFooter_Login")
+            HTML.setElementRaw("mainFooter_Login", "Logout")
+            JS.addEvent("mainFooter_Login", WS.logout)
+            CSS.onHoverClick("mainFooter_Login", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
+
+            if JS.cache("mainPage") != "Login":
+                return None
+
+            content = HTML.genElement("h1", nest="Login", style="headerMain")
+            content += HTML.genElement("p", nest="You are logged in.", style="textBig")
+            content += HTML.genElement("p", nest="Loading access", id="loginPage_loadingTxt", style="textBig")
+
+            HTML.setElement("div", "loginPage", nest=content, id="loginPage_summary", align="center")
+            JS.aSync(loadingTxt)
+
+        def loginHandler(msg):
+            if msg == "loginTokenNotFound":
+                HTML.enableElement("loginPage_server")
+                HTML.enableElement("loginPage_username")
+                HTML.enableElement("loginPage_password")
+            elif msg == "loginTokenWasSend":
+                HTML.disableElement("loginPage_server")
+                HTML.disableElement("loginPage_username")
+                HTML.disableElement("loginPage_password")
+            elif msg in ["loginTokenSucces", "loginSucces"]:
+                loginSucces()
+            elif msg == "loginTokenFail":
+                HTML.enableElement("loginPage_server")
+                HTML.enableElement("loginPage_username")
+                HTML.enableElement("loginPage_password")
+            elif msg == "loginFail":
+                JS.popup("alert", "Log in failed!")
+
+        server = self.config()["server"]
+        if server == "" or not "://" in server or not server.count(":") == 2:
+            raise ValueError(f'Invalid server: {server}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+
+        proto = server.split("://")[0]
+        ip = server.split("://")[-1].split(":")[0]
+        port = int(server.split("://")[-1].split(":")[-1])
+        if not proto.lower() in ["ws", "wss"] or port < 1 or port > 65535:
+            raise ValueError(f'Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+
+        WS.start(proto, ip, str(port), loginHandler)
+
+    def main(self, args=None):
+        if WS.loginState():
+            header = HTML.genElement("h1", nest="Login", style="headerMain")
+            body = HTML.genElement("p", nest="You are logged in.", style="textBig")
+            HTML.setElement("div", "mainPage", nest=header + body, align="center")
             return None
 
-        JS.cache(f'signin', f'None')
+        self.layout()
+        self.flyin()
 
-    def signinAuto(args):
-        if args.target.checked:
-            CSS.setAttribute(f'page_login_body_options_remember', f'checked', f'')
-            JS.cache(f'signin', f'Auto')
+        if self.config()["autoSignIn"] and WS.state() != 1:
+            self.setupConnection()
 
-            return None
-
-        JS.cache(f'signin', f'None')
-
-    HTML.setElement(f'div', f'page', id=f'page_login', align=f'center', style="flex")
-
-    if WS.loggedIn:
-        return None
-
-    setup()
-    setupConnection()
-
-    HTML.addElement(f'div', f'page_login', id=f'page_login_body', align=f'center', style="width: 100%;")
-
-    HTML.addElement(f'h1', f'page_login_body', nest=f'Login', style=f'headerBig')
-    HTML.addElement(f'form', f'page_login_body', id=f'page_login_body_login', style=f'width: 75%; display: flex; margin: 0 auto 20px auto; max-width: 750px;', custom=f'onsubmit="return false"')
-    HTML.addElement(f'div', f'page_login_body', id=f'page_login_body_options', align=f'center', style=f'divNormal %% flex %% width: 50%; max-width: 500px;')
-
-    txt = HTML.genElement(f'p', nest=f'Server', style=f'margin: 3px; padding: 2px;')
-    txt += HTML.genElement(f'p', nest=f'Username', style=f'margin: 3px; padding: 2px;')
-    txt += HTML.genElement(f'p', nest=f'Password', style=f'margin: 3px; padding: 2px;')
-    inp = HTML.genElement(f'input', id=f'page_login_body_login_srv', type=f'url', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{JS.cache("server")}"')
-    inp += HTML.genElement(f'input', id=f'page_login_body_login_usr', type=f'email', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Username"')
-    inp += HTML.genElement(f'input', id=f'page_login_body_login_psw', type=f'password', style=f'inputMedium %% width: 90%;', custom=f'placeholder="Password"')
-    HTML.addElement(f'div', f'page_login_body_login', nest=txt, id=f'page_login_body_login_txt', align=f'center', style=f'width: 25%;')
-    HTML.addElement(f'div', f'page_login_body_login', nest=inp, id=f'page_login_body_login_inp', align=f'center', style=f'width: 75%;')
-
-    inp1 = HTML.genElement(f'input', id=f'page_login_body_options_remember', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
-    inp2 = HTML.genElement(f'input', id=f'page_login_body_options_auto', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;')
-    if JS.cache(f'signin') == f'Remember':
-        inp1 = HTML.genElement(f'input', id=f'page_login_body_options_remember', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', custom=f'checked')
-    if JS.cache(f'signin') == f'Auto':
-        inp2 = HTML.genElement(f'input', id=f'page_login_body_options_auto', type=f'checkbox', align=f'right', style=f'inputMedium %% width: 100%; margin: auto auto; padding: 5px;', custom=f'checked')
-    HTML.addElement(f'div', f'page_login_body_options', nest=f'{inp1}{inp2}', style=f'width: 5%; margin: auto;')
-
-    txt1 = HTML.genElement(f'p', nest=f'Remember Sign in', align=f'left', style=f'width: 100%; margin: auto auto;')
-    txt2 = HTML.genElement(f'p', nest=f'Auto Sign in', align=f'left', style=f'width: 100%; margin: auto auto;')
-    HTML.addElement(f'div', f'page_login_body_options', nest=f'{txt1}{txt2}', style=f'width: 47.5%; margin: auto;')
-
-    btn = HTML.genElement(f'button', nest=f'Login', id=f'page_login_body_options_submit', type=f'button', style=f'buttonMedium %% width: 50%; height: 50%;')
-    HTML.addElement(f'div', f'page_login_body_options', nest=f'{btn}', style=f'width: 47.5%; margin: auto;')
-
-    JS.addEvent(f'page_login_body_login_srv', login, f'keyup')
-    JS.addEvent(f'page_login_body_login_usr', login, f'keyup')
-    JS.addEvent(f'page_login_body_login_psw', login, f'keyup')
-
-    CSS.onHoverFocus(f'page_login_body_login_srv', f'inputHover', f'inputFocus')
-    CSS.onHoverFocus(f'page_login_body_login_usr', f'inputHover', f'inputFocus')
-    CSS.onHoverFocus(f'page_login_body_login_psw', f'inputHover', f'inputFocus')
-    CSS.onHoverClick(f'page_login_body_options_submit', f'buttonHover', f'buttonClick')
-
-    JS.addEvent(f'page_login_body_options_remember', signinRemember)
-    JS.addEvent(f'page_login_body_options_auto', signinAuto)
-    JS.addEvent(f'page_login_body_options_submit', login)
+        JS.onResize("login", self.onResize)

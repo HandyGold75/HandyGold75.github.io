@@ -1,114 +1,232 @@
-from WebKit import HTML, JS, CSS
-import pages.home as home
-import pages.links as links
-import pages.portal as portal
-import pages.contact as contact
-import pages.login as login
+from WebKit import HTML, CSS, JS, WS
+from pages import home, links, portal, contact, login
+from json import loads
 
 
-class glb:
-    allPages = {"Home": home.main, "Links": links.main, "Portal": portal.main, "Contact": contact.main, "Login": login.main}
-    exludeMainNav = ["Login"]
+class index:
+    def __init__(self):
+        for item in ["mainPage"]:
+            if JS.cache(item) is None:
+                JS.cache(item, "")
 
+        if JS.cache("mainPage") == "":
+            JS.cache("mainPage", "Home")
 
-def setup():
-    for item in ["token", "signin", "server", "page_index", "page_links", "page_portal", "page_portalSub"]:
-        if JS.cache(item) is None:
-            JS.cache(item, f'')
+        self.pages = {
+            "Home": {
+                "hidden": False,
+                "page": home(),
+            },
+            "Links": {
+                "hidden": False,
+                "page": links(),
+            },
+            "Portal": {
+                "hidden": False,
+                "page": portal(),
+            },
+            "Contact": {
+                "hidden": False,
+                "page": contact(),
+            },
+            "Login": {
+                "hidden": True,
+                "page": login(),
+            },
+        }
 
-    if JS.cache(f'page_index') == "":
-        JS.cache(f'page_index', f'Home')
+        self.oldPage = None
+        self.loadingPage = False
+        self.busyCount = 0
 
-    if JS.cache("server") == "":
-        JS.cache("server", "WSS://wss.HandyGold75.com:17500")
+    def onResize(self):
+        if JS.getWindow().innerWidth < 500:
+            CSS.setStyles("body", (("padding", "0px"), ("fontSize", "50%")))
+            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "35px")
+                CSS.setStyle("mainNav_logo", "maxWidth", "70px")
+                CSS.setStyle("mainFooter", "padding", "3px 5px")
+            return None
 
-    if JS.cache(f'signin') == "Auto":
-        JS.cache(f'page_index', f'Login')
+        elif JS.getWindow().innerWidth < 1000:
+            CSS.setStyles("body", (("padding", "0px 10px"), ("fontSize", "75%")))
+            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "42.5px")
+                CSS.setStyle("mainNav_logo", "maxWidth", "85px")
+                CSS.setStyle("mainFooter", "padding", "5px 5px")
+            return None
 
-    elif JS.cache(f'signin') in ["", "None"]:
-        JS.cache(f'token', f'')
+        CSS.setStyles("body", (("padding", "0px 20px"), ("fontSize", "100%")))
+        if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+            CSS.setStyle("mainNav_showHideDiv", "maxWidth", "50px")
+            CSS.setStyle("mainNav_logo", "maxWidth", "101px")
+            CSS.setStyle("mainFooter", "padding", "10px 5px")
 
+    def layout(self):
+        def showHideNav():
+            el = HTML.getElement("mainNav_showHideImg")
 
-def mainPage():
-    def addEvents():
-        for page in glb.allPages:
-            if page in glb.exludeMainNav:
+            if el.src.endswith("docs/assets/Hide-V.png"):
+                el.src = "docs/assets/Show-V.png"
+                el.alt = "Unfold"
+                CSS.setStyle("mainNav", "padding", "0px")
+                CSS.setStyle("mainNav_middle", "marginTop", f'-{CSS.getAttribute("mainNav", "offsetHeight")}px')
+                CSS.setStyle("mainNav_logo", "maxWidth", "40px")
+                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "30px")
+                CSS.setStyle("mainFooter", "padding", "3px 5px")
+                return None
+
+            el.src = "docs/assets/Hide-V.png"
+            el.alt = "Fold"
+            CSS.setStyle("mainNav", "padding", "5px")
+            CSS.setStyle("mainNav_middle", "marginTop", "0px")
+            index.onResize(self=None)
+
+        JS.setTitle("HandyGold75")
+
+        navButtons = ""
+        for page in self.pages:
+            if self.pages[page]["hidden"]:
                 continue
-            JS.addEvent(f'page_{page}', pageIndex)
-            CSS.onHoverClick(f'page_{page}', f'buttonHover', f'buttonClick')
+            navButtons += HTML.genElement("button", nest=page, id=f'subPageButton_{page}', type="button", style="buttonBig")
 
-        JS.addEvent(f'footer_toTop', lambda args=None: CSS.get(f'body', f'scrollIntoView')())
-        CSS.onHoverClick(f'footer_toTop', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+        nav = HTML.genElement("img", id="mainNav_logo", align="left", style="width: 20%; max-width: 101px; margin: auto auto auto 5px; user-select: none; transition: max-width 0.25s;", custom='src="docs/assets/;D.png"')
 
-        JS.addEvent(f'footer_ClearCache', lambda args=None: JS.clearCache())
-        CSS.onHoverClick(f'footer_ClearCache', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+        navTxt = HTML.genElement("h1", nest=f'HandyGold75 - {JS.cache("mainPage")}', id="mainNav_title", align="center", style="headerBig %% width: 80%;")
+        navDiv = HTML.genElement("div", nest=navButtons, id="mainNav_buttons", align="center", style="padding: 4px; margin: 0px auto;")
+        nav += HTML.genElement("div", nest=navTxt + navDiv, id="mainNav_middle", align="center", style="width: 80%; transition: margin-top 0.5s;")
 
-        JS.addEvent(f'footer_Login', login.main)
-        CSS.onHoverClick(f'footer_Login', f'buttonHover %% background: #66F;', f'buttonClick %% background: #66F;')
+        navImg = HTML.genElement("img", id="mainNav_showHideImg", style="width: 100%;", custom='src="docs/assets/Hide-V.png" alt="Fold"')
+        navBtn = HTML.genElement("button", id="mainNav_showHide", nest=navImg, style="buttonImg")
+        nav += HTML.genElement("div", nest=navBtn, id="mainNav_showHideDiv", align="right", style="width: 20%; max-width: 50px; margin: auto 5px auto auto; transition: max-width 0.25s;")
 
-        JS.addEvent(JS.getWindow(), JS.onResize, f'resize', isClass=True)
+        footerTxt = HTML.genElement("p", nest="HandyGold75 - 2022 / 2023", style="headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;")
+        footer = HTML.genElement("div", nest=footerTxt, id="mainFooter_note", style="width: 50%; margin: auto;")
 
-    JS.setTitle(f'HandyGold75 - {JS.cache("page_index")}')
+        footerButtons = HTML.genElement("button", nest="Login", id="mainFooter_Login", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
+        footerButtons += HTML.genElement("button", nest="Back to top", id="mainFooter_toTop", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
+        footerButtons += HTML.genElement("button", nest="Clear cache", id="mainFooter_ClearCache", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
+        footer += HTML.genElement("div", nest=footerButtons, id="mainFooter_buttons", align="right", style="width: 50%; margin: auto;")
 
-    buttons = ""
-    for page in glb.allPages:
-        if page in glb.exludeMainNav:
-            continue
-        buttons += HTML.genElement(f'button', nest=f'{page}', id=f'page_{page}', type=f'button', style=f'buttonBig')
+        main = HTML.genElement("header", nest=nav, id="mainNav", style="divNormal %% flex %% padding: 5px; overflow: hidden; transition: padding 0.25s;")
+        main += HTML.genElement("div", id="mainPage", style="divNormal %% overflow: hidden; transition: max-height 0.25s;")
+        main += HTML.genElement("footer", nest=footer, id="mainFooter", style="divAlt %% flex %% padding: 10px; overflow: hidden; transition: padding 0.25s;")
 
-    nav = HTML.genElement(f'img', id=f'nav_logo', align=f'left', style=f'width: 20%; max-width: 100px; user-select: none;', custom=f'src="docs/assets/;D.png"')
-    nav += HTML.genElement(f'h1', nest=f'HandyGold75 - {JS.cache("page_index")}', id=f'nav_title', align=f'center', style=f'headerBig %% width: 80%;')
-    nav += HTML.genElement(f'div', nest=buttons, id=f'nav_buttons', align=f'center', style=f'width: 80%; padding: 4px; margin: 0px auto;')
+        HTML.setElementRaw("body", main)
 
-    txt = HTML.genElement(f'p', nest=f'HandyGold75 - 2022 / 2023', style=f'headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;')
-    footer = HTML.genElement(f'div', nest=txt, id=f'footer_note', style=f'width: 50%; padding: 5px; margin: 0px auto;')
+        def addEvents():
+            for page in self.pages:
+                if self.pages[page]["hidden"]:
+                    continue
+                JS.addEvent(f'subPageButton_{page}', self.loadPage, kwargs={"page": page})
+                CSS.onHoverClick(f'subPageButton_{page}', "buttonHover", "buttonClick")
 
-    butToTop = HTML.genElement(f'button', nest=f'Back to top', id=f'footer_toTop', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butClearCache = HTML.genElement(f'button', nest=f'Clear cache', id=f'footer_ClearCache', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    butLogin = HTML.genElement(f'button', nest=f'Login', id=f'footer_Login', type=f'button', style=f'buttonSmall %% border: 2px solid #222; background: #44F;')
-    footer += HTML.genElement(f'div', nest=butLogin + butClearCache + butToTop, id=f'footer_buttons', align=f'right', style=f'width: 50%; padding: 3px; margin: 0px auto;')
+            JS.addEvent("mainNav_showHide", showHideNav)
+            CSS.onHoverClick("mainNav_showHide", "imgHover", "imgClick")
 
-    main = HTML.genElement(f'div', nest=nav, id=f'nav', style=f'divNormal')
-    main += HTML.genElement(f'div', id=f'page', style=f'divNormal')
-    main += HTML.genElement(f'div', nest=footer, id=f'footer', style=f'divAlt %% flex')
+            JS.addEvent("mainFooter_toTop", CSS.getAttribute, args=("body", "scrollIntoView"))
+            CSS.onHoverClick("mainFooter_toTop", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
+            JS.addEvent("mainFooter_ClearCache", JS.clearCache)
+            CSS.onHoverClick("mainFooter_ClearCache", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
+            JS.addEvent("mainFooter_Login", self.loadPage, kwargs={"page": "Login"})
+            CSS.onHoverClick("mainFooter_Login", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
 
-    HTML.setElementRaw(f'body', main)
-    JS.afterDelay(addEvents, 100)
+            JS.onResize("index", self.onResize)
 
+        JS.afterDelay(addEvents, delay=50)
 
-def pageIndex(args=None, page=None):
-    HTML.clrElement(f'page')
+    def deloadPage(self, page: str = None, firstRun: bool = True):
+        if firstRun:
+            self.busyCount = 0
+            JS.aSync(self.pages[self.oldPage]["page"].deload)
+            CSS.setStyle("mainPage", "maxHeight", f'{CSS.getAttribute("mainPage", "offsetHeight")}px')
+            JS.aSync(CSS.setStyle, ("mainPage", "maxHeight", "0px"))
+            JS.afterDelay(self.deloadPage, kwargs={"page": page, "firstRun": False}, delay=250)
+            return None
 
-    if page in glb.allPages:
-        JS.cache(f'page_index', page)
+        if self.pages[self.oldPage]["page"].busy:
+            self.busyCount += 1
+            if self.busyCount <= 15:
+                JS.afterDelay(self.deloadPage, kwargs={"page": page, "firstRun": False}, delay=50)
+                return None
 
-    elif args.target.id.split(f'_')[-1] in glb.allPages:
-        JS.cache("page_index", args.target.id.split(f'_')[-1])
-        JS.cache("page_portal", f'')
-        JS.cache("page_portalSub", f'')
+            JS.log(f'Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}')
+            self.pages[self.oldPage]["page"].busy = False
 
-    elif args.target.parentElement.id.split(f'_')[-1] in glb.allPages:
-        JS.cache("page_index", args.target.parentElement.id.split(f'_')[-1])
-        JS.cache("page_portal", f'')
-        JS.cache("page_portalSub", f'')
+        CSS.setStyle("mainPage", "maxHeight", "")
+        if not page is None:
+            self.oldPage = None
+            self.loadPage(page, deloaded=True, rememberPortalPage=True)
 
-    else:
-        return None
+    def stallPage(self, page: str, firstRun: bool = True):
+        if firstRun:
+            self.busyCount = 0
 
-    JS.setTitle(f'HandyGold75 - {JS.cache("page_index")}')
-    HTML.setElementRaw(f'nav_title', f'HandyGold75 - {JS.cache("page_index")}')
+        if self.pages[page]["page"].busy:
+            self.busyCount += 1
+            if self.busyCount <= 100:
+                JS.afterDelay(self.stallPage, kwargs={"page": page, "firstRun": False}, delay=50)
+                return None
 
-    glb.allPages[JS.cache(f'page_index')]()
+            JS.log(f'Warning: Force loaded page (Reason page is busy for to long) -> {page}')
+            self.pages[page]["page"].busy = False
 
-    if args != "noResize":
-        JS.onResize()
+        self.loadPage(page, didStall=True, rememberPortalPage=True)
 
+    def spoofPage(self, page):
+        redirectPage = page
+        if self.pages[page]["page"].requireLogin and not WS.loginState():
+            page = "Login"
+        else:
+            configWS = loads(JS.cache("configWS"))
+            if configWS["autoSignIn"] and not WS.loginState() and configWS["server"] != "" and "://" in configWS["server"] and configWS["server"].count(":") == 2 and not configWS["token"] == "":
+                page = "Login"
 
-def main():
-    setup()
-    mainPage()
-    pageIndex(page=JS.cache(f'page_index'))
+        if hasattr(self.pages[page]["page"], "indexRedirectHook"):
+            self.pages[page]["page"].indexRedirectHook(lambda: self.loadPage(redirectPage, rememberPortalPage=True))
+
+        return page
+
+    def loadPage(self, page: str = None, deloaded: bool = False, didStall: bool = False, rememberPortalPage: bool = False):
+        if self.loadingPage and not deloaded and not didStall:
+            return None
+
+        if not rememberPortalPage:
+            JS.cache("portalPage", "")
+            JS.cache("portalSubPage", "")
+
+        self.loadingPage = True
+        if not self.oldPage is None and not deloaded:
+            self.deloadPage(page)
+            return None
+
+        if not didStall:
+            page = self.spoofPage(page)
+            JS.cache("mainPage", page)
+
+            HTML.clrElement("mainPage")
+            self.pages[page]["page"].preload()
+            if self.pages[page]["page"].busy:
+                self.stallPage(page)
+                return None
+
+        JS.setTitle(f'HandyGold75 - {JS.cache("mainPage")}')
+        HTML.setElementRaw("mainNav_title", f'HandyGold75 - {JS.cache("mainPage")}')
+        JS.aSync(self.pages[page]["page"].main)
+
+        self.oldPage = page
+        self.loadingPage = False
+
+    def onLogout(self):
+        JS.clearEvents("mainFooter_Login")
+        HTML.setElementRaw("mainFooter_Login", "Login")
+        JS.addEvent("mainFooter_Login", self.loadPage, kwargs={"page": "Login"})
+        CSS.onHoverClick("mainFooter_Login", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
 
 
 if __name__ == "__main__":
-    main()
+    mainPage = index()
+    mainPage.layout()
+    mainPage.loadPage(JS.cache("mainPage"), rememberPortalPage=True)
+
+    WS.indexLogoutHook(mainPage.onLogout)
