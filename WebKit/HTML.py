@@ -5,15 +5,15 @@ from os import path as osPath
 
 
 class glb:
-    onHoverStyles = lambda: glbCSS.onHoverStyles
-    onClickStyles = lambda: glbCSS.onClickStyles
-    onFocusStyles = lambda: glbCSS.onFocusStyles
+    onHoverStyles = glbCSS.onHoverStyles
+    onClickStyles = glbCSS.onClickStyles
+    onFocusStyles = glbCSS.onFocusStyles
     disabledStyles = {}
 
     with open(f'{osPath.split(__file__)[0]}/styleMap.json', "r", encoding="UTF-8") as fileR:
         styleMap = load(fileR)["HTML"]
 
-    def expandStyle(style, debug=False):
+    def expandStyle(style):
         if style is None or not style.split(" %% ")[0] in glb.styleMap:
             return style
 
@@ -36,8 +36,8 @@ class glb:
 
         return f'{subStyleMerged}{style.split(" %% ")[-1]}'
 
-    def constructHTML(tag: str, nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
-        args = {"id": id, "class": clas, "type": type, "align": align, "style": glb.expandStyle(style)}
+    def constructHTML(tag: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+        args = {"id": id, "class": classes, "type": type, "src": src, "alt": alt, "align": align, "style": glb.expandStyle(style)}
         additionsStr = ""
         for arg in args:
             if args[arg] == "":
@@ -47,6 +47,7 @@ class glb:
 
         additionsStr += f' {custom}'
 
+        nest = nest.replace("\n", "<br>")
         htmlStr = f'{prepend}<{tag}{additionsStr}>{nest}'
         if not tag in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
             htmlStr += f'</{tag}>'
@@ -62,20 +63,20 @@ def getElements(classId: str):
     return list(document.getElementsByClassName(classId))
 
 
-def genElement(tag: str, nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML(tag, nest, prepend, id, clas, type, align, style, custom)
+def genElement(tag: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    return glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
 
 
-def setElement(tag: str, targetId: str = "", nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, prepend, id, clas, type, align, style, custom)
+def setElement(tag: str, targetId: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
 
 
 def setElementRaw(id: str, HTML: str):
     document.getElementById(id).innerHTML = HTML
 
 
-def addElement(tag: str, targetId: str = "", nest: str = "", prepend: str = "", id: str = "", clas: str = "", type: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, prepend, id, clas, type, align, style, custom)
+def addElement(tag: str, targetId: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
 
 
 def addElementRaw(id: str, HTML: str):
@@ -122,17 +123,17 @@ def clrElements(classId: str):
         item.innerHTML = ""
 
 
-def linkWrap(href: str, nest: str = "", style: str = ""):
-    return f'<a href="{href}" target="_blank" style="color: #44F; {glb.expandStyle(style)}">{nest}</a>'
+def linkWrap(href: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", custom: str = ""):
+    return glb.constructHTML("a", nest, prepend, id, classes, "", "", "", align, f'{style} color: #44F;', f'{custom} href="{href}" target="_blank"')
 
 
-def enableElement(id: str):
+def disableElement(id: str):
     el = document.getElementById(id)
-    if el.disabled is False:
+    if el.disabled is True:
         return None
 
     onStyles = {"onHover": {"style": glb.onHoverStyles, "actions": ["mouseover", "mouseout"]}, "onClick": {"style": glb.onClickStyles, "actions": ["mousedown", "mouseup"]}, "onFocus": {"style": glb.onFocusStyles, "actions": ["focusout", "focusin"]}}
-    el.disabled = False
+    el.disabled = True
 
     glb.disabledStyles[id] = {"color": el.style.color, "background": el.style.background, "events": {}}
 
@@ -156,13 +157,13 @@ def enableElement(id: str):
     el.style.background = "#222"
 
 
-def disableElement(id: str):
+def enableElement(id: str):
     el = document.getElementById(id)
-    if el.disabled is True:
+    if el.disabled is False:
         return None
 
     onStyles = {"onHover": {"style": glb.onHoverStyles, "actions": ["mouseover", "mouseout"]}, "onClick": {"style": glb.onClickStyles, "actions": ["mousedown", "mouseup"]}, "onFocus": {"style": glb.onFocusStyles, "actions": ["focusout", "focusin"]}}
-    el.disabled = True
+    el.disabled = False
 
     if not id in glb.disabledStyles:
         return None

@@ -1,4 +1,4 @@
-from js import document
+from js import document, console
 from pyodide.ffi import create_proxy # type: ignore
 from json import load
 from os import path as osPath
@@ -13,7 +13,7 @@ class glb:
         styleMap = load(fileR)["CSS"]
 
     def expandStyle(style):
-        if style is None or not " %% " in style:
+        if style is None or not style.split(" %% ")[0] in glb.styleMap:
             return style
 
         subStyleMerged = ""
@@ -29,7 +29,6 @@ class glb:
 
                 if subStyleKey in subStyleMerged or subStyleKey in style:
                     continue
-
                 subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
 
             style = style.replace(styleKey, "")
@@ -169,12 +168,22 @@ def setAttributes(id: str, pairs: tuple):
 
 
 def setStyle(id: str, key: str, value: str):
-    setattr(document.getElementById(id).style, str(key), glb.expandStyle(value))
+    setattr(document.getElementById(id).style, str(key), str(value))
 
 
 def setStyles(id: str, pairs: tuple):
+    if type(pairs) is str:
+        style = glb.expandStyle(pairs)
+
+        for stylePair in glb.expandStyle(style).split("; "):
+            if stylePair == "":
+                continue
+            setattr(document.getElementById(id).style, str(stylePair.split(": ")[0]), str(stylePair.split(": ")[1]))
+
+        return None
+
     for key, value in pairs:
-        setattr(document.getElementById(id).style, str(key), glb.expandStyle(value))
+        setattr(document.getElementById(id).style, str(key), str(value))
 
 
 def onHover(id: str, style: str):
