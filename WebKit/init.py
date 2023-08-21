@@ -1,4 +1,4 @@
-from WebKit import HTML, CSS, JS, Widget
+from WebKit import HTML, CSS, JS
 from WebKit.WS import WebSocket
 
 __author__ = "HandyGold75"

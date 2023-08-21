@@ -1,4 +1,5 @@
-from WebKit.init import HTML, CSS, JS, WS, Widget
+from WebKit.init import HTML, CSS, JS, WS
+from WebKit import Widget
 from json import dumps, loads
 from datetime import datetime, timedelta
 from json import load
