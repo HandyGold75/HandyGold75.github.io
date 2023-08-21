@@ -1,4 +1,5 @@
-from WebKit.init import HTML, CSS, JS, WS, Widget
+from WebKit.init import HTML, CSS, JS, WS
+from WebKit import Widget
 from json import dumps, loads
 from datetime import datetime, timedelta
 from traceback import format_exc
@@ -22,6 +23,7 @@ class sonos:
         self.wordWrap = False
         self.ytPlayer = None
         self.videoScolling = False
+        self.dataStreamState = False
         self.currentPosition = ""
         self.currentQueSize = 0
 
@@ -169,6 +171,7 @@ class sonos:
             self.busy = False
 
         self.busy = True
+        self.comDisableStream()
         JS.onResize("sonos", None)
 
         CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
@@ -411,7 +414,6 @@ class sonos:
 
     def activeUIRefresh(self):
         if not JS.cache("portalSubPage") == "Player":
-            self.comDisableStream()
             return None
 
         data = WS.dict()[self.mainCom]
@@ -428,7 +430,6 @@ class sonos:
             if configSonos["useQue"]:
                 CSS.setStyles("portalSubPage_buttons_Que", (("background", "#444"), ("border", "3px solid #FBDF56")))
         except AttributeError:
-            self.comDisableStream()
             return None
 
         JS.afterDelay(self.activeUIRefresh, delay=250)
@@ -722,7 +723,7 @@ class sonos:
     def qrPage(self):
         def onHover(smallerId, bigerId):
             pass
-        
+
         txt = HTML.genElement("h1", nest="Sonos S2 - Android", id="Header_SonosAndroidQR", style="headerMain %% white-space: nowrap; overflow: hidden;")
         img = HTML.genElement("img", id="Image_SonosAndroidQR", style="width: 75%; margin: 10px auto; user-select:none;", custom='src="docs/assets/Portal/Sonos/SonosAndroidQR.png" alt="Sonos Android QR"')
         mainDivs = HTML.genElement("div", nest=txt + img, id="portalSubPage_main_qrAndroid", style="divNormalNoEdge %% width: 50%;")
@@ -732,9 +733,11 @@ class sonos:
         mainDivs += HTML.genElement("div", nest=txt + img, id="portalSubPage_main_qrIos", style="divNormalNoEdge %% width: 50%;")
 
         HTML.setElement("div", "portalSubPage", nest=mainDivs, id="portalSubPage_main", style="divNormal %% flex %% margin: 0px auto;")
+
         def doAction():
             JS.addEvent("portalSubPage_main_qrAndroid", onHover, ("portalSubPage_main_qrIos", "portalSubPage_main_qrAndroid"))
             JS.addEvent("portalSubPage_main_qrIos", onHover, ("portalSubPage_main_qrAndroid", "portalSubPage_main_qrIos"))
+
         JS.afterDelay(doAction, delay=50)
 
     def configPage(self):
@@ -786,10 +789,14 @@ class sonos:
         self.loadPortalSubPage()
 
     def comEnableStream(self):
-        WS.send(f'{self.mainCom} enableStream')
+        if not self.dataStreamState:
+            self.dataStreamState = not self.dataStreamState
+            WS.send(f'{self.mainCom} enableStream')
 
     def comDisableStream(self):
-        WS.send(f'{self.mainCom} disableStream')
+        if self.dataStreamState:
+            self.dataStreamState = not self.dataStreamState
+            WS.send(f'{self.mainCom} disableStream')
 
     def comTogglePlay(self):
         data = WS.dict()[self.mainCom]
