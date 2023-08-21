@@ -30,6 +30,20 @@
                         "Command": "",
                         "Status": ""
                     }
+                },
+                "/tapoMonitor.log": {
+                    "Index": {
+                        "Date/ Time": "",
+                        "Criticality": "",
+                        "Message": ""
+                    }
+                },
+                "/documentServer.log": {
+                    "Index": {
+                        "Date/ Time": "",
+                        "Criticality": "",
+                        "Message": ""
+                    }
                 }
             },
             "dates": [
@@ -64,6 +78,7 @@
             "optionsDict": {
                 "/Config.json": {
                     "SonosSubnet": [
+                        "10.69.3.61",
                         "10.69.1.0/24",
                         "10.69.2.0/24",
                         "10.69.3.0/24",

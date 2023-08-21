@@ -1,4 +1,5 @@
-from WebKit.init import HTML, CSS, JS, WS, Widget
+from WebKit.init import HTML, CSS, JS, WS
+from WebKit import Widget
 from datetime import datetime, timedelta
 from json import load
 from os import path as osPath
@@ -125,7 +126,6 @@ class sheets:
         mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="flex %% width: 90%; padding: 10px; margin: 0px auto 10px auto; border-bottom: 5px dotted #111;")
         mainDiv += HTML.genElement("div", id="portalSubPage", align="center", style="width: 100%; margin: 10px 0px; overflow: hidden;")
         HTML.setElementRaw("portalPage", mainDiv)
-
 
         def addEvents():
             self.busy = True

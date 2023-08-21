@@ -1,6 +1,6 @@
 from js import document, window, setTimeout, console
 from pyodide.ffi import create_proxy, create_once_callable # type: ignore
-from WebKit import HTML, CSS, JS, WS
+from WebKit.init import HTML, CSS, JS, WS
 from datetime import datetime
 from rsa import encrypt
 
