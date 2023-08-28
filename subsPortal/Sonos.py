@@ -64,16 +64,19 @@ class sonos:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("Image_AlbumArt", "offsetHeight")}px')
                 elif not configSonos["useAlbumArt"] and not rightId is None:
                     CSS.setStyles(leftId, (("width", "0%"), ("display", "none")))
-                    CSS.setStyle(rightId, "width", "100%")
+                    CSS.setStyle(rightId, "width", "95%")
                     CSS.setStyle(rightId, "height", "300px")
                 else:
                     CSS.setStyles(leftId, (("width", "100%"), ("display", "")))
-                    CSS.setStyle(rightId, "width", "0%")
+
                 if not rightId is None:
                     CSS.setStyle(f'{rightId}List', "height", f'{CSS.getAttribute(rightId, "clientHeight") - 62}px')
                     CSS.setStyle(f'{rightId}Add_playNext', "margin", "3px 0px 2px 0px")
                     CSS.setStyle(f'{rightId}Add_playNow', "margin", "2px 0px 3px 0px")
-                CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
+                    CSS.setStyle(rightId, "fontSize", "175%")
+
+                if configSonos["useQue"]:
+                    CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
 
             elif JS.cache("portalSubPage") == "QR":
                 CSS.setStyle("Header_SonosAndroidQR", "fontSize", "150%")
@@ -91,12 +94,15 @@ class sonos:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("SonosYTPlayer", "offsetHeight")}px')
                 else:
                     CSS.setStyles(leftId, (("width", "100%"), ("display", "")))
-                    CSS.setStyle(rightId, "width", "0%")
+
                 if not rightId is None:
                     CSS.setStyle(f'{rightId}List', "height", f'{CSS.getAttribute(rightId, "clientHeight") - 62}px')
                     CSS.setStyle(f'{rightId}Add_playNext', "margin", "3px 0px 2px 0px")
                     CSS.setStyle(f'{rightId}Add_playNow', "margin", "2px 0px 3px 0px")
-                CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
+                    CSS.setStyle(rightId, "fontSize", "125%")
+
+                if configSonos["useQue"]:
+                    CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
 
             elif JS.cache("portalSubPage") == "QR":
                 CSS.setStyle("Header_SonosAndroidQR", "fontSize", "175%")
@@ -114,12 +120,15 @@ class sonos:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("SonosYTPlayer", "offsetHeight")}px')
                 else:
                     CSS.setStyles(leftId, (("width", "100%"), ("display", "")))
-                    CSS.setStyle(rightId, "width", "0%")
+
                 if not rightId is None:
                     CSS.setStyle(f'{rightId}List', "height", f'{CSS.getAttribute(rightId, "clientHeight") - 62}px')
                     CSS.setStyle(f'{rightId}Add_playNext', "margin", "-1% 0px")
                     CSS.setStyle(f'{rightId}Add_playNow', "margin", "-1% 0px")
-                CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
+                    CSS.setStyle(rightId, "fontSize", "100%")
+
+                if configSonos["useQue"]:
+                    CSS.getAttribute(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}', "scrollIntoView")()
 
             elif JS.cache("portalSubPage") == "QR":
                 CSS.setStyle("Header_SonosAndroidQR", "fontSize", "200%")
@@ -253,6 +262,8 @@ class sonos:
             pass
 
         configSonos = loads(JS.cache("configSonos"))
+        if configSonos["useQue"] and configSonos["usePlaylist"]:
+            self.comUsePlaylist()
         if configSonos["disableMaxWidth (experimental)"]:
             CSS.setStyle("body", "max-width", "")
         else:
@@ -515,24 +526,22 @@ class sonos:
         tracks = data["que"]["tracks"]
         queListDivs = ""
         for track in tracks:
-            trackImg = HTML.genElement("img", id=f'portalSubPage_que_{track}_img', style="width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;", align="left", custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
+            trackImg = HTML.genElement("img", id=f'portalSubPage_que_{track}_img', style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
-            titleTxt = HTML.genElement("p", nest=tracks[track]["title"], style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
+            titleTxt = HTML.genElement("p", nest=tracks[track]["title"], style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
             remImg = HTML.genElement("img", id=f'portalSubPage_que_rem_img_{track}', style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
             remBtn = HTML.genElement("button", nest=remImg, id=f'portalSubPage_que_rem_{track}', style="buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;")
-            remDiv = HTML.genElement("div", nest=remBtn, align="right", style="width: 5vw; height: 5vw; max-width: 24px; max-height: 24px; margin: 0px 0px 0px auto;")
-            titleDiv = HTML.genElement("div", nest=titleTxt + remDiv, style="flex %% margin: 0px;")
+            remDiv = HTML.genElement("div", nest=remBtn, align="right", style="position: absolute; right: 10px; top: 4px; width: 24px; height: 24px;")
 
-            creatorTxt = HTML.genElement("p", nest=tracks[track]["creator"], style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
-            creatorDur = HTML.genElement("p", nest=tracks[track]["duration"][-5:], style="margin: 0px 0px 0px auto;", align="right")
-            creator = HTML.genElement("div", nest=creatorTxt + creatorDur, style="flex %% font-size: 75%; margin: 0px;")
+            creatorTxt = HTML.genElement("p", nest=tracks[track]["creator"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 75%;", align="left")
+            creatorDur = HTML.genElement("p", nest=tracks[track]["duration"][-5:], style="position: absolute; right: 8px; bottom: 4px; width: 10%; height: 18px; margin: 0px; font-size: 75%;", align="right")
 
-            trackDiv = HTML.genElement("div", nest=titleDiv + creator, id=f'portalSubPage_que_{track}_txt', style="width: 90%; margin: auto 5px;")
+            trackDiv = HTML.genElement("div", nest=titleTxt + remDiv + creatorTxt + creatorDur, id=f'portalSubPage_que_{track}_txt', style="width: 100%; height: 45px; margin: auto 5px;")
             queListDivs += HTML.genElement("div",
                                            nest=trackImg + trackDiv,
                                            id=f'portalSubPage_que_{track}',
                                            classes="portalSubPage_que_tracks",
-                                           style="divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; border: 5px solid #111;")
+                                           style="divNormal %% flex %% position: relative; height: 50px; padding: 0px 90px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
         queInp = HTML.genElement("input", id="portalSubPage_queAdd_input", type="text", style='inputMedium %% width: 75%; font-size: 75%;', custom='placeholder="Spotify Sharelink"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_queAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
@@ -593,21 +602,21 @@ class sonos:
         plListDivs = ""
         for playlist in reversed(playlists):
             if playlists[playlist]["album_art"] is None:
-                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
+                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
             else:
-                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 7.5vw; height: 7.5vw; max-width: 50px; max-height: 50px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
+                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
 
             plTxt = HTML.genElement("p", nest=playlist, style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
             plTitle = HTML.genElement("div", nest=plTxt, style="flex %% margin: 0px;")
             plTxt = HTML.genElement("p", nest=playlists[playlist]["description"], style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
             plCreator = HTML.genElement("div", nest=plTxt, style="flex %% font-size: 75%; margin: 0px;")
 
-            plDiv = HTML.genElement("div", nest=plTitle + plCreator, id=f'portalSubPage_playlist_{playlist}_txt', style="width: 90%; margin: auto 5px;")
+            plDiv = HTML.genElement("div", nest=plTitle + plCreator, id=f'portalSubPage_playlist_{playlist}_txt', style="width: 100%; margin: auto 5px;")
             plListDivs += HTML.genElement("div",
                                           nest=plImg + plDiv,
                                           id=f'portalSubPage_playlist_{playlist}',
                                           classes="portalSubPage_playlist_playlists",
-                                          style="divNormal %% flex %% height: 7.5vw; max-height: 50px; position: relative; margin: -5px; border: 5px solid #111;")
+                                          style="divNormal %% flex %% position: relative; height: 50px; padding: 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
         plInp = HTML.genElement("input", id="portalSubPage_playlistAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="Sonos URI"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_playlistAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
