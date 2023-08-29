@@ -17,7 +17,7 @@ class sheets:
         self.hideInactive = True
         self.wordWrap = False
 
-        self.evalMap = {"compactOption": self.compactOption, "activeOption": self.activeOption, "wrapOption": self.wrapOption, "bulkAdd": self.bulkAdd, "userAdd": self.userAdd, "clean": self.clean}
+        self.evalMap = {"compactOption": self.compactOption, "activeOption": self.activeOption, "wrapOption": self.wrapOption, "bulkAdd": self.bulkAdd, "userAdd": self.userAdd, "clean": self.clean, "shutdown": self.shutdown}
         self.allConfigKeys = ("knownFiles", "dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "tagIsList", "hideInput", "mainCom", "extraButtons")
 
         self.knownFiles = None
@@ -336,6 +336,10 @@ class sheets:
         if JS.popup("confirm", f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
             for i in range(0, amount):
                 JS.afterDelay(doAction, (self, i, prefix), delay=i * 10)
+
+    def shutdown(self):
+        if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
+            WS.send("shutdown")
 
     def clean(self):
         def cleanResults():
