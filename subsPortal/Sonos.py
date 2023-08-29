@@ -263,7 +263,8 @@ class sonos:
 
         configSonos = loads(JS.cache("configSonos"))
         if configSonos["useQue"] and configSonos["usePlaylist"]:
-            self.comUsePlaylist()
+            configSonos["usePlaylist"] = False
+            JS.cache("configSonos", dumps(configSonos))
         if configSonos["disableMaxWidth (experimental)"]:
             CSS.setStyle("body", "max-width", "")
         else:
@@ -283,7 +284,6 @@ class sonos:
             self.addPlaylist()
 
         JS.afterDelay(self.uiRefresh, delay=50)
-        JS.afterDelay(self.activeUIRefresh, delay=50)
         JS.onResize("sonos", self.onResize)
 
     def uiRefresh(self):
@@ -332,16 +332,23 @@ class sonos:
             configSonos = loads(JS.cache("configSonos"))
 
             try:
-                if not data["device"]["shuffle"]:
-                    CSS.setStyles("portalSubPage_buttons_Shuffle", (("background", "#222"), ("border", "2px solid #222")))
-                if not data["device"]["repeat"]:
+                JS.clearEvents("portalSubPage_buttons_Repeat")
+                JS.addEvent(f'portalSubPage_buttons_Repeat', self.comToggleRepeat)
+                if data["device"]["repeat"]:
+                    CSS.setStyles("portalSubPage_buttons_Repeat", (("background", "#444"), ("border", "3px solid #FBDF56")))
+                    CSS.onClick("portalSubPage_buttons_Repeat", "imgClick")
+                else:
                     CSS.setStyles("portalSubPage_buttons_Repeat", (("background", "#222"), ("border", "2px solid #222")))
-                if not configSonos["useAlbumArt"]:
-                    CSS.setStyles("portalSubPage_buttons_Album", (("background", "#222"), ("border", "2px solid #222")))
-                if not configSonos["usePlaylist"]:
-                    CSS.setStyles("portalSubPage_buttons_Playlist", (("background", "#222"), ("border", "2px solid #222")))
-                if not configSonos["useQue"]:
-                    CSS.setStyles("portalSubPage_buttons_Que", (("background", "#222"), ("border", "2px solid #222")))
+                    CSS.onHoverClick(f'portalSubPage_buttons_Repeat', "imgHover", "imgClick")
+
+                JS.clearEvents("portalSubPage_buttons_Shuffle")
+                JS.addEvent(f'portalSubPage_buttons_Shuffle', self.comToggleShuffle)
+                if data["device"]["shuffle"]:
+                    CSS.setStyles("portalSubPage_buttons_Shuffle", (("background", "#444"), ("border", "3px solid #FBDF56")))
+                    CSS.onClick("portalSubPage_buttons_Shuffle", "imgClick")
+                else:
+                    CSS.setStyles("portalSubPage_buttons_Shuffle", (("background", "#222"), ("border", "2px solid #222")))
+                    CSS.onHoverClick(f'portalSubPage_buttons_Shuffle', "imgHover", "imgClick")
 
                 if data["device"]["playback"] == "active":
                     CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Pause.png"), ("alt", "Pause")))
@@ -422,28 +429,6 @@ class sonos:
             WS.onMsg("{\"" + self.mainCom + "\": {\"ytinfo\":", ytinfo, (self, ), oneTime=True)
 
         self.comEnableStream()
-
-    def activeUIRefresh(self):
-        if not JS.cache("portalSubPage") == "Player":
-            return None
-
-        data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
-        try:
-            if data["device"]["shuffle"]:
-                CSS.setStyles("portalSubPage_buttons_Shuffle", (("background", "#444"), ("border", "3px solid #FBDF56")))
-            if data["device"]["repeat"]:
-                CSS.setStyles("portalSubPage_buttons_Repeat", (("background", "#444"), ("border", "3px solid #FBDF56")))
-            if configSonos["useAlbumArt"]:
-                CSS.setStyles("portalSubPage_buttons_Album", (("background", "#444"), ("border", "3px solid #FBDF56")))
-            if configSonos["usePlaylist"]:
-                CSS.setStyles("portalSubPage_buttons_Playlist", (("background", "#444"), ("border", "3px solid #FBDF56")))
-            if configSonos["useQue"]:
-                CSS.setStyles("portalSubPage_buttons_Que", (("background", "#444"), ("border", "3px solid #FBDF56")))
-        except AttributeError:
-            return None
-
-        JS.afterDelay(self.activeUIRefresh, delay=250)
 
     def addAlbumArt(self):
         data = WS.dict()[self.mainCom]
@@ -537,11 +522,7 @@ class sonos:
             creatorDur = HTML.genElement("p", nest=tracks[track]["duration"][-5:], style="position: absolute; right: 8px; bottom: 4px; width: 10%; height: 18px; margin: 0px; font-size: 75%;", align="right")
 
             trackDiv = HTML.genElement("div", nest=titleTxt + remDiv + creatorTxt + creatorDur, id=f'portalSubPage_que_{track}_txt', style="width: 100%; height: 45px; margin: auto 5px;")
-            queListDivs += HTML.genElement("div",
-                                           nest=trackImg + trackDiv,
-                                           id=f'portalSubPage_que_{track}',
-                                           classes="portalSubPage_que_tracks",
-                                           style="divNormal %% flex %% position: relative; height: 50px; padding: 0px 90px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
+            queListDivs += HTML.genElement("div", nest=trackImg + trackDiv, id=f'portalSubPage_que_{track}', style="divNormal %% flex %% position: relative; height: 50px; padding: 0px 90px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
         queInp = HTML.genElement("input", id="portalSubPage_queAdd_input", type="text", style='inputMedium %% width: 75%; font-size: 75%;', custom='placeholder="Spotify Sharelink"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_queAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
@@ -566,10 +547,12 @@ class sonos:
             CSS.getAttribute(f'portalSubPage_que_{data["que"]["position"]}', "scrollIntoView")()
 
         def doAction(self):
-            for track in HTML.getElements("portalSubPage_que_tracks"):
-                JS.addEventRaw(track, playFromQue, action="dblclick", includeElement=True)
-                JS.addEvent(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', removeFromQue, includeElement=True)
-                CSS.onHoverClick(f'{"_".join(track.id.split("_")[:-1])}_rem_{track.id.split("_")[-1]}', "imgHover", "imgClick")
+            data = WS.dict()[self.mainCom]
+
+            for track in data["que"]["tracks"]:
+                JS.addEvent(f'portalSubPage_que_{track}', playFromQue, action="dblclick", includeElement=True)
+                JS.addEvent(f'portalSubPage_que_rem_{track.split("_")[-1]}', removeFromQue, includeElement=True)
+                CSS.onHoverClick(f'portalSubPage_que_rem_{track.split("_")[-1]}', "imgHover", "imgClick")
 
             CSS.onHoverFocus("portalSubPage_queAdd_input", "inputHover", "inputFocus")
             JS.addEvent("portalSubPage_queAdd_playNext", self.comAddQue, (CSS.getAttribute("portalSubPage_queAdd_input", "value"), False))
@@ -602,21 +585,15 @@ class sonos:
         plListDivs = ""
         for playlist in reversed(playlists):
             if playlists[playlist]["album_art"] is None:
-                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
+                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
             else:
-                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
+                plImg = HTML.genElement("img", id=f'portalSubPage_playlist_{playlist}_img', style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
 
-            plTxt = HTML.genElement("p", nest=playlist, style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
-            plTitle = HTML.genElement("div", nest=plTxt, style="flex %% margin: 0px;")
-            plTxt = HTML.genElement("p", nest=playlists[playlist]["description"], style="margin: 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
-            plCreator = HTML.genElement("div", nest=plTxt, style="flex %% font-size: 75%; margin: 0px;")
+            titleTxt = HTML.genElement("p", nest=playlist, style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
+            discriptionTxt = HTML.genElement("p", nest=playlists[playlist]["description"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 75%;", align="left")
 
-            plDiv = HTML.genElement("div", nest=plTitle + plCreator, id=f'portalSubPage_playlist_{playlist}_txt', style="width: 100%; margin: auto 5px;")
-            plListDivs += HTML.genElement("div",
-                                          nest=plImg + plDiv,
-                                          id=f'portalSubPage_playlist_{playlist}',
-                                          classes="portalSubPage_playlist_playlists",
-                                          style="divNormal %% flex %% position: relative; height: 50px; padding: 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
+            plDiv = HTML.genElement("div", nest=titleTxt + discriptionTxt, id=f'portalSubPage_playlist_{playlist}_txt', style="width: 100%; height: 50px; margin: auto 5px;")
+            plListDivs += HTML.genElement("div", nest=plImg + plDiv, id=f'portalSubPage_playlist_{playlist}', style="divNormal %% flex %% position: relative; height: 75px; padding: 0px 85px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
         plInp = HTML.genElement("input", id="portalSubPage_playlistAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="Sonos URI"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_playlistAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
@@ -637,8 +614,9 @@ class sonos:
             HTML.setElementRaw("portalSubPage_playlistADD", plAddDivs)
 
         def doAction(self):
-            for track in HTML.getElements("portalSubPage_playlist_playlists"):
-                JS.addEventRaw(track, playPlaylist, action="dblclick", includeElement=True)
+            data = WS.dict()[self.mainCom]
+            for playlist in data["playlists"]:
+                JS.addEvent(f'portalSubPage_playlist_{playlist}', playPlaylist, action="dblclick", includeElement=True)
 
             CSS.onHoverFocus("portalSubPage_playlistAdd_input", "inputHover", "inputFocus")
             JS.addEvent("portalSubPage_playlistAdd_playNext", self.comAddQueUri, (CSS.getAttribute("portalSubPage_playlistAdd_input", "value"), False))
@@ -679,7 +657,7 @@ class sonos:
         btnDivMiddle = HTML.genElement("div", nest=btnDivsMiddle, id="portalSubPage_buttons_middle", style="divNormalNoEdge %% flex %% width: 70%;")
 
         btnDivsRight = ""
-        rightActions = ["Album", "Playlist", "Que"]
+        rightActions = ["Album", "Que"]
         for i, action in enumerate(rightActions):
             margin = " margin: 0px 0.5%;"
             if i < 1:
@@ -705,6 +683,8 @@ class sonos:
         HTML.addElement("div", "portalSubPage_main", nest=volDatalist + volInp, id="portalSubPage_volume", style="divNormal %% flex %% width: 40%; margin: 5px auto; padding: 0px; overflow: hidden;")
 
         def doAction(self):
+            data = WS.dict()[self.mainCom]
+
             if data["device"]["playback"] in ["standby", "inactive"]:
                 CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.png"), ("alt", "Play")))
             JS.addEvent("portalSubPage_volume_slider", self.comVolume, action="input", includeElement=True)
@@ -719,13 +699,31 @@ class sonos:
                 "Next": self.comNext,
                 "SeekForward": self.comSeekForward,
                 "VolumeUp": self.comVolumeUp,
-                "Album": self.comUseAlbum,
-                "Playlist": self.comUsePlaylist,
-                "Que": self.comUseQue
             }
             for action in fmap:
                 JS.addEvent(f'portalSubPage_buttons_{action}', fmap[action])
                 CSS.onHoverClick(f'portalSubPage_buttons_{action}', "imgHover", "imgClick")
+
+            JS.addEvent(f'portalSubPage_buttons_Album', self.comUseAlbumArt)
+            if configSonos["useAlbumArt"]:
+                CSS.setStyles("portalSubPage_buttons_Album", (("background", "#444"), ("border", "3px solid #FBDF56")))
+                CSS.onClick("portalSubPage_buttons_Album", "imgClick")
+            else:
+                CSS.setStyles("portalSubPage_buttons_Album", (("background", "#222"), ("border", "2px solid #222")))
+                CSS.onHoverClick(f'portalSubPage_buttons_Album', "imgHover", "imgClick")
+
+            JS.addEvent(f'portalSubPage_buttons_Que', self.comUseQuePlaylist)
+            if configSonos["useQue"] or configSonos["usePlaylist"]:
+                CSS.setStyles("portalSubPage_buttons_Que", (("background", "#444"), ("border", "3px solid #FBDF56")))
+                CSS.onClick("portalSubPage_buttons_Que", "imgClick")
+            else:
+                CSS.setStyles("portalSubPage_buttons_Que", (("background", "#222"), ("border", "2px solid #222")))
+                CSS.onHoverClick(f'portalSubPage_buttons_Que', "imgHover", "imgClick")
+
+            if configSonos["useQue"]:
+                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Que.png"), ("alt", "Que")))
+            elif configSonos["usePlaylist"]:
+                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Playlist.png"), ("alt", "Playlist")))
 
         JS.afterDelay(doAction, (self, ), delay=50)
 
@@ -815,11 +813,11 @@ class sonos:
         elif data["device"]["playback"] in ["standby", "inactive"]:
             WS.send(f'{self.mainCom} play')
 
-    def comToggleShuffle(self):
-        WS.send(f'{self.mainCom} toggleShuffle')
-
     def comToggleRepeat(self):
         WS.send(f'{self.mainCom} toggleRepeat')
+
+    def comToggleShuffle(self):
+        WS.send(f'{self.mainCom} toggleShuffle')
 
     def comNext(self):
         WS.send(f'{self.mainCom} next')
@@ -916,29 +914,28 @@ class sonos:
         else:
             WS.send(f'{self.mainCom} playNowUri {uri}')
 
-    def comUseAlbum(self):
+    def comUseAlbumArt(self):
         configSonos = loads(JS.cache("configSonos"))
         configSonos["useAlbumArt"] = not configSonos["useAlbumArt"]
         JS.cache("configSonos", dumps(configSonos))
 
         self.loadPortalSubPage()
 
-    def comUseQue(self):
+    def comUseQuePlaylist(self):
         configSonos = loads(JS.cache("configSonos"))
-        configSonos["useQue"] = not configSonos["useQue"]
         if configSonos["useQue"]:
-            configSonos["usePlaylist"] = False
-        JS.cache("configSonos", dumps(configSonos))
-
-        self.loadPortalSubPage()
-
-    def comUsePlaylist(self):
-        configSonos = loads(JS.cache("configSonos"))
-        configSonos["usePlaylist"] = not configSonos["usePlaylist"]
-        if configSonos["usePlaylist"]:
             configSonos["useQue"] = False
-        JS.cache("configSonos", dumps(configSonos))
+            configSonos["usePlaylist"] = True
 
+        elif configSonos["usePlaylist"]:
+            configSonos["useQue"] = False
+            configSonos["usePlaylist"] = False
+
+        else:
+            configSonos["useQue"] = True
+            configSonos["usePlaylist"] = False
+
+        JS.cache("configSonos", dumps(configSonos))
         self.loadPortalSubPage()
 
     def main(self):

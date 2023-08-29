@@ -613,7 +613,7 @@ class tree:
         if layer + 2 > colC:
             colC = layer + 2
 
-        wrapStyle = " word-break: break-all;" if self.wordWrap else " height: 15px;"
+        wrapStyle = " word-break: break-all;" if self.wordWrap else " height: 20px;"
         styleP = "margin: 0px; padding: 0px; text-align: left; font-size: 75%; overflow: hidden;"
         prtChar = "bCross"
         prtSpc[str(layer)] = True
@@ -661,11 +661,11 @@ class tree:
     def setStyling(self, colC):
         for item in HTML.getElements(f'{self.name}_rows_p1'):
             item.style.width = f'{80 / colC}%'
-            item.style.marginTop = "3px"
+            item.style.marginTop = "4px"
 
         for item in HTML.getElements(f'{self.name}_rows_p2'):
             item.style.width = f'{140 / colC}%'
-            item.style.marginTop = "3px"
+            item.style.marginTop = "4px"
             item.style.whiteSpace = "normal"
             item.style.wordWrap = "break-word"
 
@@ -679,7 +679,7 @@ class tree:
 
         for item in HTML.getElements(f'{self.name}_bEnd'):
             item.style.width = f'{40/ colC}%'
-            item.style.height = "12px"
+            item.style.height = "13px"
             item.style.margin = f'0px 0px 0px {40 / colC}%'
             item.style.borderLeft = "2px solid #44F"
             item.style.borderBottom = "2px solid #44F"

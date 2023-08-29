@@ -110,6 +110,12 @@
                     "active": true
                 },
                 {
+                    "text": "Shutdown",
+                    "id": "shutdown",
+                    "function": "shutdown",
+                    "active": true
+                },
+                {
                     "text": "Inactive",
                     "id": "active",
                     "function": "activeOption",
