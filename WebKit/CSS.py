@@ -1,5 +1,5 @@
 from js import document, console
-from pyodide.ffi import create_proxy # type: ignore
+from pyodide.ffi import create_proxy  # type: ignore
 from json import load
 from os import path as osPath
 
@@ -9,7 +9,7 @@ class glb:
     onClickStyles = {}
     onFocusStyles = {}
 
-    with open(f'{osPath.split(__file__)[0]}/styleMap.json', "r", encoding="UTF-8") as fileR:
+    with open(f"{osPath.split(__file__)[0]}/styleMap.json", "r", encoding="UTF-8") as fileR:
         styleMap = load(fileR)["CSS"]
 
     def expandStyle(style):
@@ -29,7 +29,7 @@ class glb:
 
                 if subStyleKey in subStyleMerged or subStyleKey in style:
                     continue
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
+                subStyleMerged += f"{subStyleKey}:{subStyleValue}; "
 
             style = style.replace(styleKey, "")
 
@@ -39,19 +39,19 @@ class glb:
         def mouseover(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_mouseover' in glb.onHoverStyles:
+                if el is None or not f"{el.id}_mouseover" in glb.onHoverStyles:
                     el = el.parentElement
                     continue
 
                 break
 
-            for prop in glb.onHoverStyles[f'{el.id}_mouseover']:
+            for prop in glb.onHoverStyles[f"{el.id}_mouseover"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         def mouseout(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_mouseout' in glb.onHoverStyles:
+                if el is None or not f"{el.id}_mouseout" in glb.onHoverStyles:
                     el = el.parentElement
                     continue
 
@@ -60,60 +60,60 @@ class glb:
             if document.getElementById(el.id).tagName != "BUTTON" and document.activeElement == args.target:
                 return None
 
-            for prop in glb.onHoverStyles[f'{el.id}_mouseout']:
+            for prop in glb.onHoverStyles[f"{el.id}_mouseout"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         def mousedown(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_mousedown' in glb.onClickStyles:
+                if el is None or not f"{el.id}_mousedown" in glb.onClickStyles:
                     el = el.parentElement
                     continue
 
                 break
 
-            for prop in glb.onClickStyles[f'{el.id}_mousedown']:
+            for prop in glb.onClickStyles[f"{el.id}_mousedown"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         def mouseup(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_mouseup' in glb.onClickStyles:
+                if el is None or not f"{el.id}_mouseup" in glb.onClickStyles:
                     el = el.parentElement
                     continue
 
                 break
 
-            for prop in glb.onClickStyles[f'{el.id}_mouseup']:
+            for prop in glb.onClickStyles[f"{el.id}_mouseup"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         def focusin(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_focusin' in glb.onFocusStyles:
+                if el is None or not f"{el.id}_focusin" in glb.onFocusStyles:
                     el = el.parentElement
                     continue
 
                 break
 
-            for prop in glb.onFocusStyles[f'{el.id}_focusin']:
+            for prop in glb.onFocusStyles[f"{el.id}_focusin"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         def focusout(args=None):
             el = args.target
             for i in range(0, 3):
-                if el is None or not f'{el.id}_focusout' in glb.onFocusStyles:
+                if el is None or not f"{el.id}_focusout" in glb.onFocusStyles:
                     el = el.parentElement
                     continue
 
                 break
 
-            for prop in glb.onFocusStyles[f'{el.id}_focusout']:
+            for prop in glb.onFocusStyles[f"{el.id}_focusout"]:
                 setattr(document.getElementById(el.id).style, prop.split(": ")[0], prop.split(": ")[1])
 
         el = document.getElementById(id)
-        onStyleMap[f'{id}_{events[0]}'] = []
-        onStyleMap[f'{id}_{events[1]}'] = []
+        onStyleMap[f"{id}_{events[0]}"] = []
+        onStyleMap[f"{id}_{events[1]}"] = []
 
         for prop in glb.expandStyle(style).split(";")[:-1]:
             styleKey = prop.split(": ")[0].replace(" ", "")
@@ -127,8 +127,8 @@ class glb:
                 el.style.transition = f'{prop.split(": ")[1]}'
                 continue
 
-            onStyleMap[f'{id}_{events[0]}'].append(f'{styleKey}: {prop.split(": ")[1]}')
-            onStyleMap[f'{id}_{events[1]}'].append(f'{styleKey}: {getattr(el.style, styleKey)}')
+            onStyleMap[f"{id}_{events[0]}"].append(f'{styleKey}: {prop.split(": ")[1]}')
+            onStyleMap[f"{id}_{events[1]}"].append(f"{styleKey}: {getattr(el.style, styleKey)}")
 
         el.addEventListener(str(events[0]), create_proxy({"mouseover": mouseover, "mousedown": mousedown, "focusin": focusin}[events[0]]))
         el.addEventListener(str(events[1]), create_proxy({"mouseout": mouseout, "mouseup": mouseup, "focusout": focusout}[events[1]]))

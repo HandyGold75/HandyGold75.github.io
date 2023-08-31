@@ -7,7 +7,7 @@ class home:
     def __init__(self):
         self.busy = False
         self.requireLogin = False
-        
+
     def onResize(self):
         pass
 
