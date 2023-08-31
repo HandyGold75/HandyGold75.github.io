@@ -88,7 +88,7 @@ class index:
         for page in self.pages:
             if self.pages[page]["hidden"]:
                 continue
-            navButtons += HTML.genElement("button", nest=page, id=f'subPageButton_{page}', type="button", style="buttonBig")
+            navButtons += HTML.genElement("button", nest=page, id=f"subPageButton_{page}", type="button", style="buttonBig")
 
         nav = HTML.genElement("img", id="mainNav_logo", align="left", style="width: 20%; max-width: 101px; margin: auto auto auto 5px; user-select: none; transition: max-width 0.25s;", custom='src="docs/assets/;D.png"')
 
@@ -118,8 +118,8 @@ class index:
             for page in self.pages:
                 if self.pages[page]["hidden"]:
                     continue
-                JS.addEvent(f'subPageButton_{page}', self.loadPage, kwargs={"page": page})
-                CSS.onHoverClick(f'subPageButton_{page}', "buttonHover", "buttonClick")
+                JS.addEvent(f"subPageButton_{page}", self.loadPage, kwargs={"page": page})
+                CSS.onHoverClick(f"subPageButton_{page}", "buttonHover", "buttonClick")
 
             JS.addEvent("mainNav_showHide", showHideNav)
             CSS.onHoverClick("mainNav_showHide", "imgHover", "imgClick")
@@ -150,7 +150,7 @@ class index:
                 JS.afterDelay(self.deloadPage, kwargs={"page": page, "firstRun": False}, delay=50)
                 return None
 
-            JS.log(f'Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}')
+            JS.log(f"Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}")
             self.pages[self.oldPage]["page"].busy = False
 
         CSS.setStyle("mainPage", "maxHeight", "")
@@ -168,7 +168,7 @@ class index:
                 JS.afterDelay(self.stallPage, kwargs={"page": page, "firstRun": False}, delay=50)
                 return None
 
-            JS.log(f'Warning: Force loaded page (Reason page is busy for to long) -> {page}')
+            JS.log(f"Warning: Force loaded page (Reason page is busy for to long) -> {page}")
             self.pages[page]["page"].busy = False
 
         self.loadPage(page, didStall=True, rememberPortalPage=True)

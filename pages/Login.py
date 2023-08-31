@@ -127,7 +127,7 @@ class login:
                 return None
 
             crypt = str(encrypt(CSS.getAttribute("loginPage_username", "value").encode() + "<SPLIT>".encode() + CSS.getAttribute("loginPage_password", "value").encode(), WS.pub))
-            WS.send(f'<LOGIN> {crypt}')
+            WS.send(f"<LOGIN> {crypt}")
 
         if WS.loginState() or (hasattr(element, "key") and element.key != "Enter") or ((datetime.now() - timedelta(seconds=1)).timestamp() < self.lastLogin):
             return None
@@ -161,7 +161,7 @@ class login:
                 el.innerHTML += ". "
                 JS.afterDelay(loadingTxt, delay=500)
 
-            WS.onMsg("{\"access\":", self.indexRedirect, oneTime=True)
+            WS.onMsg('{"access":', self.indexRedirect, oneTime=True)
             WS.send("access")
 
             JS.clearEvents("mainFooter_Login")
@@ -199,13 +199,13 @@ class login:
 
         server = self.config()["server"]
         if server == "" or not "://" in server or not server.count(":") == 2:
-            raise ValueError(f'Invalid server: {server}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+            raise ValueError(f"Invalid server: {server}\nFormat: [WS, WSS]://[Server]:[1-65535]")
 
         proto = server.split("://")[0]
         ip = server.split("://")[-1].split(":")[0]
         port = int(server.split("://")[-1].split(":")[-1])
         if not proto.lower() in ["ws", "wss"] or port < 1 or port > 65535:
-            raise ValueError(f'Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]')
+            raise ValueError(f"Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]")
 
         WS.start(proto, ip, str(port), loginHandler)
 

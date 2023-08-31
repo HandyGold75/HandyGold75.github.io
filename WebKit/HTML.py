@@ -1,5 +1,5 @@
 from js import document, console
-from WebKit import CSS 
+from WebKit import CSS
 from json import load
 from os import path as osPath
 
@@ -10,7 +10,7 @@ class glb:
     onFocusStyles = CSS.glb.onFocusStyles
     disabledStyles = {}
 
-    with open(f'{osPath.split(__file__)[0]}/styleMap.json', "r", encoding="UTF-8") as fileR:
+    with open(f"{osPath.split(__file__)[0]}/styleMap.json", "r", encoding="UTF-8") as fileR:
         styleMap = load(fileR)["HTML"]
 
     def expandStyle(style):
@@ -30,7 +30,7 @@ class glb:
 
                 if subStyleKey in subStyleMerged or subStyleKey in style:
                     continue
-                subStyleMerged += f'{subStyleKey}:{subStyleValue}; '
+                subStyleMerged += f"{subStyleKey}:{subStyleValue}; "
 
             style = style.replace(styleKey, "")
 
@@ -45,12 +45,12 @@ class glb:
 
             additionsStr += f' {arg}="{args[arg]}"'
 
-        additionsStr += f' {custom}'
+        additionsStr += f" {custom}"
 
         nest = nest.replace("\n", "<br>")
-        htmlStr = f'{prepend}<{tag}{additionsStr}>{nest}'
+        htmlStr = f"{prepend}<{tag}{additionsStr}>{nest}"
         if not tag in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
-            htmlStr += f'</{tag}>'
+            htmlStr += f"</{tag}>"
 
         return htmlStr
 
@@ -85,14 +85,14 @@ def addElementRaw(id: str, HTML: str):
 
 def copyElement(sourceId: str, targetId: str):
     el = document.getElementById(sourceId).cloneNode(True)
-    el.id = f'{el.id}_Copy'
+    el.id = f"{el.id}_Copy"
     document.getElementById(targetId).appendChild(el)
 
 
 def copyElements(pairs: tuple):
     for sourceId, targetId in enumerate(pairs):
         el = document.getElementById(sourceId).cloneNode(True)
-        el.id = f'{el.id}_Copy'
+        el.id = f"{el.id}_Copy"
         document.getElementById(targetId).appendChild(el)
 
 
@@ -124,7 +124,7 @@ def clrElements(classId: str):
 
 
 def linkWrap(href: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML("a", nest, prepend, id, classes, "", "", "", align, f'{style} color: #44F;', f'{custom} href="{href}" target="_blank"')
+    return glb.constructHTML("a", nest, prepend, id, classes, "", "", "", align, f"{style} color: #44F;", f'{custom} href="{href}" target="_blank"')
 
 
 def disableElement(id: str):
@@ -139,19 +139,19 @@ def disableElement(id: str):
 
     for onStyle in onStyles:
         for action in onStyles[onStyle]["actions"]:
-            if not f'{id}_{action}' in onStyles[onStyle]["style"]:
+            if not f"{id}_{action}" in onStyles[onStyle]["style"]:
                 continue
 
-            glb.disabledStyles[id]["events"][f'{id}_{action}'] = {}
-            itemListTmp = list(onStyles[onStyle]["style"][f'{id}_{action}'])
+            glb.disabledStyles[id]["events"][f"{id}_{action}"] = {}
+            itemListTmp = list(onStyles[onStyle]["style"][f"{id}_{action}"])
             for i, item in enumerate(itemListTmp):
                 if item.startswith("color: "):
-                    glb.disabledStyles[id]["events"][f'{id}_{action}']["color"] = onStyles[onStyle]["style"][f'{id}_{action}'][i]
-                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = "color: #88B"
+                    glb.disabledStyles[id]["events"][f"{id}_{action}"]["color"] = onStyles[onStyle]["style"][f"{id}_{action}"][i]
+                    onStyles[onStyle]["style"][f"{id}_{action}"][i] = "color: #88B"
 
                 elif item.startswith("background: "):
-                    glb.disabledStyles[id]["events"][f'{id}_{action}']["background"] = onStyles[onStyle]["style"][f'{id}_{action}'][i]
-                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = "background: #222"
+                    glb.disabledStyles[id]["events"][f"{id}_{action}"]["background"] = onStyles[onStyle]["style"][f"{id}_{action}"][i]
+                    onStyles[onStyle]["style"][f"{id}_{action}"][i] = "background: #222"
 
     el.style.color = "#88B"
     el.style.background = "#222"
@@ -170,18 +170,18 @@ def enableElement(id: str):
 
     for onStyle in onStyles:
         for action in onStyles[onStyle]["actions"]:
-            if not f'{id}_{action}' in onStyles[onStyle]["style"]:
+            if not f"{id}_{action}" in onStyles[onStyle]["style"]:
                 continue
-            if not f'{id}_{action}' in glb.disabledStyles[id]["events"]:
+            if not f"{id}_{action}" in glb.disabledStyles[id]["events"]:
                 continue
 
-            itemListTmp = list(onStyles[onStyle]["style"][f'{id}_{action}'])
+            itemListTmp = list(onStyles[onStyle]["style"][f"{id}_{action}"])
             for i, item in enumerate(itemListTmp):
-                if item.startswith("color: ") and "color" in glb.disabledStyles[id]["events"][f'{id}_{action}']:
-                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = glb.disabledStyles[id]["events"][f'{id}_{action}']["color"]
+                if item.startswith("color: ") and "color" in glb.disabledStyles[id]["events"][f"{id}_{action}"]:
+                    onStyles[onStyle]["style"][f"{id}_{action}"][i] = glb.disabledStyles[id]["events"][f"{id}_{action}"]["color"]
 
-                elif item.startswith("background: ") and "background" in glb.disabledStyles[id]["events"][f'{id}_{action}']:
-                    onStyles[onStyle]["style"][f'{id}_{action}'][i] = glb.disabledStyles[id]["events"][f'{id}_{action}']["background"]
+                elif item.startswith("background: ") and "background" in glb.disabledStyles[id]["events"][f"{id}_{action}"]:
+                    onStyles[onStyle]["style"][f"{id}_{action}"][i] = glb.disabledStyles[id]["events"][f"{id}_{action}"]["background"]
 
     el.style.color = glb.disabledStyles[id]["color"]
     el.style.background = glb.disabledStyles[id]["background"]

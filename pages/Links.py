@@ -13,10 +13,10 @@ class links:
         if JS.cache("configLinks") is None:
             JS.cache("configLinks", dumps({"folded": {}}))
 
-        with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
             self.defaultLinks = load(fileR)["defaultLinks"]
 
-        self.allLinks = dict(sorted(self.defaultLinks.items(), key=lambda x: x[1]['Index']))
+        self.allLinks = dict(sorted(self.defaultLinks.items(), key=lambda x: x[1]["Index"]))
         self.foldedStates = loads(JS.cache("configLinks"))["folded"]
 
         self.columns = 5
@@ -62,11 +62,11 @@ class links:
                 if " " in msgDict["qr"]["/Links.json"]:
                     msgDict["qr"]["/Links.json"].pop(" ")
 
-                self.allLinks = dict(sorted({**self.defaultLinks, **msgDict["qr"]["/Links.json"]}.items(), key=lambda x: x[1]['Index']))
+                self.allLinks = dict(sorted({**self.defaultLinks, **msgDict["qr"]["/Links.json"]}.items(), key=lambda x: x[1]["Index"]))
             self.busy = False
 
         if "qr" in WS.dict()["access"]:
-            WS.onMsg("{\"qr\": {\"/Links.json\":", finalize, (self, ), oneTime=True)
+            WS.onMsg('{"qr": {"/Links.json":', finalize, (self,), oneTime=True)
             WS.send("qr read /Links.json")
 
     def deload(self):
@@ -97,7 +97,7 @@ class links:
                 linkImg = HTML.linkWrap(self.allLinks[link]["url"], nest=linkImg)
                 linkTxt = HTML.linkWrap(self.allLinks[link]["url"], nest=self.allLinks[link]["text"])
                 linkTxt = HTML.genElement("p", nest=linkTxt, style="margin: 0px auto;")
-                linkDivs += HTML.genElement("div", nest=linkImg + linkTxt, style=f'width: {100 / int(self.columns)}%; margin: 25px auto;')
+                linkDivs += HTML.genElement("div", nest=linkImg + linkTxt, style=f"width: {100 / int(self.columns)}%; margin: 25px auto;")
 
                 if (colIndex + 1) % int(self.columns) == 0:
                     linksRows += HTML.genElement("div", nest=linkDivs, align="center", style="flex")
@@ -106,16 +106,16 @@ class links:
             if linkDivs != "":
                 linksRows += HTML.genElement("div", nest=linkDivs, align="center", style="flex")
 
-            catDivs += HTML.genElement("h1", id=f'linksPage_{cat}_Header', nest=cat, align="center", style="headerMain %% width: auto; margin: 10px auto -4px auto; font-size: 150%;")
-            catSub = HTML.genElement("div", nest=linksRows, id=f'linksPage_{cat}_Sub', classes="linksPage_Subs")
-            catDivs += HTML.genElement("div", nest=catSub, id=f'linksPage_{cat}', align="center", style="background %% min-height: 10px; margin: 0px auto 25px auto; overflow: hidden;")
+            catDivs += HTML.genElement("h1", id=f"linksPage_{cat}_Header", nest=cat, align="center", style="headerMain %% width: auto; margin: 10px auto -4px auto; font-size: 150%;")
+            catSub = HTML.genElement("div", nest=linksRows, id=f"linksPage_{cat}_Sub", classes="linksPage_Subs")
+            catDivs += HTML.genElement("div", nest=catSub, id=f"linksPage_{cat}", align="center", style="background %% min-height: 10px; margin: 0px auto 25px auto; overflow: hidden;")
 
         HTML.setElement("div", "mainPage", nest=catDivs, id="linksPage", align="center")
 
         def addEvents():
             self.busy = True
             for cat in sortedCats:
-                JS.addEvent(f'linksPage_{cat}_Header', self.toggleCat, (cat, ))
+                JS.addEvent(f"linksPage_{cat}_Header", self.toggleCat, (cat,))
             self.busy = False
 
         JS.afterDelay(addEvents, delay=50)
@@ -134,12 +134,12 @@ class links:
             JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
             if self.foldedStates[el.id.split("_")[-2]]:
                 if index < len(HTML.getElements("linksPage_Subs")) - 1:
-                    JS.aSync(doAnimations, (index + 1, ))
+                    JS.aSync(doAnimations, (index + 1,))
                 return None
             JS.aSync(setattr, (el.style, "marginTop", "0px"))
 
             if index < len(HTML.getElements("linksPage_Subs")) - 1:
-                JS.afterDelay(doAnimations, (index + 1, ), delay=250)
+                JS.afterDelay(doAnimations, (index + 1,), delay=250)
 
         for els in HTML.getElements("linksPage_Subs"):
             setattr(els.style, "marginTop", f'-{CSS.getAttribute(els.id.replace("_Sub", ""), "offsetWidth")}px')
@@ -149,10 +149,10 @@ class links:
     def toggleCat(self, cat):
         self.foldedStates[cat] = not self.foldedStates[cat]
 
-        CSS.setStyle(f'linksPage_{cat}_Sub', "marginTop", "0px")
+        CSS.setStyle(f"linksPage_{cat}_Sub", "marginTop", "0px")
 
         if self.foldedStates[cat]:
-            CSS.setStyle(f'linksPage_{cat}_Sub', "marginTop", f'-{CSS.getAttribute("linksPage_" + cat, "offsetHeight")}px')
+            CSS.setStyle(f"linksPage_{cat}_Sub", "marginTop", f'-{CSS.getAttribute("linksPage_" + cat, "offsetHeight")}px')
 
         configLinks = loads(JS.cache("configLinks"))
         configLinks["folded"] = self.foldedStates
