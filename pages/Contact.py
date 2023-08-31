@@ -11,10 +11,10 @@ class contact:
         self.busy = False
         self.requireLogin = False
 
-        with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
             self.defaultContacts = load(fileR)["defaultContacts"]
 
-        self.allContacts = dict(sorted(self.defaultContacts.items(), key=lambda x: x[1]['Index']))
+        self.allContacts = dict(sorted(self.defaultContacts.items(), key=lambda x: x[1]["Index"]))
 
     def onResize(self):
         if JS.getWindow().innerWidth < 500:
@@ -48,11 +48,11 @@ class contact:
                 if " " in msgDict["qr"]["/Contact.json"]:
                     msgDict["qr"]["/Contact.json"].pop(" ")
 
-                self.allContacts = dict(sorted({**self.defaultContacts, **msgDict["qr"]["/Contact.json"]}.items(), key=lambda x: x[1]['Index']))
+                self.allContacts = dict(sorted({**self.defaultContacts, **msgDict["qr"]["/Contact.json"]}.items(), key=lambda x: x[1]["Index"]))
             self.busy = False
 
         if "qr" in WS.dict()["access"]:
-            WS.onMsg("{\"qr\": {\"/Contact.json\":", finalize, (self, ), oneTime=True)
+            WS.onMsg('{"qr": {"/Contact.json":', finalize, (self,), oneTime=True)
             WS.send("qr read /Contact.json")
 
     def deload(self):
@@ -68,7 +68,7 @@ class contact:
             bodyImg = HTML.genElement("img", style="width: 50%; min-width: 35px; max-width: 128px; user-select:none;", custom=f'src="docs/assets/Contact/{contact}" alt="{contact}"')
             bodyImg = HTML.linkWrap(self.allContacts[contact]["url"], nest=bodyImg, classes="contactPage_Images", style="width: 50%; margin: 15px 0px 10px 15px;")
             bodyTxt = HTML.linkWrap(self.allContacts[contact]["url"], nest=self.allContacts[contact]["text"], classes="contactPage_Links", style="width: 50%; margin: auto auto auto 0px; text-align: left; font-size: 150%;")
-            body += HTML.genElement("div", nest=bodyImg + bodyTxt, classes="contactPage_Divs", id=f'contactPage_Div_{i}', align="center", style="flex %% background %% width: 85%; margin: 5px auto;")
+            body += HTML.genElement("div", nest=bodyImg + bodyTxt, classes="contactPage_Divs", id=f"contactPage_Div_{i}", align="center", style="flex %% background %% width: 85%; margin: 5px auto;")
 
         HTML.setElement("div", "mainPage", nest=header + body, id="contactPage", align="center")
 
@@ -91,7 +91,7 @@ class contact:
                 JS.aSync(setattr, (el.style, "marginRight", "5px"))
 
             if index < len(HTML.getElements("contactPage_Divs")) - 1:
-                JS.afterDelay(doAnimations, (index + 1, ), delay=250)
+                JS.afterDelay(doAnimations, (index + 1,), delay=250)
 
         for i, els in enumerate(HTML.getElements("contactPage_Divs")):
             if i % 2 == 0:

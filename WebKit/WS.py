@@ -58,8 +58,8 @@ class WebSocket:
             try:
                 data = loads(msg)
             except JSONDecodeError:
-                console.log(f'Error:\n{format_exc()}')
-                console.log(f'Message:\n{msg}')
+                console.log(f"Error:\n{format_exc()}")
+                console.log(f"Message:\n{msg}")
 
             for dict in data:
                 if not dict in self.msgDict:
@@ -94,7 +94,8 @@ class WebSocket:
 
         if self.config["token"] == "" or self.reconnectTries > 4:
             from WebKit.Widget import raiseError
-            raiseError("WARNING!", f'Connection lost to the server!\n{msg}\nPlease refresh the page to try again.', ("page_Portal", ))
+
+            raiseError("WARNING!", f"Connection lost to the server!\n{msg}\nPlease refresh the page to try again.", ("page_Portal",))
             return None
 
         self.ws = None

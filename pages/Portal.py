@@ -18,49 +18,49 @@ class portal:
                 "hidden": True,
                 "page": None,
                 "loads": sheets,
-                "command": "admin"
+                "command": "admin",
             },
             "Monitor": {
                 "hidden": True,
                 "page": None,
                 "loads": trees,
-                "command": "monitor"
+                "command": "monitor",
             },
             "Sonos": {
                 "hidden": True,
                 "page": None,
                 "loads": sonos,
-                "command": "sonos"
+                "command": "sonos",
             },
             "Tapo": {
                 "hidden": True,
                 "page": None,
                 "loads": tapo,
-                "command": "tapo"
+                "command": "tapo",
             },
             "YT-DL": {
                 "hidden": True,
                 "page": None,
                 "loads": ytdl,
-                "command": "yt"
+                "command": "yt",
             },
             "Asset Manager": {
                 "hidden": True,
                 "page": None,
                 "loads": sheets,
-                "command": "am"
+                "command": "am",
             },
             "License Manager": {
                 "hidden": True,
                 "page": None,
                 "loads": sheets,
-                "command": "lm"
+                "command": "lm",
             },
             "Query": {
                 "hidden": True,
                 "page": None,
                 "loads": sheets,
-                "command": "qr"
+                "command": "qr",
             },
         }
         self.portalPages = self.portalPagesDefault
@@ -120,7 +120,7 @@ class portal:
 
                 JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
                 for page in self.portalPages:
-                    CSS.setStyle(f'portalPage_button_{page}Div', "marginLeft", f'-{CSS.getAttribute("portalFlyout", "offsetWidth")}px')
+                    CSS.setStyle(f"portalPage_button_{page}Div", "marginLeft", f'-{CSS.getAttribute("portalFlyout", "offsetWidth")}px')
 
                 JS.afterDelay(setattr, (self, "busy", False), delay=350)
                 return None
@@ -137,7 +137,7 @@ class portal:
             JS.afterDelay(CSS.setStyle, ("portalFlyout", "maxHeight", ""), delay=350)
             self.onResize()
             for page in self.portalPages:
-                JS.afterDelay(CSS.setStyle, (f'portalPage_button_{page}Div', "marginLeft", "0px"), delay=100)
+                JS.afterDelay(CSS.setStyle, (f"portalPage_button_{page}Div", "marginLeft", "0px"), delay=100)
 
             JS.afterDelay(setattr, (self, "busy", False), delay=350)
 
@@ -146,7 +146,7 @@ class portal:
                 break
         else:
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
-            body = HTML.genElement("p", nest="You don\'t have access to any portals!<br>Please request access if you think this is a mistake.", style="textBig")
+            body = HTML.genElement("p", nest="You don't have access to any portals!<br>Please request access if you think this is a mistake.", style="textBig")
             HTML.setElement("div", "mainPage", nest=header + body, id="portalPage", align="center", style="width: 92.5%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
 
         flyoutImg = HTML.genElement("img", id="portalPage_button_showHideImg", style="width: 100%;", custom='src="docs/assets/Portal/Hide-H.png" alt="Fold"')
@@ -159,27 +159,25 @@ class portal:
                 divStyle = "width: 100%; margin: 5px auto 0px 0px; transition: margin 0.25s;"
 
             flyoutImg = HTML.genElement("img", style="width: 100%;", custom=f'src="docs/assets/Portal/{page}.png" alt="{page}"')
-            flyoutBtn = HTML.genElement("button", id=f'portalPage_button_{page}', nest=flyoutImg, style="buttonImg")
-            flyoutDivs += HTML.genElement("div", nest=flyoutBtn, id=f'portalPage_button_{page}Div', align="center", style=divStyle)
+            flyoutBtn = HTML.genElement("button", id=f"portalPage_button_{page}", nest=flyoutImg, style="buttonImg")
+            flyoutDivs += HTML.genElement("div", nest=flyoutBtn, id=f"portalPage_button_{page}Div", align="center", style=divStyle)
 
         minMaxRequirements = " min-width: 30px; max-width: 107px; transition: max-width 0.25s, max-height 0.25s, margin 0.25s, width 0.25s, padding 0.25s"
-        flyout = HTML.genElement("div",
-                                 nest=flyoutDivs,
-                                 id="portalFlyout",
-                                 align="left",
-                                 style=f'z-index: 999; width: 6.5%; height: 100%; margin: -11px 0px -11px -11px; padding: 5px 0.5%; background: #222; border: 6px solid #111; border-radius: 10px;{minMaxRequirements}')
+        flyout = HTML.genElement(
+            "div", nest=flyoutDivs, id="portalFlyout", align="left", style=f"z-index: 999; width: 6.5%; height: 100%; margin: -11px 0px -11px -11px; padding: 5px 0.5%; background: #222; border: 6px solid #111; border-radius: 10px;{minMaxRequirements}"
+        )
         portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: 92.5%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
         HTML.setElement("div", "mainPage", nest=flyout + portalPage, id="portalWrapper", align="center", style="flex")
 
         def addEvents():
             self.busy = True
 
-            JS.addEvent("portalPage_button_showHide", showHideFlyout, (self, ))
+            JS.addEvent("portalPage_button_showHide", showHideFlyout, (self,))
             CSS.onHoverClick("portalPage_button_showHide", "imgHover", "imgClick")
 
             for page in self.portalPages:
-                JS.addEvent(f'portalPage_button_{page}', self.loadPortalPage, kwargs={"page": page})
-                CSS.onHoverClick(f'portalPage_button_{page}', "imgHover", "imgClick")
+                JS.addEvent(f"portalPage_button_{page}", self.loadPortalPage, kwargs={"page": page})
+                CSS.onHoverClick(f"portalPage_button_{page}", "imgHover", "imgClick")
 
             self.busy = False
 
@@ -204,7 +202,7 @@ class portal:
                 JS.afterDelay(self.deloadPortalPage, kwargs={"page": page, "firstRun": False}, delay=50)
                 return None
 
-            JS.log(f'Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}')
+            JS.log(f"Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}")
             self.portalPages[self.oldPage]["page"].busy = False
 
         self.oldPage = None
@@ -224,7 +222,7 @@ class portal:
                 JS.afterDelay(self.stallPortalPage, kwargs={"page": page, "firstRun": False}, delay=50)
                 return None
 
-            JS.log(f'Warning: Force loaded page (Reason page is busy for to long) -> {page}')
+            JS.log(f"Warning: Force loaded page (Reason page is busy for to long) -> {page}")
             self.portalPages[page]["page"].busy = False
 
         self.loadPortalPage(page, didStall=True, rememberSubPage=True)

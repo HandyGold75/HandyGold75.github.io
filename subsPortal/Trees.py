@@ -25,7 +25,7 @@ class trees:
 
     def getData(self):
         if (datetime.now() - timedelta(seconds=1)).timestamp() > self.lastUpdate:
-            WS.send(f'{self.mainCom} read')
+            WS.send(f"{self.mainCom} read")
 
             self.lastUpdate = datetime.now().timestamp()
 
@@ -56,7 +56,7 @@ class trees:
         if not firstRun:
             if self.busy:
                 CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
-                JS.afterDelay(finalize, (self, ), delay=250)
+                JS.afterDelay(finalize, (self,), delay=250)
             return None
 
         self.busy = True
@@ -71,12 +71,12 @@ class trees:
         JS.aSync(CSS.setStyle, ("portalPage", "marginLeft", "0px"))
         JS.aSync(loadingTxt)
 
-        with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
             config = load(fileR)["trees"][JS.cache("portalPage")]
         for attribute in self.allConfigKeys:
             setattr(self, attribute, config[attribute])
 
-        WS.onMsg("{\"" + self.mainCom + "\":", self.preload, kwargs={"firstRun": False}, oneTime=True)
+        WS.onMsg('{"' + self.mainCom + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
         self.getData()
 
     def deload(self):
@@ -90,7 +90,7 @@ class trees:
 
         CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
         JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
-        JS.afterDelay(fininalize, (self, ), delay=250)
+        JS.afterDelay(fininalize, (self,), delay=250)
 
     def layout(self, subPage: str = None):
         data = WS.dict()[self.mainCom]
@@ -99,7 +99,7 @@ class trees:
         for file in data:
             if not file in self.knownTrees:
                 continue
-            navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f'portalSubPage_nav_main_{file}', type="button", style="buttonSmall")
+            navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f"portalSubPage_nav_main_{file}", type="button", style="buttonSmall")
 
         if navBtns == "":
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
@@ -124,9 +124,9 @@ class trees:
                 if not file in self.knownTrees:
                     continue
 
-                JS.addEvent(f'portalSubPage_nav_main_{file}', self.loadPortalSubPage, kwargs={"portalSubPage": file})
-                JS.addEvent(f'portalSubPage_nav_main_{file}', self.getData, action="mousedown")
-                CSS.onHoverClick(f'portalSubPage_nav_main_{file}', "buttonHover", "buttonClick")
+                JS.addEvent(f"portalSubPage_nav_main_{file}", self.loadPortalSubPage, kwargs={"portalSubPage": file})
+                JS.addEvent(f"portalSubPage_nav_main_{file}", self.getData, action="mousedown")
+                CSS.onHoverClick(f"portalSubPage_nav_main_{file}", "buttonHover", "buttonClick")
 
             for button in self.extraButtons:
                 JS.addEvent(f'portalSubPage_nav_options_{button["id"]}', self.evalMap[button["function"]])
