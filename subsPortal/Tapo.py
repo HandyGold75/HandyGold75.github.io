@@ -1,10 +1,12 @@
-from WebKit.init import HTML, CSS, JS, WS
-from WebKit import Widget
-from rsa import encrypt
-from json import dumps, loads, load
-from os import path as osPath
-from datetime import datetime, timedelta
 import math
+from datetime import datetime, timedelta
+from json import dumps, load, loads
+from os import path as osPath
+
+from rsa import encrypt
+
+from WebKit import Widget
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class tapo:
@@ -553,18 +555,18 @@ class tapo:
             if not button["active"]:
                 HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
 
-        fileData = loads(JS.cache("configTapo"))
-        if fileData == {}:
+        configTapo = loads(JS.cache("configTapo"))
+        if configTapo == {}:
             JS.cache("configTapo", dumps(self.defaultConfig))
-            fileData = self.defaultConfig
+            configTapo = self.defaultConfig
 
-        dataTemp, fileData = (fileData, {})
+        dataTemp, configTapo = (configTapo, {})
         for i, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")])):
-            fileData[key] = {}
+            configTapo[key] = {}
             try:
-                fileData[key]["Value"] = dataTemp[key]
+                configTapo[key]["Value"] = dataTemp[key]
             except IndexError:
-                fileData[key]["Value"] = ""
+                configTapo[key]["Value"] = ""
 
         options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
         sheet = Widget.sheet(
@@ -577,7 +579,7 @@ class tapo:
             showAction=False,
             wordWrap=self.wordWrap,
         )
-        HTML.setElementRaw("portalSubPage", sheet.generate(dict(fileData)))
+        HTML.setElementRaw("portalSubPage", sheet.generate(dict(configTapo)))
         JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self.loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
 
     def configPageSubmit(self, key, value):

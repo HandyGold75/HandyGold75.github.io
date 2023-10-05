@@ -1,6 +1,7 @@
-from WebKit.init import HTML, CSS, JS, WS
-from pages.init import home, links, portal, contact, login
 from json import loads
+
+from pages.init import contact, home, links, login, portal
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class index:
