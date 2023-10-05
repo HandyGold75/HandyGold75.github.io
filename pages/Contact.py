@@ -1,7 +1,7 @@
-from WebKit.init import HTML, CSS, JS, WS
 from json import load
 from os import path as osPath
-from locale import LC_ALL
+
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class contact:

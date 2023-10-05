@@ -1,5 +1,5 @@
-from WebKit.init import HTML, CSS, JS, WS
-from subsPortal.init import sonos, tapo, ytdl, sheets, trees
+from subsPortal.init import sheets, sonos, tapo, trees, ytdl
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class portal:

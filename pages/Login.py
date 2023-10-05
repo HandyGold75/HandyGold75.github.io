@@ -1,7 +1,9 @@
-from WebKit.init import HTML, CSS, JS, WS
 from datetime import datetime, timedelta
-from rsa import encrypt
 from json import dumps, loads
+
+from rsa import encrypt
+
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class login:

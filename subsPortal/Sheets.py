@@ -1,8 +1,9 @@
-from WebKit.init import HTML, CSS, JS, WS
-from WebKit import Widget
 from datetime import datetime, timedelta
 from json import load
 from os import path as osPath
+
+from WebKit import Widget
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class sheets:
@@ -35,7 +36,7 @@ class sheets:
     def getData(self):
         if (datetime.now() - timedelta(seconds=1)).timestamp() > self.lastUpdate:
             for file in self.knownFiles:
-                WS.send(f'{self.mainCom} read {file}')
+                WS.send(f"{self.mainCom} read {file}")
             self.lastUpdate = datetime.now().timestamp()
 
     def onResize(self):
@@ -65,7 +66,7 @@ class sheets:
         if not firstRun:
             if self.busy:
                 CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
-                JS.afterDelay(finalize, (self, ), delay=250)
+                JS.afterDelay(finalize, (self,), delay=250)
             return None
 
         self.busy = True
@@ -80,12 +81,12 @@ class sheets:
         JS.aSync(CSS.setStyle, ("portalPage", "marginLeft", "0px"))
         JS.aSync(loadingTxt)
 
-        with open(f'{osPath.split(__file__)[0]}/config.json', "r", encoding="UTF-8") as fileR:
+        with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
             config = load(fileR)["sheets"][JS.cache("portalPage")]
         for attribute in self.allConfigKeys:
             setattr(self, attribute, config[attribute])
 
-        WS.onMsg("{\"" + self.mainCom + "\": {\"" + tuple(self.knownFiles)[-1] + "\":", self.preload, kwargs={"firstRun": False}, oneTime=True)
+        WS.onMsg('{"' + self.mainCom + '": {"' + tuple(self.knownFiles)[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
         self.getData()
 
     def deload(self):
@@ -99,7 +100,7 @@ class sheets:
 
         CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
         JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
-        JS.afterDelay(fininalize, (self, ), delay=250)
+        JS.afterDelay(fininalize, (self,), delay=250)
 
     def layout(self, subPage: str = None):
         data = WS.dict()[self.mainCom]
@@ -108,7 +109,7 @@ class sheets:
         for file in data:
             if not file in self.knownFiles:
                 continue
-            navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f'portalSubPage_nav_main_{file}', type="button", style="buttonSmall")
+            navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f"portalSubPage_nav_main_{file}", type="button", style="buttonSmall")
 
         if navBtns == "":
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
@@ -133,9 +134,9 @@ class sheets:
                 if not file in self.knownFiles:
                     continue
 
-                JS.addEvent(f'portalSubPage_nav_main_{file}', self.loadPortalSubPage, kwargs={"portalSubPage": file})
-                JS.addEvent(f'portalSubPage_nav_main_{file}', self.getData, action="mousedown")
-                CSS.onHoverClick(f'portalSubPage_nav_main_{file}', "buttonHover", "buttonClick")
+                JS.addEvent(f"portalSubPage_nav_main_{file}", self.loadPortalSubPage, kwargs={"portalSubPage": file})
+                JS.addEvent(f"portalSubPage_nav_main_{file}", self.getData, action="mousedown")
+                CSS.onHoverClick(f"portalSubPage_nav_main_{file}", "buttonHover", "buttonClick")
 
             for button in self.extraButtons:
                 JS.addEvent(f'portalSubPage_nav_options_{button["id"]}', self.evalMap[button["function"]])
@@ -311,7 +312,7 @@ class sheets:
         if JS.cache("portalSubPage") == "":
             return None
 
-        WS.onMsg("{\"" + self.mainCom + "\": {\"" + {JS.cache("portalSubPage").replace(" ", "%20")} + "\":", lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
+        WS.onMsg('{"' + self.mainCom + '": {"' + {JS.cache("portalSubPage").replace(" ", "%20")} + '":', lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
         WS.send(f'{self.mainCom} uadd {JS.cache("portalSubPage").replace(" ", "%20")}')
 
     def bulkAdd(self):
@@ -330,7 +331,7 @@ class sheets:
             return None
 
         def doAction(self, i, prefix):
-            WS.onMsg("{\"" + self.mainCom + "\": {\"" + JS.cache("portalSubPage").replace(" ", "%20") + "\":", lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
+            WS.onMsg('{"' + self.mainCom + '": {"' + JS.cache("portalSubPage").replace(" ", "%20") + '":', lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
             WS.send(f'{self.mainCom} add {JS.cache("portalSubPage").replace(" ", "%20")} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
 
         if JS.popup("confirm", f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
@@ -346,8 +347,8 @@ class sheets:
             JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()[self.mainCom]["Cleaned"])}')
 
         if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
-            WS.onMsg("{\"" + self.mainCom + "\": {\"Cleaned\":", cleanResults, oneTime=True)
-            WS.send(f'{self.mainCom} clean')
+            WS.onMsg('{"' + self.mainCom + '": {"Cleaned":', cleanResults, oneTime=True)
+            WS.send(f"{self.mainCom} clean")
 
     def main(self):
         if not self.mainCom in WS.dict():
