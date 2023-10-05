@@ -1,7 +1,9 @@
-from js import document, console
-from WebKit import CSS
 from json import load
 from os import path as osPath
+
+from js import document
+
+from WebKit import CSS
 
 
 class glb:
@@ -10,8 +12,10 @@ class glb:
     onFocusStyles = CSS.glb.onFocusStyles
     disabledStyles = {}
 
-    with open(f"{osPath.split(__file__)[0]}/styleMap.json", "r", encoding="UTF-8") as fileR:
-        styleMap = load(fileR)["HTML"]
+    with open(f"{osPath.split(__file__)[0]}/map.json", "r", encoding="UTF-8") as fileR:
+        fileData = load(fileR)
+        inlineMap = fileData["InlineHTML"]
+        styleMap = fileData["StyleHTML"]
 
     def expandStyle(style):
         if style is None or not style.split(" %% ")[0] in glb.styleMap:
@@ -19,7 +23,6 @@ class glb:
 
         subStyleMerged = ""
         styleTmp = style.split(" %% ")
-
         for styleKey in styleTmp:
             if not styleKey in glb.styleMap:
                 continue
@@ -36,21 +39,51 @@ class glb:
 
         return f'{subStyleMerged}{style.split(" %% ")[-1]}'
 
-    def constructHTML(tag: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-        args = {"id": id, "class": classes, "type": type, "src": src, "alt": alt, "align": align, "style": glb.expandStyle(style)}
-        additionsStr = ""
-        for arg in args:
-            if args[arg] == "":
+    def expandInline(inline):
+        if inline is None or not inline.split(" %% ")[0] in glb.inlineMap:
+            return {"tag": inline}
+
+        subInlineMerged = {}
+        inlineTmp = inline.split(" %% ")
+        for inlineKey in inlineTmp:
+            if not inlineKey in glb.inlineMap:
                 continue
 
+            for subInlineKey in glb.inlineMap[inlineKey]:
+                if subInlineKey in subInlineMerged:
+                    continue
+                if subInlineKey == "style":
+                    subInlineMerged[subInlineKey] = glb.expandStyle(glb.inlineMap[inlineKey][subInlineKey])
+
+                subInlineMerged[subInlineKey] = glb.inlineMap[inlineKey][subInlineKey]
+
+        return subInlineMerged
+
+    def constructHTML(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+        args = {"id": id, "class": classes, "type": type, "src": src, "alt": alt, "align": align, "style": glb.expandStyle(style)}
+        for arg in dict(args):
+            if args[arg] == "":
+                args.pop(arg)
+
+        args = {**glb.expandInline(tag), **args}
+        additionsStr = ""
+        for arg in args:
+            if arg == "tag":
+                continue
             additionsStr += f' {arg}="{args[arg]}"'
 
         additionsStr += f" {custom}"
-
         nest = nest.replace("\n", "<br>")
-        htmlStr = f"{prepend}<{tag}{additionsStr}>{nest}"
-        if not tag in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
-            htmlStr += f"</{tag}>"
+        htmlStr = f'{prepend}<{args["tag"]}{additionsStr}>{nest}'
+        if not args["tag"] in ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]:
+            htmlStr += f'</{args["tag"]}>'
+
+        if wrap == "":
+            return htmlStr
+        elif wrap.count("><") > 1:
+            raise ValueError(f"Wrapper contains to many elements: {wrap}")
+        elif wrap.count("><") == 1:
+            htmlStr = f'{wrap.split("><")[0]}>{htmlStr}<{wrap.split("><")[-1]}'
 
         return htmlStr
 
@@ -63,20 +96,20 @@ def getElements(classId: str):
     return list(document.getElementsByClassName(classId))
 
 
-def genElement(tag: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
+def genElement(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    return glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
 
 
-def setElement(tag: str, targetId: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
+def setElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
 
 
 def setElementRaw(id: str, HTML: str):
     document.getElementById(id).innerHTML = HTML
 
 
-def addElement(tag: str, targetId: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, prepend, id, classes, type, src, alt, align, style, custom)
+def addElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
 
 
 def addElementRaw(id: str, HTML: str):
@@ -123,8 +156,8 @@ def clrElements(classId: str):
         item.innerHTML = ""
 
 
-def linkWrap(href: str, nest: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML("a", nest, prepend, id, classes, "", "", "", align, f"{style} color: #44F;", f'{custom} href="{href}" target="_blank"')
+def linkWrap(href: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", custom: str = ""):
+    return glb.constructHTML("a", nest, wrap, prepend, id, classes, "", "", "", align, f"{style} color: #44F;", f'{custom} href="{href}" target="_blank"')
 
 
 def disableElement(id: str):

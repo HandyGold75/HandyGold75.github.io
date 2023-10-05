@@ -1,5 +1,6 @@
 {
-    "HTML": {
+    "InlineHTML": {},
+    "StyleHTML": {
         "headerMain": "width: 95%; margin: 10px auto; text-align: center; font-size: 200%; font-weight: bold; color: #55F; background: #202020; border: 4px solid #181818; border-radius: 10px; user-select: none",
         "headerVeryBig": "margin: 10px auto; text-align: center; font-size: 175%; font-weight: bold; color: #55F; user-select: none",
         "headerBig": "margin: 10px auto; text-align: center; font-size: 150%; font-weight: bold; color: #55F; user-select: none",
@@ -28,7 +29,7 @@
         "flex": "display: flex",
         "pageLinks_Base": "width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111"
     },
-    "CSS": {
+    "StyleCSS": {
         "buttonHover": "z-index: 101; color: #FFF; background: #444; transition: 0.25s",
         "buttonClick": "z-index: 102; color: #55F; background: #BBF; transition: 0.1s",
         "inputHover": "z-index: 111; color: #FFF; background: #444; transition: 0.25s",

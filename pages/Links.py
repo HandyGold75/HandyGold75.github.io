@@ -1,6 +1,7 @@
-from WebKit.init import HTML, CSS, JS, WS
-from json import dumps, loads, load
+from json import dumps, load, loads
 from os import path as osPath
+
+from WebKit.init import CSS, HTML, JS, WS
 
 
 class links:

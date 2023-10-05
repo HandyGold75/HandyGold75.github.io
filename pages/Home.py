@@ -1,4 +1,4 @@
-from WebKit.init import HTML, CSS, JS
+from WebKit.init import CSS, HTML, JS
 
 
 class home:

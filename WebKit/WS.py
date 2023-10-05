@@ -1,8 +1,9 @@
-from js import document, window, eval, console
-from rsa import PublicKey
-from json import loads, dumps, JSONDecodeError
 from copy import deepcopy
+from json import JSONDecodeError, dumps, loads
 from traceback import format_exc
+
+from js import console, eval, window
+from rsa import PublicKey
 
 
 class WebSocket:

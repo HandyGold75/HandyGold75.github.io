@@ -1,7 +1,8 @@
-from js import document, console
-from pyodide.ffi import create_proxy  # type: ignore
 from json import load
 from os import path as osPath
+
+from js import document
+from pyodide.ffi import create_proxy  # type: ignore
 
 
 class glb:
@@ -9,8 +10,8 @@ class glb:
     onClickStyles = {}
     onFocusStyles = {}
 
-    with open(f"{osPath.split(__file__)[0]}/styleMap.json", "r", encoding="UTF-8") as fileR:
-        styleMap = load(fileR)["CSS"]
+    with open(f"{osPath.split(__file__)[0]}/map.json", "r", encoding="UTF-8") as fileR:
+        styleMap = load(fileR)["StyleCSS"]
 
     def expandStyle(style):
         if style is None or not style.split(" %% ")[0] in glb.styleMap:
@@ -18,7 +19,6 @@ class glb:
 
         subStyleMerged = ""
         styleTmp = style.split(" %% ")
-
         for styleKey in styleTmp:
             if not styleKey in glb.styleMap:
                 continue

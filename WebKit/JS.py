@@ -1,5 +1,5 @@
-from js import document, window, eval, setTimeout, setInterval, console
-from pyodide.ffi import create_proxy, create_once_callable  # type: ignore
+from js import console, document, eval, setInterval, setTimeout, window
+from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 
 
 class glb:

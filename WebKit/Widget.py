@@ -1,8 +1,10 @@
-from js import document, window, setTimeout, console
-from pyodide.ffi import create_proxy, create_once_callable  # type: ignore
-from WebKit.init import HTML, CSS, JS, WS
 from datetime import datetime
+
+from js import document, setTimeout, window
+from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 from rsa import encrypt
+
+from WebKit.init import CSS, HTML, JS, WS
 
 
 def raiseError(header: str, msg: str, disableIds: list = ()):
@@ -287,7 +289,7 @@ class sheet:
                 HTML.addElement("button", self.elId, id=f"{self.maincom}_{self.name}_loadMore", nest=f"Load more (0 / {len(self.lines)})", type="button", style="buttonBig %% width: 50%;")
                 document.getElementById(f"{self.maincom}_{self.name}_loadMore").addEventListener("click", create_proxy(lambda element=None: self.recursion()))
                 CSS.onHoverClick(f"{self.maincom}_{self.name}_loadMore", "buttonHover", "buttonClick")
-
+                
         self.eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
         rows = self.getAllRows()
 
@@ -366,7 +368,7 @@ class sheet:
             txt = HTML.genElement("p", id=f"{maincom}_{sheet}_{tag}_{key}_{valueType}", nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             el.parentElement.innerHTML = txt
             document.getElementById(f"{maincom}_{sheet}_{tag}_{key}_{valueType}").addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
-
+            
         def submitDate(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None
