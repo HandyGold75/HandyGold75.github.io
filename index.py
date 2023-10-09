@@ -43,7 +43,7 @@ class index:
     def onResize(self):
         if JS.getWindow().innerWidth < 500:
             CSS.setStyles("body", (("padding", "0px"), ("fontSize", "50%")))
-            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
                 CSS.setStyle("mainNav_showHideDiv", "maxWidth", "35px")
                 CSS.setStyle("mainNav_logo", "maxWidth", "70px")
                 CSS.setStyle("mainFooter", "padding", "3px 5px")
@@ -51,14 +51,14 @@ class index:
 
         elif JS.getWindow().innerWidth < 1000:
             CSS.setStyles("body", (("padding", "0px 10px"), ("fontSize", "75%")))
-            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
                 CSS.setStyle("mainNav_showHideDiv", "maxWidth", "42.5px")
                 CSS.setStyle("mainNav_logo", "maxWidth", "85px")
                 CSS.setStyle("mainFooter", "padding", "5px 5px")
             return None
 
         CSS.setStyles("body", (("padding", "0px 20px"), ("fontSize", "100%")))
-        if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.png"):
+        if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
             CSS.setStyle("mainNav_showHideDiv", "maxWidth", "50px")
             CSS.setStyle("mainNav_logo", "maxWidth", "101px")
             CSS.setStyle("mainFooter", "padding", "10px 5px")
@@ -67,8 +67,8 @@ class index:
         def showHideNav():
             el = HTML.getElement("mainNav_showHideImg")
 
-            if el.src.endswith("docs/assets/Hide-V.png"):
-                el.src = "docs/assets/Show-V.png"
+            if el.src.endswith("docs/assets/Hide-V.svg"):
+                el.src = "docs/assets/Show-V.svg"
                 el.alt = "Unfold"
                 CSS.setStyle("mainNav", "padding", "0px")
                 CSS.setStyle("mainNav_middle", "marginTop", f'-{CSS.getAttribute("mainNav", "offsetHeight")}px')
@@ -77,7 +77,7 @@ class index:
                 CSS.setStyle("mainFooter", "padding", "3px 5px")
                 return None
 
-            el.src = "docs/assets/Hide-V.png"
+            el.src = "docs/assets/Hide-V.svg"
             el.alt = "Fold"
             CSS.setStyle("mainNav", "padding", "5px")
             CSS.setStyle("mainNav_middle", "marginTop", "0px")
@@ -97,7 +97,7 @@ class index:
         navDiv = HTML.genElement("div", nest=navButtons, id="mainNav_buttons", align="center", style="padding: 4px; margin: 0px auto;")
         nav += HTML.genElement("div", nest=navTxt + navDiv, id="mainNav_middle", align="center", style="width: 80%; transition: margin-top 0.5s;")
 
-        navImg = HTML.genElement("img", id="mainNav_showHideImg", style="width: 100%;", custom='src="docs/assets/Hide-V.png" alt="Fold"')
+        navImg = HTML.genElement("img", id="mainNav_showHideImg", style="width: 100%;", custom='src="docs/assets/Hide-V.svg" alt="Fold"')
         navBtn = HTML.genElement("button", id="mainNav_showHide", nest=navImg, style="buttonImg")
         nav += HTML.genElement("div", nest=navBtn, id="mainNav_showHideDiv", align="right", style="width: 20%; max-width: 50px; margin: auto 5px auto auto; transition: max-width 0.25s;")
 

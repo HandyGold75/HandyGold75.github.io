@@ -26,19 +26,26 @@
                     "Index": {
                         "Date/ Time": "",
                         "Criticality": "",
+                        "Message": ""
+                    }
+                },
+                "/clientHandler.log": {
+                    "Index": {
+                        "Date/ Time": "",
+                        "Criticality": "",
                         "IP/ Port": "",
                         "Command": "",
                         "Status": ""
                     }
                 },
-                "/tapoMonitor.log": {
+                "/documentServer.log": {
                     "Index": {
                         "Date/ Time": "",
                         "Criticality": "",
                         "Message": ""
                     }
                 },
-                "/documentServer.log": {
+                "/tapoMonitor.log": {
                     "Index": {
                         "Date/ Time": "",
                         "Criticality": "",
