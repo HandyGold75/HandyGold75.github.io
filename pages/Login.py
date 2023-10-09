@@ -84,7 +84,7 @@ class login:
         bodyDiv += HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
         body = HTML.genElement("div", id="loginPage_login", nest=bodyDiv, style="width: 75%; margin: 20px auto; max-width: 750px; transition: width 0.25s;")
 
-        footerImg = HTML.genElement("img", id="loginPage_rememberImg", style="width: 100%;", custom='src="docs/assets/Login/Pin.png" alt="Remember"')
+        footerImg = HTML.genElement("img", id="loginPage_rememberImg", style="width: 100%;", custom='src="docs/assets/Login/Pin.svg" alt="Remember"')
         footerBtn = HTML.genElement("button", id="loginPage_remember", nest=footerImg, style="buttonImg")
         footerDiv = HTML.genElement("div", nest=footerBtn, id="loginPage_rememberDiv", align="right", style="width: 20%; max-width: 50px; margin: auto auto auto 5px;")
 

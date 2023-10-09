@@ -897,7 +897,7 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
 
 
 def ytVideo(name: str):
-    img = HTML.genElement("img", style="z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;", custom='src="docs/assets/Widgets/Transparent.png" alt="Black"')
+    img = HTML.genElement("img", style="z-index: 1; user-select: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;", custom='src="docs/assets/Widgets/Transparent.svg" alt="Black"')
     img = HTML.genElement("div", nest=img, id=f"{name}_img", style="margin-bottom: -56.25%; position: relative; width: 100%; height: 0px; padding-bottom: 56.25%;")
 
     ifr = HTML.genElement("div", id=f"{name}_ifr", style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;", custom='frameborder="0"')

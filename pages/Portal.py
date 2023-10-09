@@ -108,8 +108,8 @@ class portal:
             self.busy = True
 
             el = HTML.getElement("portalPage_button_showHideImg")
-            if el.src.endswith("docs/assets/Portal/Hide-H.png"):
-                el.src = "docs/assets/Portal/Show-H.png"
+            if el.src.endswith("docs/assets/Portal/Hide-H.svg"):
+                el.src = "docs/assets/Portal/Show-H.svg"
                 el.alt = "Unfold"
 
                 CSS.setStyle("portalPage", "marginLeft", "auto")
@@ -125,7 +125,7 @@ class portal:
                 JS.afterDelay(setattr, (self, "busy", False), delay=350)
                 return None
 
-            el.src = "docs/assets/Portal/Hide-H.png"
+            el.src = "docs/assets/Portal/Hide-H.svg"
             el.alt = "Fold"
 
             CSS.setStyles("portalPage", (("marginLeft", "auto"), ("width", "92.5%")))
@@ -149,7 +149,7 @@ class portal:
             body = HTML.genElement("p", nest="You don't have access to any portals!<br>Please request access if you think this is a mistake.", style="textBig")
             HTML.setElement("div", "mainPage", nest=header + body, id="portalPage", align="center", style="width: 92.5%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
 
-        flyoutImg = HTML.genElement("img", id="portalPage_button_showHideImg", style="width: 100%;", custom='src="docs/assets/Portal/Hide-H.png" alt="Fold"')
+        flyoutImg = HTML.genElement("img", id="portalPage_button_showHideImg", style="width: 100%;", custom='src="docs/assets/Portal/Hide-H.svg" alt="Fold"')
         flyoutBtn = HTML.genElement("button", id="portalPage_button_showHide", nest=flyoutImg, style="buttonImg")
         flyoutDivs = HTML.genElement("div", nest=flyoutBtn, id="portalPage_button_showHideDiv", align="center", style="width: 100%; margin: 0px auto 5px 0px;")
 
@@ -158,7 +158,7 @@ class portal:
             if i + 1 >= len(self.portalPages):
                 divStyle = "width: 100%; margin: 5px auto 0px 0px; transition: margin 0.25s;"
 
-            flyoutImg = HTML.genElement("img", style="width: 100%;", custom=f'src="docs/assets/Portal/{page}.png" alt="{page}"')
+            flyoutImg = HTML.genElement("img", style="width: 100%;", custom=f'src="docs/assets/Portal/{page}.svg" alt="{page}"')
             flyoutBtn = HTML.genElement("button", id=f"portalPage_button_{page}", nest=flyoutImg, style="buttonImg")
             flyoutDivs += HTML.genElement("div", nest=flyoutBtn, id=f"portalPage_button_{page}Div", align="center", style=divStyle)
 

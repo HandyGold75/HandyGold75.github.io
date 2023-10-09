@@ -271,16 +271,19 @@ class ytdl:
 
         resDiv = HTML.genElement("div", nest=self.getRecords(history=True), style="divNormal")
 
-        data = WS.dict()[self.mainCom]
-        for index in reversed(data["history"]):
-            JS.addEvent(f"portalSubPage_results_rem_{index}", removeFromDownload, includeElement=True)
-            CSS.onHoverClick(f"portalSubPage_results_rem_{index}", "imgHover", "imgClick")
-
         resHeader = HTML.genElement("h1", nest="History", style="headerMain %% width: 95%; width: 100%;  margin: 0px auto -4px auto;")
         resBody = HTML.genElement("div", nest=resDiv, id="portalSubPage_results_out", style="background %% width: 100%; min-height: 20px; margin: 0px auto;")
         res = HTML.genElement("div", nest=resHeader + resBody, id="portalSubPage_results", style="divNormal %% width: 95%; ")
 
         HTML.addElementRaw("portalSubPage", res)
+
+        def addEvents():
+            data = WS.dict()[self.mainCom]
+            for index in reversed(data["history"]):
+                JS.addEvent(f"portalSubPage_results_rem_{index}", removeFromDownload, includeElement=True)
+                CSS.onHoverClick(f"portalSubPage_results_rem_{index}", "imgHover", "imgClick")
+
+        JS.afterDelay(addEvents, delay=50)
 
     def getRecords(self, history=False):
         dataKey = "history" if history else "downloads"
@@ -288,7 +291,7 @@ class ytdl:
         records = ""
         for index in reversed(data[dataKey]):
             values = HTML.genElement("h1", nest=index, style="headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;")
-            remImg = HTML.genElement("img", id=f"portalSubPage_results_rem_img_{index}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+            remImg = HTML.genElement("img", id=f"portalSubPage_results_rem_img_{index}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.svg" alt="Rem"')
             remBtn = HTML.genElement("button", nest=remImg, id=f"portalSubPage_results_rem_{index}", style="buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;")
             rem = HTML.genElement("div", nest=remBtn, align="right", style="max-width: 50px; max-height: 50px; margin: 0px 0px 0px auto;")
             values += HTML.genElement("div", nest=rem, style="flex %% width: 7.5%; height: 0px; margin: 0px 0px 0px 92.5%;")

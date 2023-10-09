@@ -312,20 +312,20 @@ class tapo:
             self.addGraph(plug)
 
         def header(plug):
-            img = HTML.genElement(f"img", id=f"Info_img_{plug}", style=f"width: 100%;", custom=f'src="docs/assets/Portal/Tapo/Info.png" alt="Info"')
+            img = HTML.genElement(f"img", id=f"Info_img_{plug}", style=f"width: 100%;", custom=f'src="docs/assets/Portal/Tapo/Info.svg" alt="Info"')
             btn = HTML.genElement(f"button", nest=f"{img}", id=f"Info_{plug}", style=f"buttonImg %% border: 0px solid #222; border-radius: 16px;")
             info = HTML.genElement(f"div", nest=f"{btn}", align=f"center", style=f"width: 15%; min-width: 30px; margin: auto;")
 
             txt = HTML.genElement(f"h1", nest=f"{plug}", style=f"headerMedium %% width: 70%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;")
 
-            img = HTML.genElement(f"img", id=f"Power_img_{plug}", style=f"width: 100%;", custom=f'src="docs/assets/Portal/Tapo/Power.png" alt="Power"')
+            img = HTML.genElement(f"img", id=f"Power_img_{plug}", style=f"width: 100%;", custom=f'src="docs/assets/Portal/Tapo/Power.svg" alt="Power"')
             btn = HTML.genElement(f"button", nest=f"{img}", id=f"Power_{plug}", style=f"buttonImg %% border: 0px solid #222; border-radius: 16px;")
             power = HTML.genElement(f"div", nest=f"{btn}", align=f"center", style=f"width: 15%; min-width: 30px; margin: auto;")
 
             return HTML.genElement(f"div", nest=f"{info}{txt}{power}", style=f"flex %% padding-bottom: 10px; border-bottom: 4px dotted #111;")
 
         def body(plug):
-            img = HTML.genElement(f"img", style=f"z-index: 1; width: 100%; margin: auto; position: relative; user-select:none;", custom=f'src="docs/assets/Portal/Tapo/Gauge.png" alt="Gauge"')
+            img = HTML.genElement(f"img", style=f"z-index: 1; width: 100%; margin: auto; position: relative; user-select:none;", custom=f'src="docs/assets/Portal/Tapo/Gauge.svg" alt="Gauge"')
 
             svg = ""
             for i in range(0, 101):

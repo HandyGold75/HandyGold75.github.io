@@ -351,9 +351,9 @@ class sonos:
                     CSS.onHoverClick(f"portalSubPage_buttons_Shuffle", "imgHover", "imgClick")
 
                 if data["device"]["playback"] == "active":
-                    CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Pause.png"), ("alt", "Pause")))
+                    CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Pause.svg"), ("alt", "Pause")))
                 elif data["device"]["playback"] in ["standby", "inactive"]:
-                    CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.png"), ("alt", "Play")))
+                    CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.svg"), ("alt", "Play")))
 
                 CSS.setAttribute("portalSubPage_volume_slider", "value", data["device"]["volume"])
 
@@ -516,7 +516,7 @@ class sonos:
             trackImg = HTML.genElement("img", id=f"portalSubPage_que_{track}_img", style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
             titleTxt = HTML.genElement("p", nest=tracks[track]["title"], style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
-            remImg = HTML.genElement("img", id=f"portalSubPage_que_rem_img_{track}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.png" alt="Rem"')
+            remImg = HTML.genElement("img", id=f"portalSubPage_que_rem_img_{track}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.svg" alt="Rem"')
             remBtn = HTML.genElement("button", nest=remImg, id=f"portalSubPage_que_rem_{track}", style="buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;")
             remDiv = HTML.genElement("div", nest=remBtn, align="right", style="position: absolute; right: 10px; top: 4px; width: 24px; height: 24px;")
 
@@ -587,7 +587,7 @@ class sonos:
         plListDivs = ""
         for playlist in reversed(playlists):
             if playlists[playlist]["album_art"] is None:
-                plImg = HTML.genElement("img", id=f"portalSubPage_playlist_{playlist}_img", style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.png" alt="Art"')
+                plImg = HTML.genElement("img", id=f"portalSubPage_playlist_{playlist}_img", style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom='src="docs/assets/Portal/Sonos/Missing.svg" alt="Art"')
             else:
                 plImg = HTML.genElement("img", id=f"portalSubPage_playlist_{playlist}_img", style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
 
@@ -639,7 +639,7 @@ class sonos:
             if i >= len(leftActions) - 1:
                 margin = " margin: 0px auto 0px 0.5%;"
 
-            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.svg" alt="{action}"')
             btn = HTML.genElement("button", nest=img, id=f"portalSubPage_buttons_{action}", style="buttonImg %% border: 0px solid #222; border-radius: 16px;")
             btnDivsLeft += HTML.genElement("div", nest=btn, align="center", style=f"max-width: 55px;{margin}")
         btnDivLeft = HTML.genElement("div", nest=btnDivsLeft, id="portalSubPage_buttons_left", style="divNormalNoEdge %% flex %% width: 15%;")
@@ -653,7 +653,7 @@ class sonos:
             elif i >= len(midActions) - 1:
                 margin = " margin: 0px auto 0px 0.5%;"
 
-            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.svg" alt="{action}"')
             btn = HTML.genElement("button", nest=img, id=f"portalSubPage_buttons_{action}", style="buttonImg %% border: 0px solid #222; border-radius: 16px;")
             btnDivsMiddle += HTML.genElement("div", nest=btn, align="center", style=f"max-width: 55px;{margin}")
         btnDivMiddle = HTML.genElement("div", nest=btnDivsMiddle, id="portalSubPage_buttons_middle", style="divNormalNoEdge %% flex %% width: 70%;")
@@ -665,7 +665,7 @@ class sonos:
             if i < 1:
                 margin = " margin: 0px 0.5% 0px auto;"
 
-            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.png" alt="{action}"')
+            img = HTML.genElement("img", id=f"portalSubPage_buttons_img_{action}", style="width: 100%;", custom=f'src="docs/assets/Portal/Sonos/{action}.svg" alt="{action}"')
             btn = HTML.genElement("button", nest=img, id=f"portalSubPage_buttons_{action}", style="buttonImg %% border: 0px solid #222; border-radius: 16px;")
             btnDivsRight += HTML.genElement("div", nest=btn, align="center", style=f"max-width: 55px;{margin}")
         btnDivRight = HTML.genElement("div", nest=btnDivsRight, id="portalSubPage_buttons_right", style="divNormalNoEdge %% flex %% width: 15%;")
@@ -690,7 +690,7 @@ class sonos:
             data = WS.dict()[self.mainCom]
 
             if data["device"]["playback"] in ["standby", "inactive"]:
-                CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.png"), ("alt", "Play")))
+                CSS.setAttributes("portalSubPage_buttons_img_Pause", (("src", "docs/assets/Portal/Sonos/Play.svg"), ("alt", "Play")))
             JS.addEvent("portalSubPage_volume_slider", self.comVolume, action="input", includeElement=True)
 
             fmap = {
@@ -725,9 +725,9 @@ class sonos:
                 CSS.onHoverClick(f"portalSubPage_buttons_Que", "imgHover", "imgClick")
 
             if configSonos["useQue"]:
-                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Que.png"), ("alt", "Que")))
+                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Que.svg"), ("alt", "Que")))
             elif configSonos["usePlaylist"]:
-                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Playlist.png"), ("alt", "Playlist")))
+                CSS.setAttributes("portalSubPage_buttons_img_Que", (("src", "docs/assets/Portal/Sonos/Playlist.svg"), ("alt", "Playlist")))
 
         JS.afterDelay(doAction, (self,), delay=50)
 
