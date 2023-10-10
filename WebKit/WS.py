@@ -24,6 +24,7 @@ class WebSocket:
 
         self.loggedIn = False
         self.reconnectTries = 0
+        self.maxReconnectTries = 3
         self.afterReconnect = []
 
         self.indexLogout = None
@@ -85,23 +86,23 @@ class WebSocket:
             self.ws.send(msgOrFunc)
 
     def onError(self, args):
-        console.error(args)
-        self.close()
+        if self.config["token"] == "" or self.reconnectTries >= self.maxReconnectTries:
+            from WebKit.Widget import raiseError
+
+            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal",))
+            return None
+
+        self.start(self.protocol, self.ip, self.port)
 
     def onClose(self, args=None, msg: str = "The connection to the server was lost!"):
         if not self.loggedIn:
             return None
-        self.loggedIn = False
 
-        if self.config["token"] == "" or self.reconnectTries > 4:
+        if self.config["token"] == "" or self.reconnectTries >= self.maxReconnectTries:
             from WebKit.Widget import raiseError
 
-            raiseError("WARNING!", f"Connection lost to the server!\n{msg}\nPlease refresh the page to try again.", ("page_Portal",))
+            raiseError("Error", f"Connection lost to the server!\n{msg}\nPlease refresh the page to try again.", ("subPageButton_Portal",))
             return None
-
-        self.ws = None
-        self.pub = None
-        self.reconnectTries += 1
 
         self.afterReconnect.append("access")
         self.start(self.protocol, self.ip, self.port)
@@ -112,7 +113,7 @@ class WebSocket:
 
         self.pub = PublicKey.load_pkcs1(self.msg().split("<LOGIN> ")[1])
 
-        if self.config["token"] == "" or self.reconnectTries > 4 or not self.config["autoSignIn"]:
+        if self.config["token"] == "" or self.reconnectTries >= self.maxReconnectTries or not self.config["autoSignIn"]:
             self.raiseOnLoginUpdate("loginTokenNotFound")
             return None
 
@@ -122,6 +123,7 @@ class WebSocket:
 
     def onLoginTokenSucces(self):
         self.loggedIn = True
+        self.reconnectTries = 0
 
         for msg in self.afterReconnect:
             self.ws.send(msg)
@@ -147,6 +149,7 @@ class WebSocket:
             window.localStorage.setItem("configWS", dumps(self.config))
 
         self.loggedIn = True
+        self.reconnectTries = 0
 
         for msg in self.afterReconnect:
             self.ws.send(msg)
@@ -172,9 +175,17 @@ class WebSocket:
             self.loggedIn = False
 
         self.raiseOnLoginUpdate = raiseOnLoginUpdate
+
         self.protocol = str(protocol)[:3]
         self.ip = str(ip[:32])
         self.port = str(port)[:5]
+
+        if self.reconnectTries >= self.maxReconnectTries:
+            from WebKit.Widget import raiseError
+
+            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal",))
+            return None
+        self.reconnectTries += 1
         self.ws = eval(f'new WebSocket("{self.protocol}://{self.ip}:{self.port}")')
 
         self.ws.onopen = self.onOpen
