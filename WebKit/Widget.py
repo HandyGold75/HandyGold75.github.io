@@ -11,11 +11,12 @@ def raiseError(header: str, msg: str, disableIds: list = ()):
     for id in disableIds:
         HTML.disableElement(str(id))
 
-    error = HTML.genElement("h1", nest=str(header), style="headerVeryBig")
+    header = HTML.genElement("h1", nest=str(header), style="headerMain")
+    body = ""
     for line in msg.split("\n"):
-        error = HTML.genElement("p", nest=str(line))
+        body += HTML.genElement("p", nest=str(line), style="textMedium")
 
-    HTML.setElement("div", "page", nest=error, id="page_error", align="center")
+    HTML.setElement("div", "mainPage", nest=header + body, id="errorPage", align="center")
 
 
 class sheet:
@@ -289,7 +290,7 @@ class sheet:
                 HTML.addElement("button", self.elId, id=f"{self.maincom}_{self.name}_loadMore", nest=f"Load more (0 / {len(self.lines)})", type="button", style="buttonBig %% width: 50%;")
                 document.getElementById(f"{self.maincom}_{self.name}_loadMore").addEventListener("click", create_proxy(lambda element=None: self.recursion()))
                 CSS.onHoverClick(f"{self.maincom}_{self.name}_loadMore", "buttonHover", "buttonClick")
-                
+
         self.eventConfig = {"editIds": [], "inputIds": [], "actionIds": [], "popupIds": []}
         rows = self.getAllRows()
 
@@ -368,7 +369,7 @@ class sheet:
             txt = HTML.genElement("p", id=f"{maincom}_{sheet}_{tag}_{key}_{valueType}", nest=str(value), style="font-size: 75%; height: 100%; margin: 0px; padding: 1px 0px 2px 0px;")
             el.parentElement.innerHTML = txt
             document.getElementById(f"{maincom}_{sheet}_{tag}_{key}_{valueType}").addEventListener("contextmenu", create_proxy(lambda args: self.onContextMenu(args, onSubmit)))
-            
+
         def submitDate(args, callFunc: object = None):
             if not args.key in ["Enter", "Escape"]:
                 return None

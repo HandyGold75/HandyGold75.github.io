@@ -117,6 +117,12 @@
                     "active": true
                 },
                 {
+                    "text": "Restart",
+                    "id": "restart",
+                    "function": "restart",
+                    "active": true
+                },
+                {
                     "text": "Shutdown",
                     "id": "shutdown",
                     "function": "shutdown",

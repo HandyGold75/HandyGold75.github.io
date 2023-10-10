@@ -180,7 +180,17 @@ class index:
             page = "Login"
         else:
             configWS = loads(JS.cache("configWS"))
-            if configWS["autoSignIn"] and not WS.loginState() and configWS["server"] != "" and "://" in configWS["server"] and configWS["server"].count(":") == 2 and not configWS["token"] == "":
+            doSpoof = True
+            if not configWS["autoSignIn"] or WS.loginState():
+                doSpoof = False
+            elif configWS["server"] == "" or configWS["token"] == "":
+                doSpoof = False
+            elif not "://" in configWS["server"] or configWS["server"].count(":") != 2:
+                doSpoof = False
+            elif WS.reconnectTries >= WS.maxReconnectTries:
+                doSpoof = False
+
+            if doSpoof:
                 page = "Login"
 
         if hasattr(self.pages[page]["page"], "indexRedirectHook"):
