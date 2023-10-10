@@ -18,7 +18,7 @@ class sheets:
         self.hideInactive = True
         self.wordWrap = False
 
-        self.evalMap = {"compactOption": self.compactOption, "activeOption": self.activeOption, "wrapOption": self.wrapOption, "bulkAdd": self.bulkAdd, "userAdd": self.userAdd, "clean": self.clean, "shutdown": self.shutdown}
+        self.evalMap = {"compactOption": self.compactOption, "activeOption": self.activeOption, "wrapOption": self.wrapOption, "bulkAdd": self.bulkAdd, "userAdd": self.userAdd, "clean": self.clean, "restart": self.restart, "shutdown": self.shutdown}
         self.allConfigKeys = ("knownFiles", "dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "tagIsList", "hideInput", "mainCom", "extraButtons")
 
         self.knownFiles = None
@@ -341,6 +341,10 @@ class sheets:
     def shutdown(self):
         if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
             WS.send("shutdown")
+            
+    def restart(self):
+        if JS.popup("confirm", "Are you sure you want to restart the server?\nThis will disconnect everyone!"):
+            WS.send("restart")
 
     def clean(self):
         def cleanResults():
