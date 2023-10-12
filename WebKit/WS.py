@@ -42,8 +42,8 @@ class WebSocket:
 
     def onOpen(self, args=None):
         self.onMsg("<LOGIN>", self.onLogin, oneTime=True)
-        self.onMsg("<LOGIN_CANCEL>", self.close, oneTime=True)
-        self.onMsg("<CLOSE>", self.close, oneTime=True)
+        self.onMsg("<LOGIN_CANCEL>", lambda: self.close("Login was canceled!"), oneTime=True)
+        self.onMsg("<CLOSE>", lambda: self.close("The server closed the connection!"), oneTime=True)
 
         self.onMsg("<LOGIN_SUCCESS>", self.onLoginSucces, oneTime=True)
         self.onMsg("<LOGIN_FAIL>", self.onLoginFail, oneTime=True)
@@ -193,9 +193,14 @@ class WebSocket:
         self.ws.onerror = self.onError
         self.ws.onclose = self.onClose
 
-    def close(self):
+    def close(self, msg: str = None):
         self.loggedIn = False
         self.ws.close()
+
+        if not msg is None:
+            from WebKit.Widget import raiseError
+
+            raiseError("Error", f"Connection lost to the server!\n{msg}\nPlease renavigate to the page to try again.")
 
     def logout(self):
         if not window.confirm("Log off?"):
@@ -227,7 +232,7 @@ class WebSocket:
             self.afterReconnect.append(com)
 
             if self.ws.readyState != 0:
-                self.close()
+                self.close("The connection to the server was closed!")
 
             return None
 
@@ -235,12 +240,12 @@ class WebSocket:
 
     def msg(self):
         if not self.ws.readyState in [0, 1]:
-            self.close()
+            self.close("The connection to the server was closed!")
         return self.lastMsg
 
     def dict(self):
         if not self.ws.readyState in [0, 1]:
-            self.close()
+            self.close("The connection to the server was closed!")
         return deepcopy(self.msgDict)
 
     def onMsg(self, msgRecv: str, msgOrFunc: str, args: tuple = (), kwargs: dict = {}, oneTime: bool = False):
