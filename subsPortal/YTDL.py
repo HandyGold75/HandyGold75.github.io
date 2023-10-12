@@ -289,7 +289,7 @@ class ytdl:
         dataKey = "history" if history else "downloads"
         data = WS.dict()[self.mainCom]
         records = ""
-        for index in reversed(data[dataKey]):
+        for i, index in enumerate(reversed(data[dataKey])):
             values = HTML.genElement("h1", nest=index, style="headerMedium %% margin: 0px 0px 0px 5px; text-align: left; position: absolute;")
             remImg = HTML.genElement("img", id=f"portalSubPage_results_rem_img_{index}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.svg" alt="Rem"')
             remBtn = HTML.genElement("button", nest=remImg, id=f"portalSubPage_results_rem_{index}", style="buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;")
@@ -314,7 +314,10 @@ class ytdl:
                     div = HTML.genElement("div", nest=txt, style="divNormal %% flex %% width: 50%; margin: 0px auto; padding: 0px; border-right: 2px solid #111; border-radius: 0px;")
                 else:
                     txt = HTML.genElement("p", nest=key1, style="width: 25%; margin: 0px auto; border-right: 2px dotted #111; border-radius: 0px;")
-                    txt += HTML.genElement("p", nest=data[dataKey][index][key1], style="width: 75%; margin: 0px auto; overflow: hidden;")
+                    if key1 in ["Link", "URL"]:
+                        txt += HTML.linkWrap(data[dataKey][index][key1], nest=data[dataKey][index][key1], style="width: 50%; margin: 0px auto; overflow: hidden;")
+                    else:
+                        txt += HTML.genElement("p", nest=data[dataKey][index][key1], style="width: 75%; margin: 0px auto; overflow: hidden;")
                     div = HTML.genElement("div", nest=txt, style="divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;")
 
                 if not key2 is None:
@@ -332,7 +335,10 @@ class ytdl:
                 div = HTML.genElement("div", nest=txt, style="divNormal %% flex %% width: 100%; margin: 0px auto; padding: 0px;")
                 values += HTML.genElement("div", nest=div, style="divNormal %% flex %% width: 82.5%; margin: 0px auto -2px auto; padding: 0px; border: 2px solid #111; border-radius: 4px;")
 
-            records += HTML.genElement("div", nest=values, style="divNormal %% margin: 0px auto -6px auto; border: 6px solid #55F; border-radius: 4px;")
+            if i == 0:
+                records += HTML.genElement("div", nest=values, style="divNormal %% margin: 0px auto 6px auto;")
+                continue
+            records += HTML.genElement("div", nest=values, style="divNormal %% margin: 0px auto 6px auto; padding: 8px 5px 5px 5px; border-top: 3px dashed #55F; border-radius: 0px;")
 
         return records
 
