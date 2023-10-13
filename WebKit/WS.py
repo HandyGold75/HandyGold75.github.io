@@ -2,7 +2,7 @@ from copy import deepcopy
 from json import JSONDecodeError, dumps, loads
 from traceback import format_exc
 
-from js import console, eval, window
+from js import console, eval, window  # type: ignore
 from rsa import PublicKey
 
 
@@ -21,6 +21,7 @@ class WebSocket:
         self.lastMsg = ""
         self.msgDict = {}
         self.raiseOnLoginUpdate = None
+        self.raiseOnMsg = None
 
         self.loggedIn = False
         self.reconnectTries = 0
@@ -56,6 +57,9 @@ class WebSocket:
         msg = args.data
         self.lastMsg = msg
 
+        if callable(self.raiseOnMsg):
+            self.raiseOnMsg(msg)
+
         if msg.startswith("{") and msg.endswith("}"):
             try:
                 data = loads(msg)
@@ -89,7 +93,7 @@ class WebSocket:
         if self.config["token"] == "" or self.reconnectTries >= self.maxReconnectTries:
             from WebKit.Widget import raiseError
 
-            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal",))
+            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal", "subPageButton_Console"))
             return None
 
         self.start(self.protocol, self.ip, self.port)
@@ -101,7 +105,7 @@ class WebSocket:
         if self.config["token"] == "" or self.reconnectTries >= self.maxReconnectTries:
             from WebKit.Widget import raiseError
 
-            raiseError("Error", f"Connection lost to the server!\n{msg}\nPlease refresh the page to try again.", ("subPageButton_Portal",))
+            raiseError("Error", f"Connection lost to the server!\n{msg}\nPlease refresh the page to try again.", ("subPageButton_Portal", "subPageButton_Console"))
             return None
 
         self.afterReconnect.append("access")
@@ -183,7 +187,7 @@ class WebSocket:
         if self.reconnectTries >= self.maxReconnectTries:
             from WebKit.Widget import raiseError
 
-            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal",))
+            raiseError("Error", f"Connection lost to the server!\nServer is unavailable!\nPlease refresh the page to try again.", ("subPageButton_Portal", "subPageButton_Console"))
             return None
         self.reconnectTries += 1
         self.ws = eval(f'new WebSocket("{self.protocol}://{self.ip}:{self.port}")')
