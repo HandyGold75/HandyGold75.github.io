@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from json import dumps, load, loads
 from os import path as osPath
-from traceback import format_exc
 
 from WebKit import Widget
 from WebKit.init import CSS, HTML, JS, WS

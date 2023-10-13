@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from js import document, setTimeout, window
+from js import document, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 from rsa import encrypt
 

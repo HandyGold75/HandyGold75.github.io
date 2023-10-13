@@ -1,3 +1,4 @@
+from pages.Console import console
 from pages.Contact import contact
 from pages.Home import home
 from pages.Links import links
@@ -7,9 +8,10 @@ from pages.Portal import portal
 __author__ = "HandyGold75"
 
 __all__ = (
-    "contact",
     "home",
     "links",
-    "login",
     "portal",
+    "console",
+    "contact",
+    "login",
 )
