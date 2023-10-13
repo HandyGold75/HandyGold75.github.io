@@ -1,6 +1,6 @@
 from json import loads
 
-from pages.init import contact, home, links, login, portal
+from pages.init import console, contact, home, links, login, portal
 from WebKit.init import CSS, HTML, JS, WS
 
 
@@ -25,6 +25,10 @@ class index:
             "Portal": {
                 "hidden": False,
                 "page": portal(),
+            },
+            "Console": {
+                "hidden": False,
+                "page": console(),
             },
             "Contact": {
                 "hidden": False,
@@ -75,6 +79,7 @@ class index:
                 CSS.setStyle("mainNav_logo", "maxWidth", "40px")
                 CSS.setStyle("mainNav_showHideDiv", "maxWidth", "30px")
                 CSS.setStyle("mainFooter", "padding", "3px 5px")
+                self.pages[JS.cache("mainPage")]["page"].onResize()
                 return None
 
             el.src = "docs/assets/Hide-V.svg"
@@ -82,6 +87,7 @@ class index:
             CSS.setStyle("mainNav", "padding", "5px")
             CSS.setStyle("mainNav_middle", "marginTop", "0px")
             index.onResize(self=None)
+            self.pages[JS.cache("mainPage")]["page"].onResize()
 
         JS.setTitle("HandyGold75")
 

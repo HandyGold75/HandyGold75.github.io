@@ -1,4 +1,4 @@
-from js import console, document, eval, setInterval, setTimeout, window
+from js import console, document, eval, setInterval, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 
 

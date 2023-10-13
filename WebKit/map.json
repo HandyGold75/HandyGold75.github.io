@@ -20,11 +20,13 @@
         "inputMedium": "z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 100%; background: #333; border: 2px solid #55F; border-radius: 6px; outline: none",
         "inputSmall": "z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 75%; background: #333; border: 2px solid #55F; border-radius: 6px; outline: none",
         "inputRange": "z-index: 110; padding: 5px 10px; margin: 3px; accent-color: #F7E163; background: #333; border: 0px solid #55F; border-radius: 6px; outline: none",
+        "inputDark": "z-index: 110; padding: 5px 10px; background: #333; color: #F7E163; border: 0px; border-radius: 10px; outline: none",
         "selectMedium": "z-index: 120; padding: 0px; margin: 3px; color: #BFF; font-size: 100%; background: #333; border: 2px solid #55F; border-radius: 4px; outline: none; overflow-y: hidden; scrollbar-width: none",
         "selectSmall": "z-index: 120; padding: 0px; margin: 3px; color: #BFF; font-size: 75%; background: #333; border: 2px solid #55F; border-radius: 4px; outline: none; overflow-y: hidden; scrollbar-width: none",
         "divNormal": "background: #222; padding: 5px; margin: 15px auto; border-radius: 10px",
         "divNormalNoEdge": "background: #222; padding: 0px; margin: 0px auto; border-radius: 10px",
         "divAlt": "background: #55F; color: #111; padding: 5px; margin: 15px auto; border-radius: 10px",
+        "divDark": "background: #111; color: #F7E163; padding: 5px; margin: 15px auto; border: 4px solid #000; border-radius: 10px",
         "disabled": "color: #88B; background: #222",
         "flex": "display: flex",
         "pageLinks_Base": "width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111"
