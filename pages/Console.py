@@ -11,6 +11,8 @@ class console:
         self.busy = False
         self.requireLogin = True
         self.lastCommand = 0
+        self.commandHistory = []
+        self.commandHistoryIndex = 0
         self.receivedCommandCount = 0
 
     def onResize(self):
@@ -78,11 +80,27 @@ class console:
         CSS.setAttribute("consolePage_input", "value", "")
 
     def consoleSubmit(self, element):
+        if len(self.commandHistory) > 0:
+            if hasattr(element, "key") and element.key == "ArrowUp":
+                self.commandHistoryIndex += 1
+                if self.commandHistoryIndex > len(self.commandHistory):
+                    self.commandHistoryIndex = 1
+                CSS.setAttribute("consolePage_input", "value", self.commandHistory[-self.commandHistoryIndex])
+
+            if hasattr(element, "key") and element.key == "ArrowDown":
+                self.commandHistoryIndex -= 1
+                if self.commandHistoryIndex < 1:
+                    self.commandHistoryIndex = len(self.commandHistory)
+                CSS.setAttribute("consolePage_input", "value", self.commandHistory[-self.commandHistoryIndex])
+
         if not WS.loginState() or (hasattr(element, "key") and element.key != "Enter") or ((datetime.now() - timedelta(seconds=1)).timestamp() < self.lastCommand):
             return None
 
         self.lastCommand = datetime.now().timestamp()
-        WS.send(CSS.getAttribute("consolePage_input", "value"))
+        self.commandHistoryIndex = 0
+        command = CSS.getAttribute("consolePage_input", "value")
+        self.commandHistory.append(command)
+        WS.send(command)
 
     def flyin(self):
         CSS.setStyle("consolePage", "marginTop", f'-{CSS.getAttribute("consolePage", "offsetHeight")}px')
