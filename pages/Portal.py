@@ -1,4 +1,4 @@
-from subsPortal.init import sheets, sonos, tapo, trees, ytdl
+from subsPortal.init import sheets, sonos, tapo, trees, ytdl, sheetsV2
 from WebKit.init import CSS, HTML, JS, WS
 
 
