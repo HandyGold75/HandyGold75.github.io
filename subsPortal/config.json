@@ -467,6 +467,215 @@
             ]
         }
     },
+    "sheetsV2": {
+        "Asset Manager": {
+            "dates": [
+                "DOP",
+                "EOL",
+                "Modified"
+            ],
+            "quarterView": [
+                "Active",
+                "Action"
+            ],
+            "halfView": [
+                "User",
+                "Tag",
+                "Brand",
+                "Series",
+                "MAC",
+                "MAC-WiFi",
+                "MAC-Eth",
+                "DOP",
+                "EOL",
+                "Modified"
+            ],
+            "excludeView": [
+                "S/N",
+                "MAC",
+                "MAC-WiFi",
+                "MAC-Eth",
+                "DOP",
+                "EOL",
+                "Modified",
+                "Notes"
+            ],
+            "invokePswChange": {},
+            "optionsDict": {},
+            "hideInput": false,
+            "mainCom": "am2",
+            "extraButtons": [
+                {
+                    "text": "Bulk Add",
+                    "id": "bulkadd",
+                    "function": "bulkAdd",
+                    "active": false
+                },
+                {
+                    "text": "Inactive",
+                    "id": "active",
+                    "function": "activeOption",
+                    "active": false
+                },
+                {
+                    "text": "Expand",
+                    "id": "compact",
+                    "function": "compactOption",
+                    "active": false
+                },
+                {
+                    "text": "Word wrap",
+                    "id": "wordwrap",
+                    "function": "wrapOption",
+                    "active": false
+                }
+            ]
+        },
+        "License Manager": {
+            "dates": [
+                "DOP",
+                "EOL",
+                "Modified"
+            ],
+            "quarterView": [
+                "Active",
+                "Action"
+            ],
+            "halfView": [
+                "Tag",
+                "DOP",
+                "EOL",
+                "Cost",
+                "Auto Renew",
+                "Modified"
+            ],
+            "excludeView": [
+                "DOP",
+                "EOL",
+                "Cost",
+                "Auto Renew",
+                "Modified",
+                "Notes"
+            ],
+            "invokePswChange": {},
+            "optionsDict": {},
+            "hideInput": false,
+            "mainCom": "lm2",
+            "extraButtons": [
+                {
+                    "text": "Bulk Add",
+                    "id": "bulkadd",
+                    "function": "bulkAdd",
+                    "active": false
+                },
+                {
+                    "text": "Inactive",
+                    "id": "active",
+                    "function": "activeOption",
+                    "active": false
+                },
+                {
+                    "text": "Expand",
+                    "id": "compact",
+                    "function": "compactOption",
+                    "active": false
+                },
+                {
+                    "text": "Word wrap",
+                    "id": "wordwrap",
+                    "function": "wrapOption",
+                    "active": false
+                }
+            ]
+        },
+        "Query": {
+            "dates": [
+                "Modified"
+            ],
+            "quarterView": [
+                "Index",
+                "Active",
+                "Action"
+            ],
+            "halfView": [
+                "Modified"
+            ],
+            "excludeView": [
+                "Index",
+                "Modified"
+            ],
+            "invokePswChange": {},
+            "optionsDict": {
+                "/Links.json": {
+                    "Img": [
+                        "Bol.png",
+                        "CloudConvert.png",
+                        "Cloudflare.png",
+                        "Dell.png",
+                        "DownDetector.png",
+                        "G-Calendar.png",
+                        "G-Drive.png",
+                        "GitHub.png",
+                        "G-Mail.png",
+                        "G-Photos.png",
+                        "Linode.png",
+                        "LinusTechTips.png",
+                        "Megekko.png",
+                        "M365.png",
+                        "Nord.png",
+                        "NS.png",
+                        "OneDrive.png",
+                        "OneTimeSecret.png",
+                        "Outlook.png",
+                        "OutlookCalendar.png",
+                        "RockStar.png",
+                        "SokPop.png",
+                        "Sophos.png",
+                        "SpeedTest.png",
+                        "Spotify.png",
+                        "UniFi.png",
+                        "Vodafone.png",
+                        "YouTube.png",
+                        "YouTubeMusic.png",
+                        "Zwoofs.png"
+                    ]
+                },
+                "/Contact.json": {
+                    "Img": [
+                        "discord.png",
+                        "exchange.png",
+                        "snapchat.png",
+                        "spotify.png",
+                        "steam.png",
+                        "twitch.png",
+                        "youtube.png"
+                    ]
+                }
+            },
+            "hideInput": false,
+            "mainCom": "qr2",
+            "extraButtons": [
+                {
+                    "text": "Inactive",
+                    "id": "active",
+                    "function": "activeOption",
+                    "active": false
+                },
+                {
+                    "text": "Expand",
+                    "id": "compact",
+                    "function": "compactOption",
+                    "active": false
+                },
+                {
+                    "text": "Word wrap",
+                    "id": "wordwrap",
+                    "function": "wrapOption",
+                    "active": false
+                }
+            ]
+        }
+    },
     "trees": {
         "Monitor": {
             "knownTrees": {

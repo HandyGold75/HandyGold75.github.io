@@ -1,4 +1,5 @@
 from subsPortal.Sheets import sheets
+from subsPortal.SheetsV2 import sheetsV2
 from subsPortal.Sonos import sonos
 from subsPortal.Tapo import tapo
 from subsPortal.Trees import trees
@@ -11,5 +12,6 @@ __all__ = (
     "tapo",
     "ytdl",
     "sheets",
+    "sheetsV2",
     "trees",
 )
