@@ -12,11 +12,11 @@ class home:
         pass
 
     def preload(self):
-        self.busy = True
-        JS.onResize("home", None)
         self.busy = False
 
     def deload(self):
+        self.busy = True
+        JS.onResize("home", None)
         self.busy = False
 
     def layout(self):

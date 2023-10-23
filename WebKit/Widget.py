@@ -615,6 +615,106 @@ class sheet:
             el.addEventListener("dblclick", create_proxy(self.onDblClick))
 
 
+class sheetV2:
+    __all__ = ["generateSheet"]
+
+    def __init__(
+        self,
+        name: str,
+        header: tuple | list,
+        types: tuple | list,
+        data: dict,
+        wsHook: object,
+        dates: tuple = (),
+        halfView: tuple = (),
+        quarterView: tuple = (),
+        wordWrap: bool = False,
+        optionsDict: dict = {},
+    ):
+        self.name = name
+        self.header = list(header)
+        self.types = list(types)
+        self.data = dict(data)  # {"index": [data,]}
+        self.wsHook = wsHook
+        self.dates = list(dates)
+        self.halfView = list(halfView)
+        self.quarterView = list(quarterView)
+        self.wordWrap = bool(wordWrap)
+        self.optionsDict = dict(optionsDict)
+
+        self.defaultWidth = 100 / (len(self.header) + 1 - (len(self.halfView) * 0.5) - (len(self.quarterView) * 0.75))
+
+        self.onModIds = []
+        self.onAddIds = []
+        self.onDelIds = []
+        self.inputIds = []
+
+    def _getAdaptiveWidth(self, key):
+        if key in self.halfView:
+            return self.defaultWidth / 2
+        elif key in self.quarterView:
+            return self.defaultWidth / 4
+        return self.defaultWidth
+
+    def _getHeaderRow(self):
+        cols = ""
+        for value in self.header:
+            width = self._getAdaptiveWidth(value)
+
+            cols += HTML.genElement("p", nest=value, style=f"width: {width}%; margin: 0px -2px 0px 0px; overflow: hidden; border-right: 2px dashed #181818;")
+
+        cols += HTML.genElement("p", nest="Action", style=f'width: {self._getAdaptiveWidth("Action")}%; margin: 0px; overflow: hidden;')
+        row = HTML.genElement("div", nest=cols, style="flex %% font-size: 125%; font-weight: bold;")
+
+        return row
+
+    def _getInputRow(self):
+        cols = ""
+        for i, value in enumerate(self.header):
+            width = self._getAdaptiveWidth(value)
+
+            cols += HTML.genElement("input", id=f"{self.name}_Inp_{value}", style=f'inputMedium %% width: {width}%; margin: 0px {"" if i == 0 else "-2px"}; padding: 3px 0px; border: 2px solid #55F; border-radius: 0px;', custom=f'placeholder="{value}"')
+            self.inputIds.append(f"{self.name}_Inp_{value}")
+
+        cols += HTML.genElement("button", nest="Add", id=f"{self.name}_Add", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+        row = HTML.genElement("div", nest=cols, style="flex")
+
+        self.onAddIds.append(f"{self.name}_Add")
+
+        return row
+
+    def _getRows(self):
+        rows = ""
+        for index in self.data:
+            cols = ""
+            for i, value in enumerate(self.data[index]):
+                width = self._getAdaptiveWidth(self.header[i])
+                wordwrapStyle = "word-break: break-all;" if self.wordWrap else "white-space: nowrap; overflow: scroll;"
+                style = f"width: {width}%; margin: 0px -2px 0px 0px; padding: 0px 0px 0px 0px; border-right: 2px dashed #181818;"
+
+                if type(value) in [int, float] and self.header[i] in self.dates:
+                    value = datetime.fromtimestamp(value).strftime("%d %b %y")
+                elif type(value) is list:
+                    value = ", ".join(str(v) for v in value)
+                elif type(value) is bool:
+                    value = "Yes" if value else "No"
+
+                cols += HTML.genElement("p", nest=str(value), style=f"{style} {wordwrapStyle}")
+
+            else:
+                cols += HTML.genElement("button", nest="Delete", id=f"{self.name}_Del_{index}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+                rows += HTML.genElement("div", nest=cols, style=f'flex{"" if int(index) == 0 else " %% border-top: 2px solid #151515;"}')
+
+                self.onDelIds.append(f"{self.name}_Del_{index}")
+
+        return rows
+
+    def generateSheet(self):
+        html = self._getHeaderRow() + self._getInputRow() + self._getRows()
+
+        return HTML.genElement("div", nest=html, id=f"{self.name}", style="margin: 10px; border: 2px solid #111;")
+
+
 class tree:
     __all__ = ["generate"]
 

@@ -20,24 +20,31 @@ class sheetsV2:
 
         self.template = {}
 
-        self.evalMap = {"compactOption": self.compactOption, "activeOption": self.activeOption, "wrapOption": self.wrapOption, "bulkAdd": self.bulkAdd, "userAdd": self.userAdd, "clean": self.clean, "restart": self.restart, "shutdown": self.shutdown}
-        self.allConfigKeys = ("knownFiles", "dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "tagIsList", "hideInput", "mainCom", "extraButtons")
+        self.evalMap = {
+            "compactOption": self.compactOption,
+            "activeOption": self.activeOption,
+            "wrapOption": self.wrapOption,
+            "bulkAdd": self.bulkAdd,
+            # "userAdd": self.userAdd,
+            # "clean": self.clean,
+            # "restart": self.restart,
+            # "shutdown": self.shutdown,
+        }
+        self.allConfigKeys = ("dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "hideInput", "mainCom", "extraButtons")
 
-        self.knownFiles = None
         self.dates = None
         self.halfView = None
         self.quarterView = None
         self.excludeView = None
         self.invokePswChange = None
         self.optionsDict = None
-        self.tagIsList = None
         self.hideInput = None
         self.mainCom = None
         self.extraButtons = None
 
     def getData(self):
         if (datetime.now() - timedelta(seconds=1)).timestamp() > self.lastUpdate:
-            for file in self.knownFiles:
+            for file in (*self.template["sheets"], *self.template["configs"], *self.template["configs"]):
                 WS.send(f"{self.mainCom} read {file}")
             self.lastUpdate = datetime.now().timestamp()
 
@@ -64,6 +71,8 @@ class sheetsV2:
 
         def fetchTemplate():
             self.template = WS.dict()[self.mainCom]["template"]
+            WS.onMsg('{"' + self.mainCom + '": {"' + (*self.template["sheets"], *self.template["configs"], *self.template["configs"])[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
+            self.getData()
 
         def finalize(self):
             self.busy = False
@@ -90,14 +99,12 @@ class sheetsV2:
         JS.aSync(loadingTxt)
 
         with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
-            config = load(fileR)["sheets"][JS.cache("portalPage")]
+            config = load(fileR)["sheetsV2"][JS.cache("portalPage")]
         for attribute in self.allConfigKeys:
             setattr(self, attribute, config[attribute])
 
-        WS.send(f"{self.mainCom} template")
         WS.onMsg('{"' + self.mainCom + '": {"template":', fetchTemplate, oneTime=True)
-        WS.onMsg('{"' + self.mainCom + '": {"' + tuple(self.knownFiles)[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
-        self.getData()
+        WS.send(f"{self.mainCom} template")
 
     def deload(self):
         def fininalize(self):
@@ -117,7 +124,7 @@ class sheetsV2:
 
         navBtns = ""
         for file in data:
-            if not file in self.knownFiles:
+            if not file in (*self.template["sheets"], *self.template["configs"], *self.template["configs"]):
                 continue
             navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f"portalSubPage_nav_main_{file}", type="button", style="buttonSmall")
 
@@ -141,7 +148,7 @@ class sheetsV2:
         def addEvents():
             self.busy = True
             for file in data:
-                if not file in self.knownFiles:
+                if not file in (*self.template["sheets"], *self.template["configs"], *self.template["configs"]):
                     continue
 
                 JS.addEvent(f"portalSubPage_nav_main_{file}", self.loadPortalSubPage, kwargs={"portalSubPage": file})
@@ -193,20 +200,57 @@ class sheetsV2:
 
     def generateSheet(self):
         file = JS.cache("portalSubPage")
-        if not type(self.knownFiles[file]) is str and type(self.knownFiles[file][list(self.knownFiles[file])[-1]]) is dict:
+        if file in self.template["sheets"]:
             for button in self.extraButtons:
                 if not button["active"]:
                     HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
 
-        # fileData = WS.dict()[self.mainCom][file]
-        # if fileData == {}:
-        #     fileData[" "] = {}
-        #     mainValue = list(self.knownFiles[file])[-1]
-        #     for value in self.knownFiles[file][mainValue]:
-        #         fileData[" "][value] = type(self.knownFiles[file][mainValue][value])()
+            headers = []
+            types = []
+            for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][file]:
+                headers.append(name)
+                types.append(type(ktype))
 
-        # if fileData is None:
-        #     return None
+            fileData = WS.dict()[self.mainCom][file]
+            if self.hideInactive and "Active" in headers:
+                for index in dict(fileData):
+                    if not fileData[index][headers.index("Active")]:
+                        fileData.pop(index)
+
+            dates = list(self.dates)
+            halfView = list(self.halfView)
+            quarterView = list(self.quarterView)
+
+            for value in tuple(self.excludeView if self.compactView else ()) + (("Active",) if self.hideInactive else ()):
+                if not value in headers:
+                    continue
+
+                i = headers.index(value)
+                headers.pop(i)
+                types.pop(i)
+                for index in dict(fileData):
+                    fileData[index].pop(i)
+
+                if value in self.dates:
+                    dates.remove(value)
+                if value in self.halfView:
+                    halfView.remove(value)
+                if value in self.quarterView:
+                    quarterView.remove(value)
+
+            sheet = Widget.sheetV2(
+                name=JS.cache("portalSubPage"),
+                header=headers,
+                types=types,
+                data=fileData,
+                wsHook=lambda *args: JS.log(f"wsHook: {args}"),
+                dates=dates,
+                halfView=halfView,
+                quarterView=quarterView,
+                wordWrap=self.wordWrap,
+                optionsDict={},
+            )
+            HTML.setElementRaw("portalSubPage", sheet.generateSheet())
 
         # elif type(fileData) is str:
         #     dataTemp, fileData = (fileData, {})

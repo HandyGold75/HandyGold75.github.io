@@ -38,13 +38,12 @@ class console:
         CSS.setStyle("consolePage_overlay", "fontSize", "100%")
 
     def preload(self):
-        self.busy = True
-        JS.onResize("console", None)
         self.busy = False
 
     def deload(self):
         self.busy = True
         WS.raiseOnMsg = None
+        JS.onResize("console", None)
         self.busy = False
 
     def layout(self):
