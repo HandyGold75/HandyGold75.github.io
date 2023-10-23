@@ -17,6 +17,7 @@
         "buttonMedium": "z-index: 100; padding: 1px 6px 3px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px",
         "buttonSmall": "z-index: 100; padding: 1px 4px 3px 4px; margin: 3px; text-align: center; font-size: 70%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px",
         "buttonImg": "z-index: 100; padding: 4px; color: #55F; background: #222; border: 2px solid #222; border-radius: 8px; user-select: none",
+        "inputBig": "z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 125%; background: #333; border: 2px solid #55F; border-radius: 6px; outline: none",
         "inputMedium": "z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 100%; background: #333; border: 2px solid #55F; border-radius: 6px; outline: none",
         "inputSmall": "z-index: 110; padding: 1px 10px; margin: 3px; color: #BFF; font-size: 75%; background: #333; border: 2px solid #55F; border-radius: 6px; outline: none",
         "inputRange": "z-index: 110; padding: 5px 10px; margin: 3px; accent-color: #F7E163; background: #333; border: 0px solid #55F; border-radius: 6px; outline: none",
