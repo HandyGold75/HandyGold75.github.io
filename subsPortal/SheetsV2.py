@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from json import load
+from json import dumps, load
 from os import path as osPath
 
 from WebKit import Widget
@@ -238,102 +238,27 @@ class sheetsV2:
                 if value in self.quarterView:
                     quarterView.remove(value)
 
+            options = self.optionsDict[file] if file in self.optionsDict else {}
+            for f in WS.dict()[self.mainCom]:
+                if f in [file, "template"]:
+                    continue
+
+                optionsData = WS.dict()[self.mainCom][f]
+                options = {**options, f: [optionsData[opt][0] for opt in optionsData]}
+
             sheet = Widget.sheetV2(
-                name=JS.cache("portalSubPage"),
+                name=file,
                 header=headers,
                 types=types,
                 data=fileData,
-                wsHook=lambda *args: JS.log(f"wsHook: {args}"),
                 dates=dates,
                 halfView=halfView,
                 quarterView=quarterView,
                 wordWrap=self.wordWrap,
-                optionsDict={},
+                optionsDict=options,
             )
             HTML.setElementRaw("portalSubPage", sheet.generateSheet())
-
-        # elif type(fileData) is str:
-        #     dataTemp, fileData = (fileData, {})
-        #     for i1, line in enumerate(reversed(dataTemp.split("\n"))):
-        #         if line == "":
-        #             continue
-
-        #         fileData[i1], lineSplit = ({}, line.split("%%"))
-        #         for i2, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")][list(self.knownFiles[JS.cache("portalSubPage")])[-1]])):
-        #             try:
-        #                 fileData[i1][key] = lineSplit[i2]
-        #             except IndexError:
-        #                 fileData[i1][key] = ""
-
-        #     HTML.setElementRaw("portalSubPage", "")
-        #     Widget.sheet(
-        #         maincom=self.mainCom,
-        #         name=JS.cache("portalSubPage"),
-        #         elId="portalSubPage",
-        #         dates=tuple(self.dates),
-        #         halfView=list(self.halfView),
-        #         quarterView=list(self.quarterView),
-        #         excludeView=(lambda: list(self.excludeView) if self.compactView else [])() + (lambda: ["Active"] if self.hideInactive else [])(),
-        #         typeDict=dict(self.knownFiles[JS.cache("portalSubPage")][list(self.knownFiles[JS.cache("portalSubPage")])[-1]]),
-        #         showInput=False,
-        #         showAction=False,
-        #         showTag=False,
-        #         wordWrap=self.wordWrap,
-        #     ).generate(dict(fileData))
-
-        # elif type(fileData[list(fileData)[-1]]) is not dict:
-        #     dataTemp, fileData = (fileData, {})
-        #     for i, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")])):
-        #         fileData[key] = {}
-        #         try:
-        #             fileData[key]["Value"] = dataTemp[key]
-        #         except IndexError:
-        #             fileData[key]["Value"] = ""
-
-        #     options = (lambda: {**dict(WS.dict()[self.mainCom]), **dict(self.optionsDict[JS.cache("portalSubPage")])} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
-        #     sheet = Widget.sheet(
-        #         maincom=self.mainCom,
-        #         name=JS.cache("portalSubPage"),
-        #         dates=tuple(self.dates),
-        #         halfView=list(self.halfView),
-        #         quarterView=list(self.quarterView),
-        #         excludeView=(lambda: list(self.excludeView) if self.compactView else [])() + (lambda: ["Active"] if self.hideInactive else [])(),
-        #         typeDict=dict(self.knownFiles[JS.cache("portalSubPage")]),
-        #         optionsDict=options,
-        #         pswChangeDict=self.invokePswChange,
-        #         sendKey=False,
-        #         showInput=False,
-        #         showAction=False,
-        #         wordWrap=self.wordWrap,
-        #     )
-        #     HTML.setElementRaw("portalSubPage", sheet.generate(dict(fileData)))
-        #     JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self.loadPortalSubPage(disableAnimation=True)}, delay=50)
-
-        # else:
-        #     if self.hideInactive:
-        #         for key in dict(fileData):
-        #             if not "Active" in fileData[key] or key == " " or len(fileData) < 2:
-        #                 continue
-        #             elif not fileData[key]["Active"]:
-        #                 fileData.pop(key)
-
-        #     options = (lambda: {**dict(WS.dict()[self.mainCom]), **dict(self.optionsDict[JS.cache("portalSubPage")])} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
-        #     sheet = Widget.sheet(
-        #         maincom=self.mainCom,
-        #         name=JS.cache("portalSubPage"),
-        #         dates=tuple(self.dates),
-        #         halfView=list(self.halfView),
-        #         quarterView=list(self.quarterView),
-        #         excludeView=(lambda: list(self.excludeView) if self.compactView else [])() + (lambda: ["Active"] if self.hideInactive else [])(),
-        #         typeDict=dict(self.knownFiles[JS.cache("portalSubPage")][list(self.knownFiles[JS.cache("portalSubPage")])[-1]]),
-        #         optionsDict=options,
-        #         pswChangeDict=self.invokePswChange,
-        #         showInput=(not self.hideInput),
-        #         tagIsList=self.tagIsList,
-        #         wordWrap=self.wordWrap,
-        #     )
-        #     HTML.setElementRaw("portalSubPage", sheet.generate(dict(fileData)))
-        #     JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self.loadPortalSubPage(disableAnimation=True)}, delay=50)
+            JS.afterDelay(sheet.generateEvents, kwargs={"onAdd": self.addRecord, "onDel": self.delRecord, "onMod": self.modRecord}, delay=50)
 
     def compactOption(self):
         self.compactView = not self.compactView
@@ -361,6 +286,33 @@ class sheetsV2:
             CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
 
         self.loadPortalSubPage()
+
+    def addRecord(self, index, count, data):
+        sendData = []
+        for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
+            if name in data:
+                sendData.append(data[name])
+                continue
+            sendData.append(True if type(ktype) is bool else ktype)
+
+        WS.send(f'{self.mainCom} add {JS.cache("portalSubPage").replace(" ", "%20")} {index} {count} {str(dumps(sendData)).replace(" ", "")}')
+
+    def delRecord(self, index):
+        WS.send(f'{self.mainCom} del {JS.cache("portalSubPage").replace(" ", "%20")} {index}')
+
+    def modRecord(self, index, key, data):
+        if not key in [None, "*"]:
+            WS.send(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} {key.replace(" ", "%20")} {str(data).replace(" ", "")}')
+            return None
+
+        sendData = []
+        for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
+            if name in data:
+                sendData.append(data[name])
+                continue
+            sendData.append(True if type(ktype) is bool else ktype)
+
+        JS.log(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
 
     # def userAdd(self):
     #     if JS.cache("portalSubPage") == "":

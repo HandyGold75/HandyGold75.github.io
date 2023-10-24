@@ -236,7 +236,7 @@ class sheets:
                 except IndexError:
                     fileData[key]["Value"] = ""
 
-            options = (lambda: {**dict(WS.dict()[self.mainCom]), **dict(self.optionsDict[JS.cache("portalSubPage")])} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
+            options = (lambda: {**dict(WS.dict()[self.mainCom]), **self.optionsDict[JS.cache("portalSubPage")]} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
             sheet = Widget.sheet(
                 maincom=self.mainCom,
                 name=JS.cache("portalSubPage"),
