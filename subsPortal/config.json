@@ -606,7 +606,7 @@
             ],
             "invokePswChange": {},
             "optionsDict": {
-                "/Links.json": {
+                "Links": {
                     "Img": [
                         "Bol.png",
                         "CloudConvert.png",
@@ -640,7 +640,7 @@
                         "Zwoofs.png"
                     ]
                 },
-                "/Contact.json": {
+                "Contact": {
                     "Img": [
                         "discord.png",
                         "exchange.png",
