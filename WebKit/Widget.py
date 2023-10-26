@@ -625,16 +625,18 @@ class sheetV2:
         header: tuple | list,
         types: tuple | list,
         data: dict,
+        dataLen: int,
         dates: tuple = (),
         halfView: tuple = (),
         quarterView: tuple = (),
         wordWrap: bool = False,
         optionsDict: dict = {},
     ):
-        self.name = name
+        self.name = str(name)
         self.header = list(header)
         self.types = list(types)
-        self.data = dict(data)  # {"index": [data,]}
+        self.data = dict(data)
+        self.dataLen = int(dataLen)
         self.dates = list(dates)
         self.halfView = list(halfView)
         self.quarterView = list(quarterView)
@@ -643,12 +645,22 @@ class sheetV2:
 
         self.defaultWidth = 100 / (len(self.header) + 1 - (len(self.halfView) * 0.5) - (len(self.quarterView) * 0.75))
 
+        self.onAdd = None
+        self.onDel = None
+        self.onMod = None
+
         self.onModIds = []
         self.onAddIds = []
         self.onDelIds = []
+        self.headerIds = []
         self.inputIds = []
         self.modIds = []
         self.boolIds = []
+
+    def _onResize(self):
+        for i, id in enumerate(self.headerIds):
+            offset = 4 if self.types[i] is list else (6 if self.types[i] is bool else 0)
+            CSS.setStyle(f'{self.name}_Inp_{id.split("_")[-1]}', "width", f"{(HTML.getElement(id).getBoundingClientRect().width + (-2 if i == 0 else -4) + offset)}px")
 
     def _getAdaptiveWidth(self, key):
         if key in self.halfView:
@@ -660,10 +672,13 @@ class sheetV2:
     def _getHeaderRow(self):
         cols = ""
         for i, value in enumerate(self.header):
+            id = f"{self.name}_Head_{value}"
             width = self._getAdaptiveWidth(value)
             style = f"z-index: {len(self.header) - i}; width: {width}%; margin: 0px -2px 0px 0px; background: #191919; border-right: 2px solid #111; overflow: hidden;"
 
-            cols += HTML.genElement("p", nest=value, style=style)
+            cols += HTML.genElement("p", nest=value, id=id, style=style)
+
+            self.headerIds.append(id)
 
         cols += HTML.genElement("p", nest="Action", style=f'width: {self._getAdaptiveWidth("Action")}%; margin: 0px; background: #181818; overflow: hidden;')
         row = HTML.genElement("div", nest=cols, style="flex %% font-size: 125%; font-weight: bold;")
@@ -673,24 +688,25 @@ class sheetV2:
     def _getInputRow(self):
         cols = ""
         for i, value in enumerate(self.header):
+            id = f"{self.name}_Inp_{value}"
             width = self._getAdaptiveWidth(value)
-            style = f'inputMedium %% width: {width}%; margin: 0px {"" if i == 0 else "-2px"}; padding: 3px 0px; border: 2px solid #55F; border-radius: 0px; text-align: center;'
+            style = f'inputMedium %% width: {width}%; margin: 0px -2px{"" if i == 0 else " 0px 0px"}; padding: 3px 0px; border: 2px solid #55F; border-radius: 0px; text-align: center;'
 
             if self.types[i] in [int, float] and value in self.dates:
-                cols += HTML.genElement("input", id=f"{self.name}_Inp_{value}", type="date", style=style, custom=f'value="{datetime.now().strftime("%Y-%m-%d")}"')
+                cols += HTML.genElement("input", id=id, type="date", style=style, custom=f'value="{datetime.now().strftime("%Y-%m-%d")}"')
             elif self.types[i] in [int, float]:
-                cols += HTML.genElement("input", id=f"{self.name}_Inp_{value}", type="number", style=style, custom=f'placeholder="{value}"')
+                cols += HTML.genElement("input", id=id, type="number", style=style, custom=f'placeholder="{value}"')
             elif self.types[i] is list:
                 options = ""
                 for option in self.optionsDict[value] if value in self.optionsDict else []:
                     options += HTML.genElement("option", nest=option, style="margin: 0px; padding: 0px;", custom=f'value="{option}"')
-                cols += HTML.genElement("select", nest=options, id=f"{self.name}_Inp_{value}", style=f"{style} margin-bottom: 0px; min-height: 0px;", custom=f'size="1" multiple')
+                cols += HTML.genElement("select", nest=options, id=id, style=f"{style} margin-bottom: 0px; min-height: 0px;", custom=f'size="1" multiple')
             elif self.types[i] is bool:
-                cols += HTML.genElement("input", id=f"{self.name}_Inp_{value}", type="checkbox", style=f'{style} margin: 3px {"" if i == 0 else "-2px"};', custom=f"checked")
+                cols += HTML.genElement("input", id=id, type="checkbox", style=f"{style} margin: 3px -2px;", custom=f"checked")
             else:
-                cols += HTML.genElement("input", id=f"{self.name}_Inp_{value}", type="text", style=style, custom=f'placeholder="{value}"')
+                cols += HTML.genElement("input", id=id, type="text", style=style, custom=f'placeholder="{value}"')
 
-            self.inputIds.append(f"{self.name}_Inp_{value}")
+            self.inputIds.append(id)
 
         cols += HTML.genElement("button", nest="Add", id=f"{self.name}_Add", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
         row = HTML.genElement("div", nest=cols, style="flex")
@@ -699,14 +715,14 @@ class sheetV2:
 
         return row
 
-    def _getRows(self):
+    def _getRows(self, index: int = -1):
         rows = ""
-        for index in self.data:
+        for dataIndex in self.data if index < 0 else {str(index): self.data[str(index)]}:
             cols = ""
-            for i, value in enumerate(self.data[index]):
+            for i, value in enumerate(self.data[dataIndex]):
                 width = self._getAdaptiveWidth(self.header[i])
                 wordwrapStyle = "word-break: break-all;" if self.wordWrap else "white-space: nowrap; overflow: scroll;"
-                style = f"z-index: 1{len(self.data[index]) - i}; width: {width}%; margin: 0px -2px 0px 0px; padding: 0px 0px 0px 0px; background: #202020; border-right: 2px dashed #151515;"
+                style = f"z-index: 1{len(self.data[dataIndex]) - i}; width: {width}%; margin: 0px -2px 0px 0px; padding: 0px; background: #202020; border-right: 2px dashed #151515;"
                 id = ""
 
                 if type(value) in [int, float] and self.header[i] in self.dates:
@@ -715,27 +731,27 @@ class sheetV2:
                     value = ", ".join(str(v) for v in value)
                 elif type(value) is bool:
                     value = "Yes" if value else "No"
-                    id = f"{self.name}_Bool_{self.header[i]}_{index}"
+                    id = f"{self.name}_Bool_{self.header[i]}_{dataIndex}"
                     self.boolIds.append(id)
 
                 cols += HTML.genElement("p", id=id, nest=str(value), style=f"{style} {wordwrapStyle}")
 
-            else:
-                cols += HTML.genElement("button", nest="Delete", id=f"{self.name}_Del_{index}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
-                rows += HTML.genElement("div", nest=cols, id=f"{self.name}_Mod_{index}", style=f'flex %% z-index: 1;{"" if int(index) == 0 else " border-top: 2px solid #151515;"}')
+            cols += HTML.genElement("button", nest="Delete", id=f"{self.name}_Del_{dataIndex}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+            rows += HTML.genElement("div", nest=cols, id=f"{self.name}_Mod_{dataIndex}", style=f"flex %% z-index: 1; border-top: 2px solid #151515;")
 
-                self.onDelIds.append(f"{self.name}_Del_{index}")
-                self.onModIds.append(f"{self.name}_Mod_{index}")
+            self.onDelIds.append(f"{self.name}_Del_{dataIndex}")
+            self.onModIds.append(f"{self.name}_Mod_{dataIndex}")
 
+        rows += HTML.genElement("div", id=f"{self.name}_AddRow")
         return rows
 
     def generateSheet(self):
         html = self._getHeaderRow() + self._getInputRow() + self._getRows()
 
-        return HTML.genElement("div", nest=html, id=f"{self.name}", style="margin: 10px; border: 2px solid #111;")
+        return HTML.genElement("div", nest=html, id=self.name, style="margin: 10px; border: 2px solid #111;")
 
     def addRecord(self, submitFunction: object):
-        data = {}
+        returnData = {}
         for id in self.inputIds:
             value = CSS.getAttribute(id, "value")
             if value == "":
@@ -746,71 +762,167 @@ class sheetV2:
 
             if valueType in [int, float] and key in self.dates:
                 value = datetime.strptime(value, "%Y-%m-%d").timestamp()
-
             elif valueType is list:
                 value = []
                 for els in list(CSS.getAttribute(id, "childNodes")):
                     if els.selected is True:
                         value.append(els.value)
-
             elif valueType is bool:
                 value = CSS.getAttribute(id, "checked")
 
-            data[key] = valueType(value)
+            returnData[key] = valueType(value)
 
-        submitFunction("-1", "1", data)
+        data = []
+        for i, key in enumerate(self.header):
+            if key in returnData:
+                data.append(returnData[key])
+                continue
+            data.append(True if self.types[i] is bool else self.types[i]())
+
+        index = str(self.dataLen)
+        self.dataLen += 1
+        self.data[index] = data
+
+        HTML.getElement(f"{self.name}_AddRow").outerHTML = self._getRows(int(index))
+
+        def addEvents():
+            JS.addEvent(f"{self.name}_Del_{index}", self.delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
+            CSS.onHoverClick(f"{self.name}_Del_{index}", "buttonHover", "buttonClick")
+
+            JS.addEvent(f"{self.name}_Mod_{index}", self.modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+
+        JS.afterDelay(addEvents, delay=50)
+        submitFunction("-1", "1", returnData)
 
     def delRecord(self, el, submitFunction: object):
         el = el.target
         for i in range(0, 2):
-            if el.id == "" or el.id.split("_")[1] != "Mod":
+            if el.id == "" or el.id.split("_")[-2] != "Mod":
                 el = el.parentElement
             break
         else:
             return None
 
         index = el.id.split("_")[-1]
+        self.dataLen -= 1
         self.data.pop(index)
         el.remove()
 
-        submitFunction(index)
-
-        for i in range(int(index) + 1, len(self.data) + 1):
-            self.data[str(i - 1)] = self.data[str(i)]
-            self.data.pop(str(i))
+        for i in range(int(index) + 1, self.dataLen + 1):
+            if str(i) in self.data:
+                self.data[str(i - 1)] = self.data[str(i)]
+                self.data.pop(str(i))
 
             el = HTML.getElement(f"{self.name}_Mod_{i}")
-            if el is None:
-                continue
-            el.id = f'{"_".join(el.id.split("_")[:-1])}_{i - 1}'
+            if not el is None:
+                el.id = f'{"_".join(el.id.split("_")[:-1])}_{i - 1}'
 
             el = HTML.getElement(f"{self.name}_Del_{i}")
-            if el is None:
-                continue
-            el.id = f'{"_".join(el.id.split("_")[:-1])}_{i - 1}'
+            if not el is None:
+                el.id = f'{"_".join(el.id.split("_")[:-1])}_{i - 1}'
+
+        submitFunction(index)
 
     def modRecord(self, el, submitFunction: object):
-        def submit():
-            pass
+        def submit(el, inputIds: list | tuple, submitFunction):
+            el = el.target
+            for i in range(0, 2):
+                if el.id == "" or el.id.split("_")[-2] != "Mod":
+                    el = el.parentElement
+                break
+            else:
+                return None
+
+            returnData = {}
+            for id in inputIds:
+                value = CSS.getAttribute(id, "value")
+                if value == "":
+                    continue
+
+                key = id.split("_")[-1]
+                valueType = self.types[self.header.index(key)]
+
+                if valueType in [int, float] and key in self.dates:
+                    value = datetime.strptime(value, "%Y-%m-%d").timestamp()
+                elif valueType is list:
+                    value = []
+                    for els in list(CSS.getAttribute(id, "childNodes")):
+                        if els.selected is True:
+                            value.append(els.value)
+                elif valueType is bool:
+                    JS.log(str(CSS.getAttribute(id, "innerHTML")))
+                    value = CSS.getAttribute(id, "innerHTML") == "Yes"
+
+                returnData[key] = valueType(value)
+
+            submitFunction(el.id.split("_")[-1], "*", returnData)
 
         el = el.target
         for i in range(0, 2):
-            if el.id == "" or el.id.split("_")[1] != "Mod":
+            if el.id == "" or el.id.split("_")[-2] != "Mod":
                 el = el.parentElement
             break
         else:
             return None
 
-        submitFunction(el.id.split("_")[-1], None, {})
+        cols = ""
+        boolIds = []
+        inputIds = []
+        dataIndex = el.id.split("_")[-1]
+        for i, value in enumerate(self.header):
+            id = f"{self.name}_Inp_{dataIndex}_{value}"
+            width = self._getAdaptiveWidth(value)
+            style = f"inputMedium %% z-index: 1{len(self.data[dataIndex]) - i}; width: {width}%; margin: 0px -2px 0px 0px; padding: 0px; border: 0px; border-right: 2px dashed #151515; border-radius: 0px; text-align: center;"
+            curValue = self.data[dataIndex][i]
+
+            if self.types[i] in [int, float] and value in self.dates:
+                cols += HTML.genElement("input", id=id, type="date", style=style, custom=f'value="{datetime.fromtimestamp(curValue).strftime("%Y-%m-%d")}"')
+            elif self.types[i] in [int, float]:
+                cols += HTML.genElement("input", id=id, type="number", style=style, custom=f'value="{curValue}" placeholder="{value}"')
+            elif self.types[i] is list:
+                options = ""
+                for option in self.optionsDict[value] if value in self.optionsDict else []:
+                    options += HTML.genElement("option", nest=option, style="margin: 0px; padding: 0px;", custom=f'value="{option}"{" selected" if option in curValue else ""}')
+                cols += HTML.genElement("select", nest=options, id=id, style=f"{style} margin: 0px -2px 0px 2px; margin-bottom: 0px; min-height: 0px;", custom=f'size="1" multiple')
+            elif self.types[i] is bool:
+                cols += HTML.genElement("p", id=id, nest="Yes" if curValue else "No", style=style)
+                boolIds.append(id)
+            else:
+                cols += HTML.genElement("input", id=id, type="text", style=style, custom=f'value="{curValue}" placeholder="{value}"')
+
+            inputIds.append(id)
+
+        cols += HTML.genElement("button", nest="Save", id=f"{self.name}_Save_{dataIndex}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+
+        el.innerHTML = cols
+
+        def addEvents():
+            JS.addEvent(f"{self.name}_Save_{dataIndex}", submit, kwargs={"inputIds": inputIds, "submitFunction": submitFunction}, includeElement=True)
+            CSS.onHoverClick(f"{self.name}_Save_{dataIndex}", "buttonHover", "buttonClick")
+
+            for id in inputIds:
+                if self.types[self.header.index(id.split("_")[-1])] is list:
+                    CSS.onHoverFocus(id, "selectHover", "selectFocus")
+                else:
+                    CSS.onHoverFocus(id, "inputHover", "inputFocus")
+
+            for id in boolIds:
+                JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": submitFunction}, includeElement=True)
+
+        JS.afterDelay(addEvents, delay=50)
 
     def boolModRecord(self, el, submitFunction: object):
         el = el.target
         value = not el.innerHTML == "Yes"
-        el.innerHTML = "Yes" if value else "no"
+        el.innerHTML = "Yes" if value else "No"
 
         submitFunction(el.id.split("_")[-1], el.id.split("_")[-2], value)
 
     def generateEvents(self, onAdd: object, onDel: object, onMod: object):
+        self.onAdd = onAdd
+        self.onDel = onDel
+        self.onMod = onMod
+
         for id in self.inputIds:
             if self.types[self.header.index(id.split("_")[-1])] is list:
                 CSS.onHoverFocus(id, "selectHover", "selectFocus")
@@ -818,18 +930,26 @@ class sheetV2:
                 CSS.onHoverFocus(id, "inputHover", "inputFocus")
 
         for id in self.onAddIds:
-            JS.addEvent(id, self.addRecord, kwargs={"submitFunction": onAdd})
+            JS.addEvent(id, self.addRecord, kwargs={"submitFunction": self.onAdd})
             CSS.onHoverClick(id, "buttonHover", "buttonClick")
 
         for id in self.onDelIds:
-            JS.addEvent(id, self.delRecord, kwargs={"submitFunction": onDel}, includeElement=True)
+            JS.addEvent(id, self.delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
             CSS.onHoverClick(id, "buttonHover", "buttonClick")
 
         for id in self.boolIds:
-            JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": onMod}, includeElement=True)
+            JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
 
         for id in self.onModIds:
-            JS.addEvent(id, self.modRecord, kwargs={"submitFunction": onMod}, action="dblclick", includeElement=True)
+            JS.addEvent(id, self.modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+
+        JS.onResize(self.name, self._onResize)
+
+    def destorySheet(self):
+        JS.onResize(self.name, None)
+        if not HTML.getElement(self.name) is None:
+            HTML.remElement(self.name)
+        self = None
 
 
 class tree:
