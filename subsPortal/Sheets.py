@@ -366,6 +366,6 @@ class sheets:
         self.flyin()
 
         if not JS.cache("portalSubPage") == "":
-            self.loadPortalSubPage(JS.cache("portalSubPage"))
+            JS.afterDelay(self.loadPortalSubPage, args=(JS.cache("portalSubPage"),), delay=250)
 
         JS.onResize("sheets", self.onResize)

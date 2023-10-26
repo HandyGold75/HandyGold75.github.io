@@ -480,7 +480,7 @@
             ],
             "halfView": [
                 "User",
-                "Tag",
+                "Name",
                 "Brand",
                 "Series",
                 "MAC",
@@ -505,12 +505,6 @@
             "hideInput": false,
             "mainCom": "am2",
             "extraButtons": [
-                {
-                    "text": "Bulk Add",
-                    "id": "bulkadd",
-                    "function": "bulkAdd",
-                    "active": false
-                },
                 {
                     "text": "Inactive",
                     "id": "active",
@@ -542,7 +536,7 @@
                 "Action"
             ],
             "halfView": [
-                "Tag",
+                "Name",
                 "DOP",
                 "EOL",
                 "Cost",
@@ -562,12 +556,6 @@
             "hideInput": false,
             "mainCom": "lm2",
             "extraButtons": [
-                {
-                    "text": "Bulk Add",
-                    "id": "bulkadd",
-                    "function": "bulkAdd",
-                    "active": false
-                },
                 {
                     "text": "Inactive",
                     "id": "active",

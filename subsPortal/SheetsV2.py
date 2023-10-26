@@ -24,7 +24,6 @@ class sheetsV2:
             "compactOption": self.compactOption,
             "activeOption": self.activeOption,
             "wrapOption": self.wrapOption,
-            "bulkAdd": self.bulkAdd,
             # "userAdd": self.userAdd,
             # "clean": self.clean,
             # "restart": self.restart,
@@ -32,6 +31,7 @@ class sheetsV2:
         }
         self.allConfigKeys = ("dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "hideInput", "mainCom", "extraButtons")
 
+        self.sheet = None
         self.dates = None
         self.halfView = None
         self.quarterView = None
@@ -111,6 +111,8 @@ class sheetsV2:
             self.busy = False
 
         self.busy = True
+        if not self.sheet is None:
+            self.sheet.destorySheet()
         JS.onResize("sheets", None)
         for attribute in self.allConfigKeys:
             setattr(self, attribute, None)
@@ -187,6 +189,9 @@ class sheetsV2:
             JS.afterDelay(self.loadPortalSubPage, kwargs={"firstRun": False}, delay=250)
             return None
 
+        if not self.sheet is None:
+            self.sheet.destorySheet()
+
         HTML.clrElement("portalSubPage")
         self.generateSheet()
 
@@ -212,14 +217,15 @@ class sheetsV2:
                 types.append(type(ktype))
 
             fileData = WS.dict()[self.mainCom][file]
+            fileDataLen = len(fileData)
             if self.hideInactive and "Active" in headers:
                 for index in dict(fileData):
                     if not fileData[index][headers.index("Active")]:
                         fileData.pop(index)
 
             dates = list(self.dates)
-            halfView = list(self.halfView)
-            quarterView = list(self.quarterView)
+            halfView = list(key for key in self.halfView if key in headers + ["Action"])
+            quarterView = list(key for key in self.quarterView if key in headers + ["Action"])
 
             for value in tuple(self.excludeView if self.compactView else ()) + (("Active",) if self.hideInactive else ()):
                 if not value in headers:
@@ -246,19 +252,20 @@ class sheetsV2:
                 optionsData = WS.dict()[self.mainCom][f]
                 options = {**options, f: [optionsData[opt][0] for opt in optionsData]}
 
-            sheet = Widget.sheetV2(
+            self.sheet = Widget.sheetV2(
                 name=file,
                 header=headers,
                 types=types,
                 data=fileData,
+                dataLen=fileDataLen,
                 dates=dates,
                 halfView=halfView,
                 quarterView=quarterView,
                 wordWrap=self.wordWrap,
                 optionsDict=options,
             )
-            HTML.setElementRaw("portalSubPage", sheet.generateSheet())
-            JS.afterDelay(sheet.generateEvents, kwargs={"onAdd": self.addRecord, "onDel": self.delRecord, "onMod": self.modRecord}, delay=50)
+            HTML.setElementRaw("portalSubPage", self.sheet.generateSheet())
+            JS.afterDelay(self.sheet.generateEvents, kwargs={"onAdd": self.addRecord, "onDel": self.delRecord, "onMod": self.modRecord}, delay=50)
 
     def compactOption(self):
         self.compactView = not self.compactView
@@ -295,6 +302,8 @@ class sheetsV2:
                 continue
             sendData.append(True if type(ktype) is bool else ktype)
 
+        JS.log(str(sendData))
+
         WS.send(f'{self.mainCom} add {JS.cache("portalSubPage").replace(" ", "%20")} {index} {count} {str(dumps(sendData)).replace(" ", "")}')
 
     def delRecord(self, index):
@@ -320,29 +329,6 @@ class sheetsV2:
 
     #     WS.onMsg('{"' + self.mainCom + '": {"' + {JS.cache("portalSubPage").replace(" ", "%20")} + '":', lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
     #     WS.send(f'{self.mainCom} uadd {JS.cache("portalSubPage").replace(" ", "%20")}')
-
-    def bulkAdd(self):
-        if JS.cache("portalSubPage") == "":
-            return None
-
-        prefix = JS.popup("prompt", "Prefix")
-        amount = JS.popup("prompt", "Amount")
-        if prefix is None or amount is None:
-            return None
-
-        try:
-            amount = int(amount)
-        except ValueError:
-            JS.popup("alert", "Please enter a rounded number!")
-            return None
-
-        def doAction(self, i, prefix):
-            WS.onMsg('{"' + self.mainCom + '": {"' + JS.cache("portalSubPage").replace(" ", "%20") + '":', lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
-            WS.send(f'{self.mainCom} add {JS.cache("portalSubPage").replace(" ", "%20")} {prefix.replace(" ", "%20")}{"0" * (2 - len(str(i)))}{i}')
-
-        if JS.popup("confirm", f'Records with token "{prefix}{"0" * 2}" to "{prefix}{"0" * (2 - len(str(amount - 1)))}{amount - 1}" will be created!\nDo you want to continue?'):
-            for i in range(0, amount):
-                JS.afterDelay(doAction, (self, i, prefix), delay=i * 10)
 
     # def shutdown(self):
     #     if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
@@ -372,6 +358,6 @@ class sheetsV2:
         self.flyin()
 
         if not JS.cache("portalSubPage") == "":
-            self.loadPortalSubPage(JS.cache("portalSubPage"))
+            JS.afterDelay(self.loadPortalSubPage, args=(JS.cache("portalSubPage"),), delay=250)
 
         JS.onResize("sheets", self.onResize)
