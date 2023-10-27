@@ -753,12 +753,11 @@ class sheetV2:
     def addRecord(self, submitFunction: object):
         returnData = {}
         for id in self.inputIds:
+            key = id.split("_")[-1]
+            valueType = self.types[self.header.index(key)]
             value = CSS.getAttribute(id, "value")
             if value == "":
                 continue
-
-            key = id.split("_")[-1]
-            valueType = self.types[self.header.index(key)]
 
             if valueType in [int, float] and key in self.dates:
                 value = datetime.strptime(value, "%Y-%m-%d").timestamp()
@@ -835,12 +834,11 @@ class sheetV2:
 
             returnData = {}
             for id in inputIds:
-                value = CSS.getAttribute(id, "value")
-                if value == "":
-                    continue
-
                 key = id.split("_")[-1]
                 valueType = self.types[self.header.index(key)]
+                value = CSS.getAttribute(id, "innerHTML") if valueType is bool else CSS.getAttribute(id, "value")
+                if value == "":
+                    continue
 
                 if valueType in [int, float] and key in self.dates:
                     value = datetime.strptime(value, "%Y-%m-%d").timestamp()
@@ -850,8 +848,7 @@ class sheetV2:
                         if els.selected is True:
                             value.append(els.value)
                 elif valueType is bool:
-                    JS.log(str(CSS.getAttribute(id, "innerHTML")))
-                    value = CSS.getAttribute(id, "innerHTML") == "Yes"
+                    value = value == "Yes"
 
                 returnData[key] = valueType(value)
 
@@ -892,7 +889,7 @@ class sheetV2:
 
             inputIds.append(id)
 
-        cols += HTML.genElement("button", nest="Save", id=f"{self.name}_Save_{dataIndex}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+        cols += HTML.genElement("button", nest="Save", id=f"{self.name}_Save_{dataIndex}", style=f'buttonMedium %% z-index: 200; width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
 
         el.innerHTML = cols
 
@@ -902,12 +899,12 @@ class sheetV2:
 
             for id in inputIds:
                 if self.types[self.header.index(id.split("_")[-1])] is list:
-                    CSS.onHoverFocus(id, "selectHover", "selectFocus")
+                    CSS.onHoverFocus(id, "selectHover %% border-right: 0px; ", "selectFocus %% border-right: 0px; ")
                 else:
-                    CSS.onHoverFocus(id, "inputHover", "inputFocus")
+                    CSS.onHoverFocus(id, "inputHover %% z-index: none;", "inputFocus %% z-index: none;")
 
             for id in boolIds:
-                JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": submitFunction}, includeElement=True)
+                JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": lambda *args: None}, includeElement=True)
 
         JS.afterDelay(addEvents, delay=50)
 
