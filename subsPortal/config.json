@@ -506,21 +506,24 @@
             "mainCom": "am2",
             "extraButtons": [
                 {
-                    "text": "Inactive",
+                    "text": "Active",
+                    "textInactive": "Inactive",
                     "id": "active",
-                    "function": "activeOption",
+                    "toggleVar": "hideInactive",
                     "active": false
                 },
                 {
                     "text": "Expand",
+                    "textInactive": "Compact",
                     "id": "compact",
-                    "function": "compactOption",
+                    "toggleVar": "compactView",
                     "active": false
                 },
                 {
-                    "text": "Word wrap",
+                    "text": "Inline",
+                    "textInactive": "Word wrap",
                     "id": "wordwrap",
-                    "function": "wrapOption",
+                    "toggleVar": "wordWrap",
                     "active": false
                 }
             ]
@@ -557,21 +560,24 @@
             "mainCom": "lm2",
             "extraButtons": [
                 {
-                    "text": "Inactive",
+                    "text": "Active",
+                    "textInactive": "Inactive",
                     "id": "active",
-                    "function": "activeOption",
+                    "toggleVar": "hideInactive",
                     "active": false
                 },
                 {
                     "text": "Expand",
+                    "textInactive": "Compact",
                     "id": "compact",
-                    "function": "compactOption",
+                    "toggleVar": "compactView",
                     "active": false
                 },
                 {
-                    "text": "Word wrap",
+                    "text": "Inline",
+                    "textInactive": "Word wrap",
                     "id": "wordwrap",
-                    "function": "wrapOption",
+                    "toggleVar": "wordWrap",
                     "active": false
                 }
             ]
@@ -644,21 +650,24 @@
             "mainCom": "qr2",
             "extraButtons": [
                 {
-                    "text": "Inactive",
+                    "text": "Active",
+                    "textInactive": "Inactive",
                     "id": "active",
-                    "function": "activeOption",
+                    "toggleVar": "hideInactive",
                     "active": false
                 },
                 {
                     "text": "Expand",
+                    "textInactive": "Compact",
                     "id": "compact",
-                    "function": "compactOption",
+                    "toggleVar": "compactView",
                     "active": false
                 },
                 {
-                    "text": "Word wrap",
+                    "text": "Inline",
+                    "textInactive": "Word wrap",
                     "id": "wordwrap",
-                    "function": "wrapOption",
+                    "toggleVar": "wordWrap",
                     "active": false
                 }
             ]

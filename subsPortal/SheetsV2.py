@@ -14,21 +14,21 @@ class sheetsV2:
         self.requireLogin = False
 
         self.lastUpdate = 0
-        self.compactView = True
-        self.hideInactive = True
-        self.wordWrap = False
-
         self.template = {}
-
         self.evalMap = {
-            "compactOption": self.compactOption,
-            "activeOption": self.activeOption,
-            "wrapOption": self.wrapOption,
+            "compact": self.toggleOption,
+            "active": self.toggleOption,
+            "wordwrap": self.toggleOption,
             # "userAdd": self.userAdd,
             # "clean": self.clean,
             # "restart": self.restart,
             # "shutdown": self.shutdown,
         }
+
+        self.compactView = True
+        self.hideInactive = True
+        self.wordWrap = False
+
         self.allConfigKeys = ("dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "hideInput", "mainCom", "extraButtons")
 
         self.sheet = None
@@ -140,7 +140,7 @@ class sheetsV2:
         navDivs = HTML.genElement("div", id="portalSubPage_nav_main", nest=navBtns, align="left", style="width: 60%;")
         navBtns = ""
         for button in self.extraButtons:
-            navBtns += HTML.genElement("button", nest=button["text"], id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
+            navBtns += HTML.genElement("button", nest=button["text"] if getattr(self, button["toggleVar"]) else button["textInactive"], id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
         navDivs += HTML.genElement("div", id="portalSubPage_nav_options", nest=navBtns, align="right", style="width: 40%;")
 
         mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="flex %% width: 90%; padding: 10px; margin: 0px auto 10px auto; border-bottom: 5px dotted #111;")
@@ -158,7 +158,7 @@ class sheetsV2:
                 CSS.onHoverClick(f"portalSubPage_nav_main_{file}", "buttonHover", "buttonClick")
 
             for button in self.extraButtons:
-                JS.addEvent(f'portalSubPage_nav_options_{button["id"]}', self.evalMap[button["function"]])
+                JS.addEvent(f'portalSubPage_nav_options_{button["id"]}', self.evalMap[button["id"]], kwargs={"id": f'portalSubPage_nav_options_{button["id"]}'})
                 CSS.onHoverClick(f'portalSubPage_nav_options_{button["id"]}', "buttonHover", "buttonClick")
                 if not button["active"]:
                     HTML.disableElement(f'portalSubPage_nav_options_{button["id"]}')
@@ -264,34 +264,20 @@ class sheetsV2:
                 wordWrap=self.wordWrap,
                 optionsDict=options,
             )
-            HTML.setElementRaw("portalSubPage", self.sheet.generateSheet())
+            HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
             JS.afterDelay(self.sheet.generateEvents, kwargs={"onAdd": self.addRecord, "onDel": self.delRecord, "onMod": self.modRecord}, delay=50)
 
-    def compactOption(self):
-        self.compactView = not self.compactView
-        if self.compactView:
-            CSS.setAttribute("portalSubPage_nav_options_compact", "innerHTML", "Expand")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_compact", "innerHTML", "Compact")
+    def toggleOption(self, id):
+        for button in self.extraButtons:
+            if id.split("_")[-1] != button["id"]:
+                continue
 
-        self.loadPortalSubPage()
+            option = not getattr(self, button["toggleVar"])
+            setattr(self, button["toggleVar"], option)
+            CSS.setAttribute(id, "innerHTML", button["text"] if option else button["textInactive"])
 
-    def activeOption(self):
-        self.hideInactive = not self.hideInactive
-        if self.hideInactive:
-            CSS.setAttribute("portalSubPage_nav_options_active", "innerHTML", "Inactive")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_active", "innerHTML", "Active")
-
-        self.loadPortalSubPage()
-
-    def wrapOption(self):
-        self.wordWrap = not self.wordWrap
-        if self.wordWrap:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Inline")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
-
+            break
+        JS.log(option)
         self.loadPortalSubPage()
 
     def addRecord(self, index, count, data):

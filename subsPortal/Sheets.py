@@ -341,7 +341,7 @@ class sheets:
     def shutdown(self):
         if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
             WS.send("shutdown")
-            
+
     def restart(self):
         if JS.popup("confirm", "Are you sure you want to restart the server?\nThis will disconnect everyone!"):
             WS.send("restart")
