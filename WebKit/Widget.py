@@ -604,7 +604,7 @@ class sheet:
             if valueType == "rem":
                 func = self.remRecord
             else:
-                func = lambda args: self.addRecord(args, reloadFunction=onReloadCall)
+                func = lambda args: self._addRecord(args, reloadFunction=onReloadCall)
             document.getElementById(el.id).addEventListener("click", create_proxy(func))
 
             CSS.onHoverClick(el.id, "buttonHover", "buttonClick")
@@ -617,7 +617,7 @@ class sheet:
 
 
 class sheetV2:
-    __all__ = ["generateSheet", "generateEvents"]
+    __all__ = ["generateSheet", "generateEvents", "destorySheet"]
 
     def __init__(
         self,
@@ -715,7 +715,7 @@ class sheetV2:
 
         return row
 
-    def _getRows(self, index: int = -1):
+    def _getRows(self, index: int = -1, preventAppendRow: bool = False):
         rows = ""
         for dataIndex in self.data if index < 0 else {str(index): self.data[str(index)]}:
             cols = ""
@@ -732,17 +732,22 @@ class sheetV2:
                 elif type(value) is bool:
                     value = "Yes" if value else "No"
                     id = f"{self.name}_Bool_{self.header[i]}_{dataIndex}"
-                    self.boolIds.append(id)
+                    if not id in self.boolIds:
+                        self.boolIds.append(id)
 
                 cols += HTML.genElement("p", id=id, nest=str(value), style=f"{style} {wordwrapStyle}")
 
-            cols += HTML.genElement("button", nest="Delete", id=f"{self.name}_Del_{dataIndex}", style=f'buttonMedium %% width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
+            cols += HTML.genElement("button", nest="Delete", id=f"{self.name}_Del_{dataIndex}", style=f'buttonMedium %% z-index: 200; width: {self._getAdaptiveWidth("Action")}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;')
             rows += HTML.genElement("div", nest=cols, id=f"{self.name}_Mod_{dataIndex}", style=f"flex %% z-index: 1; border-top: 2px solid #151515;")
 
-            self.onDelIds.append(f"{self.name}_Del_{dataIndex}")
-            self.onModIds.append(f"{self.name}_Mod_{dataIndex}")
+            if not id in self.onDelIds:
+                self.onDelIds.append(f"{self.name}_Del_{dataIndex}")
+            if not id in self.onModIds:
+                self.onModIds.append(f"{self.name}_Mod_{dataIndex}")
 
-        rows += HTML.genElement("div", id=f"{self.name}_AddRow")
+        if not preventAppendRow:
+            rows += HTML.genElement("div", id=f"{self.name}_AddRow")
+
         return rows
 
     def generateSheet(self):
@@ -750,7 +755,7 @@ class sheetV2:
 
         return HTML.genElement("div", nest=html, id=self.name, style="margin: 10px; border: 2px solid #111;")
 
-    def addRecord(self, submitFunction: object):
+    def _addRecord(self, submitFunction: object):
         returnData = {}
         for id in self.inputIds:
             key = id.split("_")[-1]
@@ -785,15 +790,15 @@ class sheetV2:
         HTML.getElement(f"{self.name}_AddRow").outerHTML = self._getRows(int(index))
 
         def addEvents():
-            JS.addEvent(f"{self.name}_Del_{index}", self.delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
+            JS.addEvent(f"{self.name}_Del_{index}", self._delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
             CSS.onHoverClick(f"{self.name}_Del_{index}", "buttonHover", "buttonClick")
 
-            JS.addEvent(f"{self.name}_Mod_{index}", self.modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+            JS.addEvent(f"{self.name}_Mod_{index}", self._modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
 
         JS.afterDelay(addEvents, delay=50)
         submitFunction("-1", "1", returnData)
 
-    def delRecord(self, el, submitFunction: object):
+    def _delRecord(self, el, submitFunction: object):
         el = el.target
         for i in range(0, 2):
             if el.id == "" or el.id.split("_")[-2] != "Mod":
@@ -822,7 +827,7 @@ class sheetV2:
 
         submitFunction(index)
 
-    def modRecord(self, el, submitFunction: object):
+    def _modRecord(self, el, submitFunction: object):
         def submit(el, inputIds: list | tuple, submitFunction):
             el = el.target
             for i in range(0, 2):
@@ -832,15 +837,17 @@ class sheetV2:
             else:
                 return None
 
+            dataIndex = el.id.split("_")[-1]
+            boolIds = []
             returnData = {}
             for id in inputIds:
                 key = id.split("_")[-1]
                 valueType = self.types[self.header.index(key)]
                 value = CSS.getAttribute(id, "innerHTML") if valueType is bool else CSS.getAttribute(id, "value")
-                if value == "":
-                    continue
 
-                if valueType in [int, float] and key in self.dates:
+                if value == "":
+                    value = valueType()
+                elif valueType in [int, float] and key in self.dates:
                     value = datetime.strptime(value, "%Y-%m-%d").timestamp()
                 elif valueType is list:
                     value = []
@@ -849,10 +856,25 @@ class sheetV2:
                             value.append(els.value)
                 elif valueType is bool:
                     value = value == "Yes"
+                    boolIds.append(f"{self.name}_Bool_{key}_{dataIndex}")
 
                 returnData[key] = valueType(value)
 
-            submitFunction(el.id.split("_")[-1], "*", returnData)
+            self.data[dataIndex] = [returnData[key] for key in returnData]
+            HTML.getElement(f"{self.name}_Mod_{dataIndex}").outerHTML = self._getRows(int(dataIndex), preventAppendRow=True)
+
+            submitFunction(dataIndex, "*", returnData)
+
+            def addEvents():
+                JS.addEvent(f"{self.name}_Del_{dataIndex}", self._delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
+                CSS.onHoverClick(f"{self.name}_Del_{dataIndex}", "buttonHover", "buttonClick")
+
+                for id in boolIds:
+                    JS.addEvent(id, self._boolModRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
+
+                JS.addEvent(f"{self.name}_Mod_{dataIndex}", self._modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+
+            JS.afterDelay(addEvents, delay=50)
 
         el = el.target
         for i in range(0, 2):
@@ -904,11 +926,11 @@ class sheetV2:
                     CSS.onHoverFocus(id, "inputHover %% z-index: none;", "inputFocus %% z-index: none;")
 
             for id in boolIds:
-                JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": lambda *args: None}, includeElement=True)
+                JS.addEvent(id, self._boolModRecord, kwargs={"submitFunction": lambda *args: None}, includeElement=True)
 
         JS.afterDelay(addEvents, delay=50)
 
-    def boolModRecord(self, el, submitFunction: object):
+    def _boolModRecord(self, el, submitFunction: object):
         el = el.target
         value = not el.innerHTML == "Yes"
         el.innerHTML = "Yes" if value else "No"
@@ -927,18 +949,18 @@ class sheetV2:
                 CSS.onHoverFocus(id, "inputHover", "inputFocus")
 
         for id in self.onAddIds:
-            JS.addEvent(id, self.addRecord, kwargs={"submitFunction": self.onAdd})
+            JS.addEvent(id, self._addRecord, kwargs={"submitFunction": self.onAdd})
             CSS.onHoverClick(id, "buttonHover", "buttonClick")
 
         for id in self.onDelIds:
-            JS.addEvent(id, self.delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
+            JS.addEvent(id, self._delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
             CSS.onHoverClick(id, "buttonHover", "buttonClick")
 
         for id in self.boolIds:
-            JS.addEvent(id, self.boolModRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
+            JS.addEvent(id, self._boolModRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
 
         for id in self.onModIds:
-            JS.addEvent(id, self.modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+            JS.addEvent(id, self._modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
 
         JS.onResize(self.name, self._onResize)
 
