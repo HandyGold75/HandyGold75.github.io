@@ -277,7 +277,7 @@ class sheetsV2:
             CSS.setAttribute(id, "innerHTML", button["text"] if option else button["textInactive"])
 
             break
-        JS.log(option)
+
         self.loadPortalSubPage()
 
     def addRecord(self, index, count, data):
@@ -287,8 +287,6 @@ class sheetsV2:
                 sendData.append(data[name])
                 continue
             sendData.append(True if type(ktype) is bool else ktype)
-
-        JS.log(str(sendData))
 
         WS.send(f'{self.mainCom} add {JS.cache("portalSubPage").replace(" ", "%20")} {index} {count} {str(dumps(sendData)).replace(" ", "")}')
 
@@ -308,6 +306,8 @@ class sheetsV2:
             sendData.append(True if type(ktype) is bool else ktype)
 
         JS.log(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
+
+        WS.send(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
 
     # def userAdd(self):
     #     if JS.cache("portalSubPage") == "":
