@@ -506,8 +506,8 @@
             "mainCom": "am2",
             "extraButtons": [
                 {
-                    "text": "Active",
-                    "textInactive": "Inactive",
+                    "text": "Inactive",
+                    "textInactive": "Active",
                     "id": "active",
                     "toggleVar": "hideInactive",
                     "active": false
@@ -524,6 +524,16 @@
                     "textInactive": "Word wrap",
                     "id": "wordwrap",
                     "toggleVar": "wordWrap",
+                    "active": false
+                },
+                {
+                    "text": "Export",
+                    "id": "export",
+                    "active": false
+                },
+                {
+                    "text": "Import",
+                    "id": "import",
                     "active": false
                 }
             ]
@@ -560,8 +570,8 @@
             "mainCom": "lm2",
             "extraButtons": [
                 {
-                    "text": "Active",
-                    "textInactive": "Inactive",
+                    "text": "Inactive",
+                    "textInactive": "Active",
                     "id": "active",
                     "toggleVar": "hideInactive",
                     "active": false
@@ -578,6 +588,16 @@
                     "textInactive": "Word wrap",
                     "id": "wordwrap",
                     "toggleVar": "wordWrap",
+                    "active": false
+                },
+                {
+                    "text": "Export",
+                    "id": "export",
+                    "active": false
+                },
+                {
+                    "text": "Import",
+                    "id": "import",
                     "active": false
                 }
             ]
@@ -650,8 +670,8 @@
             "mainCom": "qr2",
             "extraButtons": [
                 {
-                    "text": "Active",
-                    "textInactive": "Inactive",
+                    "text": "Inactive",
+                    "textInactive": "Active",
                     "id": "active",
                     "toggleVar": "hideInactive",
                     "active": false
@@ -668,6 +688,16 @@
                     "textInactive": "Word wrap",
                     "id": "wordwrap",
                     "toggleVar": "wordWrap",
+                    "active": false
+                },
+                {
+                    "text": "Export",
+                    "id": "export",
+                    "active": false
+                },
+                {
+                    "text": "Import",
+                    "id": "import",
                     "active": false
                 }
             ]

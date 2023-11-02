@@ -3,6 +3,7 @@ from json import dumps, loads
 
 from rsa import encrypt
 
+from WebKit import Widget
 from WebKit.init import CSS, HTML, JS, WS
 
 
@@ -125,7 +126,7 @@ class login:
                 JS.afterDelay(sendLogin, delay=50)
                 return None
             if WS.state() > 1:
-                JS.popup("alert", "Failed to connect to server")
+                Widget.popup("warning", "Server\nFailed to connect to server")
                 return None
 
             crypt = str(encrypt(CSS.getAttribute("loginPage_username", "value").encode() + "<SPLIT>".encode() + CSS.getAttribute("loginPage_password", "value").encode(), WS.pub))
@@ -145,7 +146,7 @@ class login:
             try:
                 self.setupConnection()
             except ValueError as err:
-                JS.popup("alert", str(err))
+                Widget.popup("warning", f"Server\n{err}")
                 return None
 
         JS.aSync(sendLogin)
@@ -197,7 +198,7 @@ class login:
                 HTML.enableElement("loginPage_username")
                 HTML.enableElement("loginPage_password")
             elif msg == "loginFail":
-                JS.popup("alert", "Log in failed!")
+                Widget.popup("warning", "Server\nLog in failed!")
 
         server = self.config()["server"]
         if server == "" or not "://" in server or not server.count(":") == 2:

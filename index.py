@@ -118,6 +118,7 @@ class index:
         main = HTML.genElement("header", nest=nav, id="mainNav", style="divNormal %% flex %% padding: 5px; overflow: hidden; transition: padding 0.25s;")
         main += HTML.genElement("div", id="mainPage", style="divNormal %% overflow: hidden; transition: max-height 0.25s;")
         main += HTML.genElement("footer", nest=footer, id="mainFooter", style="divAlt %% flex %% padding: 10px; overflow: hidden; transition: padding 0.25s;")
+        main += HTML.genElement("div", id="mainPopup", style="z-index: 10000; display: none; position: fixed; width: 100%; height: 100%; top: 0px; left: 0px; background: rgba(0, 0, 0, 0); transition: background 0.25s;")
 
         HTML.setElementRaw("body", main)
 

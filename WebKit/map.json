@@ -33,14 +33,14 @@
         "pageLinks_Base": "width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111"
     },
     "StyleCSS": {
-        "buttonHover": "z-index: 101; color: #FFF; background: #444; transition: 0.25s",
-        "buttonClick": "z-index: 102; color: #55F; background: #BBF; transition: 0.1s",
-        "inputHover": "z-index: 111; color: #FFF; background: #444; transition: 0.25s",
-        "inputFocus": "z-index: 112; color: #FFF; background: #444; transition: 0.1s",
-        "selectHover": "z-index: 121; margin-bottom: -100px; min-height: 100px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.25s",
-        "selectFocus": "z-index: 122; margin-bottom: -100px; min-height: 100px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: 0.1s",
-        "imgHover": "z-index: 101; color: #FFF; background: #444; border: 3px solid #FBDF56; transition: 0.25s",
-        "imgClick": "z-index: 102; color: #55F; background: #550; border: 3px solid #FBDF56; transition: 0.1s",
-        "disabled": "color: #88B; background: #222"
+        "buttonHover": "z-index: 101; color: #FFF; background: #444; transition: color 0.25s, background 0.25s",
+        "buttonClick": "z-index: 102; color: #55F; background: #BBF; transition: color 0.1s, background 0.1s",
+        "inputHover": "z-index: 111; color: #FFF; background: #444; transition: color 0.25s, background 0.25s",
+        "inputFocus": "z-index: 112; color: #FFF; background: #444; transition: color 0.1s, background 0.1s",
+        "selectHover": "z-index: 121; margin-bottom: -100px; min-height: 100px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: margin-bottom 0.25s, min-height 0.25s, color 0.25s, background 0.25s",
+        "selectFocus": "z-index: 122; margin-bottom: -100px; min-height: 100px; color: #FFF; background: #444; overflow-y: scroll; scrollbar-width: auto; transition: margin-bottom 0.1s, min-height 0.1s, color 0.1s, background 0.1s",
+        "imgHover": "z-index: 101; color: #FFF; background: #444; border: 3px solid #FBDF56; transition: color 0.25s, background 0.25s, border 0.25s",
+        "imgClick": "z-index: 102; color: #55F; background: #550; border: 3px solid #FBDF56; transition: color 0.1s, background 0.1s, border 0.1s",
+        "disabled": "color: #88B; background: #222; transition: color 0.1s, background 0.1s"
     }
 }
