@@ -290,6 +290,10 @@ class tapo:
 
     def addPlugs(self):
         def togglePower(args):
+            def submit(doAction: bool, plug):
+                if doAction:
+                    WS.send(f"{self.mainCom} off {plug}")
+
             data = WS.dict()[self.mainCom]["current"]
             plug = args.target.id.split("_")[-1]
 
@@ -299,8 +303,7 @@ class tapo:
             if not data[plug]["state"]:
                 WS.send(f"{self.mainCom} on {plug}")
 
-            elif JS.popup(f"confirm", f"Are you sure you want to turn off this device?\nDevice: {plug}"):
-                WS.send(f"{self.mainCom} off {plug}")
+            Widget.popup(f"confirm", f"Device shutdown\nAre you sure you want to turn off this device?\nDevice: {plug}", onSubmit=submit, kwargs={"plug": plug})
 
         def getInfo(args):
             data = WS.dict()[self.mainCom]["history"]

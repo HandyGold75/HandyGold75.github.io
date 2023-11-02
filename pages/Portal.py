@@ -123,6 +123,8 @@ class portal:
                     CSS.setStyle(f"portalPage_button_{page}Div", "marginLeft", f'-{CSS.getAttribute("portalFlyout", "offsetWidth")}px')
 
                 JS.afterDelay(setattr, (self, "busy", False), delay=350)
+                for delay in range(10, 370, 10):
+                    JS.afterDelay(JS.glb.onResize, delay=delay)
                 return None
 
             el.src = "docs/assets/Portal/Hide-H.svg"
@@ -135,11 +137,13 @@ class portal:
 
             JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
             JS.afterDelay(CSS.setStyle, ("portalFlyout", "maxHeight", ""), delay=350)
-            self.onResize()
+
             for page in self.portalPages:
                 JS.afterDelay(CSS.setStyle, (f"portalPage_button_{page}Div", "marginLeft", "0px"), delay=100)
 
             JS.afterDelay(setattr, (self, "busy", False), delay=350)
+            for delay in range(10, 370, 10):
+                JS.afterDelay(JS.glb.onResize, delay=delay)
 
         for page in self.portalPages:
             if not self.portalPages[page]["page"] is None:

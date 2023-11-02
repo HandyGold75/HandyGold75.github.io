@@ -19,6 +19,8 @@ class sheetsV2:
             "compact": self.toggleOption,
             "active": self.toggleOption,
             "wordwrap": self.toggleOption,
+            "export": self.exportAsJson,
+            "import": self.importFromJson,
             # "userAdd": self.userAdd,
             # "clean": self.clean,
             # "restart": self.restart,
@@ -140,7 +142,8 @@ class sheetsV2:
         navDivs = HTML.genElement("div", id="portalSubPage_nav_main", nest=navBtns, align="left", style="width: 60%;")
         navBtns = ""
         for button in self.extraButtons:
-            navBtns += HTML.genElement("button", nest=button["text"] if getattr(self, button["toggleVar"]) else button["textInactive"], id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
+            btnTxt = button["text"] if not hasattr(button, "toggleVar") or getattr(self, button["toggleVar"]) else button["textInactive"]
+            navBtns += HTML.genElement("button", nest=btnTxt, id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
         navDivs += HTML.genElement("div", id="portalSubPage_nav_options", nest=navBtns, align="right", style="width: 40%;")
 
         mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="flex %% width: 90%; padding: 10px; margin: 0px auto 10px auto; border-bottom: 5px dotted #111;")
@@ -223,6 +226,20 @@ class sheetsV2:
                     if not fileData[index][headers.index("Active")]:
                         fileData.pop(index)
 
+            options = self.optionsDict[file] if file in self.optionsDict else {}
+            for f in WS.dict()[self.mainCom]:
+                if f in [file, "template"]:
+                    continue
+
+                optionsData = WS.dict()[self.mainCom][f]
+                for index in dict(optionsData):
+                    headersTmp = [headerTmp[0] for headerTmp in WS.dict()[self.mainCom]["template"]["sheets"][f]]
+                    if self.hideInactive and "Active" in headersTmp:
+                        if not optionsData[index][headersTmp.index("Active")]:
+                            optionsData.pop(index)
+
+                options = {**options, f: [optionsData[dataIndex][0] for dataIndex in optionsData]}
+
             dates = list(self.dates)
             halfView = list(key for key in self.halfView if key in headers + ["Action"])
             quarterView = list(key for key in self.quarterView if key in headers + ["Action"])
@@ -243,14 +260,6 @@ class sheetsV2:
                     halfView.remove(value)
                 if value in self.quarterView:
                     quarterView.remove(value)
-
-            options = self.optionsDict[file] if file in self.optionsDict else {}
-            for f in WS.dict()[self.mainCom]:
-                if f in [file, "template"]:
-                    continue
-
-                optionsData = WS.dict()[self.mainCom][f]
-                options = {**options, f: [optionsData[opt][0] for opt in optionsData]}
 
             self.sheet = Widget.sheetV2(
                 name=file,
@@ -280,6 +289,33 @@ class sheetsV2:
 
         self.loadPortalSubPage()
 
+    def exportAsJson(self, doMinimal: bool = None, id: str = None):
+        if doMinimal is None:
+            Widget.popup("yesno", "Export\nDo an minimal export?\nonly include values and not keys.", self.exportAsJson, kwargs={"id": id})
+            return None
+
+        headers = []
+        types = []
+        for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
+            headers.append(name)
+            types.append(type(ktype))
+
+        sheetData = WS.dict()[self.mainCom][JS.cache("portalSubPage")]
+        if doMinimal:
+            sheetData = str(dumps([sheetData[dataIndex] for dataIndex in sheetData]))
+        else:
+            sheetData = str(dumps({dataIndex: {header: sheetData[dataIndex][i] for i, header in enumerate(headers)} for dataIndex in sheetData}))
+
+        HTML.addElement("a", "portalSubPage", id=f'{JS.cache("portalSubPage")}_Download', style="display: none;", custom=f'href="data:text/json;charset=utf-8,{JS.uriFriendlyfy(sheetData)}" download="{JS.cache("portalSubPage")}.json"')
+        JS.aSync(HTML.getElement(f'{JS.cache("portalSubPage")}_Download').click)
+        JS.aSync(HTML.remElement, (f'{JS.cache("portalSubPage")}_Download',))
+
+    def importFromJson(self, id: str = None):
+        def submit(value):
+            JS.log(value)
+
+        Widget.popup("file", "Import\nImport from a previous export.", onSubmit=submit)
+
     def addRecord(self, index, count, data):
         sendData = []
         for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
@@ -304,8 +340,6 @@ class sheetsV2:
                 sendData.append(data[name])
                 continue
             sendData.append(True if type(ktype) is bool else ktype)
-
-        JS.log(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
 
         WS.send(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
 

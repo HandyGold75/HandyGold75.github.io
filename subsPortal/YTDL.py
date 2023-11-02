@@ -221,7 +221,7 @@ class ytdl:
                 return None
 
             if (datetime.now() - timedelta(seconds=15)).timestamp() < self.lastDownload:
-                JS.popup("alert", f"Please wait {int(self.lastDownload - (datetime.now() - timedelta(seconds=15)).timestamp())} seconds until starting the next download.")
+                Widget.popup("warning", f"Download throttled\nPlease wait {int(self.lastDownload - (datetime.now() - timedelta(seconds=15)).timestamp())} seconds until starting the next download.")
                 return None
             self.lastDownload = datetime.now().timestamp()
 
