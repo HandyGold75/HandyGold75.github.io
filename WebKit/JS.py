@@ -1,4 +1,4 @@
-from js import console, document, eval, setInterval, setTimeout, window  # type: ignore
+from js import console, document, eval, encodeURIComponent, setInterval, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 
 
@@ -43,6 +43,10 @@ def atInterval(function: object, args: tuple = (), kwargs: dict = {}, delay: int
 
 def jsEval(com: str):
     return eval(str(com))
+
+
+def uriFriendlyfy(text: str):
+    return encodeURIComponent(text)
 
 
 def popup(type: str, txt: str):

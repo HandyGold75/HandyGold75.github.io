@@ -657,10 +657,13 @@ class sheetV2:
         self.modIds = []
         self.boolIds = []
 
-    def _onResize(self):
+    def _onResize(self, firstRun: bool = True):
         for i, id in enumerate(self.headerIds):
             offset = 4 if self.types[i] is list else (6 if self.types[i] is bool else 0)
             CSS.setStyle(f'{self.name}_Inp_{id.split("_")[-1]}', "width", f"{(HTML.getElement(id).getBoundingClientRect().width + (-2 if i == 0 else -4) + offset)}px")
+
+        if firstRun:
+            JS.afterDelay(self._onResize, kwargs={"firstRun": False}, delay=300)
 
     def _getAdaptiveWidth(self, key):
         if key in self.halfView:
@@ -829,6 +832,13 @@ class sheetV2:
 
     def _modRecord(self, el, submitFunction: object):
         def submit(el, inputIds: list | tuple, submitFunction):
+            escKey = False
+            if hasattr(el, "key"):
+                if getattr(el, "key") == "Escape":
+                    escKey = True
+                elif getattr(el, "key") != "Enter":
+                    return None
+
             el = el.target
             for i in range(0, 2):
                 if el.id == "" or el.id.split("_")[-2] != "Mod":
@@ -860,10 +870,11 @@ class sheetV2:
 
                 returnData[key] = valueType(value)
 
-            self.data[dataIndex] = [returnData[key] for key in returnData]
-            HTML.getElement(f"{self.name}_Mod_{dataIndex}").outerHTML = self._getRows(int(dataIndex), preventAppendRow=True)
+            if not escKey:
+                self.data[dataIndex] = [returnData[key] for key in returnData]
+                submitFunction(dataIndex, "*", returnData)
 
-            submitFunction(dataIndex, "*", returnData)
+            HTML.getElement(f"{self.name}_Mod_{dataIndex}").outerHTML = self._getRows(int(dataIndex), preventAppendRow=True)
 
             def addEvents():
                 JS.addEvent(f"{self.name}_Del_{dataIndex}", self._delRecord, kwargs={"submitFunction": self.onDel}, includeElement=True)
@@ -920,6 +931,7 @@ class sheetV2:
             CSS.onHoverClick(f"{self.name}_Save_{dataIndex}", "buttonHover", "buttonClick")
 
             for id in inputIds:
+                JS.addEvent(id, submit, kwargs={"inputIds": inputIds, "submitFunction": submitFunction}, action="keyup", includeElement=True)
                 if self.types[self.header.index(id.split("_")[-1])] is list:
                     CSS.onHoverFocus(id, "selectHover %% border-right: 0px; ", "selectFocus %% border-right: 0px; ")
                 else:
@@ -1251,6 +1263,112 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
         el = document.getElementById(id)
         el.addEventListener("mouseover", create_proxy(mouseover))
         el.addEventListener("mouseout", create_proxy(mouseout))
+
+
+def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tuple = (), kwargs: dict = {}, placeholders: tuple = ()):
+    def submit(value):
+        def cleanup():
+            CSS.setStyle("mainPopup", "display", "none")
+            HTML.getElement("mainPopup").innerHTML = ""
+            onSubmit(value, *args, **kwargs)
+
+        CSS.setStyle("mainPopup", "background", "rgba(0, 0, 0, 0)")
+        CSS.setStyle("mainPopup_Div", "margin", "-100vh 25% 25vh 25%")
+        JS.afterDelay(cleanup, delay=250)
+
+    def submitValue(ids: tuple):
+        value = []
+        for id in ids:
+            el = HTML.getElement(id)
+            if not el is None:
+                value.append(el.value)
+
+        submit(value[0] if len(value) == 1 else value)
+
+    def submitFile(id: str):
+        el = HTML.getElement(id)
+        if not el is None:
+            value = getattr(el.files, "0")
+
+        reader = JS.jsEval("new FileReader()")
+        # value = reader.readAsText(value)
+
+        submit(value)
+
+    txtAll = ""
+    for i, txt in enumerate(text.split("\n")):
+        if i == 0:
+            txtAll += HTML.genElement("h1", nest=txt, style="headerMain")
+            continue
+        txtAll += HTML.genElement("p", nest=txt, style="textMedium")
+
+    txtDiv = HTML.genElement("div", nest=txtAll, style="divNormal %% z-index: 10001; border: 4px solid #111;")
+
+    if typ == "yesno":
+        btnYes = HTML.genElement("button", nest="Yes", id="mainPopup_Yes", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        btnNo = HTML.genElement("button", nest="No", id="mainPopup_No", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inpDiv = HTML.genElement("div", nest=btnYes + btnNo, style="z-index: 10001;")
+
+    elif typ == "confirm":
+        btnYes = HTML.genElement("button", nest="Continue", id="mainPopup_Yes", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        btnNo = HTML.genElement("button", nest="Cancel", id="mainPopup_No", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inpDiv = HTML.genElement("div", nest=btnYes + btnNo, style="z-index: 10001;")
+
+    elif typ == "warning":
+        btnCon = HTML.genElement("button", nest="Continue", id="mainPopup_Continue", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inpDiv = HTML.genElement("div", nest=btnCon, style="z-index: 10001;")
+
+    elif typ == "input":
+        btnCon = HTML.genElement("button", nest="Continue", id="mainPopup_Continue", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inp = HTML.genElement("input", id="mainPopup_Input", type="text", style="inputBig %% width:50%; margin: 0px 5% 5px 5%; text-align: center;'", custom=f'placeholder="{placeholders[0]}"')
+        inpDiv = HTML.genElement("div", nest=inp + btnCon, style="z-index: 10001;")
+
+    elif typ == "file":
+        btnCon = HTML.genElement("button", nest="Continue", id="mainPopup_Continue", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inp = HTML.genElement("input", id="mainPopup_File", type="file", style="display: none")
+        lbl = HTML.genElement("label", nest=inp + "Upload", id="mainPopup_Label", align="center", style="inputBig %% margin: 0px 5% 5px 5%; padding: 5px;")
+        inpDiv = HTML.genElement("div", nest=lbl + btnCon, style="z-index: 10001;")
+
+    else:
+        raise TypeError(f"Invalid type: {typ}")
+
+    HTML.setElement("div", "mainPopup", nest=txtDiv + inpDiv, id="mainPopup_Div", align="center", style="z-index: 10001; margin: -100vh 25% 25vh 25%; transition: margin 0.25s;")
+    CSS.setStyle("mainPopup", "display", "")
+
+    JS.afterDelay(CSS.setStyle, args=("mainPopup", "background", "rgba(0, 0, 0, 0.3)"), delay=50)
+    JS.afterDelay(CSS.setStyle, args=("mainPopup_Div", "margin", "25vh 25% 25vh 25%"), delay=50)
+
+    def addEvents():
+        def changeFileLabel():
+            HTML.getElement("mainPopup_Label").lastChild.data = HTML.getElement("mainPopup_File").value.replace("\\", "/").split("/")[-1]
+
+        if typ in ["yesno", "confirm"]:
+            CSS.onHoverClick("mainPopup_Yes", "buttonHover", "buttonClick")
+            JS.addEvent("mainPopup_Yes", submit, kwargs={"value": True})
+
+            CSS.onHoverClick("mainPopup_No", "buttonHover", "buttonClick")
+            JS.addEvent("mainPopup_No", submit, kwargs={"value": False})
+
+        elif typ == "warning":
+            CSS.onHoverClick("mainPopup_Continue", "buttonHover", "buttonClick")
+            JS.addEvent("mainPopup_Continue", submit, kwargs={"value": True})
+
+        elif typ == "input":
+            CSS.onHoverFocus("mainPopup_Input", "inputHover", "inputFocus")
+
+            CSS.onHoverClick("mainPopup_Continue", "buttonHover", "buttonClick")
+            JS.addEvent("mainPopup_Continue", submitValue, kwargs={"ids": ("mainPopup_Input",)})
+
+        elif typ == "file":
+            CSS.onHoverFocus("mainPopup_Label", "inputHover", "inputFocus")
+            JS.addEvent("mainPopup_File", changeFileLabel, action="change")
+
+            CSS.onHoverClick("mainPopup_Continue", "buttonHover", "buttonClick")
+            JS.addEvent("mainPopup_Continue", submitFile, kwargs={"id": "mainPopup_File"})
+
+    JS.aSync(addEvents)
+
+    return True
 
 
 def ytVideo(name: str):
