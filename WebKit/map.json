@@ -30,7 +30,8 @@
         "divDark": "background: #111; color: #F7E163; padding: 5px; margin: 15px auto; border: 4px solid #000; border-radius: 10px",
         "disabled": "color: #88B; background: #222",
         "flex": "display: flex",
-        "pageLinks_Base": "width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111"
+        "pageLinks_Base": "width: 95%; color: #55F; margin-bottom: 0px; transition: opacity 0.25s, border-bottom 0.1s; border-radius: 6px; border-right: 4px solid #111; border-left: 4px solid #111",
+        "pagePortal_Nav": "display: flex; width: 90%; padding: 5px; margin: 0px auto 10px auto; border: 6px solid #111; border-radius: 10px"
     },
     "StyleCSS": {
         "buttonHover": "z-index: 101; color: #FFF; background: #444; transition: color 0.25s, background 0.25s",

@@ -659,8 +659,11 @@ class sheetV2:
 
     def _onResize(self, firstRun: bool = True):
         for i, id in enumerate(self.headerIds):
+            el = HTML.getElement(id)
+            if not hasattr(el, "getBoundingClientRect"):
+                continue
             offset = 4 if self.types[i] is list else (6 if self.types[i] is bool else 0)
-            CSS.setStyle(f'{self.name}_Inp_{id.split("_")[-1]}', "width", f"{(HTML.getElement(id).getBoundingClientRect().width + (-2 if i == 0 else -4) + offset)}px")
+            CSS.setStyle(f'{self.name}_Inp_{id.split("_")[-1]}', "width", f"{(el.getBoundingClientRect().width + (-2 if i == 0 else -4) + offset)}px")
 
         if firstRun:
             JS.afterDelay(self._onResize, kwargs={"firstRun": False}, delay=300)
@@ -1265,7 +1268,7 @@ def graphDraw(name: str, cords: tuple, lineRes: int = 100, disalowRecursive: boo
         el.addEventListener("mouseout", create_proxy(mouseout))
 
 
-def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tuple = (), kwargs: dict = {}, placeholders: tuple = ()):
+def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tuple = (), kwargs: dict = {}, custom: tuple = ()):
     def submit(value):
         def cleanup():
             CSS.setStyle("mainPopup", "display", "none")
@@ -1287,13 +1290,15 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
 
     def submitFile(id: str):
         el = HTML.getElement(id)
-        if not el is None:
-            value = getattr(el.files, "0")
+        if el is None or not hasattr(el.files, "0"):
+            submit((None, None))
+            return None
+
+        value = getattr(el.files, "0")
 
         reader = JS.jsEval("new FileReader()")
-        # value = reader.readAsText(value)
-
-        submit(value)
+        reader.onload = lambda el: submit((HTML.getElement(id).value.replace("\\", "/").split("/")[-1], el.target.result))
+        reader.readAsText(value)
 
     txtAll = ""
     for i, txt in enumerate(text.split("\n")):
@@ -1314,13 +1319,19 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
         btnNo = HTML.genElement("button", nest="Cancel", id="mainPopup_No", style="buttonBig %% margin: 0px 5% 5px 5%;")
         inpDiv = HTML.genElement("div", nest=btnYes + btnNo, style="z-index: 10001;")
 
+    elif typ == "buttons":
+        btns = ""
+        for btn in custom:
+            btns += HTML.genElement("button", nest=btn, id=f"mainPopup_{btn}", style="buttonBig %% margin: 0px 5% 5px 5%;")
+        inpDiv = HTML.genElement("div", nest=btns, style="z-index: 10001;")
+
     elif typ == "warning":
         btnCon = HTML.genElement("button", nest="Continue", id="mainPopup_Continue", style="buttonBig %% margin: 0px 5% 5px 5%;")
         inpDiv = HTML.genElement("div", nest=btnCon, style="z-index: 10001;")
 
     elif typ == "input":
         btnCon = HTML.genElement("button", nest="Continue", id="mainPopup_Continue", style="buttonBig %% margin: 0px 5% 5px 5%;")
-        inp = HTML.genElement("input", id="mainPopup_Input", type="text", style="inputBig %% width:50%; margin: 0px 5% 5px 5%; text-align: center;'", custom=f'placeholder="{placeholders[0]}"')
+        inp = HTML.genElement("input", id="mainPopup_Input", type="text", style="inputBig %% width:50%; margin: 0px 5% 5px 5%; text-align: center;'", custom=f'placeholder="{custom[0]}"')
         inpDiv = HTML.genElement("div", nest=inp + btnCon, style="z-index: 10001;")
 
     elif typ == "file":
@@ -1348,6 +1359,11 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
 
             CSS.onHoverClick("mainPopup_No", "buttonHover", "buttonClick")
             JS.addEvent("mainPopup_No", submit, kwargs={"value": False})
+
+        elif typ == "buttons":
+            for btn in custom:
+                CSS.onHoverClick(f"mainPopup_{btn}", "buttonHover", "buttonClick")
+                JS.addEvent(f"mainPopup_{btn}", submit, kwargs={"value": btn})
 
         elif typ == "warning":
             CSS.onHoverClick("mainPopup_Continue", "buttonHover", "buttonClick")
