@@ -170,7 +170,7 @@ class portal:
         flyout = HTML.genElement(
             "div", nest=flyoutDivs, id="portalFlyout", align="left", style=f"z-index: 999; width: 6.5%; height: 100%; margin: -11px 0px -11px -11px; padding: 5px 0.5%; background: #222; border: 6px solid #111; border-radius: 10px;{minMaxRequirements}"
         )
-        portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: 92.5%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
+        portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: 92.5%; margin: -11px 0px 0px 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
         HTML.setElement("div", "mainPage", nest=flyout + portalPage, id="portalWrapper", align="center", style="flex")
 
         def addEvents():
