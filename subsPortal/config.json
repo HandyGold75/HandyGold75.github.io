@@ -1,5 +1,5 @@
 {
-    "sheets": {
+    "admin": {
         "Admin": {
             "knownFiles": {
                 "/Config.json": {
@@ -147,327 +147,114 @@
                     "active": false
                 }
             ]
-        },
-        "Asset Manager": {
-            "knownFiles": {
-                "/Assignments.json": {
-                    "User": {
-                        "Devices": [],
-                        "Assets": [],
-                        "Servers": [],
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                },
-                "/Devices.json": {
-                    "Tag": {
-                        "Brand": "",
-                        "Device": "",
-                        "Series": "",
-                        "S/N": "",
-                        "MAC-WiFi": "",
-                        "MAC-Eth": "",
-                        "DOP": 0,
-                        "EOL": 0,
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                },
-                "/Assets.json": {
-                    "Tag": {
-                        "Brand": "",
-                        "Asset": "",
-                        "Series": "",
-                        "S/N": "",
-                        "DOP": 0,
-                        "EOL": 0,
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                },
-                "/Servers.json": {
-                    "Tag": {
-                        "Brand": "",
-                        "Server": "",
-                        "Series": "",
-                        "S/N": "",
-                        "MAC": "",
-                        "DOP": 0,
-                        "EOL": 0,
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                }
-            },
+        }
+    },
+    "sheets": {
+        "Admin": {
             "dates": [
-                "DOP",
-                "EOL",
-                "Modified"
+                "Modified",
+                "Expires"
             ],
             "quarterView": [
+                "Auth",
                 "Active",
-                "Action"
+                "Action",
+                "Criticality"
             ],
             "halfView": [
                 "User",
-                "Tag",
-                "Brand",
-                "Series",
-                "MAC",
-                "MAC-WiFi",
-                "MAC-Eth",
-                "DOP",
-                "EOL",
-                "Modified"
+                "Expires",
+                "Modified",
+                "TapoUser",
+                "Date/ Time",
+                "IP/ Port",
+                "Status"
             ],
             "excludeView": [
-                "S/N",
-                "MAC",
-                "MAC-WiFi",
-                "MAC-Eth",
-                "DOP",
-                "EOL",
+                "Expires",
                 "Modified",
+                "TapoUser",
                 "Notes"
             ],
-            "invokePswChange": {},
-            "optionsDict": {},
-            "tagIsList": false,
-            "hideInput": false,
-            "mainCom": "am",
-            "extraButtons": [
-                {
-                    "text": "Bulk Add",
-                    "id": "bulkadd",
-                    "function": "bulkAdd",
-                    "active": false
-                },
-                {
-                    "text": "Inactive",
-                    "id": "active",
-                    "function": "activeOption",
-                    "active": false
-                },
-                {
-                    "text": "Expand",
-                    "id": "compact",
-                    "function": "compactOption",
-                    "active": false
-                },
-                {
-                    "text": "Word wrap",
-                    "id": "wordwrap",
-                    "function": "wrapOption",
-                    "active": false
-                }
-            ]
-        },
-        "License Manager": {
-            "knownFiles": {
-                "/Assignments.json": {
-                    "Tag": {
-                        "Licenses": [],
-                        "Devices": [],
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                },
-                "/Devices.json": {
-                    "Tag": {
-                        "Device": "",
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                },
-                "/Licenses.json": {
-                    "Tag": {
-                        "Product": "",
-                        "Key": "",
-                        "URL": "",
-                        "DOP": 0,
-                        "EOL": 0,
-                        "Cost": 0.0,
-                        "Auto Renew": false,
-                        "Modified": 0,
-                        "Active": false,
-                        "Notes": ""
-                    }
-                }
+            "invokePswChange": {
+                "User": "Password",
+                "TapoUser": "TapoPassword"
             },
-            "dates": [
-                "DOP",
-                "EOL",
-                "Modified"
-            ],
-            "quarterView": [
-                "Active",
-                "Action"
-            ],
-            "halfView": [
-                "Tag",
-                "DOP",
-                "EOL",
-                "Cost",
-                "Auto Renew",
-                "Modified"
-            ],
-            "excludeView": [
-                "DOP",
-                "EOL",
-                "Cost",
-                "Auto Renew",
-                "Modified",
-                "Notes"
-            ],
-            "invokePswChange": {},
-            "optionsDict": {},
-            "tagIsList": false,
-            "hideInput": false,
-            "mainCom": "lm",
-            "extraButtons": [
-                {
-                    "text": "Bulk Add",
-                    "id": "bulkadd",
-                    "function": "bulkAdd",
-                    "active": false
-                },
-                {
-                    "text": "Inactive",
-                    "id": "active",
-                    "function": "activeOption",
-                    "active": false
-                },
-                {
-                    "text": "Expand",
-                    "id": "compact",
-                    "function": "compactOption",
-                    "active": false
-                },
-                {
-                    "text": "Word wrap",
-                    "id": "wordwrap",
-                    "function": "wrapOption",
-                    "active": false
-                }
-            ]
-        },
-        "Query": {
-            "knownFiles": {
-                "/Links.json": {
-                    "Tag": {
-                        "url": "",
-                        "text": "",
-                        "cat": "",
-                        "Index": 0,
-                        "Active": false,
-                        "Modified": 0
-                    }
-                },
-                "/Contact.json": {
-                    "Tag": {
-                        "url": "",
-                        "text": "",
-                        "Index": 0,
-                        "Active": false,
-                        "Modified": 0
-                    }
-                }
-            },
-            "dates": [
-                "Modified"
-            ],
-            "quarterView": [
-                "Index",
-                "Active",
-                "Action"
-            ],
-            "halfView": [
-                "Modified"
-            ],
-            "excludeView": [
-                "Index",
-                "Modified"
-            ],
-            "invokePswChange": {},
             "optionsDict": {
-                "/Links.json": {
-                    "Tag": [
-                        "Bol.png",
-                        "CloudConvert.png",
-                        "Cloudflare.png",
-                        "Dell.png",
-                        "DownDetector.png",
-                        "G-Calendar.png",
-                        "G-Drive.png",
-                        "GitHub.png",
-                        "G-Mail.png",
-                        "G-Photos.png",
-                        "Linode.png",
-                        "LinusTechTips.png",
-                        "Megekko.png",
-                        "M365.png",
-                        "Nord.png",
-                        "NS.png",
-                        "OneDrive.png",
-                        "OneTimeSecret.png",
-                        "Outlook.png",
-                        "OutlookCalendar.png",
-                        "RockStar.png",
-                        "SokPop.png",
-                        "Sophos.png",
-                        "SpeedTest.png",
-                        "Spotify.png",
-                        "UniFi.png",
-                        "Vodafone.png",
-                        "YouTube.png",
-                        "YouTubeMusic.png",
-                        "Zwoofs.png"
+                "Config": {
+                    "SonosSubnet": [
+                        "10.69.3.61",
+                        "10.69.1.0/24",
+                        "10.69.2.0/24",
+                        "10.69.3.0/24",
+                        "10.69.4.0/24",
+                        "10.69.5.0/24"
                     ]
                 },
-                "/Contact.json": {
-                    "Tag": [
-                        "discord.png",
-                        "exchange.png",
-                        "snapchat.png",
-                        "spotify.png",
-                        "steam.png",
-                        "twitch.png",
-                        "youtube.png"
+                "Tokens": {
+                    "Roles": [
+                        "Admin",
+                        "Home"
                     ]
                 }
             },
-            "tagIsList": true,
-            "hideInput": false,
-            "mainCom": "qr",
+            "tagIsList": false,
+            "hideInput": true,
+            "mainCom": "admin2",
             "extraButtons": [
                 {
+                    "text": "Add",
+                    "id": "add",
+                    "active": true
+                },
+                {
+                    "text": "Clean",
+                    "id": "clean",
+                    "active": true
+                },
+                {
+                    "text": "Restart",
+                    "id": "restart",
+                    "active": true
+                },
+                {
+                    "text": "Shutdown",
+                    "id": "shutdown",
+                    "active": true
+                },
+                {
                     "text": "Inactive",
+                    "textInactive": "Active",
                     "id": "active",
-                    "function": "activeOption",
+                    "toggleVar": "hideInactive",
                     "active": false
                 },
                 {
                     "text": "Expand",
+                    "textInactive": "Compact",
                     "id": "compact",
-                    "function": "compactOption",
+                    "toggleVar": "compactView",
                     "active": false
                 },
                 {
-                    "text": "Word wrap",
+                    "text": "Inline",
+                    "textInactive": "Word wrap",
                     "id": "wordwrap",
-                    "function": "wrapOption",
+                    "toggleVar": "wordWrap",
+                    "active": false
+                },
+                {
+                    "text": "Export",
+                    "id": "export",
+                    "active": false
+                },
+                {
+                    "text": "Import",
+                    "id": "import",
                     "active": false
                 }
             ]
-        }
-    },
-    "sheetsV2": {
+        },
         "Asset Manager": {
             "dates": [
                 "DOP",
@@ -503,7 +290,7 @@
             "invokePswChange": {},
             "optionsDict": {},
             "hideInput": false,
-            "mainCom": "am2",
+            "mainCom": "am",
             "extraButtons": [
                 {
                     "text": "Inactive",
@@ -567,7 +354,7 @@
             "invokePswChange": {},
             "optionsDict": {},
             "hideInput": false,
-            "mainCom": "lm2",
+            "mainCom": "lm",
             "extraButtons": [
                 {
                     "text": "Inactive",
@@ -667,7 +454,7 @@
                 }
             },
             "hideInput": false,
-            "mainCom": "qr2",
+            "mainCom": "qr",
             "extraButtons": [
                 {
                     "text": "Inactive",

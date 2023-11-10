@@ -57,18 +57,33 @@ class links:
             self.busy = False
             return None
 
+        def fetchTemplate():
+            WS.onMsg('{"qr": {"Links":', finalize, (self,), oneTime=True)
+            WS.send("qr read Links")
+
         def finalize(self):
             msgDict = WS.dict()
-            if "qr" in msgDict:
-                if " " in msgDict["qr"]["/Links.json"]:
-                    msgDict["qr"]["/Links.json"].pop(" ")
+            headers = []
+            types = []
+            for name, ktype in msgDict["qr"]["template"]["sheets"]["Links"]:
+                headers.append(name)
+                types.append(type(ktype))
 
-                self.allLinks = dict(sorted({**self.defaultLinks, **msgDict["qr"]["/Links.json"]}.items(), key=lambda x: x[1]["Index"]))
+            linkDict = {}
+            for link in msgDict["qr"]["Links"]:
+                img = msgDict["qr"]["Links"][link][headers.index("Img")][0]
+                linkDict[img] = {}
+                for i, header in enumerate(headers):
+                    if header == "Img":
+                        continue
+                    linkDict[img][header] = msgDict["qr"]["Links"][link][i]
+
+            self.allLinks = dict(sorted({**self.defaultLinks, **linkDict}.items(), key=lambda x: x[1]["Index"]))
             self.busy = False
 
         if "qr" in WS.dict()["access"]:
-            WS.onMsg('{"qr": {"/Links.json":', finalize, (self,), oneTime=True)
-            WS.send("qr read /Links.json")
+            WS.onMsg('{"qr": {"template":', fetchTemplate, oneTime=True)
+            WS.send(f"qr template")
 
     def deload(self):
         self.busy = True
