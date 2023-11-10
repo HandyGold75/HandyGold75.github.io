@@ -1,4 +1,4 @@
-from subsPortal.init import sheets, sheetsV2, sonos, tapo, trees, ytdl
+from subsPortal.init import admin, sheets, sonos, tapo, trees, ytdl
 from WebKit.init import CSS, HTML, JS, WS
 
 
@@ -17,7 +17,7 @@ class portal:
             "Admin": {
                 "hidden": True,
                 "page": None,
-                "loads": sheets,
+                "loads": admin,
                 "command": "admin",
             },
             "Monitor": {
@@ -54,7 +54,7 @@ class portal:
                 "hidden": True,
                 "page": None,
                 "loads": sheets,
-                "command": "lm2",
+                "command": "lm",
             },
             "Query": {
                 "hidden": True,

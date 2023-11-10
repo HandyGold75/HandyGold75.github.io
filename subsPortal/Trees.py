@@ -93,7 +93,7 @@ class trees:
         JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
         JS.afterDelay(fininalize, (self,), delay=250)
 
-    def layout(self, subPage: str = None):
+    def layout(self):
         data = WS.dict()[self.mainCom]
 
         navBtns = ""
