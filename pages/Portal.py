@@ -17,7 +17,7 @@ class portal:
             "Admin": {
                 "hidden": True,
                 "page": None,
-                "loads": admin,
+                "loads": sheets,
                 "command": "admin",
             },
             "Monitor": {
