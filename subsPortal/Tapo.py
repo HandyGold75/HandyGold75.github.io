@@ -261,7 +261,7 @@ class tapo:
             except AttributeError:
                 return None
 
-            JS.afterDelay(self.getData, delay=500)
+            JS.afterDelay(WS.send, args=(f"{self.mainCom} state",), delay=500)
             JS.afterDelay(slowUIRefresh, delay=1000)
 
         def fastUIRefresh():

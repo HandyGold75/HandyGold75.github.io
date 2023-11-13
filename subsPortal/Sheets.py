@@ -72,7 +72,7 @@ class sheets:
 
         def fetchTemplate():
             self.template = WS.dict()[self.mainCom]["template"]
-            WS.onMsg('{"' + self.mainCom + '": {"' + (*self.template["sheets"], *self.template["configs"], *self.template["configs"])[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
+            WS.onMsg('{"' + self.mainCom + '": {"' + (*self.template["sheets"], *self.template["configs"], *self.template["logs"])[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
             self.getData()
 
         def finalize(self):
@@ -127,7 +127,7 @@ class sheets:
 
         navBtns = ""
         for file in data:
-            if not file in (*self.template["sheets"], *self.template["configs"], *self.template["configs"]):
+            if not file in (*self.template["sheets"], *self.template["configs"], *self.template["logs"]):
                 continue
             navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f"portalSubPage_nav_main_{file}", type="button", style="buttonSmall")
 
@@ -152,7 +152,7 @@ class sheets:
         def addEvents():
             self.busy = True
             for file in data:
-                if not file in (*self.template["sheets"], *self.template["configs"], *self.template["configs"]):
+                if not file in (*self.template["sheets"], *self.template["configs"], *self.template["logs"]):
                     continue
 
                 JS.addEvent(f"portalSubPage_nav_main_{file}", self.loadPortalSubPage, kwargs={"portalSubPage": file})
@@ -197,9 +197,9 @@ class sheets:
         HTML.clrElement("portalSubPage")
         if JS.cache("portalSubPage") in self.template["sheets"]:
             self.generateSheet()
-        if JS.cache("portalSubPage") in self.template["configs"]:
+        elif JS.cache("portalSubPage") in self.template["configs"]:
             self.generateConfig()
-        if JS.cache("portalSubPage") in self.template["logs"]:
+        elif JS.cache("portalSubPage") in self.template["logs"]:
             self.generateLog()
 
         if not disableAnimation:
@@ -284,7 +284,7 @@ class sheets:
 
     def generateConfig(self):
         file = JS.cache("portalSubPage")
-        if not file in self.template["sheets"]:
+        if not file in self.template["configs"]:
             return None
 
         for button in self.extraButtons:
@@ -314,10 +314,16 @@ class sheets:
             optionsDict=options,
         )
         HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
-        JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modRecord}, delay=50)
+        JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modCfgRecord}, delay=50)
 
     def generateLog(self):
-        pass
+        file = JS.cache("portalSubPage")
+        if not file in self.template["logs"]:
+            return None
+
+        for button in self.extraButtons:
+            if not button["active"]:
+                HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
 
     def toggleOption(self, id):
         for button in self.extraButtons:
@@ -421,6 +427,22 @@ class sheets:
             sendData.append(True if type(ktype) is bool else ktype)
 
         WS.send(f'{self.mainCom} mod {JS.cache("portalSubPage").replace(" ", "%20")} {index} * {str(dumps(sendData)).replace(" ", "")}')
+
+    def modCfgRecord(self, key, data):
+        if not key in [None, "*"]:
+            JS.log(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} {key.replace(" ", "%20")} {str(data.replace(" ", "%20") if type(data) is str else data).replace(" ", "")}')
+            # WS.send(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} {key.replace(" ", "%20")} {str(data.replace(" ", "%20") if type(data) is str else data).replace(" ", "")}')
+            return None
+
+        sendData = []
+        for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
+            if name in data:
+                sendData.append(data[name].replace(" ", "%20") if type(ktype) is str else data[name])
+                continue
+            sendData.append(True if type(ktype) is bool else ktype)
+
+        JS.log(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} * {str(dumps(sendData)).replace(" ", "")}')
+        # WS.send(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} * {str(dumps(sendData)).replace(" ", "")}')
 
     def userAdd(self, id: str = None):
         JS.log(str(id))
