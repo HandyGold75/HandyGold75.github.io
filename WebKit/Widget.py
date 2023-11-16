@@ -631,6 +631,7 @@ class sheetV2:
         quarterView: tuple = (),
         wordWrap: bool = False,
         optionsDict: dict = {},
+        encryptOnSent: tuple | list = (),
     ):
         self.name = str(name)
         self.header = list(header)
@@ -642,6 +643,7 @@ class sheetV2:
         self.quarterView = list(quarterView)
         self.wordWrap = bool(wordWrap)
         self.optionsDict = dict(optionsDict)
+        self.encryptOnSent = list(encryptOnSent)
 
         self.defaultWidth = 100 / (len(self.header) + 1 - (len(self.halfView) * 0.5) - (len(self.quarterView) * 0.75))
 
@@ -710,7 +712,7 @@ class sheetV2:
             elif self.types[i] is bool:
                 cols += HTML.genElement("input", id=id, type="checkbox", style=f"{style} margin: 3px -2px;", custom=f"checked")
             else:
-                cols += HTML.genElement("input", id=id, type="text", style=style, custom=f'placeholder="{value}"')
+                cols += HTML.genElement("input", id=id, type="password" if value in self.encryptOnSent else "text", style=style, custom=f'placeholder="{value}"')
 
             self.inputIds.append(id)
 
@@ -780,11 +782,18 @@ class sheetV2:
             elif valueType is bool:
                 value = CSS.getAttribute(id, "checked")
 
-            returnData[key] = valueType(value)
+            if key in self.encryptOnSent:
+                returnData[key] = str(encrypt(value.encode(), WS.pub)).replace(" ", "%20")
+            else:
+                returnData[key] = valueType(value)
 
         data = []
         for i, key in enumerate(self.header):
             if key in returnData:
+                if key in self.encryptOnSent:
+                    data.append("REDACTED")
+                    continue
+
                 data.append(returnData[key])
                 continue
             data.append(True if self.types[i] is bool else self.types[i]())
@@ -871,10 +880,13 @@ class sheetV2:
                     value = value == "Yes"
                     boolIds.append(f"{self.name}_Bool_{key}_{dataIndex}")
 
-                returnData[key] = valueType(value)
+                if key in self.encryptOnSent:
+                    returnData[key] = str(encrypt(value.encode(), WS.pub)).replace(" ", "%20")
+                else:
+                    returnData[key] = valueType(value)
 
             if not escKey:
-                self.data[dataIndex] = [returnData[key] for key in returnData]
+                self.data[dataIndex] = ["REDACTED" if key in self.encryptOnSent else returnData[key] for key in returnData]
                 submitFunction(dataIndex, "*", returnData)
 
             HTML.getElement(f"{self.name}_Mod_{dataIndex}").outerHTML = self._getRows(int(dataIndex), preventAppendRow=True)
@@ -921,7 +933,7 @@ class sheetV2:
                 cols += HTML.genElement("p", id=id, nest="Yes" if curValue else "No", style=style)
                 boolIds.append(id)
             else:
-                cols += HTML.genElement("input", id=id, type="text", style=style, custom=f'value="{curValue}" placeholder="{value}"')
+                cols += HTML.genElement("input", id=id, type="password" if value in self.encryptOnSent else "text", style=style, custom=f'value="{curValue}" placeholder="{value}"')
 
             inputIds.append(id)
 
@@ -994,9 +1006,10 @@ class sheetConfig:
         name: str,
         header: tuple | list,
         data: dict,
-        dates: tuple = (),
+        dates: tuple | list = (),
         wordWrap: bool = False,
         optionsDict: dict = {},
+        encryptOnSent: tuple | list = (),
     ):
         self.name = str(name)
         self.header = list(header)
@@ -1004,6 +1017,7 @@ class sheetConfig:
         self.dates = list(dates)
         self.wordWrap = bool(wordWrap)
         self.optionsDict = dict(optionsDict)
+        self.encryptOnSent = list(encryptOnSent)
 
         self.defaultWidth = 100 / (len(self.header) + 0.25)
 
@@ -1050,12 +1064,12 @@ class sheetConfig:
             cols = HTML.genElement("p", nest=str(key), style=f"z-index: 102; {style} {wordwrapStyle}")
             cols += HTML.genElement("p", id=id, nest=str(value), style=f"z-index: 101; {style} {wordwrapStyle}")
 
-            cols += HTML.genElement("button", nest="Edit", id=f"{self.name}_ModBut_{key}", style=f"buttonMedium %% z-index: 200; width: {self.defaultWidth / 4}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;")
+            cols += HTML.genElement("button", nest="Edit", id=f"{self.name}_Edit_{key}", style=f"buttonMedium %% z-index: 200; width: {self.defaultWidth / 4}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;")
             rows += HTML.genElement("div", nest=cols, id=f"{self.name}_Mod_{key}", style=f"flex %% z-index: 1; border-top: 2px solid #151515;")
 
             if not id in self.onModButIds:
-                self.onModButIds.append(f"{self.name}_ModBut_{key}")
-            if not id in self.onModIds:
+                self.onModButIds.append(f"{self.name}_Edit_{key}")
+            if not id in self.onModIds and id == "":
                 self.onModIds.append(f"{self.name}_Mod_{key}")
 
         return rows
@@ -1100,12 +1114,19 @@ class sheetConfig:
                 boolId = f"{self.name}_Bool_{key}"
 
             if not escKey:
-                self.data[key] = type(self.data[key])(value)
-                submitFunction(key, type(self.data[key])(value))
+                if key in self.encryptOnSent:
+                    self.data[key] = type(self.data[key])("REDACTED")
+                    submitFunction(key, type(self.data[key])(str(encrypt(value.encode(), WS.pub)).replace(" ", "%20")))
+                else:
+                    self.data[key] = type(self.data[key])(value)
+                    submitFunction(key, type(self.data[key])(value))
 
             HTML.getElement(f"{self.name}_Mod_{key}").outerHTML = self._getRows(key)
 
             def addEvents():
+                JS.addEvent(f"{self.name}_Edit_{key}", self._modRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
+                CSS.onHoverClick(f"{self.name}_Edit_{key}", "buttonHover", "buttonClick")
+
                 if not boolId is None:
                     JS.addEvent(id, self._boolModRecord, kwargs={"submitFunction": self.onMod}, includeElement=True)
 
@@ -1144,7 +1165,7 @@ class sheetConfig:
             cols += HTML.genElement("p", id=id, nest="Yes" if value else "No", style=style)
             boolId = id
         else:
-            cols += HTML.genElement("input", id=id, type="text", style=style, custom=f'value="{value}" placeholder="{key}"')
+            cols += HTML.genElement("input", id=id, type="password" if key in self.encryptOnSent else "text", style=style, custom=f'value="{value}" placeholder="{key}"')
 
         cols += HTML.genElement("button", nest="Save", id=f"{self.name}_Save_{key}", style=f"buttonMedium %% z-index: 200; width: {self.defaultWidth / 4}%; margin: 0px; padding: 0px; word-wrap: normal; overflow: hidden;")
 

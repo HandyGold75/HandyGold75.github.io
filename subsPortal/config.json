@@ -176,10 +176,10 @@
                 "TapoUser",
                 "Notes"
             ],
-            "invokePswChange": {
-                "User": "Password",
-                "TapoUser": "TapoPassword"
-            },
+            "encryptOnSent": [
+                "Password",
+                "TapoPassword"
+            ],
             "optionsDict": {
                 "config": {
                     "SonosSubnet": [
@@ -299,7 +299,7 @@
                 "Modified",
                 "Notes"
             ],
-            "invokePswChange": {},
+            "encryptOnSent": [],
             "optionsDict": {},
             "hideInput": false,
             "mainCom": "am",
@@ -363,7 +363,7 @@
                 "Modified",
                 "Notes"
             ],
-            "invokePswChange": {},
+            "encryptOnSent": [],
             "optionsDict": {},
             "hideInput": false,
             "mainCom": "lm",
@@ -417,7 +417,7 @@
                 "Index",
                 "Modified"
             ],
-            "invokePswChange": {},
+            "encryptOnSent": [],
             "optionsDict": {
                 "Links": {
                     "Img": [
