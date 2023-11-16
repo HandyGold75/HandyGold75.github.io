@@ -31,14 +31,14 @@ class sheets:
         self.hideInactive = True
         self.wordWrap = False
 
-        self.allConfigKeys = ("dates", "halfView", "quarterView", "excludeView", "invokePswChange", "optionsDict", "hideInput", "mainCom", "extraButtons")
+        self.allConfigKeys = ("dates", "halfView", "quarterView", "excludeView", "encryptOnSent", "optionsDict", "hideInput", "mainCom", "extraButtons")
 
         self.sheet = None
         self.dates = None
         self.halfView = None  # Sheets only
         self.quarterView = None  # Sheets only
         self.excludeView = None  # Sheets only
-        self.invokePswChange = None
+        self.encryptOnSent = None
         self.optionsDict = None
         self.mainCom = None
         self.extraButtons = None
@@ -278,6 +278,7 @@ class sheets:
             quarterView=quarterView,
             wordWrap=self.wordWrap,
             optionsDict=options,
+            encryptOnSent=self.encryptOnSent,
         )
         HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
         JS.afterDelay(self.sheet.generateEvents, kwargs={"onAdd": self.addRecord, "onDel": self.delRecord, "onMod": self.modRecord}, delay=50)
@@ -312,6 +313,7 @@ class sheets:
             dates=list(self.dates),
             wordWrap=self.wordWrap,
             optionsDict=options,
+            encryptOnSent=self.encryptOnSent,
         )
         HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
         JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modCfgRecord}, delay=50)
