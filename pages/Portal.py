@@ -158,6 +158,9 @@ class portal:
         flyoutDivs = HTML.genElement("div", nest=flyoutBtn, id="portalPage_button_showHideDiv", align="center", style="width: 100%; margin: 0px auto 5px 0px;")
 
         for i, page in enumerate(self.portalPages):
+            if self.portalPages[page]["page"] is None:
+                continue
+
             divStyle = "width: 100%; margin: 5px auto 5px 0px; transition: margin 0.25s;"
             if i + 1 >= len(self.portalPages):
                 divStyle = "width: 100%; margin: 5px auto 0px 0px; transition: margin 0.25s;"
@@ -180,6 +183,9 @@ class portal:
             CSS.onHoverClick("portalPage_button_showHide", "imgHover", "imgClick")
 
             for page in self.portalPages:
+                if self.portalPages[page]["page"] is None:
+                    continue
+
                 JS.addEvent(f"portalPage_button_{page}", self.loadPortalPage, kwargs={"page": page})
                 CSS.onHoverClick(f"portalPage_button_{page}", "imgHover", "imgClick")
 
