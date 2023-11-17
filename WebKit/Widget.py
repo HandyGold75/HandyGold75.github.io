@@ -867,6 +867,7 @@ class sheetV2:
                 valueType = self.types[self.header.index(key)]
                 value = CSS.getAttribute(id, "innerHTML") if valueType is bool else CSS.getAttribute(id, "value")
 
+
                 if value == "":
                     value = valueType()
                 elif valueType in [int, float] and key in self.dates:
