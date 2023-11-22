@@ -550,7 +550,7 @@ class tapo:
             return None
 
         WS.onMsg('{"' + self.mainCom + '":', self.plugsPage, oneTime=True)
-        WS.onMsg("Failed", self.tapoLogin, oneTime=True)
+        WS.onMsg("WARNING: ", self.tapoLogin, oneTime=True)
         WS.send(f'{self.mainCom} login {usr.replace(" ", "%20")} {str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20")}')
 
     def configPage(self):
@@ -601,12 +601,12 @@ class tapo:
         self.loadPortalSubPage()
 
     def main(self):
-        if not self.mainCom in WS.dict():
-            header = HTML.genElement("h1", nest="Portal", style="headerMain")
-            body = HTML.genElement("p", nest="No data was found, please renavigate to this page.", style="textBig")
-            HTML.setElement("div", "portalPage", nest=header + body, id="loginPage", align="center")
-            self.flyin()
-            return None
+        # if not self.mainCom in WS.dict():
+        #     header = HTML.genElement("h1", nest="Portal", style="headerMain")
+        #     body = HTML.genElement("p", nest="No data was found, please renavigate to this page.", style="textBig")
+        #     HTML.setElement("div", "portalPage", nest=header + body, id="loginPage", align="center")
+        #     self.flyin()
+        #     return None
 
         self.layout()
         self.flyin()

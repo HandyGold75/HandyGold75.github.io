@@ -21,7 +21,6 @@ class sheets:
             "wordwrap": self.toggleOption,
             "export": self.exportAsJson,
             "import": self.importFromJson,
-            "add": self.userAdd,
             "clean": self.clean,
             "restart": self.restart,
             "shutdown": self.shutdown,
@@ -141,7 +140,7 @@ class sheets:
         navDivs = HTML.genElement("div", id="portalSubPage_nav_main", nest=navBtns, align="left", style="width: 60%;")
         navBtns = ""
         for button in self.extraButtons:
-            btnTxt = button["text"] if not hasattr(button, "toggleVar") or getattr(self, button["toggleVar"]) else button["textInactive"]
+            btnTxt = button["text"] if not "toggleVar" in button or getattr(self, button["toggleVar"]) else button["textInactive"]
             navBtns += HTML.genElement("button", nest=btnTxt, id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
         navDivs += HTML.genElement("div", id="portalSubPage_nav_options", nest=navBtns, align="right", style="width: 40%;")
 
@@ -446,32 +445,17 @@ class sheets:
         JS.log(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} * {str(dumps(sendData)).replace(" ", "")}')
         # WS.send(f'{self.mainCom} modcfg {JS.cache("portalSubPage").replace(" ", "%20")} * {str(dumps(sendData)).replace(" ", "")}')
 
-    def userAdd(self, id: str = None):
-        JS.log(str(id))
-
-    #     if JS.cache("portalSubPage") == "":
-    #         return None
-
-    #     WS.onMsg('{"' + self.mainCom + '": {"' + {JS.cache("portalSubPage").replace(" ", "%20")} + '":', lambda: self.loadPortalSubPage(disableAnimation=True), oneTime=True)
-    #     WS.send(f'{self.mainCom} uadd {JS.cache("portalSubPage").replace(" ", "%20")}')
-
     def shutdown(self, id: str = None):
-        JS.log(str(id))
-
-    #     if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
-    #         WS.send("shutdown")
+        if JS.popup("confirm", "Are you sure you want to shutdown the server?\nThis will disconnect everyone!"):
+            WS.send("shutdown")
 
     def restart(self, id: str = None):
-        JS.log(str(id))
-
-    #     if JS.popup("confirm", "Are you sure you want to restart the server?\nThis will disconnect everyone!"):
-    #         WS.send("restart")
+        if JS.popup("confirm", "Are you sure you want to restart the server?\nThis will disconnect everyone!"):
+            WS.send("restart")
 
     def clean(self, id: str = None):
-        JS.log(str(id))
-
-    #     def cleanResults():
-    #         JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()[self.mainCom]["Cleaned"])}')
+        def cleanResults():
+            JS.popup("alert", f'Cleaning results:\n{chr(10).join(WS.dict()[self.mainCom]["Cleaned"])}')
 
     #     if JS.popup("confirm", "Are you sure you want to clean?\nThis will delete all data of no longer existing users and making it imposable to recover this data!"):
     #         WS.onMsg('{"' + self.mainCom + '": {"Cleaned":', cleanResults, oneTime=True)
