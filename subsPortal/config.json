@@ -1,154 +1,4 @@
 {
-    "admin": {
-        "Admin": {
-            "knownFiles": {
-                "/Config.json": {
-                    "IP": "",
-                    "PORT": 0,
-                    "LogLevel": 0,
-                    "SonosSubnet": [],
-                    "Debug": false,
-                    "Modified": 0
-                },
-                "/Tokens.json": {
-                    "Token": {
-                        "User": "",
-                        "Auth": 0,
-                        "Roles": [],
-                        "Expires": 0,
-                        "Modified": 0,
-                        "Active": false,
-                        "TapoUser": "",
-                        "Notes": ""
-                    }
-                },
-                "/Server.log": {
-                    "Index": {
-                        "Date/ Time": "",
-                        "Criticality": "",
-                        "Message": ""
-                    }
-                },
-                "/clientHandler.log": {
-                    "Index": {
-                        "Date/ Time": "",
-                        "Criticality": "",
-                        "IP/ Port": "",
-                        "Command": "",
-                        "Status": ""
-                    }
-                },
-                "/documentServer.log": {
-                    "Index": {
-                        "Date/ Time": "",
-                        "Criticality": "",
-                        "Message": ""
-                    }
-                },
-                "/tapoMonitor.log": {
-                    "Index": {
-                        "Date/ Time": "",
-                        "Criticality": "",
-                        "Message": ""
-                    }
-                }
-            },
-            "dates": [
-                "Modified",
-                "Expires"
-            ],
-            "quarterView": [
-                "Auth",
-                "Active",
-                "Action",
-                "Criticality"
-            ],
-            "halfView": [
-                "User",
-                "Expires",
-                "Modified",
-                "TapoUser",
-                "Date/ Time",
-                "IP/ Port",
-                "Status"
-            ],
-            "excludeView": [
-                "Expires",
-                "Modified",
-                "TapoUser",
-                "Notes"
-            ],
-            "invokePswChange": {
-                "User": "Password",
-                "TapoUser": "TapoPassword"
-            },
-            "optionsDict": {
-                "/Config.json": {
-                    "SonosSubnet": [
-                        "10.69.3.61",
-                        "10.69.1.0/24",
-                        "10.69.2.0/24",
-                        "10.69.3.0/24",
-                        "10.69.4.0/24",
-                        "10.69.5.0/24"
-                    ]
-                },
-                "/Tokens.json": {
-                    "Roles": [
-                        "Admin",
-                        "Home"
-                    ]
-                }
-            },
-            "tagIsList": false,
-            "hideInput": true,
-            "mainCom": "admin",
-            "extraButtons": [
-                {
-                    "text": "Add",
-                    "id": "add",
-                    "function": "userAdd",
-                    "active": true
-                },
-                {
-                    "text": "Clean",
-                    "id": "clean",
-                    "function": "clean",
-                    "active": true
-                },
-                {
-                    "text": "Restart",
-                    "id": "restart",
-                    "function": "restart",
-                    "active": true
-                },
-                {
-                    "text": "Shutdown",
-                    "id": "shutdown",
-                    "function": "shutdown",
-                    "active": true
-                },
-                {
-                    "text": "Inactive",
-                    "id": "active",
-                    "function": "activeOption",
-                    "active": false
-                },
-                {
-                    "text": "Expand",
-                    "id": "compact",
-                    "function": "compactOption",
-                    "active": false
-                },
-                {
-                    "text": "Word wrap",
-                    "id": "wordwrap",
-                    "function": "wrapOption",
-                    "active": false
-                }
-            ]
-        }
-    },
     "sheets": {
         "Admin": {
             "dates": [
@@ -203,7 +53,7 @@
                         "10.69.3.59"
                     ]
                 },
-                "Tokens": {
+                "tokens": {
                     "Roles": [
                         "Admin",
                         "Home"
@@ -214,11 +64,6 @@
             "hideInput": true,
             "mainCom": "admin",
             "extraButtons": [
-                {
-                    "text": "Add",
-                    "id": "add",
-                    "active": true
-                },
                 {
                     "text": "Clean",
                     "id": "clean",
