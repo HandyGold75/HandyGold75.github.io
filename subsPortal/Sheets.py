@@ -25,6 +25,9 @@ class sheets:
             "restart": self.restart,
             "shutdown": self.shutdown,
         }
+        self.configHeader = ("Key", "Value")
+        self.logsHeader = ("Date/ Time", "Criticality", "Executor", "Message", "Status")
+        self.selectedLog = None
 
         self.compactView = True
         self.hideInactive = True
@@ -44,8 +47,10 @@ class sheets:
 
     def getData(self):
         if (datetime.now() - timedelta(seconds=1)).timestamp() > self.lastUpdate:
-            for file in (*self.template["sheets"], *self.template["configs"], *self.template["logs"]):
+            for file in (*self.template["sheets"], *self.template["configs"]):
                 WS.send(f'{self.mainCom} read {file.replace(" ", "%20")}')
+            for file in self.template["logs"] if "logs" in self.template else {}:
+                WS.send(f'{self.mainCom} readlog {file.replace(" ", "%20")} {self.template["logs"][file][-1]}')
             self.lastUpdate = datetime.now().timestamp()
 
     def onResize(self):
@@ -71,7 +76,7 @@ class sheets:
 
         def fetchTemplate():
             self.template = WS.dict()[self.mainCom]["template"]
-            WS.onMsg('{"' + self.mainCom + '": {"' + (*self.template["sheets"], *self.template["configs"], *self.template["logs"])[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
+            WS.onMsg('{"' + self.mainCom + '": {"' + (*self.template["sheets"], *self.template["configs"], *(self.template["logs"] if "logs" in self.template else {}))[-1] + '":', self.preload, kwargs={"firstRun": False}, oneTime=True)
             self.getData()
 
         def finalize(self):
@@ -126,7 +131,7 @@ class sheets:
 
         navBtns = ""
         for file in data:
-            if not file in (*self.template["sheets"], *self.template["configs"], *self.template["logs"]):
+            if not file in (*self.template["sheets"], *self.template["configs"], *(self.template["logs"] if "logs" in self.template else {})):
                 continue
             navBtns += HTML.genElement("button", nest=f'{file.replace("/", "").replace(".json", "").replace(".log", "")}', id=f"portalSubPage_nav_main_{file}", type="button", style="buttonSmall")
 
@@ -151,11 +156,16 @@ class sheets:
         def addEvents():
             self.busy = True
             for file in data:
-                if not file in (*self.template["sheets"], *self.template["configs"], *self.template["logs"]):
+                if not file in (*self.template["sheets"], *self.template["configs"], *(self.template["logs"] if "logs" in self.template else {})):
                     continue
 
                 JS.addEvent(f"portalSubPage_nav_main_{file}", self.loadPortalSubPage, kwargs={"portalSubPage": file})
-                JS.addEvent(f"portalSubPage_nav_main_{file}", WS.send, args=(f'{self.mainCom} read {file.replace(" ", "%20")}',), action="mousedown")
+
+                if file in (self.template["logs"] if "logs" in self.template else {}):
+                    JS.addEvent(f"portalSubPage_nav_main_{file}", WS.send, args=(f'{self.mainCom} readlog {file.replace(" ", "%20")} {self.template["logs"][file][-1]}',), action="mousedown")
+                else:
+                    JS.addEvent(f"portalSubPage_nav_main_{file}", WS.send, args=(f'{self.mainCom} read {file.replace(" ", "%20")}',), action="mousedown")
+
                 CSS.onHoverClick(f"portalSubPage_nav_main_{file}", "buttonHover", "buttonClick")
 
             for button in self.extraButtons:
@@ -198,7 +208,7 @@ class sheets:
             self.generateSheet()
         elif JS.cache("portalSubPage") in self.template["configs"]:
             self.generateConfig()
-        elif JS.cache("portalSubPage") in self.template["logs"]:
+        elif JS.cache("portalSubPage") in (self.template["logs"] if "logs" in self.template else {}):
             self.generateLog()
 
         if not disableAnimation:
@@ -266,7 +276,7 @@ class sheets:
             if value in self.quarterView:
                 quarterView.remove(value)
 
-        self.sheet = Widget.sheetV2(
+        self.sheet = Widget.sheet(
             name=file,
             header=headers,
             types=types,
@@ -288,7 +298,7 @@ class sheets:
             return None
 
         for button in self.extraButtons:
-            if not button["active"]:
+            if not button["active"] and not button["text"] in ("Inactive", "Expand", "Import"):
                 HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
 
         options = self.optionsDict[file] if file in self.optionsDict else {}
@@ -307,7 +317,7 @@ class sheets:
 
         self.sheet = Widget.sheetConfig(
             name=file,
-            header=("Key", "Value"),
+            header=self.configHeader,
             data=WS.dict()[self.mainCom][file],
             dates=list(self.dates),
             wordWrap=self.wordWrap,
@@ -319,12 +329,45 @@ class sheets:
 
     def generateLog(self):
         file = JS.cache("portalSubPage")
-        if not file in self.template["logs"]:
+        if not file in (self.template["logs"] if "logs" in self.template else {}):
             return None
 
+        if self.selectedLog is None:
+            self.selectedLog = "2023-12"
+
         for button in self.extraButtons:
-            if not button["active"]:
+            if not button["active"] and not button["text"] in ("Inactive", "Import"):
                 HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
+
+        headers = list(self.logsHeader)
+        fileData = WS.dict()[self.mainCom][file][self.selectedLog]
+        halfView = list(key for key in self.halfView if key in headers)
+        quarterView = list(key for key in self.quarterView if key in headers)
+
+        for value in tuple(self.excludeView if self.compactView else ()):
+            if not value in headers:
+                continue
+
+            i = headers.index(value)
+            headers.pop(i)
+
+            for index in dict(fileData):
+                fileData[index].pop(i)
+            if value in self.halfView:
+                halfView.remove(value)
+            if value in self.quarterView:
+                quarterView.remove(value)
+
+        self.sheet = Widget.sheetLogs(
+            name=file,
+            header=headers,
+            data=fileData,
+            halfView=halfView,
+            quarterView=quarterView,
+            wordWrap=self.wordWrap,
+        )
+        HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
+        JS.afterDelay(self.sheet.generateEvents, delay=50)
 
     def toggleOption(self, id):
         for button in self.extraButtons:
@@ -344,21 +387,27 @@ class sheets:
             Widget.popup("buttons", "Export\nDo an minimal or full export?\nMinimal export only include values and not keys.", self.exportAsJson, kwargs={"id": id}, custom=("Minimal", "Full"))
             return None
 
-        headers = []
-        types = []
-        for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][JS.cache("portalSubPage")]:
-            headers.append(name)
-            types.append(type(ktype))
+        file = JS.cache("portalSubPage")
+        sheetData = WS.dict()[self.mainCom][file]
+        if file in self.template["sheets"]:
+            headers = []
+            for name, ktype in WS.dict()[self.mainCom]["template"]["sheets"][file]:
+                headers.append(name)
+        elif file in (self.template["logs"] if "logs" in self.template else {}):
+            headers = self.logsHeader
+            sheetData = sheetData[self.selectedLog]
 
-        sheetData = WS.dict()[self.mainCom][JS.cache("portalSubPage")]
         if typ == "Minimal":
             sheetData = str(dumps([sheetData[dataIndex] for dataIndex in sheetData]))
-        else:
-            sheetData = str(dumps({dataIndex: {header: sheetData[dataIndex][i] for i, header in enumerate(headers)} for dataIndex in sheetData}))
+        elif typ == "Full":
+            if file in self.template["configs"]:
+                sheetData = str(dumps(sheetData))
+            else:
+                sheetData = str(dumps({dataIndex: {header: sheetData[dataIndex][i] for i, header in enumerate(headers)} for dataIndex in sheetData}))
 
-        HTML.addElement("a", "portalSubPage", id=f'{JS.cache("portalSubPage")}_Download', style="display: none;", custom=f'href="data:text/json;charset=utf-8,{JS.uriFriendlyfy(sheetData)}" download="{JS.cache("portalSubPage")}.json"')
-        JS.aSync(HTML.getElement(f'{JS.cache("portalSubPage")}_Download').click)
-        JS.aSync(HTML.remElement, (f'{JS.cache("portalSubPage")}_Download',))
+        HTML.addElement("a", "portalSubPage", id=f"{file}_Download", style="display: none;", custom=f'href="data:text/json;charset=utf-8,{JS.uriFriendlyfy(sheetData)}" download="{file}.json"')
+        JS.aSync(HTML.getElement(f"{file}_Download").click)
+        JS.aSync(HTML.remElement, (f"{file}_Download",))
 
     def importFromJson(self, id: str = None):
         def doImport(confirmation: bool, data: list | dict):
