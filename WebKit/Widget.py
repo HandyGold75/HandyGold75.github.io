@@ -20,7 +20,7 @@ def raiseError(header: str, msg: str, disableIds: list = ()):
     HTML.setElement("div", "mainPage", nest=header + body, id="errorPage", align="center")
 
 
-class sheet:
+class sheetOLD:
     __all__ = ["generate", "generateEvents"]
 
     def __init__(
@@ -616,7 +616,7 @@ class sheet:
             el.addEventListener("dblclick", create_proxy(self.onDblClick))
 
 
-class sheetV2:
+class sheet:
     __all__ = ["generateSheet", "generateEvents", "destorySheet"]
 
     def __init__(
@@ -866,7 +866,6 @@ class sheetV2:
                 key = id.split("_")[-1]
                 valueType = self.types[self.header.index(key)]
                 value = CSS.getAttribute(id, "innerHTML") if valueType is bool else CSS.getAttribute(id, "value")
-
 
                 if value == "":
                     value = valueType()
@@ -1214,6 +1213,84 @@ class sheetConfig:
 
         for id in self.onModIds:
             JS.addEvent(id, self._modRecord, kwargs={"submitFunction": self.onMod}, action="dblclick", includeElement=True)
+
+    def destorySheet(self):
+        if not HTML.getElement(self.name) is None:
+            HTML.remElement(self.name)
+        self = None
+
+
+class sheetLogs:
+    __all__ = ["generateSheet", "generateEvents", "destorySheet"]
+
+    def __init__(
+        self,
+        name: str,
+        header: tuple | list,
+        data: dict,
+        halfView: tuple = (),
+        quarterView: tuple = (),
+        wordWrap: bool = False,
+    ):
+        self.name = str(name)
+        self.header = list(header)
+        self.data = dict(data)
+        self.halfView = list(halfView)
+        self.quarterView = list(quarterView)
+        self.wordWrap = bool(wordWrap)
+
+        self.defaultWidth = 100 / (len(self.header) - (len(self.halfView) * 0.5) - (len(self.quarterView) * 0.75))
+
+        self.headerIds = []
+
+    def _getAdaptiveWidth(self, key):
+        if key in self.halfView:
+            return self.defaultWidth / 2
+        elif key in self.quarterView:
+            return self.defaultWidth / 4
+        return self.defaultWidth
+
+    def _getHeaderRow(self):
+        cols = ""
+        for i, value in enumerate(self.header):
+            id = f"{self.name}_Head_{value}"
+            width = self._getAdaptiveWidth(value)
+            style = f"z-index: {len(self.header) - i}; width: {width}%; margin: 0px -2px 0px 0px; background: #191919; border-right: 2px solid #111; overflow: hidden;"
+
+            cols += HTML.genElement("p", nest=value, id=id, style=style)
+
+            self.headerIds.append(id)
+
+        row = HTML.genElement("div", nest=cols, style="flex %% font-size: 125%; font-weight: bold;")
+
+        return row
+
+    def _getRows(self, index: int = -1, preventAppendRow: bool = False):
+        rows = ""
+        for dataIndex in self.data if index < 0 else {str(index): self.data[str(index)]}:
+            cols = ""
+            for i, value in enumerate(self.data[dataIndex]):
+                width = self._getAdaptiveWidth(self.header[i])
+                wordwrapStyle = "word-break: break-all;" if self.wordWrap else "white-space: nowrap; overflow: scroll;"
+                style = f"z-index: 1{len(self.data[dataIndex]) - i}; width: {width}%; margin: 0px -2px 0px 0px; padding: 0px; background: #202020; border-right: 2px dashed #151515;"
+                id = ""
+
+                cols += HTML.genElement("p", id=id, nest=str(value), style=f"{style} {wordwrapStyle}")
+
+            rows += HTML.genElement("div", nest=cols, id=f"{self.name}_Mod_{dataIndex}", style=f"flex %% z-index: 1; border-top: 2px solid #151515;")
+
+        if not preventAppendRow:
+            rows += HTML.genElement("div", id=f"{self.name}_AddRow")
+
+        return rows
+
+    def generateSheet(self):
+        html = self._getHeaderRow() + self._getRows()
+
+        return HTML.genElement("div", nest=html, id=self.name, style="margin: 10px; border: 2px solid #111;")
+
+    def generateEvents(self):
+        pass
 
     def destorySheet(self):
         if not HTML.getElement(self.name) is None:

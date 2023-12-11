@@ -212,7 +212,7 @@ class admin:
                         fileData[i1][key] = ""
 
             HTML.setElementRaw("portalSubPage", "")
-            Widget.sheet(
+            Widget.sheetOLD(
                 maincom=self.mainCom,
                 name=JS.cache("portalSubPage"),
                 elId="portalSubPage",
@@ -237,7 +237,7 @@ class admin:
                     fileData[key]["Value"] = ""
 
             options = (lambda: {**dict(WS.dict()[self.mainCom]), **self.optionsDict[JS.cache("portalSubPage")]} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
-            sheet = Widget.sheet(
+            sheet = Widget.sheetOLD(
                 maincom=self.mainCom,
                 name=JS.cache("portalSubPage"),
                 dates=tuple(self.dates),
@@ -264,7 +264,7 @@ class admin:
                         fileData.pop(key)
 
             options = (lambda: {**dict(WS.dict()[self.mainCom]), **dict(self.optionsDict[JS.cache("portalSubPage")])} if JS.cache("portalSubPage") in self.optionsDict else dict(WS.dict()[self.mainCom]))()
-            sheet = Widget.sheet(
+            sheet = Widget.sheetOLD(
                 maincom=self.mainCom,
                 name=JS.cache("portalSubPage"),
                 dates=tuple(self.dates),

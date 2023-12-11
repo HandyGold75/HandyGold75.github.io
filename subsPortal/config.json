@@ -9,10 +9,12 @@
                 "Auth",
                 "Active",
                 "Action",
-                "Criticality"
+                "Criticality",
+                "Status"
             ],
             "halfView": [
                 "User",
+                "Executor",
                 "Expires",
                 "Modified",
                 "TapoUser",
@@ -24,7 +26,9 @@
                 "Expires",
                 "Modified",
                 "TapoUser",
-                "Notes"
+                "Notes",
+                "Criticality",
+                "Status"
             ],
             "encryptOnSent": [
                 "Password",
