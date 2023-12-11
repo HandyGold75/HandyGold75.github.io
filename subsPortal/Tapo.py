@@ -572,7 +572,7 @@ class tapo:
                 configTapo[key]["Value"] = ""
 
         options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
-        sheet = Widget.sheet(
+        sheet = Widget.sheetOLD(
             maincom=self.mainCom,
             name=JS.cache("portalSubPage"),
             typeDict=dict(self.knownFiles[JS.cache("portalSubPage")]),
