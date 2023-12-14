@@ -1,0 +1,125 @@
+body {
+    margin: auto;
+    background: #111;
+    color: #55F;
+    max-width: 1440px;
+    transition: font-size 0.25s, padding 0.25s;
+}
+
+h1 {
+    margin: 5px;
+    text-align: center;
+    font-size: 125%;
+    color: #55F;
+    font-weight: bold;
+    user-select: none
+}
+
+p {
+    margin: 5px;
+    text-align: center;
+    font-size: 100%;
+    color: #55F;
+}
+
+button {
+    z-index: 100;
+    margin: 5px;
+    padding: 3px 6px;
+    text-align: center;
+    font-size: 100%;
+    color: #BFF;
+    background: #333;
+    border: 2px solid #55F;
+    border-radius: 4px;
+    word-wrap: break-word;
+}
+
+button:hover {
+    z-index: 101;
+    color: #FFF;
+    background: #444;
+    transition: color 0.25s, background 0.25s;
+}
+
+button:active {
+    z-index: 102;
+    color: #55F;
+    background: #BBF;
+    transition: color 0.1s, background 0.1s;
+}
+
+input {
+    z-index: 110;
+    margin: 5px;
+    padding: 3px 6px;
+    font-size: 100%;
+    color: #BFF;
+    background: #333;
+    border: 2px solid #55F;
+    border-radius: 4px;
+    outline: none;
+}
+
+input:hover {
+    z-index: 111;
+    color: #FFF;
+    background: #444;
+    transition: color 0.25s, background 0.25s;
+}
+
+input:focus {
+    z-index: 112;
+    color: #FFF;
+    background: #444;
+    transition: color 0.1s, background 0.1s;
+}
+
+select {
+    z-index: 120;
+    margin: 5px;
+    padding: 0px;
+    font-size: 100%;
+    color: #BFF;
+    background: #333;
+    border: 2px solid #55F;
+    border-radius: 4px;
+    outline: none;
+    overflow-y: hidden;
+    scrollbar-width: none
+}
+
+select:hover {
+    z-index: 121;
+    margin-bottom: -100px;
+    min-height: 100px;
+    color: #FFF;
+    background: #444;
+    overflow-y: scroll;
+    scrollbar-width: auto;
+    transition: margin-bottom 0.25s, min-height 0.25s, color 0.25s, background 0.25s;
+}
+
+select:focus {
+    z-index: 122;
+    margin-bottom: -100px;
+    min-height: 100px;
+    color: #FFF;
+    background: #444;
+    overflow-y: scroll;
+    scrollbar-width: auto;
+    transition: margin-bottom 0.1s, min-height 0.1s, color 0.1s, background 0.1s;
+}
+
+
+:disabled {
+    color: #88B;
+    background: #222;
+    transition: color 0.1s, background 0.1s";
+
+}
+
+
+.flex {
+    display: flex;
+}
