@@ -122,8 +122,8 @@ class sonos:
 
                 if not rightId is None:
                     CSS.setStyle(f"{rightId}List", "height", f'{CSS.getAttribute(rightId, "clientHeight") - 62}px')
-                    CSS.setStyle(f"{rightId}Add_playNext", "margin", "-1% 0px")
-                    CSS.setStyle(f"{rightId}Add_playNow", "margin", "-1% 0px")
+                    CSS.setStyle(f"{rightId}Add_playNext", "margin", "2.5px 0px")
+                    CSS.setStyle(f"{rightId}Add_playNow", "margin", "2.5px 0px")
                     CSS.setStyle(rightId, "fontSize", "100%")
 
                 if configSonos["useQue"] and not HTML.getElement(f'portalSubPage_que_{WS.dict()[self.mainCom]["que"]["position"]}') is None:
@@ -462,9 +462,9 @@ class sonos:
         if int(WS.dict()[self.mainCom]["track"]["duration"].split(":")[0]) == 0:
             durStr = ":".join(WS.dict()[self.mainCom]["track"]["duration"].split(":")[1:])
 
-        timeline = HTML.genElement("p", nest=posStr, id="portalSubPage_timeline_position", style="color: #F7E163; width: 10%;")
+        timeline = HTML.genElement("p", nest=posStr, id="portalSubPage_timeline_position", style="color: #F7E163; width: 10%; margin: 16px 0px;")
         timeline += HTML.genElement("input", id="portalSubPage_timeline_slider", type="range", style="inputRange %% width: 80%; user-select: none;", custom=f'min="0" max="{dur}" value="{pos}"')
-        timeline += HTML.genElement("p", nest=durStr, id="portalSubPage_timeline_duration", style="color: #F7E163; width: 10%;")
+        timeline += HTML.genElement("p", nest=durStr, id="portalSubPage_timeline_duration", style="color: #F7E163; width: 10%; margin: 16px 0px;")
 
         HTML.addElement("div", "portalSubPage_main", nest=timeline, id="portalSubPage_timeline", style="divNormalNoEdge %% flex %% width: 100%; margin: 5px auto; overflow: hidden;")
 
@@ -514,20 +514,20 @@ class sonos:
         for track in tracks:
             trackImg = HTML.genElement("img", id=f"portalSubPage_que_{track}_img", style="width: 50px; height: 50px; border-radius: 6px;", align="left", custom=f'src="{tracks[track]["album_art_uri"]}" alt="Art"')
 
-            titleTxt = HTML.genElement("p", nest=tracks[track]["title"], style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
+            titleTxt = HTML.genElement("p", nest=tracks[track]["title"], style="height: 55%; margin: 2px auto 0px 0px; overflow: hidden; white-space: nowrap; text-align: left; text-overflow: ellipsis;", align="left")
             remImg = HTML.genElement("img", id=f"portalSubPage_que_rem_img_{track}", style="width: 100%;", custom='src="docs/assets/Portal/Sonos/Trash.svg" alt="Rem"')
             remBtn = HTML.genElement("button", nest=remImg, id=f"portalSubPage_que_rem_{track}", style="buttonImg %% padding: 2px; background: transparent; border: 0px solid #222; border-radius: 4px;")
             remDiv = HTML.genElement("div", nest=remBtn, align="right", style="position: absolute; right: 10px; top: 4px; width: 24px; height: 24px;")
 
-            creatorTxt = HTML.genElement("p", nest=tracks[track]["creator"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 75%;", align="left")
-            creatorDur = HTML.genElement("p", nest=tracks[track]["duration"][-5:], style="position: absolute; right: 8px; bottom: 4px; width: 10%; height: 18px; margin: 0px; font-size: 75%;", align="right")
+            creatorTxt = HTML.genElement("p", nest=tracks[track]["creator"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-align: left; text-overflow: ellipsis; font-size: 75%;", align="left")
+            creatorDur = HTML.genElement("p", nest=tracks[track]["duration"][-5:], style="position: absolute; right: 8px; bottom: 4px; width: 10%; height: 18px; margin: 0px; font-size: 75%; text-align: right;", align="right")
 
             trackDiv = HTML.genElement("div", nest=titleTxt + remDiv + creatorTxt + creatorDur, id=f"portalSubPage_que_{track}_txt", style="width: 100%; height: 45px; margin: auto 5px;")
             queListDivs += HTML.genElement("div", nest=trackImg + trackDiv, id=f"portalSubPage_que_{track}", style="divNormal %% flex %% position: relative; height: 50px; padding: 0px 90px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
         queInp = HTML.genElement("input", id="portalSubPage_queAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="Spotify Sharelink"')
-        nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_queAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
-        nowBtn = HTML.genElement("button", nest="Play Now", id="portalSubPage_queAdd_playNow", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
+        nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_queAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: 2.5px 0px; white-space: nowrap;")
+        nowBtn = HTML.genElement("button", nest="Play Now", id="portalSubPage_queAdd_playNow", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: 2.5px 0px; white-space: nowrap;")
         btnDivs = HTML.genElement("div", nest=nextBtn + nowBtn, style="width: 25%;")
         queAddDivs = HTML.genElement("div", nest=queInp + btnDivs, style="flex %% height: 100%;")
 
@@ -590,8 +590,8 @@ class sonos:
             else:
                 plImg = HTML.genElement("img", id=f"portalSubPage_playlist_{playlist}_img", style="width: 75px; height: 75px; border-radius: 6px;", align="left", custom=f'src="{playlists[playlist]["album_art"]}" alt="Art"')
 
-            titleTxt = HTML.genElement("p", nest=playlist, style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;", align="left")
-            discriptionTxt = HTML.genElement("p", nest=playlists[playlist]["description"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 75%;", align="left")
+            titleTxt = HTML.genElement("p", nest=playlist, style="height: 55%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-align: left; text-overflow: ellipsis;", align="left")
+            discriptionTxt = HTML.genElement("p", nest=playlists[playlist]["description"], style="height: 40%; margin: 0px auto 0px 0px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 75%; text-align: left;", align="left")
 
             plDiv = HTML.genElement("div", nest=titleTxt + discriptionTxt, id=f"portalSubPage_playlist_{playlist}_txt", style="width: 100%; height: 50px; margin: auto 5px;")
             plListDivs += HTML.genElement("div", nest=plImg + plDiv, id=f"portalSubPage_playlist_{playlist}", style="divNormal %% flex %% position: relative; height: 75px; padding: 0px 85px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")

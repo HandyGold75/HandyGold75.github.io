@@ -52,8 +52,8 @@ class console:
         height = JS.getWindow().innerHeight - 335 if HTML.getElement("mainNav_showHideImg").src.endswith("docs/assets/Hide-V.svg") else JS.getWindow().innerHeight - 250
 
         bodyDiv = HTML.genElement("div", id="consolePage_output", align="left", style=f"width: 0px; height: {height - 42}px; min-height: 209px; padding: 5px 10px; overflow: scroll; transition: width 0.5s; height 0.25s;")
-        bodyInp = HTML.genElement("input", id="consolePage_input", type="text", style=f"inputDark %% width: 0px; height: 20px; padding: 5px 10px 5px 24px; transition: width 0.5s;", custom="autofocus")
-        bodyOverlay = HTML.genElement("p", ">", id="consolePage_overlay", align="left", style="width: 0px; height: 20px; margin: -27.5px 0px 0px 0px; padding: 0px 10px; font-weight: bold; transition: width 0.5s;")
+        bodyInp = HTML.genElement("input", id="consolePage_input", type="text", style=f"inputDark %% width: 0px; height: 20px; padding: 5px 10px 5px 24px; margin: 0px; color: #F7E163; transition: width 0.5s;", custom="autofocus")
+        bodyOverlay = HTML.genElement("p", ">", id="consolePage_overlay", align="left", style="width: 0px; height: 20px; margin: -27.5px 0px 0px 0px; padding: 0px 10px; font-weight: bold; color: #F7E163; text-align: left; transition: width 0.5s;")
         body = HTML.genElement("div", nest=bodyDiv + bodyInp + bodyOverlay, id="consolePage_body", style=f"divDark %% height: {height}px; min-height: 250px; margin: 15px 5px 5px 5px; padding: 0px; transition: height 0.25s;")
         HTML.setElement("div", "mainPage", nest=header + body, id="consolePage", align="center")
 
@@ -74,7 +74,7 @@ class console:
                 pass
 
         self.receivedCommandCount += 1
-        HTML.addElement("p", "consolePage_output", nest=f"{self.receivedCommandCount} > {str(msg)}", style="width: 100%; margin: 0px;", id=f"consolePage_output_{self.receivedCommandCount}")
+        HTML.addElement("p", "consolePage_output", nest=f"{self.receivedCommandCount} > {str(msg)}", style="width: 100%; margin: 0px; color: #F7E163; text-align: left;", id=f"consolePage_output_{self.receivedCommandCount}")
         CSS.getAttribute(f"consolePage_output_{self.receivedCommandCount}", "scrollIntoView")()
         CSS.setAttribute("consolePage_input", "value", "")
 

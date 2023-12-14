@@ -1,9 +1,0 @@
-packages = ["rsa"]
-
-[[fetch]]
-files = [
-    "WebKit/map.json", "WebKit/init.py", "WebKit/HTML.py", "WebKit/CSS.py", "WebKit/JS.py", "WebKit/WS.py", "WebKit/Widget.py",
-    "index.py",
-    "pages/init.py", "pages/config.json", "pages/Home.py", "pages/Links.py", "pages/Portal.py", "pages/Console.py", "pages/Contact.py", "pages/Login.py",
-    "subsPortal/init.py", "subsPortal/config.json", "subsPortal/Sonos.py", "subsPortal/Tapo.py", "subsPortal/YTDL.py", "subsPortal/Sheets.py", "subsPortal/Trees.py"
-]

@@ -1,0 +1,38 @@
+{
+    "packages": [
+        "rsa"
+    ],
+    "files": {
+        "": [
+            "index.py"
+        ],
+        "WebKit": [
+            "map.json",
+            "init.py",
+            "HTML.py",
+            "CSS.py",
+            "JS.py",
+            "WS.py",
+            "Widget.py"
+        ],
+        "pages": [
+            "init.py",
+            "config.json",
+            "Home.py",
+            "Links.py",
+            "Portal.py",
+            "Console.py",
+            "Contact.py",
+            "Login.py"
+        ],
+        "subsPortal": [
+            "init.py",
+            "config.json",
+            "Sonos.py",
+            "Tapo.py",
+            "YTDL.py",
+            "Sheets.py",
+            "Trees.py"
+        ]
+    }
+}
