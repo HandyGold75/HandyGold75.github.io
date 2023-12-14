@@ -4,7 +4,7 @@ from pages.init import console, contact, home, links, login, portal
 from WebKit.init import CSS, HTML, JS, WS
 
 
-class index:
+class mainPage:
     def __init__(self):
         for item in ["mainPage"]:
             if JS.cache(item) is None:
@@ -86,7 +86,7 @@ class index:
             el.alt = "Fold"
             CSS.setStyle("mainNav", "padding", "5px")
             CSS.setStyle("mainNav_middle", "marginTop", "0px")
-            index.onResize(self=None)
+            self.onResize()
             self.pages[JS.cache("mainPage")]["page"].onResize()
 
         JS.setTitle("HandyGold75")
@@ -139,7 +139,7 @@ class index:
             JS.addEvent("mainFooter_Login", self.loadPage, kwargs={"page": "Login"})
             CSS.onHoverClick("mainFooter_Login", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
 
-            JS.onResize("index", self.onResize)
+            JS.onResize("mainPage", self.onResize)
 
         JS.afterDelay(addEvents, delay=50)
 
@@ -243,8 +243,8 @@ class index:
 
 
 if __name__ == "__main__":
-    mainPage = index()
-    mainPage.layout()
-    mainPage.loadPage(JS.cache("mainPage"), rememberPortalPage=True)
+    page = mainPage()
+    page.layout()
+    page.loadPage(JS.cache("mainPage"), rememberPortalPage=True)
 
-    WS.indexLogoutHook(mainPage.onLogout)
+    WS.indexLogoutHook(page.onLogout)
