@@ -41,7 +41,7 @@ async function main() {
     window.micropip = window.pyodide.pyimport("micropip");
     logToDebug(`<p>Loaded Micropip</p>`)
 
-    const config = await (await fetch("./pyconfig.json")).json();
+    const config = await (await fetch("./docs/python/pyconfig.json")).json();
     let promises = new Array();
     logToDebug(`<p>Loaded PyConfig</p>`)
 
@@ -64,7 +64,7 @@ async function main() {
 
     Promise.all(promises).then((responses) => {
         window.pyodide.runPython(`
-        with open("index.py", "r") as f:
+        with open("main.py", "r") as f:
             exec(f.read())
         `)
     })
