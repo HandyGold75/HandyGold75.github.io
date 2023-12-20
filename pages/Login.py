@@ -3,8 +3,7 @@ from json import dumps, loads
 
 from rsa import encrypt
 
-from WebKit import Widget
-from WebKit.init import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Widget
 
 
 class login:

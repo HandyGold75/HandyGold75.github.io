@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from json import JSONDecodeError, dumps, loads
 
-from WebKit.init import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS
 
 
 class console:
