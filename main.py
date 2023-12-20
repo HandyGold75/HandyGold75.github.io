@@ -1,7 +1,7 @@
 from json import loads
 
-from pages.init import console, contact, home, links, login, portal
-from WebKit.init import CSS, HTML, JS, WS
+from pages import console, contact, home, links, login, portal
+from WebKit import CSS, HTML, JS, WS
 
 
 class mainPage:

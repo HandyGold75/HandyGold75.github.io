@@ -8,7 +8,7 @@
         ],
         "WebKit": [
             "map.json",
-            "init.py",
+            "__init__.py",
             "HTML.py",
             "CSS.py",
             "JS.py",
@@ -16,7 +16,7 @@
             "Widget.py"
         ],
         "pages": [
-            "init.py",
+            "__init__.py",
             "config.json",
             "Home.py",
             "Links.py",
@@ -26,7 +26,7 @@
             "Login.py"
         ],
         "subsPortal": [
-            "init.py",
+            "__init__.py",
             "config.json",
             "Sonos.py",
             "Tapo.py",
