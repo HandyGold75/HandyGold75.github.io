@@ -1,7 +1,4 @@
-async function loadPackage(package) {
-    window.micropip.install(package);
-    logToDebug(`<p>Loaded package: ${package}</p>`)
-};
+import "./pyodide/pyodide.js"
 
 async function loadFolder(folder) {
     if (folder !== "") {
@@ -10,43 +7,29 @@ async function loadFolder(folder) {
         makedirs("${folder}", exist_ok=True)
         `)
     };
-    logToDebug(`<p>Loaded folder: ./${folder}</p>`)
+    document.getElementById("debug").innerHTML += `<p>Loaded folder: ./${folder}</p>`
 };
-
-async function loadFile(file) {
-    await window.pyodide.runPythonAsync(`
-    from pyodide.http import pyfetch
-    with open("${file}", "wb") as f:
-        f.write(await (await pyfetch("./${file}")).bytes())
-    `);
-    logToDebug(`<p>Loaded file: ./${file}</p>`)
-};
-
-function logToDebug(msg) {
-    document.getElementById("debug").innerHTML += msg
-}
-
 
 async function main() {
-    let body = document.getElementById("body")
-    body.innerHTML = `
+    document.getElementById("body").innerHTML = `
     <img src="./docs/assets/Load.svg" style="position: absolute; left: 50%; top: 50px; transform: translate(-50%, 0px); width: 150px;"></svg>
     <div id="debug" style="width: 100%; margin-top: 250px; text-align: center;"></div>
     `
 
     window.pyodide = await loadPyodide();
-    logToDebug(`<p>Loaded Pyodide</p>`)
+    document.getElementById("debug").innerHTML += `<p>Loaded Pyodide</p>`;
 
     await window.pyodide.loadPackage("micropip");
     window.micropip = window.pyodide.pyimport("micropip");
-    logToDebug(`<p>Loaded Micropip</p>`)
+    document.getElementById("debug").innerHTML += `<p>Loaded Micropip</p>`;
 
     const config = await (await fetch("./docs/python/pyconfig.json")).json();
     let promises = new Array();
-    logToDebug(`<p>Loaded PyConfig</p>`)
+    document.getElementById("debug").innerHTML += `<p>Loaded PyConfig</p>`;
 
-    for (const package of config["packages"]) {
-        promises.push(loadPackage(package))
+    for (const pkg of config["packages"]) {
+        window.micropip.install(pkg);
+        document.getElementById("debug").innerHTML += `<p>Loaded package: ${pkg}</p>`
     };
 
     Object.entries(config["files"]).forEach(([path, files]) => {
@@ -56,7 +39,12 @@ async function main() {
                     path += "/"
                 };
                 for (const file of files) {
-                    await loadFile(path + file)
+                    await window.pyodide.runPythonAsync(`
+                    from pyodide.http import pyfetch
+                    with open("${path + file}", "wb") as f:
+                        f.write(await (await pyfetch("./${path + file}")).bytes())
+                    `);
+                    document.getElementById("debug").innerHTML += `<p>Loaded file: ./${path + file}</p>`
                 };
             })
         )

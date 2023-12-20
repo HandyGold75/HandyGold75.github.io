@@ -1,7 +1,7 @@
 from json import load
 from os import path as osPath
 
-from WebKit.init import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS
 
 
 class contact:

@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from json import load
 from os import path as osPath
 
-from WebKit import Widget
-from WebKit.init import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Widget
+
 
 
 class trees:
