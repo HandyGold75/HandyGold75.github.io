@@ -1,4 +1,4 @@
-from WebKit import CSS, HTML, JS
+from WebKit import CSS, HTML, JS, Buttons
 
 
 class home:
@@ -22,6 +22,7 @@ class home:
     def layout(self):
         header = HTML.genElement("h1", nest="Page content for home.", style="headerMain")
         body = HTML.genElement("p", nest="Some extra filler text.", style="textBig")
+
         HTML.setElement("div", "mainPage", nest=header + body, id="homePage", align="center")
 
     def flyin(self):

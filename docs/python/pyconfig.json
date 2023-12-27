@@ -9,11 +9,14 @@
         "WebKit": [
             "map.json",
             "__init__.py",
+            "pagesConfig.json",
             "HTML.py",
             "CSS.py",
             "JS.py",
             "WS.py",
-            "Widget.py"
+            "Widget.py",
+            "Module.py",
+            "Pages.py"
         ],
         "pages": [
             "__init__.py",

@@ -28,22 +28,22 @@ class links:
 
     def onResize(self):
         oldColumns = self.columns
+
+        self.columns = 5
         if JS.getWindow().innerWidth < 500:
             self.columns = 3
         elif JS.getWindow().innerWidth < 1000:
             self.columns = 4
-        else:
-            self.columns = 5
 
         if self.columns != oldColumns:
             self.layout()
 
-            for el in HTML.getElements("linksPage_Subs"):
-                JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
-                if self.foldedStates[el.id.split("_")[-2]]:
-                    setattr(el.style, "marginTop", f'-{CSS.getAttribute(el.id.replace("_Sub", ""), "offsetWidth")}px')
-                else:
-                    setattr(el.style, "marginTop", "0px")
+            # for el in HTML.getElements("linksPage_Subs"):
+            #     JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
+            #     if self.foldedStates[el.id.split("_")[-2]]:
+            #         setattr(el.style, "marginTop", f'-{CSS.getAttribute(el.id.replace("_Sub", ""), "offsetWidth")}px')
+            #     else:
+            #         setattr(el.style, "marginTop", "0px")
 
     def preload(self):
         self.busy = True
@@ -90,7 +90,7 @@ class links:
         JS.onResize("links", None)
         self.busy = False
 
-    def layout(self):
+    def layout(self, doEvents: bool = True):
         sortedCats = {}
         for link in self.allLinks:
             if not self.allLinks[link]["cat"] in sortedCats:
@@ -134,7 +134,8 @@ class links:
                 JS.addEvent(f"linksPage_{cat}_Header", self.toggleCat, (cat,))
             self.busy = False
 
-        JS.afterDelay(addEvents, delay=50)
+        if doEvents:
+            JS.afterDelay(addEvents, delay=50)
 
     def flyin(self):
         CSS.setStyle("linksPage", "marginTop", f'-{CSS.getAttribute("linksPage", "offsetHeight")}px')
@@ -175,8 +176,8 @@ class links:
         JS.cache("configLinks", dumps(configLinks))
 
     def main(self):
-        self.layout()
+        self.layout(doEvents=False)
+        JS.onResize("links", self.onResize)
+
         self.flyin()
         self.loadAnimation()
-
-        JS.onResize("links", self.onResize)

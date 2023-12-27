@@ -1,47 +1,41 @@
-from datetime import datetime, timedelta
-from json import dumps, load, loads
-from os import path as osPath
+from datetime import datetime
+from json import dumps, loads
 
-from WebKit import CSS, HTML, JS, WS, Widget
+from WebKit import CSS, HTML, JS, WS, PortalPage, Widget
 
 
-class sonos:
-    __all__ = ["main", "preload", "deload"]
-
+class sonos(PortalPage):
     def __init__(self):
-        self.busy = False
-        self.requireLogin = False
+        super().__init__()
 
-        self.defaultConfig = {"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "useQue": True, "usePlaylist": False, "disableMaxWidth (experimental)": False}
+        for key in ("knownFiles", "optionsDict"):
+            self.configKeys.append(key)
+        self.evalMap = {"wrapOption": self.wrapOption}
+        self.mainComReadCommands = ["position", "device", "track", "que get", "playlist", "ytinfo"]
 
-        if JS.cache("configSonos") is None:
-            JS.cache("configSonos", dumps(self.defaultConfig))
+        self.onResize = self.doOnResize
+        self.onDeload = self.comDisableStream
+        self.onSubPageLoad = self.loadSubPage
 
-        self.lastUpdate = 0
+        self.knownFiles = None
+        self.optionsDict = None
+
         self.wordWrap = False
+
         self.ytPlayer = None
         self.videoScolling = False
         self.dataStreamState = False
         self.currentPosition = ""
         self.currentQueSize = 0
 
-        self.evalMap = {"wrapOption": self.wrapOption}
-        self.allConfigKeys = ("subPages", "knownFiles", "optionsDict", "mainCom", "extraButtons")
+        self.defaultConfig = {"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "useQue": True, "usePlaylist": False}
+        if JS.cache("configSonos") is None:
+            JS.cache("configSonos", dumps(self.defaultConfig))
 
-        self.subPages = None
-        self.knownFiles = None
-        self.optionsDict = None
-        self.mainCom = None
-        self.extraButtons = None
+    def loadSubPage(self):
+        getattr(self, f'{JS.cache("portalSubPage").lower()}Page')()
 
-    def getData(self):
-        if (datetime.now() - timedelta(seconds=1)).timestamp() > self.lastUpdate:
-            for txt in ("position", "device", "track", "que get", "playlist", "ytinfo"):
-                WS.send(f"{self.mainCom} {txt}")
-
-            self.lastUpdate = datetime.now().timestamp()
-
-    def onResize(self):
+    def doOnResize(self):
         configSonos = loads(JS.cache("configSonos"))
         if configSonos["useQue"]:
             rightId = "portalSubPage_que"
@@ -55,8 +49,6 @@ class sonos:
             leftId = "portalSubPage_vid"
 
         if JS.getWindow().innerWidth < 500:
-            CSS.setStyle("portalPageNav", "width", "75%")
-
             if JS.cache("portalSubPage") == "Player":
                 if configSonos["useAlbumArt"] and not rightId is None:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("Image_AlbumArt", "offsetHeight")}px')
@@ -81,8 +73,6 @@ class sonos:
                 CSS.setStyle("Header_SonosIosQR", "fontSize", "150%")
 
         elif JS.getWindow().innerWidth < 1000:
-            CSS.setStyle("portalPageNav", "width", "82.5%")
-
             if JS.cache("portalSubPage") == "Player":
                 if configSonos["useAlbumArt"] and not rightId is None:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("Image_AlbumArt", "offsetHeight")}px')
@@ -107,8 +97,6 @@ class sonos:
                 CSS.setStyle("Header_SonosIosQR", "fontSize", "175%")
 
         else:
-            CSS.setStyle("portalPageNav", "width", "90%")
-
             if JS.cache("portalSubPage") == "Player":
                 if configSonos["useAlbumArt"] and not rightId is None:
                     CSS.setStyle(rightId, "height", f'{CSS.getAttribute("Image_AlbumArt", "offsetHeight")}px')
@@ -132,129 +120,6 @@ class sonos:
                 CSS.setStyle("Header_SonosAndroidQR", "fontSize", "200%")
                 CSS.setStyle("Header_SonosIosQR", "fontSize", "200%")
 
-    def preload(self, firstRun: bool = True):
-        def loadingTxt():
-            el = HTML.getElement("portalSubPage_loadingTxt")
-            if el is None:
-                return None
-
-            if el.innerHTML.endswith(". . . "):
-                el.innerHTML = el.innerHTML.replace(". . . ", "")
-
-            el.innerHTML += ". "
-            JS.afterDelay(loadingTxt, delay=500)
-
-        def finalize(self):
-            self.busy = False
-
-        if not firstRun:
-            if self.busy:
-                CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
-                JS.afterDelay(finalize, (self,), delay=250)
-            return None
-
-        self.busy = True
-        self.lastUpdate = 0
-
-        content = HTML.genElement("h1", nest="Portal", style="headerMain")
-        content += HTML.genElement("p", nest="Loading page", style="textBig")
-        content += HTML.genElement("p", nest="Getting data from the server", id="portalSubPage_loadingTxt", style="textBig")
-        HTML.setElement("div", "portalPage", nest=content, id="portalSubPage_summary", align="center")
-
-        CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
-        JS.aSync(CSS.setStyle, ("portalPage", "marginLeft", "0px"))
-        JS.aSync(loadingTxt)
-
-        with open(f"{osPath.split(__file__)[0]}/config.json", "r", encoding="UTF-8") as fileR:
-            config = load(fileR)["sonos"][JS.cache("portalPage")]
-        for attribute in self.allConfigKeys:
-            setattr(self, attribute, config[attribute])
-
-        WS.onMsg('{"' + self.mainCom + '": {"ytinfo":', self.preload, kwargs={"firstRun": False}, oneTime=True)
-        self.getData()
-
-    def deload(self):
-        def fininalize(self):
-            self.busy = False
-
-        self.busy = True
-        self.comDisableStream()
-        JS.onResize("sonos", None)
-
-        CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
-        JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
-        JS.afterDelay(fininalize, (self,), delay=250)
-
-    def layout(self):
-        navBtns = ""
-        for subPage in self.subPages:
-            navBtns += HTML.genElement("button", nest=subPage, id=f"portalSubPage_nav_main_{subPage}", type="button", style="buttonSmall")
-
-        if navBtns == "":
-            header = HTML.genElement("h1", nest="Portal", style="headerMain")
-            body = HTML.genElement("p", nest="Unauthorized!\nReload the page if you think this is a mistake.", style="textBig")
-            HTML.setElement("div", "portalPage", nest=header + body, id="loginPage", align="center")
-            HTML.disableElement(f'portalSubPage_button_{JS.cache(f"portalSubPage")}')
-            return None
-
-        navDivs = HTML.genElement("div", id="portalSubPage_nav_main", nest=navBtns, align="left", style="width: 60%;")
-        navBtns = ""
-        for button in self.extraButtons:
-            navBtns += HTML.genElement("button", nest=button["text"], id=f'portalSubPage_nav_options_{button["id"]}', type="button", align="right", style="buttonSmall")
-        navDivs += HTML.genElement("div", id="portalSubPage_nav_options", nest=navBtns, align="right", style="width: 40%;")
-
-        mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="pagePortal_Nav")
-        mainDiv += HTML.genElement("div", id="portalSubPage", align="center", style="width: 100%; margin: 10px 0px; overflow: hidden;")
-        HTML.setElementRaw("portalPage", mainDiv)
-
-        def addEvents():
-            for subPage in self.subPages:
-                JS.addEvent(f"portalSubPage_nav_main_{subPage}", self.loadPortalSubPage, kwargs={"portalSubPage": subPage})
-                JS.addEvent(f"portalSubPage_nav_main_{subPage}", self.getData, action="mousedown")
-                CSS.onHoverClick(f"portalSubPage_nav_main_{subPage}", "buttonHover", "buttonClick")
-
-            for button in self.extraButtons:
-                JS.addEvent(f'portalSubPage_nav_options_{button["id"]}', self.evalMap[button["function"]])
-                CSS.onHoverClick(f'portalSubPage_nav_options_{button["id"]}', "buttonHover", "buttonClick")
-                if not button["active"]:
-                    HTML.disableElement(f'portalSubPage_nav_options_{button["id"]}')
-
-        JS.afterDelay(addEvents, delay=50)
-
-    def flyin(self):
-        CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
-        JS.aSync(CSS.setStyle, ("portalPage", "marginLeft", "0px"))
-
-    def loadPortalSubPage(self, portalSubPage: str = None, firstRun: bool = True, disableAnimation: bool = False):
-        for button in self.extraButtons:
-            if not button["active"]:
-                HTML.disableElement(f'portalSubPage_nav_options_{button["id"]}')
-        if not portalSubPage is None:
-            JS.cache("portalSubPage", str(portalSubPage))
-        if JS.cache("portalSubPage") == "":
-            self.busy = False
-            return None
-        if self.busy and firstRun:
-            return None
-
-        self.busy = True
-        if firstRun and not disableAnimation and HTML.getElement("portalSubPage").innerHTML != "":
-            CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
-            JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
-            JS.afterDelay(self.loadPortalSubPage, kwargs={"firstRun": False}, delay=250)
-            return None
-
-        HTML.clrElement("portalSubPage")
-        getattr(self, f'{JS.cache("portalSubPage").lower()}Page')()
-
-        if not disableAnimation:
-            CSS.setStyle("portalSubPage", "maxHeight", "")
-            elHeight = f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px'
-            CSS.setStyle("portalSubPage", "maxHeight", "0px")
-            JS.aSync(CSS.setStyles, ("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", elHeight))))
-            JS.afterDelay(CSS.setStyle, ("portalSubPage", "maxHeight", ""), delay=250)
-        self.busy = False
-
     def playerPage(self, firstRun: bool = True):
         if firstRun:
             pass
@@ -263,10 +128,6 @@ class sonos:
         if configSonos["useQue"] and configSonos["usePlaylist"]:
             configSonos["usePlaylist"] = False
             JS.cache("configSonos", dumps(configSonos))
-        if configSonos["disableMaxWidth (experimental)"]:
-            CSS.setStyle("body", "max-width", "")
-        else:
-            CSS.setStyle("body", "max-width", "1440px")
 
         div = HTML.genElement("div", id="portalSubPage_media", style=f"divNormalNoEdge %% flex %% margin: 5px auto; border-radius: 0px; overflow: hidden;")
         HTML.setElement("div", "portalSubPage", nest=div, id="portalSubPage_main", style="divNormal")
@@ -779,7 +640,7 @@ class sonos:
             wordWrap=self.wordWrap,
         )
         HTML.setElementRaw("portalSubPage", sheet.generate(dict(configSonos)))
-        JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self.loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
+        JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self._loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
 
     def configPageSubmit(self, key, value):
         configSonos = loads(JS.cache("configSonos"))
@@ -795,7 +656,7 @@ class sonos:
             CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
 
         HTML.clrElement("portalSubPage")
-        self.loadPortalSubPage()
+        self._loadPortalSubPage()
 
     def comEnableStream(self):
         if not self.dataStreamState:
@@ -921,7 +782,7 @@ class sonos:
         configSonos["useAlbumArt"] = not configSonos["useAlbumArt"]
         JS.cache("configSonos", dumps(configSonos))
 
-        self.loadPortalSubPage()
+        self._loadPortalSubPage()
 
     def comUseQuePlaylist(self):
         configSonos = loads(JS.cache("configSonos"))
@@ -938,21 +799,4 @@ class sonos:
             configSonos["usePlaylist"] = False
 
         JS.cache("configSonos", dumps(configSonos))
-        self.loadPortalSubPage()
-
-    def main(self):
-        if not self.mainCom in WS.dict():
-            header = HTML.genElement("h1", nest="Portal", style="headerMain")
-            body = HTML.genElement("p", nest="No data was found, please renavigate to this page.", style="textBig")
-            HTML.setElement("div", "portalPage", nest=header + body, id="loginPage", align="center")
-            self.flyin()
-            return None
-
-        self.layout()
-        self.flyin()
-
-        if not JS.cache("portalSubPage") == "":
-            JS.afterDelay(self.loadPortalSubPage, args=(JS.cache("portalSubPage"),), delay=250)
-
-        if JS.cache("portalSubPage") != "Player":
-            JS.onResize("sonos", self.onResize)
+        self._loadPortalSubPage()

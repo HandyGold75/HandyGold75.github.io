@@ -353,7 +353,7 @@
     },
     "trees": {
         "Monitor": {
-            "knownTrees": {
+            "knownFiles": {
                 "Current": {
                     "sId": 0,
                     "cl": {},
@@ -395,8 +395,7 @@
                     "seekStep": 0,
                     "useAlbumArt": false,
                     "useQue": false,
-                    "usePlaylist": false,
-                    "disableMaxWidth (experimental)": false
+                    "usePlaylist": false
                 }
             },
             "optionsDict": {},

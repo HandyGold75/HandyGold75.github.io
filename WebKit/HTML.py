@@ -59,8 +59,8 @@ class glb:
 
         return subInlineMerged
 
-    def constructHTML(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-        args = {"id": id, "class": classes, "type": type, "src": src, "alt": alt, "align": align, "style": glb.expandStyle(style)}
+    def constructHTML(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", flex: bool = False, style: str = "", custom: str = ""):
+        args = {"id": id, "class": classes, "type": type, "src": src, "alt": alt, "align": align, "style": f'{"display: flex; " if flex else ""}{glb.expandStyle(style)}'}
         for arg in dict(args):
             if args[arg] == "":
                 args.pop(arg)
@@ -88,6 +88,10 @@ class glb:
         return htmlStr
 
 
+def getBody():
+    return document.getElementsByTagName("body")[0]
+
+
 def getElement(id: str):
     return document.getElementById(id)
 
@@ -96,20 +100,20 @@ def getElements(classId: str):
     return list(document.getElementsByClassName(classId))
 
 
-def genElement(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
+def genElement(tag: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", flex: bool = False, style: str = "", custom: str = ""):
+    return glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, flex, style, custom)
 
 
-def setElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
+def setElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", flex: bool = False, style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML = glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, flex, style, custom)
 
 
 def setElementRaw(id: str, HTML: str):
     document.getElementById(id).innerHTML = HTML
 
 
-def addElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", style: str = "", custom: str = ""):
-    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, style, custom)
+def addElement(tag: str, targetId: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", type: str = "", src: str = "", alt: str = "", align: str = "", flex: bool = False, style: str = "", custom: str = ""):
+    document.getElementById(targetId).innerHTML += glb.constructHTML(tag, nest, wrap, prepend, id, classes, type, src, alt, align, flex, style, custom)
 
 
 def addElementRaw(id: str, HTML: str):
@@ -156,8 +160,8 @@ def clrElements(classId: str):
         item.innerHTML = ""
 
 
-def linkWrap(href: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", custom: str = ""):
-    return glb.constructHTML("a", nest, wrap, prepend, id, classes, "", "", "", align, f"{style} color: #44F;", f'{custom} href="{href}" target="_blank"')
+def linkWrap(href: str, nest: str = "", wrap: str = "", prepend: str = "", id: str = "", classes: str = "", align: str = "", style: str = "", flex: bool = False, custom: str = ""):
+    return glb.constructHTML("a", nest, wrap, prepend, id, classes, "", "", "", align, flex, f"{style} color: #44F;", f'{custom} href="{href}" target="_blank"')
 
 
 def disableElement(id: str):

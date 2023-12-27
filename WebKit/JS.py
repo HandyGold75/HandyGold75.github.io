@@ -1,4 +1,4 @@
-from js import console, document, eval, encodeURIComponent, setInterval, setTimeout, window  # type: ignore
+from js import console, document, encodeURIComponent, eval, setInterval, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 
 
@@ -96,11 +96,13 @@ def setTitle(title: str):
     document.title = title
 
 
-def onResize(name: str, function: object, args: tuple = (), kwargs: dict = {}):
+def onResize(name: str, function: object, noCall: bool = False, args: tuple = (), kwargs: dict = {}):
     if function is None:
         if name in glb.callOnResize:
             glb.callOnResize.pop(name)
         return None
 
     glb.callOnResize[name] = lambda: function(*args, **kwargs)
-    glb.onResize()
+
+    if not noCall:
+        glb.onResize()

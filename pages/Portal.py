@@ -1,5 +1,5 @@
 from subsPortal import sheets, sonos, tapo, trees, ytdl
-from WebKit import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Buttons
 
 
 class portal:
@@ -70,16 +70,7 @@ class portal:
         self.busyCount = 0
 
     def onResize(self):
-        if JS.getWindow().innerWidth < 500:
-            if HTML.getElement("portalPage_button_showHideImg").alt == "Fold":
-                CSS.setStyles("portalFlyout", (("padding", "0px"), ("width", "7.5%")))
-            return None
-        elif JS.getWindow().innerWidth < 1000:
-            if HTML.getElement("portalPage_button_showHideImg").alt == "Fold":
-                CSS.setStyles("portalFlyout", (("padding", "5px 0px"), ("width", "7.5%")))
-            return None
-        if HTML.getElement("portalPage_button_showHideImg").alt == "Fold":
-            CSS.setStyles("portalFlyout", (("padding", "5px 0.5%"), ("width", "6.5%")))
+        pass
 
     def preload(self):
         self.busy = True
@@ -102,96 +93,69 @@ class portal:
             self.busy = False
 
     def layout(self):
-        def showHideFlyout(self):
-            if self.busy:
-                return None
-            self.busy = True
-
-            el = HTML.getElement("portalPage_button_showHideImg")
-            if el.src.endswith("docs/assets/Portal/Hide-H.svg"):
-                el.src = "docs/assets/Portal/Show-H.svg"
-                el.alt = "Unfold"
-
-                CSS.setStyle("portalPage", "marginLeft", "auto")
-                CSS.setStyle("portalFlyout", "maxHeight", f'{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
-
-                JS.aSync(CSS.setStyles, ("portalFlyout", (("maxWidth", "30px"), ("maxHeight", "32px"), ("marginRight", "-30px"), ("padding", "0px"), ("width", "7.5%"))))
-                JS.afterDelay(CSS.setStyle, ("portalPage", "width", "100%"), delay=100)
-
-                JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
-                for page in self.portalPages:
-                    CSS.setStyle(f"portalPage_button_{page}Div", "marginLeft", f'-{CSS.getAttribute("portalFlyout", "offsetWidth")}px')
-
-                JS.afterDelay(setattr, (self, "busy", False), delay=350)
-                for delay in range(10, 370, 10):
-                    JS.afterDelay(JS.glb.onResize, delay=delay)
-                return None
-
-            el.src = "docs/assets/Portal/Hide-H.svg"
-            el.alt = "Fold"
-
-            CSS.setStyles("portalPage", (("marginLeft", "auto"), ("width", "92.5%")))
-
-            CSS.setStyle("portalFlyout", "maxHeight", f'-{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
-            JS.afterDelay(CSS.setStyles, ("portalFlyout", (("maxWidth", "107px"), ("maxHeight", "1000px"), ("marginRight", "0px"))), delay=100)
-
-            JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
-            JS.afterDelay(CSS.setStyle, ("portalFlyout", "maxHeight", ""), delay=350)
-
-            for page in self.portalPages:
-                JS.afterDelay(CSS.setStyle, (f"portalPage_button_{page}Div", "marginLeft", "0px"), delay=100)
-
-            JS.afterDelay(setattr, (self, "busy", False), delay=350)
-            for delay in range(10, 370, 10):
-                JS.afterDelay(JS.glb.onResize, delay=delay)
-
         for page in self.portalPages:
             if not self.portalPages[page]["page"] is None:
                 break
         else:
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
             body = HTML.genElement("p", nest="You don't have access to any portals!<br>Please request access if you think this is a mistake.", style="textBig")
-            HTML.setElement("div", "mainPage", nest=header + body, id="portalPage", align="center", style="width: 92.5%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
+            HTML.setElement("div", "mainPage", nest=header + body, id="portalPage", align="center", style="width: 89%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
 
-        flyoutImg = HTML.genElement("img", id="portalPage_button_showHideImg", style="width: 100%;", custom='src="docs/assets/Portal/Hide-H.svg" alt="Fold"')
-        flyoutBtn = HTML.genElement("button", id="portalPage_button_showHide", nest=flyoutImg, style="buttonImg")
-        flyoutDivs = HTML.genElement("div", nest=flyoutBtn, id="portalPage_button_showHideDiv", align="center", style="width: 100%; margin: 0px auto 5px 0px;")
+        showHideBtn = Buttons.imgMedium("portalPage_button_showHide", "./docs/assets/Portal/Hide-H.svg", alt="Fold", onClick=self.showHideFlyout)
+        pageBtns = "".join(Buttons.imgMedium(f"portalPage_button_{page}", f"./docs/assets/Portal/{page}.svg", alt=page, onClick=self.loadPortalPage, args=(page,)) for page in self.portalPages if not self.portalPages[page]["page"] is None)
 
-        for i, page in enumerate(self.portalPages):
-            if self.portalPages[page]["page"] is None:
-                continue
-
-            divStyle = "width: 100%; margin: 5px auto 5px 0px; transition: margin 0.25s;"
-            if i + 1 >= len(self.portalPages):
-                divStyle = "width: 100%; margin: 5px auto 0px 0px; transition: margin 0.25s;"
-
-            flyoutImg = HTML.genElement("img", style="width: 100%;", custom=f'src="docs/assets/Portal/{page}.svg" alt="{page}"')
-            flyoutBtn = HTML.genElement("button", id=f"portalPage_button_{page}", nest=flyoutImg, style="buttonImg")
-            flyoutDivs += HTML.genElement("div", nest=flyoutBtn, id=f"portalPage_button_{page}Div", align="center", style=divStyle)
-
-        minMaxRequirements = " min-width: 30px; max-width: 107px; transition: max-width 0.25s, max-height 0.25s, margin 0.25s, width 0.25s, padding 0.25s"
+        minMaxRequirements = "height: 100%; max-width: 76px; min-height: 47px; transition: max-width 0.25s, max-height 0.25s;"
         flyout = HTML.genElement(
-            "div", nest=flyoutDivs, id="portalFlyout", align="left", style=f"z-index: 999; width: 6.5%; height: 100%; margin: -11px 0px -11px -11px; padding: 5px 0.5%; background: #222; border: 6px solid #111; border-radius: 10px;{minMaxRequirements}"
+            "div",
+            nest=showHideBtn + pageBtns,
+            id="portalFlyout",
+            align="left",
+            style=f"z-index: 999; margin: -5px 0px -11px -5px; background: #222; border-right: 6px solid #111; border-bottom: 6px solid #111; border-bottom-right-radius: 8px; overflow: hidden; {minMaxRequirements}",
         )
-        portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: 92.5%; margin: -11px 0px 0px 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
+        portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: calc(100% - 76px); margin: -11px 0px 0px 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
         HTML.setElement("div", "mainPage", nest=flyout + portalPage, id="portalWrapper", align="center", style="flex")
 
-        def addEvents():
-            self.busy = True
+        Buttons.applyEvents()
 
-            JS.addEvent("portalPage_button_showHide", showHideFlyout, (self,))
-            CSS.onHoverClick("portalPage_button_showHide", "imgHover", "imgClick")
+    def showHideFlyout(self):
+        if self.busy:
+            return None
+        self.busy = True
 
-            for page in self.portalPages:
-                if self.portalPages[page]["page"] is None:
-                    continue
+        el = HTML.getElement("portalPage_button_showHide_img")
+        if el.src.endswith("docs/assets/Portal/Hide-H.svg"):
+            el.src = "docs/assets/Portal/Show-H.svg"
+            el.alt = "Unfold"
 
-                JS.addEvent(f"portalPage_button_{page}", self.loadPortalPage, kwargs={"page": page})
-                CSS.onHoverClick(f"portalPage_button_{page}", "imgHover", "imgClick")
+            CSS.setStyle("portalPage", "marginLeft", "auto")
 
-            self.busy = False
+            CSS.setStyle("portalFlyout", "maxHeight", f'{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
+            JS.aSync(CSS.setStyles, ("portalFlyout", (("maxWidth", "47px"), ("maxHeight", "47px"), ("marginRight", "-47px"))))
+            JS.aSync(CSS.setAttribute, ("portalPage_button_showHide", "className", "imgBtn imgBtnSmall"))
 
-        JS.afterDelay(addEvents, delay=50)
+            JS.afterDelay(CSS.setStyle, ("portalPage", "width", "100%"), delay=100)
+            JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
+
+            JS.afterDelay(setattr, (self, "busy", False), delay=350)
+            for delay in range(10, 370, 10):
+                JS.afterDelay(JS.glb.onResize, delay=delay)
+            return None
+
+        el.src = "docs/assets/Portal/Hide-H.svg"
+        el.alt = "Fold"
+
+        CSS.setStyles("portalPage", (("marginLeft", "auto"), ("width", "calc(100% - 76px)")))
+
+        CSS.setStyle("portalFlyout", "maxHeight", f'-{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
+        JS.afterDelay(CSS.setStyles, ("portalFlyout", (("maxWidth", "76px"), ("maxHeight", f"{JS.getVP()[0]}px"), ("marginRight", "0px"))), delay=100)
+        JS.afterDelay(CSS.setAttribute, ("portalPage_button_showHide", "className", "imgBtn imgBtnMedium"), delay=100)
+        JS.afterDelay(CSS.setStyle, ("portalFlyout", "maxHeight", ""), delay=350)
+
+        JS.afterDelay(CSS.setStyle, ("portalPage", "marginLeft", "0px"), delay=350)
+
+        JS.afterDelay(setattr, (self, "busy", False), delay=350)
+        for delay in range(10, 370, 10):
+            JS.afterDelay(JS.glb.onResize, delay=delay)
 
     def flyin(self):
         CSS.setStyle("portalWrapper", "marginTop", f'-{CSS.getAttribute("portalWrapper", "offsetHeight")}px')

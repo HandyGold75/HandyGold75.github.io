@@ -1,7 +1,7 @@
 from json import loads
 
 from pages import console, contact, home, links, login, portal
-from WebKit import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Buttons
 
 
 class mainPage:
@@ -46,46 +46,42 @@ class mainPage:
 
     def onResize(self):
         if JS.getWindow().innerWidth < 500:
-            CSS.setStyles("body", (("padding", "0px"), ("fontSize", "50%")))
-            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
-                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "35px")
+            if not CSS.getAttribute("mainNav_showHide_img", "src").endswith("docs/assets/Show-V.svg"):
+                # CSS.setStyle("mainNav_showHideDiv", "maxWidth", "35px")
                 CSS.setStyle("mainNav_logo", "maxWidth", "70px")
-                CSS.setStyle("mainFooter", "padding", "3px 5px")
             return None
 
         elif JS.getWindow().innerWidth < 1000:
-            CSS.setStyles("body", (("padding", "0px 10px"), ("fontSize", "75%")))
-            if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
-                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "42.5px")
+            if not CSS.getAttribute("mainNav_showHide_img", "src").endswith("docs/assets/Show-V.svg"):
+                # CSS.setStyle("mainNav_showHideDiv", "maxWidth", "42.5px")
                 CSS.setStyle("mainNav_logo", "maxWidth", "85px")
-                CSS.setStyle("mainFooter", "padding", "5px 5px")
             return None
 
-        CSS.setStyles("body", (("padding", "0px 20px"), ("fontSize", "100%")))
-        if not CSS.getAttribute("mainNav_showHideImg", "src").endswith("docs/assets/Show-V.svg"):
-            CSS.setStyle("mainNav_showHideDiv", "maxWidth", "50px")
+        if not CSS.getAttribute("mainNav_showHide_img", "src").endswith("docs/assets/Show-V.svg"):
+            # CSS.setStyle("mainNav_showHideDiv", "maxWidth", "50px")
             CSS.setStyle("mainNav_logo", "maxWidth", "101px")
-            CSS.setStyle("mainFooter", "padding", "10px 5px")
 
     def layout(self):
         def showHideNav():
-            el = HTML.getElement("mainNav_showHideImg")
+            el = HTML.getElement("mainNav_showHide_img")
 
             if el.src.endswith("docs/assets/Hide-V.svg"):
                 el.src = "docs/assets/Show-V.svg"
                 el.alt = "Unfold"
+
                 CSS.setStyle("mainNav", "padding", "0px")
                 CSS.setStyle("mainNav_middle", "marginTop", f'-{CSS.getAttribute("mainNav", "offsetHeight")}px')
                 CSS.setStyle("mainNav_logo", "maxWidth", "40px")
-                CSS.setStyle("mainNav_showHideDiv", "maxWidth", "30px")
-                CSS.setStyle("mainFooter", "padding", "3px 5px")
+                # CSS.setStyle("mainNav_showHide", "maxWidth", "30px")
                 self.pages[JS.cache("mainPage")]["page"].onResize()
                 return None
 
             el.src = "docs/assets/Hide-V.svg"
             el.alt = "Fold"
+
             CSS.setStyle("mainNav", "padding", "5px")
             CSS.setStyle("mainNav_middle", "marginTop", "0px")
+
             self.onResize()
             self.pages[JS.cache("mainPage")]["page"].onResize()
 
@@ -95,7 +91,7 @@ class mainPage:
         for page in self.pages:
             if self.pages[page]["hidden"]:
                 continue
-            navButtons += HTML.genElement("button", nest=page, id=f"subPageButton_{page}", type="button", style="buttonBig")
+            navButtons += Buttons.large(f"subPageButton_{page}", page, onClick=self.loadPage, args=(page,))
 
         nav = HTML.genElement("img", id="mainNav_logo", align="left", style="width: 20%; max-width: 101px; margin: auto auto auto 5px; user-select: none; transition: max-width 0.25s;", custom='src="docs/assets/;D.png"')
 
@@ -103,45 +99,37 @@ class mainPage:
         navDiv = HTML.genElement("div", nest=navButtons, id="mainNav_buttons", align="center", style="padding: 4px; margin: 0px auto;")
         nav += HTML.genElement("div", nest=navTxt + navDiv, id="mainNav_middle", align="center", style="width: 80%; transition: margin-top 0.5s;")
 
-        navImg = HTML.genElement("img", id="mainNav_showHideImg", style="width: 100%;", custom='src="docs/assets/Hide-V.svg" alt="Fold"')
-        navBtn = HTML.genElement("button", id="mainNav_showHide", nest=navImg, style="buttonImg")
-        nav += HTML.genElement("div", nest=navBtn, id="mainNav_showHideDiv", align="right", style="width: 20%; max-width: 50px; margin: auto 5px auto auto; transition: max-width 0.25s;")
+        # navImg = HTML.genElement("img", id="mainNav_showHideImg", style="width: 100%;", custom='src="docs/assets/Hide-V.svg" alt="Fold"')
+        # navBtn = HTML.genElement("button", id="mainNav_showHide", nest=navImg, style="buttonImg")
+        # nav += HTML.genElement("div", nest=navBtn, id="mainNav_showHideDiv", align="right", style="width: 20%; max-width: 50px; margin: auto 5px auto auto; transition: max-width 0.25s;")
+
+        nav += Buttons.imgSmall("mainNav_showHide", "docs/assets/Hide-V.svg", alt="Fold", buttonStyle="margin-top: auto; margin-bottom: auto;", buttonKwargs={"align": "right"}, onClick=showHideNav)
 
         footerTxt = HTML.genElement("p", nest="HandyGold75 - 2022 / 2023", style="headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;")
         footer = HTML.genElement("div", nest=footerTxt, id="mainFooter_note", style="width: 50%; margin: auto;")
 
-        footerButtons = HTML.genElement("button", nest="Login", id="mainFooter_Login", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
-        footerButtons += HTML.genElement("button", nest="Back to top", id="mainFooter_toTop", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
-        footerButtons += HTML.genElement("button", nest="Clear cache", id="mainFooter_ClearCache", type="button", style="buttonSmall %% border: 2px solid #222; background: #44F;")
-        footer += HTML.genElement("div", nest=footerButtons, id="mainFooter_buttons", align="right", style="width: 50%; margin: auto;")
+        footerBtns = Buttons.small("mainFooter_Login", "Login", onClick=self.loadPage, args=("Login",), theme="light")
+        footerBtns += Buttons.small("mainFooter_toTop", "Back to top", onClick=getattr(HTML.getBody(), "scrollIntoView"), theme="light")
+        footerBtns += Buttons.small("mainFooter_ClearCache", "Clear cache", onClick=JS.clearCache, theme="light")
 
-        main = HTML.genElement("header", nest=nav, id="mainNav", style="divNormal %% flex %% padding: 5px; overflow: hidden; transition: padding 0.25s;")
-        main += HTML.genElement("div", id="mainPage", style="divNormal %% overflow: hidden; transition: max-height 0.25s;")
-        main += HTML.genElement("footer", nest=footer, id="mainFooter", style="divAlt %% flex %% padding: 10px; overflow: hidden; transition: padding 0.25s;")
+        footer += HTML.genElement("div", nest=footerBtns, id="mainFooter_buttons", align="right", style="width: 50%; margin: auto;")
+
+        main = HTML.genElement("header", nest=nav, id="mainNav", flex=True, style="divNormal %% padding: 5px; transition: padding 0.25s;")
+        main += HTML.genElement("div", id="mainPage", style="divNormal %% transition: max-height 0.25s;")
+        main += HTML.genElement("footer", nest=footer, id="mainFooter", flex=True, style="divAlt %% padding: min(1vw, 10px) 10px;")
         main += HTML.genElement("div", id="mainPopup", style="z-index: 10000; display: none; position: fixed; width: 100%; height: 100%; top: 0px; left: 0px; background: rgba(0, 0, 0, 0); transition: background 0.25s;")
 
-        HTML.setElementRaw("body", main)
+        HTML.getBody().innerHTML = main
 
-        def addEvents():
-            for page in self.pages:
-                if self.pages[page]["hidden"]:
-                    continue
-                JS.addEvent(f"subPageButton_{page}", self.loadPage, kwargs={"page": page})
-                CSS.onHoverClick(f"subPageButton_{page}", "buttonHover", "buttonClick")
+        Buttons.applyEvents()
 
-            JS.addEvent("mainNav_showHide", showHideNav)
-            CSS.onHoverClick("mainNav_showHide", "imgHover", "imgClick")
+        # def addEvents():
+        #     JS.addEvent("mainNav_showHide", showHideNav)
+        #     CSS.onHoverClick("mainNav_showHide", "imgHover", "imgClick")
 
-            JS.addEvent("mainFooter_toTop", CSS.getAttribute, args=("body", "scrollIntoView"))
-            CSS.onHoverClick("mainFooter_toTop", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
-            JS.addEvent("mainFooter_ClearCache", JS.clearCache)
-            CSS.onHoverClick("mainFooter_ClearCache", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
-            JS.addEvent("mainFooter_Login", self.loadPage, kwargs={"page": "Login"})
-            CSS.onHoverClick("mainFooter_Login", "buttonHover %% background: #66F;", "buttonClick %% background: #66F;")
+        #     JS.onResize("mainPage", self.onResize)
 
-            JS.onResize("mainPage", self.onResize)
-
-        JS.afterDelay(addEvents, delay=50)
+        JS.afterDelay(JS.onResize, args=("mainPage", self.onResize), delay=50)
 
     def deloadPage(self, page: str = None, firstRun: bool = True):
         if firstRun:
