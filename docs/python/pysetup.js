@@ -11,7 +11,7 @@ async function loadFolder(folder) {
 };
 
 async function main() {
-    document.getElementById("body").innerHTML = `
+    document.getElementsByTagName("body")[0].innerHTML = `
     <img src="./docs/assets/Load.svg" style="position: absolute; left: 50%; top: 50px; transform: translate(-50%, 0px); width: 150px;"></svg>
     <div id="debug" style="width: 100%; margin-top: 250px; text-align: center;"></div>
     `
@@ -19,7 +19,7 @@ async function main() {
     window.pyodide = await loadPyodide();
     document.getElementById("debug").innerHTML += `<p>Loaded Pyodide</p>`;
 
-    await window.pyodide.loadPackage("micropip");
+    await window.pyodide.loadPackage("micropip", { "messageCallback": () => { } });
     window.micropip = window.pyodide.pyimport("micropip");
     document.getElementById("debug").innerHTML += `<p>Loaded Micropip</p>`;
 

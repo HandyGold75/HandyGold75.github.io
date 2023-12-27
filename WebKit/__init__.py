@@ -1,5 +1,4 @@
-from WebKit import CSS, HTML, JS, Widget
-from WebKit.WS import WebSocket
+from WebKit import CSS, HTML, JS, WS, Module, Widget
 
 __author__ = "HandyGold75"
 
@@ -9,6 +8,11 @@ __all__ = (
     "JS",
     "WS",
     "Widget",
+    "Buttons",
+    "PortalPage",
 )
 
-WS = WebSocket()
+Buttons = Module.buttons()
+WS = WS.WebSocket()
+
+from WebKit.Pages import PortalPage
