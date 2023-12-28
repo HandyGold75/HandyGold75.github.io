@@ -30,12 +30,10 @@
         ],
         "subsPortal": [
             "__init__.py",
-            "config.json",
             "Sonos.py",
             "Tapo.py",
             "YTDL.py",
-            "Sheets.py",
-            "Trees.py"
+            "Sheets.py"
         ]
     }
 }

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from json import load
+from json import dumps, load, loads
 from os import path as osPath
 
 from WebKit import CSS, HTML, JS, WS, Buttons, Widget
@@ -14,10 +14,19 @@ class PortalPage:
 
         # May be reconfigured
         self.evalMap = {}
-        self.configKeys = ["mainCom", "extraButtons"]
+        self.configKeys = ["mainCom"]
+        self.optinalConfigKeys = ["subPages", "customSheets", "extraButtons", "defaultCachedConfig", "optionsDict", "dates"]
         self.mainComReadCommands = ["read"]
-        self.subPages = []
         self.requireLogin = True
+        self.wordWrap = False
+
+        # May be reconfigured in pagesConfig.json
+        self.subPages = []
+        self.customSheets = []
+        self.extraButtons = []
+        self.defaultCachedConfig = {}
+        self.optionsDict = {}
+        self.dates = ["Modified"]
 
         # May hook onto existing functions
         self.onResize = lambda: None
@@ -31,7 +40,6 @@ class PortalPage:
 
         # May be read after preload
         self.mainCom = None
-        self.extraButtons = None
 
     def getData(self):
         if (datetime.now() - timedelta(seconds=1)).timestamp() > self._lastUpdate:
@@ -41,13 +49,8 @@ class PortalPage:
             self._lastUpdate = datetime.now().timestamp()
 
     def _onResize(self):
-        if JS.getWindow().innerWidth < 500:
-            CSS.setStyle("portalPageNav", "width", "75%")
+        if self._pageName != JS.cache("portalPage"):
             return None
-        elif JS.getWindow().innerWidth < 1000:
-            CSS.setStyle("portalPageNav", "width", "82.5%")
-            return None
-        CSS.setStyle("portalPageNav", "width", "90%")
 
         self.onResize()
 
@@ -88,17 +91,19 @@ class PortalPage:
 
         with open(f"{osPath.split(__file__)[0]}/pagesConfig.json", "r", encoding="UTF-8") as fileR:
             config = load(fileR)[self._pageName]
+
         for attribute in self.configKeys:
             setattr(self, attribute, config[attribute])
+        for attribute in self.optinalConfigKeys:
+            if attribute in config:
+                setattr(self, attribute, config[attribute])
 
         if firstRun and self.onPreload() is False:
             return None
 
         if self.subPages == []:
-            if "subPages" in config:
-                self.subPages = config["subPages"]
-            elif "knownFiles" in config:
-                self.subPages = list(config["knownFiles"])
+            if self.customSheets != [] and "customSheets" in config:
+                self.subPages = list(self.customSheets)
             else:
                 raise LookupError("Can't resolve subPages from config!")
 
@@ -141,10 +146,14 @@ class PortalPage:
         navDivs = HTML.genElement("div", id="portalSubPage_nav_main", nest=navBtns, align="left", style="width: 60%;")
         navBtns = ""
         for button in self.extraButtons:
-            navBtns += Buttons.small(f'portalSubPage_nav_options_{button["id"]}', button["text"], buttonKwargs={"align": "right"}, onClick=self.evalMap[button["function"]])
+            if "function" in button:
+                navBtns += Buttons.small(f'portalSubPage_nav_options_{button["id"]}', button["text"], buttonKwargs={"align": "right"}, onClick=self.evalMap[button["function"]])
+            else:
+                txt = button["text"] if getattr(self, button["toggleVar"]) else button["textInactive"]
+                navBtns += Buttons.small(f'portalSubPage_nav_options_{button["id"]}', txt, buttonKwargs={"align": "right"}, onClick=self._toggleOption, args=(f'portalSubPage_nav_options_{button["id"]}',))
         navDivs += HTML.genElement("div", id="portalSubPage_nav_options", nest=navBtns, align="right", style="width: 40%;")
 
-        mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="pagePortal_Nav")
+        mainDiv = HTML.genElement("div", id="portalPageNav", nest=navDivs, align="center", style="display: flex; padding: 5px; margin: 0px 5% 10px 5%; border: 6px solid #111; border-radius: 10px; transition: margin 0.25s 0.1s;")
         mainDiv += HTML.genElement("div", id="portalSubPage", align="center", style="margin: 10px 0px; overflow: hidden;")
         HTML.setElementRaw("portalPage", mainDiv)
 
@@ -191,6 +200,55 @@ class PortalPage:
             JS.afterDelay(CSS.setStyle, ("portalSubPage", "maxHeight", ""), delay=250)
 
         self.busy = False
+
+    def _toggleOption(self, id):
+        for button in self.extraButtons:
+            if id.split("_")[-1] != button["id"]:
+                continue
+
+            option = not getattr(self, button["toggleVar"])
+            setattr(self, button["toggleVar"], option)
+            CSS.setAttribute(id, "innerHTML", button["text"] if option else button["textInactive"])
+
+            break
+
+        self._loadPortalSubPage()
+
+    def enableButtons(self, exceptions: tuple | list = ()):
+        for button in self.extraButtons:
+            if not button["active"] and not button["text"] in exceptions:
+                HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
+
+    def configPage(self):
+        self.enableButtons()
+
+        options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
+        self.sheet = Widget.sheetConfig(
+            name=JS.cache("portalSubPage"),
+            header=("Key", "Value"),
+            data=self.getCachedConfig(),
+            dates=self.dates,
+            wordWrap=self.wordWrap,
+            optionsDict=options,
+        )
+        HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
+        JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modCachedConfig}, delay=50)
+
+    def modCachedConfig(self, key, data):
+        config = self.getCachedConfig()
+        if key in config:
+            config[key] = data
+            JS.cache(f"config{self._pageName}", dumps(config))
+
+    def getCachedConfig(self):
+        config = JS.cache(f"config{self._pageName}")
+        config = self.defaultCachedConfig if config is None else loads(config)
+
+        if tuple(config) != tuple(self.defaultCachedConfig):
+            config = self.defaultCachedConfig
+            JS.cache(f"config{self._pageName}", dumps(config))
+
+        return config
 
     def main(self):
         if self.requireLogin and not self.mainCom in WS.dict():

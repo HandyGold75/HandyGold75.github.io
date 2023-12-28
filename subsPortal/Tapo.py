@@ -10,21 +10,9 @@ from WebKit import CSS, HTML, JS, WS, PortalPage, Widget
 class tapo(PortalPage):
     def __init__(self):
         super().__init__()
-        for key in ("subPages", "knownFiles", "optionsDict"):
-            self.configKeys.append(key)
-        self.evalMap = {"wrapOption": self.wrapOption}
         self.mainComReadCommands = ["state", "history"]
 
         self.onSubPageLoad = self.loadSubPage
-
-        self.knownFiles = None
-        self.optionsDict = None
-
-        self.wordWrap = False
-
-        self.defaultConfig = {"costPerKw": 0.00, "costFormat": "$", "lineResolution": 25, "useMonthly": False, ":D": False}
-        if JS.cache("configTapo") is None:
-            JS.cache("configTapo", dumps(self.defaultConfig))
 
     def loadSubPage(self):
         getattr(self, f'{JS.cache("portalSubPage").lower()}Page')()
@@ -59,7 +47,7 @@ class tapo(PortalPage):
             return dur
 
         def verySlowUIRefresh():
-            configTapo = loads(JS.cache("configTapo"))
+            configTapo = self.getCachedConfig()
 
             def update(data):
                 for plug in data:
@@ -211,7 +199,7 @@ class tapo(PortalPage):
             return HTML.genElement(f"div", nest=f"{img}{svg}{txt}", style=f"flex %% padding: 20px 10px; border-bottom: 4px dotted #111;")
 
         def footer(plug):
-            configTapo = loads(JS.cache("configTapo"))
+            configTapo = self.getCachedConfig()
             div = ""
 
             for visKey, key, format in (
@@ -270,7 +258,7 @@ class tapo(PortalPage):
                     dur = f"{dur} s"
                 return dur
 
-            configTapo = loads(JS.cache("configTapo"))
+            configTapo = self.getCachedConfig()
             if configTapo[":D"]:
                 Widget.graphDraw(f"graph_usage_{plug}", ((1, 2, ":D"), (1, 3, ":D"), (2, 4, ":D"), (3, 4, ":D"), (4, 3, ":D"), (4, 2, ":D"), (3, 1, ":D"), (2, 1, ":D"), (1, 2, ":D")), lineRes=configTapo["lineResolution"])
                 Widget.graphDraw(f"graph_usage_{plug}", ((5, 1, ":D"), (4.5, 2, ":D"), (7.5, 2, ":D"), (7, 1, ":D"), (5, 1, ":D")), lineRes=configTapo["lineResolution"])
@@ -355,7 +343,7 @@ class tapo(PortalPage):
             Widget.graphDraw(f"graph_cost_{plug}", cordsCost, lineRes=configTapo["lineResolution"])
 
         data = WS.dict()[self.mainCom]["current"]
-        configTapo = loads(JS.cache("configTapo"))
+        configTapo = self.getCachedConfig()
 
         if not data[plug]["model"] in ["P115", "P110", "total"]:
             return None
@@ -408,50 +396,3 @@ class tapo(PortalPage):
         WS.onMsg('{"' + self.mainCom + '":', self.plugsPage, oneTime=True)
         WS.onMsg("WARNING: ", self.tapoLogin, oneTime=True)
         WS.send(f'{self.mainCom} login {usr.replace(" ", "%20")} {str(encrypt(psw.encode(), WS.pub)).replace(" ", "%20")}')
-
-    def configPage(self):
-        for button in self.extraButtons:
-            if not button["active"]:
-                HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
-
-        configTapo = loads(JS.cache("configTapo"))
-        if configTapo == {}:
-            JS.cache("configTapo", dumps(self.defaultConfig))
-            configTapo = self.defaultConfig
-
-        dataTemp, configTapo = (configTapo, {})
-        for i, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")])):
-            configTapo[key] = {}
-            try:
-                configTapo[key]["Value"] = dataTemp[key]
-            except IndexError:
-                configTapo[key]["Value"] = ""
-
-        options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
-        sheet = Widget.sheetOLD(
-            maincom=self.mainCom,
-            name=JS.cache("portalSubPage"),
-            typeDict=dict(self.knownFiles[JS.cache("portalSubPage")]),
-            optionsDict=options,
-            sendKey=False,
-            showInput=False,
-            showAction=False,
-            wordWrap=self.wordWrap,
-        )
-        HTML.setElementRaw("portalSubPage", sheet.generate(dict(configTapo)))
-        JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self._loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
-
-    def configPageSubmit(self, key, value):
-        configTapo = loads(JS.cache("configTapo"))
-        if key in configTapo:
-            configTapo[key] = value
-            JS.cache("configTapo", dumps(configTapo))
-
-    def wrapOption(self):
-        self.wordWrap = not self.wordWrap
-        if self.wordWrap:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Inline")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
-
-        self._loadPortalSubPage()
