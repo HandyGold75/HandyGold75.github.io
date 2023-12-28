@@ -1,7 +1,6 @@
-from subsPortal.Sheets import sheets
+from subsPortal.Sheets import sheets, trees
 from subsPortal.Sonos import sonos
 from subsPortal.Tapo import tapo
-from subsPortal.Trees import trees
 from subsPortal.YTDL import ytdl
 
 __author__ = "HandyGold75"
