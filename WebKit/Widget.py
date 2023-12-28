@@ -1588,7 +1588,7 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
             onSubmit(value, *args, **kwargs)
 
         CSS.setStyle("mainPopup", "background", "rgba(0, 0, 0, 0)")
-        CSS.setStyle("mainPopup_Div", "margin", "-100vh 25% 25vh 25%")
+        CSS.setStyle("mainPopup_Div", "margin", "-100vh auto 25vh auto")
         JS.afterDelay(cleanup, delay=250)
 
     def submitValue(ids: tuple):
@@ -1613,13 +1613,15 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
         reader.readAsText(value)
 
     txtAll = ""
+    headerDiv = ""
     for i, txt in enumerate(text.split("\n")):
         if i == 0:
-            txtAll += HTML.genElement("h1", nest=txt, style="headerMain")
+            headerTxt = HTML.genElement("h1", nest=txt, style="headerMain")
+            headerDiv = HTML.genElement("div", nest=headerTxt, style="headerMain")
             continue
         txtAll += HTML.genElement("p", nest=txt, style="textMedium")
 
-    txtDiv = HTML.genElement("div", nest=txtAll, style="divNormal %% z-index: 10001; border: 4px solid #111;")
+    txtDiv = HTML.genElement("div", nest=txtAll, style="divNormal %% z-index: 10001; border: 4px solid #111; white-space: nowrap; overflow-x: scroll;")
 
     if typ == "yesno":
         btnYes = HTML.genElement("button", nest="Yes", id="mainPopup_Yes", style="buttonBig %% margin: 0px 5% 5px 5%;")
@@ -1655,11 +1657,11 @@ def popup(typ: str, text: str, onSubmit: object = lambda value: None, args: tupl
     else:
         raise TypeError(f"Invalid type: {typ}")
 
-    HTML.setElement("div", "mainPopup", nest=txtDiv + inpDiv, id="mainPopup_Div", align="center", style="z-index: 10001; margin: -100vh 25% 25vh 25%; transition: margin 0.25s;")
+    HTML.setElement("div", "mainPopup", nest=headerDiv + txtDiv + inpDiv, id="mainPopup_Div", align="center", style="z-index: 10001; width: max(60vw, 250px); margin: -100vh auto 25vh auto; transition: margin 0.25s;")
     CSS.setStyle("mainPopup", "display", "")
 
     JS.afterDelay(CSS.setStyle, args=("mainPopup", "background", "rgba(0, 0, 0, 0.3)"), delay=50)
-    JS.afterDelay(CSS.setStyle, args=("mainPopup_Div", "margin", "25vh 25% 25vh 25%"), delay=50)
+    JS.afterDelay(CSS.setStyle, args=("mainPopup_Div", "margin", "25vh auto 25vh auto"), delay=50)
 
     def addEvents():
         def changeFileLabel():

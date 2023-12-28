@@ -93,6 +93,7 @@ button {
         border-radius: 8px;
         font-size: 125%;
         padding: 4px 8px;
+        max-height: 36px;
 
         &:hover:enabled,
         &:focus:enabled {
@@ -110,6 +111,7 @@ button {
         border-radius: 6px;
         font-size: 100%;
         padding: 3px 6px;
+        max-height: 29px;
 
         &:hover:enabled,
         &:focus:enabled {
@@ -127,6 +129,7 @@ button {
         border-radius: 4px;
         font-size: 75%;
         padding: 2px 4px;
+        max-height: 23px;
 
         &:hover:enabled,
         &:focus:enabled {

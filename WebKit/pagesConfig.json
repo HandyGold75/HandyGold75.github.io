@@ -1,54 +1,89 @@
 {
     "Admin": {
+        "mainCom": "admin",
         "extraButtons": [
             {
-                "text": "Clean",
                 "id": "clean",
+                "text": "Clean",
                 "function": "clean",
                 "active": true
             },
             {
-                "text": "Restart",
                 "id": "restart",
+                "text": "Restart",
+                "function": "restart",
                 "active": true
             },
             {
-                "text": "Shutdown",
                 "id": "shutdown",
+                "text": "Shutdown",
+                "function": "shutdown",
                 "active": true
             },
             {
+                "id": "active",
                 "text": "Inactive",
                 "textInactive": "Active",
-                "id": "active",
                 "toggleVar": "hideInactive",
                 "active": false
             },
             {
+                "id": "compact",
                 "text": "Expand",
                 "textInactive": "Compact",
-                "id": "compact",
                 "toggleVar": "compactView",
                 "active": false
             },
             {
+                "id": "wordwrap",
                 "text": "Inline",
                 "textInactive": "Word wrap",
-                "id": "wordwrap",
                 "toggleVar": "wordWrap",
                 "active": false
             },
             {
-                "text": "Export",
                 "id": "export",
+                "text": "Export",
+                "function": "export",
                 "active": false
             },
             {
-                "text": "Import",
                 "id": "import",
+                "text": "Import",
+                "function": "import",
                 "active": false
             }
         ],
+        "optionsDict": {
+            "config": {
+                "SonosSubnet": [
+                    "10.69.3.61",
+                    "10.69.1.0/24",
+                    "10.69.2.0/24",
+                    "10.69.3.0/24",
+                    "10.69.4.0/24",
+                    "10.69.5.0/24"
+                ],
+                "TapoPlugIps": [
+                    "10.69.3.50",
+                    "10.69.3.51",
+                    "10.69.3.52",
+                    "10.69.3.53",
+                    "10.69.3.54",
+                    "10.69.3.55",
+                    "10.69.3.56",
+                    "10.69.3.57",
+                    "10.69.3.58",
+                    "10.69.3.59"
+                ]
+            },
+            "tokens": {
+                "Roles": [
+                    "Admin",
+                    "Home"
+                ]
+            }
+        },
         "dates": [
             "Modified",
             "Expires"
@@ -82,72 +117,42 @@
             "Password",
             "TapoPassword"
         ],
-        "optionsDict": {
-            "config": {
-                "SonosSubnet": [
-                    "10.69.3.61",
-                    "10.69.1.0/24",
-                    "10.69.2.0/24",
-                    "10.69.3.0/24",
-                    "10.69.4.0/24",
-                    "10.69.5.0/24"
-                ],
-                "TapoPlugIps": [
-                    "10.69.3.50",
-                    "10.69.3.51",
-                    "10.69.3.52",
-                    "10.69.3.53",
-                    "10.69.3.54",
-                    "10.69.3.55",
-                    "10.69.3.56",
-                    "10.69.3.57",
-                    "10.69.3.58",
-                    "10.69.3.59"
-                ]
-            },
-            "tokens": {
-                "Roles": [
-                    "Admin",
-                    "Home"
-                ]
-            }
-        },
-        "tagIsList": false,
-        "hideInput": true,
-        "mainCom": "admin"
+        "tagIsList": false
     },
     "Asset Manager": {
         "mainCom": "am",
         "extraButtons": [
             {
+                "id": "active",
                 "text": "Inactive",
                 "textInactive": "Active",
-                "id": "active",
                 "toggleVar": "hideInactive",
                 "active": false
             },
             {
+                "id": "compact",
                 "text": "Expand",
                 "textInactive": "Compact",
-                "id": "compact",
                 "toggleVar": "compactView",
                 "active": false
             },
             {
+                "id": "wordwrap",
                 "text": "Inline",
                 "textInactive": "Word wrap",
-                "id": "wordwrap",
                 "toggleVar": "wordWrap",
                 "active": false
             },
             {
-                "text": "Export",
                 "id": "export",
+                "text": "Export",
+                "function": "export",
                 "active": false
             },
             {
-                "text": "Import",
                 "id": "import",
+                "text": "Import",
+                "function": "import",
                 "active": false
             }
         ],
@@ -182,42 +187,42 @@
             "Modified",
             "Notes"
         ],
-        "encryptOnSent": [],
-        "optionsDict": {},
-        "hideInput": false
+        "encryptOnSent": []
     },
     "License Manager": {
         "mainCom": "lm",
         "extraButtons": [
             {
+                "id": "active",
                 "text": "Inactive",
                 "textInactive": "Active",
-                "id": "active",
                 "toggleVar": "hideInactive",
                 "active": false
             },
             {
+                "id": "compact",
                 "text": "Expand",
                 "textInactive": "Compact",
-                "id": "compact",
                 "toggleVar": "compactView",
                 "active": false
             },
             {
+                "id": "wordwrap",
                 "text": "Inline",
                 "textInactive": "Word wrap",
-                "id": "wordwrap",
                 "toggleVar": "wordWrap",
                 "active": false
             },
             {
-                "text": "Export",
                 "id": "export",
+                "text": "Export",
+                "function": "export",
                 "active": false
             },
             {
-                "text": "Import",
                 "id": "import",
+                "text": "Import",
+                "function": "import",
                 "active": false
             }
         ],
@@ -246,61 +251,45 @@
             "Modified",
             "Notes"
         ],
-        "encryptOnSent": [],
-        "optionsDict": {},
-        "hideInput": false
+        "encryptOnSent": []
     },
     "Query": {
         "mainCom": "qr",
         "extraButtons": [
             {
+                "id": "active",
                 "text": "Inactive",
                 "textInactive": "Active",
-                "id": "active",
                 "toggleVar": "hideInactive",
                 "active": false
             },
             {
+                "id": "compact",
                 "text": "Expand",
                 "textInactive": "Compact",
-                "id": "compact",
                 "toggleVar": "compactView",
                 "active": false
             },
             {
+                "id": "wordwrap",
                 "text": "Inline",
                 "textInactive": "Word wrap",
-                "id": "wordwrap",
                 "toggleVar": "wordWrap",
                 "active": false
             },
             {
-                "text": "Export",
                 "id": "export",
+                "text": "Export",
+                "function": "export",
                 "active": false
             },
             {
-                "text": "Import",
                 "id": "import",
+                "text": "Import",
+                "function": "import",
                 "active": false
             }
         ],
-        "dates": [
-            "Modified"
-        ],
-        "quarterView": [
-            "Index",
-            "Active",
-            "Action"
-        ],
-        "halfView": [
-            "Modified"
-        ],
-        "excludeView": [
-            "Index",
-            "Modified"
-        ],
-        "encryptOnSent": [],
         "optionsDict": {
             "Links": {
                 "Img": [
@@ -325,15 +314,13 @@
                     "Outlook.png",
                     "OutlookCalendar.png",
                     "RockStar.png",
-                    "SokPop.png",
                     "Sophos.png",
                     "SpeedTest.png",
                     "Spotify.png",
                     "UniFi.png",
                     "Vodafone.png",
                     "YouTube.png",
-                    "YouTubeMusic.png",
-                    "Zwoofs.png"
+                    "YouTubeMusic.png"
                 ]
             },
             "Contact": {
@@ -348,19 +335,26 @@
                 ]
             }
         },
-        "hideInput": false
+        "dates": [
+            "Modified"
+        ],
+        "quarterView": [
+            "Index",
+            "Active",
+            "Action"
+        ],
+        "halfView": [
+            "Modified"
+        ],
+        "excludeView": [
+            "Index",
+            "Modified"
+        ],
+        "encryptOnSent": []
     },
     "Monitor": {
         "mainCom": "monitor",
-        "extraButtons": [
-            {
-                "text": "Word wrap",
-                "id": "wordwrap",
-                "function": "wrapOption",
-                "active": true
-            }
-        ],
-        "knownFiles": {
+        "customSheets": {
             "Current": {
                 "sId": 0,
                 "cl": {},
@@ -373,6 +367,15 @@
                 "logStack": {}
             }
         },
+        "extraButtons": [
+            {
+                "id": "wordwrap",
+                "text": "Inline",
+                "textInactive": "Word wrap",
+                "toggleVar": "wordWrap",
+                "active": false
+            }
+        ],
         "dates": [
             "Expires",
             "Modified",
@@ -381,79 +384,73 @@
     },
     "Sonos": {
         "mainCom": "sonos",
-        "extraButtons": [
-            {
-                "text": "Word wrap",
-                "id": "wordwrap",
-                "function": "wrapOption",
-                "active": false
-            }
-        ],
         "subPages": [
             "Player",
             "QR",
             "Config"
         ],
-        "knownFiles": {
-            "Config": {
-                "volumeMax": 0,
-                "seekStep": 0,
-                "useAlbumArt": false,
-                "useQue": false,
-                "usePlaylist": false
-            }
-        },
-        "optionsDict": {}
-    },
-    "Tapo": {
-        "mainCom": "tapo",
         "extraButtons": [
             {
-                "text": "Word wrap",
                 "id": "wordwrap",
-                "function": "wrapOption",
+                "text": "Inline",
+                "textInactive": "Word wrap",
+                "toggleVar": "wordWrap",
                 "active": false
             }
         ],
+        "defaultCachedConfig": {
+            "volumeMax": 50,
+            "seekStep": 10,
+            "useAlbumArt": false,
+            "useQue": true,
+            "usePlaylist": false
+        }
+    },
+    "Tapo": {
+        "mainCom": "tapo",
         "subPages": [
             "Plugs",
             "Config"
         ],
-        "knownFiles": {
-            "Config": {
-                "costPerKw": 0.0,
-                "costFormat": "",
-                "lineResolution": 0,
-                "useMonthly": false,
-                ":D": false
-            }
-        },
-        "optionsDict": {}
-    },
-    "YT-DL": {
-        "mainCom": "yt",
         "extraButtons": [
             {
-                "text": "Word wrap",
                 "id": "wordwrap",
-                "function": "wrapOption",
+                "text": "Inline",
+                "textInactive": "Word wrap",
+                "toggleVar": "wordWrap",
                 "active": false
             }
         ],
+        "defaultCachedConfig": {
+            "costPerKw": 0.0,
+            "costFormat": "",
+            "lineResolution": 25,
+            "useMonthly": false,
+            ":D": false
+        }
+    },
+    "YT-DL": {
+        "mainCom": "yt",
         "subPages": [
             "Download",
             "History",
             "Config"
         ],
-        "knownFiles": {
-            "Config": {
-                "quality": [],
-                "audioOnly": false
+        "extraButtons": [
+            {
+                "id": "wordwrap",
+                "text": "Inline",
+                "textInactive": "Word wrap",
+                "toggleVar": "wordWrap",
+                "active": false
             }
-        },
-        "dates": [
-            "Modified"
         ],
+        "defaultCachedConfig": {
+            "quality": [
+                "Medium"
+            ],
+            "audioOnly": false
+        },
         "optionsDict": {
             "Config": {
                 "quality": [

@@ -8,26 +8,13 @@ class ytdl(PortalPage):
     def __init__(self):
         super().__init__()
 
-        for key in ("dates", "knownFiles", "optionsDict"):
-            self.configKeys.append(key)
-        self.evalMap = {"wrapOption": self.wrapOption}
         self.mainComReadCommands = ["state"]
 
         self.onSubPageLoad = self.loadSubPage
 
-        self.dates = None
-        self.knownFiles = None
-        self.optionsDict = None
-
-        self.wordWrap = False
-
         self.lastDownload = 0
         self.lastDataPackage = {}
 
-        self.defaultConfig = {"quality": ["Medium"], "audioOnly": False}
-        if JS.cache("configYTDL") is None:
-            JS.cache("configYTDL", dumps(self.defaultConfig))
-        
     def loadSubPage(self):
         getattr(self, f'{JS.cache("portalSubPage").lower()}Page')()
 
@@ -84,11 +71,11 @@ class ytdl(PortalPage):
                 return None
             self.lastDownload = datetime.now().timestamp()
 
-            configYTDL = loads(JS.cache("configYTDL"))
+            configYTDL = self.getCachedConfig()
             if configYTDL["audioOnly"]:
-                WS.send(f'{self.mainCom} download audio {configYTDL["quality"][0]} {input}')
+                WS.send(f'{self.mainCom} download audio {configYTDL["quality"][-1]} {input}')
             else:
-                WS.send(f'{self.mainCom} download video {configYTDL["quality"][0]} {input}')
+                WS.send(f'{self.mainCom} download video {configYTDL["quality"][-1]} {input}')
 
         dlHeader = HTML.genElement("h1", nest="YouTube Downloader", style="headerMain %% width: 100%; margin: 0px auto -4px auto;")
         dlInp = HTML.genElement("input", id="download_input", type="text", style="inputMedium %% width: 70%; margin: 10px 3px 10px auto;")
@@ -200,51 +187,3 @@ class ytdl(PortalPage):
             records += HTML.genElement("div", nest=values, style="divNormal %% margin: 0px auto 6px auto; padding: 8px 5px 5px 5px; border-top: 3px dashed #55F; border-radius: 0px;")
 
         return records
-
-    def configPage(self):
-        for button in self.extraButtons:
-            if not button["active"]:
-                HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
-
-        configYTDL = loads(JS.cache("configYTDL"))
-        if configYTDL == {}:
-            JS.cache("configYTDL", dumps(self.defaultConfig))
-            configYTDL = self.defaultConfig
-
-        dataTemp, configYTDL = (configYTDL, {})
-        for i, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")])):
-            configYTDL[key] = {}
-            try:
-                configYTDL[key]["Value"] = dataTemp[key]
-            except IndexError:
-                configYTDL[key]["Value"] = ""
-
-        options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
-        sheet = Widget.sheetOLD(
-            maincom=self.mainCom,
-            name=JS.cache("portalSubPage"),
-            typeDict=dict(self.knownFiles[JS.cache("portalSubPage")]),
-            optionsDict=options,
-            sendKey=False,
-            showInput=False,
-            showAction=False,
-            wordWrap=self.wordWrap,
-        )
-        HTML.setElementRaw("portalSubPage", sheet.generate(dict(configYTDL)))
-        JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self._loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
-
-    def configPageSubmit(self, key, value):
-        configYTDL = loads(JS.cache("configYTDL"))
-        if key in configYTDL:
-            configYTDL[key] = value
-            JS.cache("configYTDL", dumps(configYTDL))
-
-    def wrapOption(self):
-        self.wordWrap = not self.wordWrap
-        if self.wordWrap:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Inline")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
-
-        self._loadPortalSubPage()
-

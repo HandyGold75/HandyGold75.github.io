@@ -128,6 +128,7 @@ class portal:
             el.alt = "Unfold"
 
             CSS.setStyle("portalPage", "marginLeft", "auto")
+            CSS.setStyle("portalPageNav", "margin", "0px max(5%, 57px) 10px max(5%, 57px)")
 
             CSS.setStyle("portalFlyout", "maxHeight", f'{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
             JS.aSync(CSS.setStyles, ("portalFlyout", (("maxWidth", "47px"), ("maxHeight", "47px"), ("marginRight", "-47px"))))
@@ -145,6 +146,7 @@ class portal:
         el.alt = "Fold"
 
         CSS.setStyles("portalPage", (("marginLeft", "auto"), ("width", "calc(100% - 76px)")))
+        CSS.setStyle("portalPageNav", "margin", "0px 5% 10px 5%")
 
         CSS.setStyle("portalFlyout", "maxHeight", f'-{CSS.getAttribute("portalFlyout", "offsetHeight")}px')
         JS.afterDelay(CSS.setStyles, ("portalFlyout", (("maxWidth", "76px"), ("maxHeight", f"{JS.getVP()[0]}px"), ("marginRight", "0px"))), delay=100)

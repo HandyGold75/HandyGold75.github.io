@@ -8,35 +8,22 @@ class sonos(PortalPage):
     def __init__(self):
         super().__init__()
 
-        for key in ("knownFiles", "optionsDict"):
-            self.configKeys.append(key)
-        self.evalMap = {"wrapOption": self.wrapOption}
         self.mainComReadCommands = ["position", "device", "track", "que get", "playlist", "ytinfo"]
 
-        self.onResize = self.doOnResize
         self.onDeload = self.comDisableStream
         self.onSubPageLoad = self.loadSubPage
-
-        self.knownFiles = None
-        self.optionsDict = None
-
-        self.wordWrap = False
 
         self.ytPlayer = None
         self.videoScolling = False
         self.dataStreamState = False
-        self.currentPosition = ""
-        self.currentQueSize = 0
-
-        self.defaultConfig = {"volumeMax": 50, "seekStep": 15, "useAlbumArt": False, "useQue": True, "usePlaylist": False}
-        if JS.cache("configSonos") is None:
-            JS.cache("configSonos", dumps(self.defaultConfig))
+        # self.currentPosition = ""
+        # self.currentQueSize = 0
 
     def loadSubPage(self):
         getattr(self, f'{JS.cache("portalSubPage").lower()}Page')()
 
     def doOnResize(self):
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
         if configSonos["useQue"]:
             rightId = "portalSubPage_que"
         elif configSonos["usePlaylist"]:
@@ -124,10 +111,9 @@ class sonos(PortalPage):
         if firstRun:
             pass
 
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
         if configSonos["useQue"] and configSonos["usePlaylist"]:
-            configSonos["usePlaylist"] = False
-            JS.cache("configSonos", dumps(configSonos))
+            self.modCachedConfig("usePlaylist", False)
 
         div = HTML.genElement("div", id="portalSubPage_media", style=f"divNormalNoEdge %% flex %% margin: 5px auto; border-radius: 0px; overflow: hidden;")
         HTML.setElement("div", "portalSubPage", nest=div, id="portalSubPage_main", style="divNormal")
@@ -143,7 +129,9 @@ class sonos(PortalPage):
             self.addPlaylist()
 
         JS.afterDelay(self.uiRefresh, delay=50)
-        JS.onResize("sonos", self.onResize)
+
+        self.onResize = self.doOnResize
+        JS.afterDelay(self._onResize, delay=50)
 
     def uiRefresh(self):
         def position(self):
@@ -151,7 +139,7 @@ class sonos(PortalPage):
                 return None
 
             data = WS.dict()[self.mainCom]
-            configSonos = loads(JS.cache("configSonos"))
+            configSonos = self.getCachedConfig()
 
             pos = datetime.strptime(data["position"], "%H:%M:%S")
             pos = (pos.hour * 3600) + (pos.minute * 60) + pos.second
@@ -188,7 +176,7 @@ class sonos(PortalPage):
                 return None
 
             data = WS.dict()[self.mainCom]
-            configSonos = loads(JS.cache("configSonos"))
+            configSonos = self.getCachedConfig()
 
             try:
                 JS.clearEvents("portalSubPage_buttons_Repeat")
@@ -244,7 +232,7 @@ class sonos(PortalPage):
                 return None
 
             data = WS.dict()[self.mainCom]
-            configSonos = loads(JS.cache("configSonos"))
+            configSonos = self.getCachedConfig()
 
             try:
                 if configSonos["useAlbumArt"]:
@@ -258,7 +246,7 @@ class sonos(PortalPage):
                 return None
 
             data = WS.dict()[self.mainCom]
-            configSonos = loads(JS.cache("configSonos"))
+            configSonos = self.getCachedConfig()
 
             try:
                 if not configSonos["useAlbumArt"]:
@@ -279,7 +267,7 @@ class sonos(PortalPage):
         WS.onMsg('{"' + self.mainCom + '": {"position":', position, (self,), oneTime=True)
         WS.onMsg('{"' + self.mainCom + '": {"device":', device, (self,), oneTime=True)
 
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
         if configSonos["useQue"]:
             WS.onMsg('{"' + self.mainCom + '": {"que":', que, (self,), oneTime=True)
         if configSonos["useAlbumArt"]:
@@ -367,7 +355,7 @@ class sonos(PortalPage):
                 return None
 
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         tracks = data["que"]["tracks"]
         queListDivs = ""
@@ -440,7 +428,7 @@ class sonos(PortalPage):
                 return None
 
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         playlists = data["playlists"]
         plListDivs = ""
@@ -489,7 +477,7 @@ class sonos(PortalPage):
 
     def addControls(self):
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         btnDivsLeft = ""
         leftActions = ["Repeat", "Shuffle"]
@@ -610,54 +598,6 @@ class sonos(PortalPage):
 
         JS.afterDelay(doAction, delay=50)
 
-    def configPage(self):
-        for button in self.extraButtons:
-            if not button["active"]:
-                HTML.enableElement(f'portalSubPage_nav_options_{button["id"]}')
-
-        configSonos = loads(JS.cache("configSonos"))
-        if configSonos == {}:
-            JS.cache("configSonos", dumps(self.defaultConfig))
-            configSonos = self.defaultConfig
-
-        dataTemp, configSonos = (configSonos, {})
-        for i, key in enumerate(dict(self.knownFiles[JS.cache("portalSubPage")])):
-            configSonos[key] = {}
-            try:
-                configSonos[key]["Value"] = dataTemp[key]
-            except IndexError:
-                configSonos[key]["Value"] = ""
-
-        options = (lambda: dict(self.optionsDict[JS.cache("portalSubPage")]) if JS.cache("portalSubPage") in self.optionsDict else {})()
-        sheet = Widget.sheetOLD(
-            maincom=self.mainCom,
-            name=JS.cache("portalSubPage"),
-            typeDict=dict(self.knownFiles[JS.cache("portalSubPage")]),
-            optionsDict=options,
-            sendKey=False,
-            showInput=False,
-            showAction=False,
-            wordWrap=self.wordWrap,
-        )
-        HTML.setElementRaw("portalSubPage", sheet.generate(dict(configSonos)))
-        JS.afterDelay(sheet.generateEvents, kwargs={"onReloadCall": lambda: self._loadPortalSubPage(disableAnimation=True), "onSubmit": self.configPageSubmit}, delay=50)
-
-    def configPageSubmit(self, key, value):
-        configSonos = loads(JS.cache("configSonos"))
-        if key in configSonos:
-            configSonos[key] = value
-            JS.cache("configSonos", dumps(configSonos))
-
-    def wrapOption(self):
-        self.wordWrap = not self.wordWrap
-        if self.wordWrap:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Inline")
-        else:
-            CSS.setAttribute("portalSubPage_nav_options_wordwrap", "innerHTML", "Word wrap")
-
-        HTML.clrElement("portalSubPage")
-        self._loadPortalSubPage()
-
     def comEnableStream(self):
         if not self.dataStreamState:
             self.dataStreamState = not self.dataStreamState
@@ -689,7 +629,7 @@ class sonos(PortalPage):
         WS.send(f"{self.mainCom} back")
 
     def comVolume(self, args=None, vol: int = None):
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
         if args is None:
             if vol is None or vol > configSonos["volumeMax"]:
                 return None
@@ -702,7 +642,7 @@ class sonos(PortalPage):
 
     def comVolumeUp(self):
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         if data["device"]["volume"] + 5 > configSonos["volumeMax"]:
             WS.send(f'{self.mainCom} volume {configSonos["volumeMax"]}')
@@ -725,7 +665,7 @@ class sonos(PortalPage):
 
     def comSeekForward(self):
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         newPos = datetime.strptime(data["position"], "%H:%M:%S")
         newPos = ((newPos.hour * 3600) + (newPos.minute * 60) + newPos.second) + configSonos["seekStep"]
@@ -738,7 +678,7 @@ class sonos(PortalPage):
 
     def comSeekBackward(self):
         data = WS.dict()[self.mainCom]
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
 
         newPos = datetime.strptime(data["position"], "%H:%M:%S")
         newPos = ((newPos.hour * 3600) + (newPos.minute * 60) + newPos.second) - configSonos["seekStep"]
@@ -778,25 +718,22 @@ class sonos(PortalPage):
             WS.send(f"{self.mainCom} playNowUri {uri}")
 
     def comUseAlbumArt(self):
-        configSonos = loads(JS.cache("configSonos"))
-        configSonos["useAlbumArt"] = not configSonos["useAlbumArt"]
-        JS.cache("configSonos", dumps(configSonos))
+        self.modCachedConfig("useAlbumArt", (not self.getCachedConfig()["useAlbumArt"]))
 
         self._loadPortalSubPage()
 
     def comUseQuePlaylist(self):
-        configSonos = loads(JS.cache("configSonos"))
+        configSonos = self.getCachedConfig()
         if configSonos["useQue"]:
-            configSonos["useQue"] = False
-            configSonos["usePlaylist"] = True
+            self.modCachedConfig("useQue", False)
+            self.modCachedConfig("usePlaylist", True)
 
         elif configSonos["usePlaylist"]:
-            configSonos["useQue"] = False
-            configSonos["usePlaylist"] = False
+            self.modCachedConfig("useQue", False)
+            self.modCachedConfig("usePlaylist", False)
 
         else:
-            configSonos["useQue"] = True
-            configSonos["usePlaylist"] = False
+            self.modCachedConfig("useQue", True)
+            self.modCachedConfig("usePlaylist", False)
 
-        JS.cache("configSonos", dumps(configSonos))
         self._loadPortalSubPage()

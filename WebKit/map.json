@@ -33,7 +33,6 @@
         "buttonMedium": "z-index: 100; padding: 1px 6px 3px 6px; margin: 3px; text-align: center; font-size: 100%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px",
         "buttonSmall": "z-index: 100; padding: 1px 4px 3px 4px; margin: 3px; text-align: center; font-size: 70%; word-wrap: break-word; color: #BFF; background: #333; border: 2px solid #55F; border-radius: 4px",
         "buttonImg": "z-index: 100; padding: 4px; color: #55F; background: #222; border: 2px solid #222; border-radius: 8px; user-select: none"
-
     },
     "StyleCSS": {
         "buttonHover": "z-index: 101; color: #FFF; background: #444; transition: color 0.25s, background 0.25s",
