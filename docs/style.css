@@ -30,11 +30,11 @@ p {
 
 button {
     margin: 4px 2px;
+    max-height: 100%;
+    max-width: 100%;
     outline: none;
     text-align: center;
     word-wrap: break-word;
-    max-width: 100%;
-    max-height: 100%;
     z-index: 100;
 
     &.dark {
@@ -43,14 +43,15 @@ button {
         color: #BFF;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             background: #444;
             color: #FFF;
             transition: margin 0.25s, padding 0.25s, color 0.25s, background 0.25s;
             z-index: 101;
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             background: #BBF;
             color: #55F;
             transition: margin 0.1s, padding 0.1s, color 0.1s, background 0.1s;
@@ -69,14 +70,15 @@ button {
         color: #BFF;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             background: #66F;
             color: #FFF;
             transition: margin 0.25s, padding 0.25s, color 0.25s, background 0.25s;
             z-index: 101;
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             background: #BBF;
             color: #55F;
             transition: margin 0.1s, padding 0.1s, color 0.1s, background 0.1s;
@@ -92,16 +94,17 @@ button {
     &.large {
         border-radius: 8px;
         font-size: 125%;
-        padding: 4px 8px;
         max-height: 36px;
+        padding: 4px 8px;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             margin: 6px 6px;
             padding: 2px 4px;
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             margin: 8px 10px;
             padding: 0px;
         }
@@ -110,16 +113,17 @@ button {
     &.medium {
         border-radius: 6px;
         font-size: 100%;
-        padding: 3px 6px;
         max-height: 29px;
+        padding: 3px 6px;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             margin: 5.5px 5px;
             padding: 1.5px 3px;
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             margin: 7px 8px;
             padding: 0px;
         }
@@ -128,16 +132,17 @@ button {
     &.small {
         border-radius: 4px;
         font-size: 75%;
-        padding: 2px 4px;
         max-height: 23px;
+        padding: 2px 4px;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             margin: 5px 4px;
             padding: 1px 2px;
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             margin: 6px 6px;
             padding: 0px;
         }
@@ -150,7 +155,7 @@ button {
         margin: 4px;
 
         &:hover:enabled,
-        &:focus:enabled {
+        &.active {
             background: #444;
             border: 3px solid #FBDF56;
             color: #FFF;
@@ -162,7 +167,8 @@ button {
             }
         }
 
-        &:active:enabled {
+        &:active:enabled,
+        &.active:hover:enabled {
             background: #DBBF36;
             border: 3px solid #FBDF56;
             color: #FBDF56;
@@ -181,9 +187,9 @@ button {
 
         >img {
             margin: 0px 0px -4px 0px;
-            user-select: none;
-            max-width: 100%;
             max-height: 100%;
+            max-width: 100%;
+            user-select: none;
         }
 
         &.imgBtnLarge {
@@ -196,7 +202,7 @@ button {
             }
 
             &:hover:enabled,
-            &:focus:enabled {
+            &.active {
                 margin: 9.5px;
                 padding: 4px;
 
@@ -206,7 +212,8 @@ button {
                 }
             }
 
-            &:active:enabled {
+            &:active:enabled,
+            &.active:hover:enabled {
                 margin: 15px;
                 padding: 0px;
 
@@ -227,7 +234,7 @@ button {
             }
 
             &:hover:enabled,
-            &:focus:enabled {
+            &.active {
                 margin: 8px;
                 padding: 3px;
 
@@ -237,7 +244,8 @@ button {
                 }
             }
 
-            &:active:enabled {
+            &:active:enabled,
+            &.active:hover:enabled {
                 margin: 12px;
                 padding: 0px;
 
@@ -258,7 +266,7 @@ button {
             }
 
             &:hover:enabled,
-            &:focus:enabled {
+            &.active {
                 margin: 6.5px;
                 padding: 2px;
 
@@ -268,7 +276,8 @@ button {
                 }
             }
 
-            &:active:enabled {
+            &:active:enabled,
+            &.active:hover:enabled {
                 margin: 9px;
                 padding: 0px;
 

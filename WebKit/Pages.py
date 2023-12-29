@@ -5,9 +5,114 @@ from os import path as osPath
 from WebKit import CSS, HTML, JS, WS, Buttons, Widget
 
 
-class PortalPage:
-    __all__ = ["main", "preload", "deload"]
+class Page:
+    def __init__(self):
+        self._pageName = ""
 
+        # May be reconfigured
+        self.requireLogin = False
+        self.configKeys = []
+        self.optinalConfigKeys = ["defaultCachedConfig"]
+
+        # May be reconfigured in pagesConfig.json
+        self.defaultCachedConfig = {}
+
+        # May hook onto existing functions
+        self.onResize = lambda: None
+        self.onPreload = lambda: None
+        self.onDeload = lambda: None
+        self.onLayout = lambda: None
+        # self.onPageLoad = lambda: None
+
+        # May be used during runtime
+        self.busy = False
+
+    def _onResize(self):
+        if self._pageName != JS.cache("mainPage"):
+            return None
+
+        self.onResize()
+
+    def preload(self, firstRun: bool = True):
+        if not firstRun:
+            return None
+
+        self.busy = True
+
+        self._pageName = JS.cache("mainPage")
+
+        with open(f"{osPath.split(__file__)[0]}/pagesConfig.json", "r", encoding="UTF-8") as fileR:
+            config = load(fileR)[self._pageName]
+
+        for attribute in self.configKeys:
+            setattr(self, attribute, config[attribute])
+        for attribute in self.optinalConfigKeys:
+            if attribute in config:
+                setattr(self, attribute, config[attribute])
+
+        if firstRun and self.onPreload() is False:
+            return None
+
+        self.busy = False
+
+    def deload(self):
+        def fininalize():
+            self.__init__()
+
+        self.busy = True
+
+        self.onDeload()
+
+        JS.onResize(self._pageName, None)
+        for attribute in self.configKeys:
+            setattr(self, attribute, None)
+
+        CSS.setStyles("subPage", (("transition", "margin-bottom 0s"), ("marginBottom", f"0px")))
+        JS.afterDelay(CSS.setStyles, ("subPage", (("transition", "margin-bottom 0.25s"), ("marginBottom", f'-{CSS.getAttribute("mainPage", "offsetHeight")}px'))), delay=50)
+        JS.afterDelay(fininalize, delay=300)
+
+    def _layout(self):
+        HTML.setElement("div", "mainPage", id="subPage", align="center")
+
+        self.onLayout()
+
+    def _flyin(self):
+        def fininalize():
+            self.busy = False
+
+        self.busy = True
+
+        CSS.setStyles("subPage", (("transition", "margin-bottom 0s"), ("marginBottom", f'-{CSS.getAttribute("mainPage", "offsetHeight")}px')))
+        JS.afterDelay(CSS.setStyles, ("subPage", (("transition", "margin-bottom 0.25s"), ("marginBottom", "0px"))), delay=50)
+        JS.afterDelay(fininalize, delay=300)
+
+    def setCachedConfig(self, key, data):
+        config = self.getCachedConfig()
+        if key in config:
+            config[key] = data
+            JS.cache(f"config{self._pageName}", dumps(config))
+
+    def getCachedConfig(self):
+        config = JS.cache(f"config{self._pageName}")
+        config = self.defaultCachedConfig if config is None else loads(config)
+
+        if tuple(config) != tuple(self.defaultCachedConfig):
+            config = self.defaultCachedConfig
+            JS.cache(f"config{self._pageName}", dumps(config))
+
+        return config
+
+    def main(self):
+        if self.requireLogin and not WS.loginState():
+            return None
+
+        self._layout()
+        self._flyin()
+
+        JS.onResize(self._pageName, self.onResize)
+
+
+class PortalPage:
     def __init__(self):
         self._lastUpdate = 0
         self._pageName = ""
@@ -69,8 +174,6 @@ class PortalPage:
         def finalize(self):
             self.busy = False
 
-        self._pageName = JS.cache("portalPage")
-
         if not firstRun:
             if self.busy:
                 CSS.setStyle("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px')
@@ -78,6 +181,8 @@ class PortalPage:
             return None
 
         self.busy = True
+
+        self._pageName = JS.cache("portalPage")
         self._lastUpdate = 0
 
         content = HTML.genElement("h1", nest="Portal", style="headerMain")
@@ -112,29 +217,28 @@ class PortalPage:
 
     def deload(self):
         def fininalize(self):
-            self.busy = False
+            self.__init__()
 
         self.busy = True
+
         self.onDeload()
 
         JS.onResize(self._pageName, None)
         for attribute in self.configKeys:
             setattr(self, attribute, None)
 
-        self.__init__()
-
         CSS.setStyles("portalSubPage", (("transition", "max-height 0.25s"), ("maxHeight", f'{CSS.getAttribute("portalSubPage", "offsetHeight")}px')))
         JS.aSync(CSS.setStyle, ("portalSubPage", "maxHeight", "0px"))
         JS.afterDelay(fininalize, (self,), delay=250)
 
-    def startLoadSubPage(self, subPage):
-        self.getData()
-        self._loadPortalSubPage(subPage)
-
     def _layout(self):
+        def startLoadSubPage(subPage):
+            self.getData()
+            self._loadPortalSubPage(subPage)
+
         navBtns = ""
         for subPage in self.subPages:
-            navBtns += Buttons.small(f"portalSubPage_nav_main_{subPage}", subPage, onClick=self.startLoadSubPage, args=(subPage,))
+            navBtns += Buttons.small(f"portalSubPage_nav_main_{subPage}", subPage, onClick=startLoadSubPage, args=(subPage,))
 
         if navBtns == "":
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
@@ -232,9 +336,9 @@ class PortalPage:
             optionsDict=options,
         )
         HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
-        JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modCachedConfig}, delay=50)
+        JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.setCachedConfig}, delay=50)
 
-    def modCachedConfig(self, key, data):
+    def setCachedConfig(self, key, data):
         config = self.getCachedConfig()
         if key in config:
             config[key] = data

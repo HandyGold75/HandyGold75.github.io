@@ -1,3 +1,5 @@
+from traceback import format_exc
+
 from js import console, document, encodeURIComponent, eval, setInterval, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
 

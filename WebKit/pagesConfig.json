@@ -1,4 +1,14 @@
 {
+    "Console": {},
+    "Contact": {},
+    "Home": {},
+    "Links": {
+        "defaultCachedConfig": {
+            "folded": []
+        }
+    },
+    "Login": {},
+    "Portal": {},
     "Admin": {
         "mainCom": "admin",
         "extraButtons": [

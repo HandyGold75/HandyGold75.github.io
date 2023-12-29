@@ -1,12 +1,17 @@
 from subsPortal import sheets, sonos, tapo, trees, ytdl
-from WebKit import CSS, HTML, JS, WS, Buttons
+from WebKit import CSS, HTML, JS, WS, Buttons, Page
 
 
-class portal:
+class portal(Page):
     __all__ = ["main", "preload", "deload"]
 
     def __init__(self):
-        self.busy = False
+        super().__init__()
+
+        self.onPreload = self.doOnPreload
+        self.onDeload = self.doOnDeload
+        self.onLayout = self.doOnLayout
+
         self.requireLogin = True
 
         for item in ["portalPage", "portalSubPage"]:
@@ -67,39 +72,31 @@ class portal:
 
         self.oldPage = None
         self.loadingPage = False
-        self.busyCount = 0
 
-    def onResize(self):
-        pass
-
-    def preload(self):
-        self.busy = True
+    def doOnPreload(self):
         if not WS.loginState() or not "access" in WS.dict():
             return None
 
         for page in self.portalPages:
             if self.portalPages[page]["page"] is None and self.portalPages[page]["command"] in WS.dict()["access"]:
                 self.portalPages[page]["page"] = self.portalPages[page]["loads"]()
-        self.busy = False
 
-    def deload(self):
-        self.busy = True
+    def doOnDeload(self):
         self.portalPages = self.portalPagesDefault
-        JS.onResize("portal", None)
 
         if not self.oldPage is None:
             self.deloadPortalPage()
         else:
             self.busy = False
 
-    def layout(self):
+    def doOnLayout(self):
         for page in self.portalPages:
             if not self.portalPages[page]["page"] is None:
                 break
         else:
             header = HTML.genElement("h1", nest="Portal", style="headerMain")
             body = HTML.genElement("p", nest="You don't have access to any portals!<br>Please request access if you think this is a mistake.", style="textBig")
-            HTML.setElement("div", "mainPage", nest=header + body, id="portalPage", align="center", style="width: 89%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
+            HTML.setElement("div", "subPage", nest=header + body, id="portalPage", align="center", style="width: 89%; margin: 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
 
         showHideBtn = Buttons.imgMedium("portalPage_button_showHide", "./docs/assets/Portal/Hide-H.svg", alt="Fold", onClick=self.showHideFlyout)
         pageBtns = "".join(Buttons.imgMedium(f"portalPage_button_{page}", f"./docs/assets/Portal/{page}.svg", alt=page, onClick=self.loadPortalPage, args=(page,)) for page in self.portalPages if not self.portalPages[page]["page"] is None)
@@ -113,9 +110,12 @@ class portal:
             style=f"z-index: 999; margin: -5px 0px -11px -5px; background: #222; border-right: 6px solid #111; border-bottom: 6px solid #111; border-bottom-right-radius: 8px; overflow: hidden; {minMaxRequirements}",
         )
         portalPage = HTML.genElement("div", id="portalPage", align="center", style="width: calc(100% - 76px); margin: -11px 0px 0px 0px; overflow: hidden; transition: margin-left 0.25s, width 0.25s;")
-        HTML.setElement("div", "mainPage", nest=flyout + portalPage, id="portalWrapper", align="center", style="flex")
+        HTML.setElement("div", "subPage", nest=flyout + portalPage, id="portalWrapper", align="center", style="flex")
 
         Buttons.applyEvents()
+
+        if not JS.cache("portalPage") == "":
+            self.loadPortalPage(JS.cache("portalPage"), rememberSubPage=True)
 
     def showHideFlyout(self):
         if self.busy:
@@ -159,23 +159,17 @@ class portal:
         for delay in range(10, 370, 10):
             JS.afterDelay(JS.glb.onResize, delay=delay)
 
-    def flyin(self):
-        CSS.setStyle("portalWrapper", "marginTop", f'-{CSS.getAttribute("portalWrapper", "offsetHeight")}px')
-        JS.aSync(CSS.setStyles, ("portalWrapper", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
-
-    def deloadPortalPage(self, page: str = None, firstRun: bool = True):
+    def deloadPortalPage(self, page: str = None, firstRun: bool = True, busyCount: int = 0):
         if firstRun:
-            self.busyCount = 0
             JS.aSync(self.portalPages[self.oldPage]["page"].deload)
             CSS.setStyle("portalPage", "marginLeft", "0px")
             JS.aSync(CSS.setStyle, ("portalPage", "marginLeft", f'-{CSS.getAttribute("portalPage", "offsetWidth")}px'))
-            JS.afterDelay(self.deloadPortalPage, kwargs={"page": page, "firstRun": False}, delay=250)
+            JS.aSync(self.deloadPortalPage, kwargs={"page": page, "firstRun": False, "busyCount": busyCount})
             return None
 
         if self.portalPages[self.oldPage]["page"].busy:
-            self.busyCount += 1
-            if self.busyCount <= 15:
-                JS.afterDelay(self.deloadPortalPage, kwargs={"page": page, "firstRun": False}, delay=50)
+            if busyCount <= 20:
+                JS.afterDelay(self.deloadPortalPage, kwargs={"page": page, "firstRun": False, "busyCount": busyCount + 1}, delay=50)
                 return None
 
             JS.log(f"Warning: Force stopped page (Reason page is busy for to long) -> {self.oldPage}")
@@ -186,25 +180,38 @@ class portal:
         if page is None:
             self.busy = False
         else:
-            self.loadPortalPage(page, deloaded=True, rememberSubPage=True)
+            self.loadPortalPage(page, didDeload=True, rememberSubPage=True)
 
-    def stallPortalPage(self, page: str, firstRun: bool = True):
+    def preloadPortalPage(self, page: str, firstRun: bool = True, busyCount: int = 0):
         if firstRun:
-            self.busyCount = 0
+            HTML.clrElement("portalPage")
+            JS.aSync(self.portalPages[page]["page"].preload)
+            JS.aSync(self.preloadPortalPage, kwargs={"page": page, "firstRun": False})
+            return None
 
         if self.portalPages[page]["page"].busy:
-            self.busyCount += 1
-            if self.busyCount <= 100:
-                JS.afterDelay(self.stallPortalPage, kwargs={"page": page, "firstRun": False}, delay=50)
+            if busyCount <= 40:
+                JS.afterDelay(self.preloadPortalPage, kwargs={"page": page, "firstRun": False, "busyCount": busyCount + 1}, delay=50)
                 return None
 
             JS.log(f"Warning: Force loaded page (Reason page is busy for to long) -> {page}")
             self.portalPages[page]["page"].busy = False
 
+        self.loadPortalPage(page, didPreload=True, rememberSubPage=True)
+
+    def stallPortalPage(self, page: str, busyCount: int = 0):
+        if self.portalPages[page]["page"].busy:
+            if busyCount <= 20:
+                JS.afterDelay(self.stallPortalPage, kwargs={"page": page, "busyCount": busyCount + 1}, delay=50)
+                return None
+
+            JS.log(f"Warning: Force finished page (Reason page is busy for to long) -> {page}")
+            self.portalPages[page]["page"].busy = False
+
         self.loadPortalPage(page, didStall=True, rememberSubPage=True)
 
-    def loadPortalPage(self, page: str = None, deloaded: bool = False, didStall: bool = False, rememberSubPage: bool = False):
-        if self.loadingPage and not deloaded and not didStall:
+    def loadPortalPage(self, page: str = None, didDeload: bool = False, didPreload: bool = False, didStall: bool = False, rememberSubPage: bool = False):
+        if self.loadingPage and not didDeload and not didPreload and not didStall:
             return None
 
         if not rememberSubPage:
@@ -212,35 +219,24 @@ class portal:
 
         self.loadingPage = True
         self.busy = True
-        if not self.oldPage is None and not deloaded:
-            self.deloadPortalPage(page)
+        if not self.oldPage is None and not didDeload and not didPreload and not didStall:
+            JS.aSync(self.deloadPortalPage, (page,))
+            return None
+
+        if not didPreload and not didStall:
+            JS.cache("portalPage", page)
+
+            JS.aSync(self.preloadPortalPage, (page,))
             return None
 
         if not didStall:
-            JS.cache("portalPage", page)
+            JS.setTitle(f'HandyGold75 - {JS.cache("mainPage")} - {JS.cache("portalPage")}')
+            HTML.setElementRaw("mainNav_title", f'HandyGold75 - {JS.cache("mainPage")} - {JS.cache("portalPage")}')
+            JS.aSync(self.portalPages[page]["page"].main)
 
-            HTML.clrElement("portalPage")
-            self.portalPages[page]["page"].preload()
-            if self.portalPages[page]["page"].busy:
-                self.stallPortalPage(page)
-                return None
-
-        JS.setTitle(f'HandyGold75 - {JS.cache("mainPage")} - {JS.cache("portalPage")}')
-        HTML.setElementRaw("mainNav_title", f'HandyGold75 - {JS.cache("mainPage")} - {JS.cache("portalPage")}')
-        JS.aSync(self.portalPages[page]["page"].main)
+            JS.aSync(self.stallPortalPage, (page,))
+            return None
 
         self.oldPage = page
         self.loadingPage = False
         self.busy = False
-
-    def main(self):
-        if not WS.loginState():
-            return None
-
-        self.layout()
-        self.flyin()
-
-        if not JS.cache("portalPage") == "":
-            self.loadPortalPage(JS.cache("portalPage"), rememberSubPage=True)
-
-        JS.onResize("portal", self.onResize)
