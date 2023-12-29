@@ -1,15 +1,16 @@
 from json import dumps, load, loads
 from os import path as osPath
 
-from WebKit import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Page
 
 
-class links:
-    __all__ = ["main", "preload", "deload"]
-
+class links(Page):
     def __init__(self):
-        self.busy = False
-        self.requireLogin = False
+        super().__init__()
+
+        self.onResize = self.doOnResize
+        self.onPreload = self.doOnPreload
+        self.onLayout = lambda: self.doOnLayout(doEvents=False)
 
         if JS.cache("configLinks") is None:
             JS.cache("configLinks", dumps({"folded": {}}))
@@ -20,13 +21,9 @@ class links:
         self.allLinks = dict(sorted(self.defaultLinks.items(), key=lambda x: x[1]["Index"]))
         self.foldedStates = loads(JS.cache("configLinks"))["folded"]
 
-        self.columns = 5
-        if JS.getWindow().innerWidth < 500:
-            self.columns = 3
-        elif JS.getWindow().innerWidth < 1000:
-            self.columns = 4
+        self.columns = 0
 
-    def onResize(self):
+    def doOnResize(self):
         oldColumns = self.columns
 
         self.columns = 5
@@ -36,17 +33,9 @@ class links:
             self.columns = 4
 
         if self.columns != oldColumns:
-            self.layout()
+            self.doOnLayout()
 
-            # for el in HTML.getElements("linksPage_Subs"):
-            #     JS.aSync(setattr, (el.style, "transition", "margin-top 0.5s"))
-            #     if self.foldedStates[el.id.split("_")[-2]]:
-            #         setattr(el.style, "marginTop", f'-{CSS.getAttribute(el.id.replace("_Sub", ""), "offsetWidth")}px')
-            #     else:
-            #         setattr(el.style, "marginTop", "0px")
-
-    def preload(self):
-        self.busy = True
+    def doOnPreload(self):
         if JS.getWindow().innerWidth < 500:
             self.columns = 3
         elif JS.getWindow().innerWidth < 1000:
@@ -54,20 +43,16 @@ class links:
         self.columns = 5
 
         if not WS.loginState():
-            self.busy = False
             return None
 
         def fetchTemplate():
-            WS.onMsg('{"qr": {"Links":', finalize, (self,), oneTime=True)
+            WS.onMsg('{"qr": {"Links":', finalize, oneTime=True)
             WS.send("qr read Links")
 
-        def finalize(self):
+        def finalize():
             msgDict = WS.dict()
-            headers = []
-            types = []
-            for name, ktype in msgDict["qr"]["template"]["sheets"]["Links"]:
-                headers.append(name)
-                types.append(type(ktype))
+
+            headers = tuple(name for name, ktype in msgDict["qr"]["template"]["sheets"]["Links"])
 
             linkDict = {}
             for link in msgDict["qr"]["Links"]:
@@ -85,12 +70,9 @@ class links:
             WS.onMsg('{"qr": {"template":', fetchTemplate, oneTime=True)
             WS.send(f"qr template")
 
-    def deload(self):
-        self.busy = True
-        JS.onResize("links", None)
-        self.busy = False
+        return False
 
-    def layout(self, doEvents: bool = True):
+    def doOnLayout(self, doEvents: bool = True):
         sortedCats = {}
         for link in self.allLinks:
             if not self.allLinks[link]["cat"] in sortedCats:
@@ -105,9 +87,9 @@ class links:
 
         catDivs = ""
         for cat in sortedCats:
-            linkDivs = ""
             linksRows = ""
 
+            linkDivs = ""
             for colIndex, link in enumerate(sortedCats[cat]):
                 linkImg = HTML.genElement("img", style="width: 30%; user-select:none;", custom=f'src="docs/assets/Links/{link}" alt="{self.allLinks[link]["text"]}"')
                 linkImg = HTML.linkWrap(self.allLinks[link]["url"], nest=linkImg)
@@ -126,7 +108,8 @@ class links:
             catSub = HTML.genElement("div", nest=linksRows, id=f"linksPage_{cat}_Sub", classes="linksPage_Subs")
             catDivs += HTML.genElement("div", nest=catSub, id=f"linksPage_{cat}", align="center", style="background %% min-height: 10px; margin: 0px auto 25px auto; overflow: hidden;")
 
-        HTML.setElement("div", "mainPage", nest=catDivs, id="linksPage", align="center")
+        HTML.setElementRaw("subPage", catDivs)
+        self.loadAnimation()
 
         def addEvents():
             self.busy = True
@@ -136,10 +119,6 @@ class links:
 
         if doEvents:
             JS.afterDelay(addEvents, delay=50)
-
-    def flyin(self):
-        CSS.setStyle("linksPage", "marginTop", f'-{CSS.getAttribute("linksPage", "offsetHeight")}px')
-        JS.aSync(CSS.setStyles, ("linksPage", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
 
     def loadAnimation(self):
         def doAnimations(index: int = 0):
@@ -174,10 +153,3 @@ class links:
         configLinks = loads(JS.cache("configLinks"))
         configLinks["folded"] = self.foldedStates
         JS.cache("configLinks", dumps(configLinks))
-
-    def main(self):
-        self.layout(doEvents=False)
-        JS.onResize("links", self.onResize)
-
-        self.flyin()
-        self.loadAnimation()
