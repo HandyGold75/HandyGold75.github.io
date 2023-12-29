@@ -113,7 +113,7 @@ class sonos(PortalPage):
 
         configSonos = self.getCachedConfig()
         if configSonos["useQue"] and configSonos["usePlaylist"]:
-            self.modCachedConfig("usePlaylist", False)
+            self.setCachedConfig("usePlaylist", False)
 
         div = HTML.genElement("div", id="portalSubPage_media", style=f"divNormalNoEdge %% flex %% margin: 5px auto; border-radius: 0px; overflow: hidden;")
         HTML.setElement("div", "portalSubPage", nest=div, id="portalSubPage_main", style="divNormal")
@@ -718,22 +718,22 @@ class sonos(PortalPage):
             WS.send(f"{self.mainCom} playNowUri {uri}")
 
     def comUseAlbumArt(self):
-        self.modCachedConfig("useAlbumArt", (not self.getCachedConfig()["useAlbumArt"]))
+        self.setCachedConfig("useAlbumArt", (not self.getCachedConfig()["useAlbumArt"]))
 
         self._loadPortalSubPage()
 
     def comUseQuePlaylist(self):
         configSonos = self.getCachedConfig()
         if configSonos["useQue"]:
-            self.modCachedConfig("useQue", False)
-            self.modCachedConfig("usePlaylist", True)
+            self.setCachedConfig("useQue", False)
+            self.setCachedConfig("usePlaylist", True)
 
         elif configSonos["usePlaylist"]:
-            self.modCachedConfig("useQue", False)
-            self.modCachedConfig("usePlaylist", False)
+            self.setCachedConfig("useQue", False)
+            self.setCachedConfig("usePlaylist", False)
 
         else:
-            self.modCachedConfig("useQue", True)
-            self.modCachedConfig("usePlaylist", False)
+            self.setCachedConfig("useQue", True)
+            self.setCachedConfig("usePlaylist", False)
 
         self._loadPortalSubPage()

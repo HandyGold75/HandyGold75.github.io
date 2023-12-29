@@ -1,22 +1,26 @@
 from datetime import datetime, timedelta
 from json import JSONDecodeError, dumps, loads
 
-from WebKit import CSS, HTML, JS, WS
+from WebKit import CSS, HTML, JS, WS, Page
 
 
-class console:
-    __all__ = ["main", "preload", "deload"]
-
+class console(Page):
     def __init__(self):
-        self.busy = False
+        super().__init__()
+
+        self.onResize = self.doOnResize
+        self.onDeload = self.doOnDeload
+        self.onLayout = self.doOnLayout
+
         self.requireLogin = True
+
         self.lastCommand = 0
         self.commandHistory = []
         self.commandHistoryIndex = 0
         self.receivedCommandCount = 0
 
-    def onResize(self):
-        height = JS.getWindow().innerHeight - 295 if HTML.getElement("mainNav_showHide_img").src.endswith("docs/assets/Hide-V.svg") else JS.getWindow().innerHeight - 240
+    def doOnResize(self):
+        height = JS.getWindow().innerHeight - 340 if HTML.getElement("mainNav_showHide_img").src.endswith("docs/assets/Hide-V.svg") else JS.getWindow().innerHeight - 270
         CSS.setStyle("consolePage_output", "height", f"{height - 40}px")
         CSS.setStyle("consolePage_body", "height", f"{height}px")
 
@@ -24,38 +28,34 @@ class console:
         CSS.setStyle("consolePage_input", "width", f'{CSS.getAttribute("consolePage_body", "offsetWidth") - 42}px')
         CSS.setStyle("consolePage_overlay", "width", f'{CSS.getAttribute("consolePage_body", "offsetWidth") - 28}px')
 
-        if JS.getWindow().innerWidth < 500:
-            CSS.setStyle("consolePage_input", "fontSize", "150%")
-            CSS.setStyle("consolePage_overlay", "fontSize", "150%")
-            return None
+        # if JS.getWindow().innerWidth < 500:
+        #     CSS.setStyle("consolePage_input", "fontSize", "150%")
+        #     CSS.setStyle("consolePage_overlay", "fontSize", "150%")
+        #     return None
 
-        elif JS.getWindow().innerWidth < 1000:
-            CSS.setStyle("consolePage_input", "fontSize", "125%")
-            CSS.setStyle("consolePage_overlay", "fontSize", "125%")
-            return None
+        # elif JS.getWindow().innerWidth < 1000:
+        #     CSS.setStyle("consolePage_input", "fontSize", "125%")
+        #     CSS.setStyle("consolePage_overlay", "fontSize", "125%")
+        #     return None
 
-        CSS.setStyle("consolePage_input", "fontSize", "100%")
-        CSS.setStyle("consolePage_overlay", "fontSize", "100%")
+        # CSS.setStyle("consolePage_input", "fontSize", "100%")
+        # CSS.setStyle("consolePage_overlay", "fontSize", "100%")
 
-    def preload(self):
-        self.busy = False
-
-    def deload(self):
-        self.busy = True
+    def doOnDeload(self):
         WS.raiseOnMsg = None
-        JS.onResize("console", None)
-        self.busy = False
 
-    def layout(self):
+    def doOnLayout(self):
         header = HTML.genElement("h1", nest="Console", style="headerMain")
 
-        height = JS.getWindow().innerHeight - 295 if HTML.getElement("mainNav_showHide_img").src.endswith("docs/assets/Hide-V.svg") else JS.getWindow().innerHeight - 240
+        height = JS.getWindow().innerHeight - 340 if HTML.getElement("mainNav_showHide_img").src.endswith("docs/assets/Hide-V.svg") else JS.getWindow().innerHeight - 270
 
         bodyDiv = HTML.genElement("div", id="consolePage_output", align="left", style=f"width: 0px; height: {height - 42}px; min-height: 59px; padding: 5px 10px; overflow: scroll; transition: width 0.5s; height 0.25s;")
         bodyInp = HTML.genElement("input", id="consolePage_input", type="text", style=f"inputDark %% width: 0px; height: 20px; padding: 5px 10px 5px 24px; margin: 0px; color: #F7E163; transition: width 0.5s;", custom="autofocus")
-        bodyOverlay = HTML.genElement("p", ">", id="consolePage_overlay", align="left", style="width: 0px; height: 20px; margin: -25px 0px 0px 0px; padding: 0px 10px; font-weight: bold; color: #F7E163; text-align: left; transition: width 0.5s;")
+        bodyOverlay = HTML.genElement(
+            "p", ">", id="consolePage_overlay", align="left", style="width: 0px; height: 20px; line-height: 20px; margin: -25px 0px 0px 0px; padding: 0px 10px; font-weight: bold; color: #F7E163; text-align: left; transition: width 0.5s;"
+        )
         body = HTML.genElement("div", nest=bodyDiv + bodyInp + bodyOverlay, id="consolePage_body", style=f"divDark %% height: {height}px; min-height: 100px; margin: 15px 5px 5px 5px; padding: 0px; transition: height 0.25s;")
-        HTML.setElement("div", "mainPage", nest=header + body, id="consolePage", align="center")
+        HTML.setElement("div", "subPage", nest=header + body, id="consolePage", align="center")
 
         def addEvents():
             JS.addEvent("consolePage_input", self.consoleSubmit, action="keyup", includeElement=True)
@@ -100,16 +100,3 @@ class console:
         command = CSS.getAttribute("consolePage_input", "value")
         self.commandHistory.append(command)
         WS.send(command)
-
-    def flyin(self):
-        CSS.setStyle("consolePage", "marginTop", f'-{CSS.getAttribute("consolePage", "offsetHeight")}px')
-        JS.aSync(CSS.setStyles, ("consolePage", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
-
-    def main(self):
-        if not WS.loginState():
-            return None
-
-        self.layout()
-        self.flyin()
-
-        JS.onResize("console", self.onResize)

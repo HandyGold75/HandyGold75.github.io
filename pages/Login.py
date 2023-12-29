@@ -3,15 +3,15 @@ from json import dumps, loads
 
 from rsa import encrypt
 
-from WebKit import CSS, HTML, JS, WS, Widget
+from WebKit import CSS, HTML, JS, WS, Buttons, Page, Widget
 
 
-class login:
-    __all__ = ["main", "preload", "deload", "indexRedirectHook"]
-
+class login(Page):
     def __init__(self):
-        self.busy = False
-        self.requireLogin = False
+        super().__init__()
+
+        self.onLayout = self.doOnLayout
+
         self.indexRedirect = None
 
         if JS.cache("configWS") is None:
@@ -20,38 +20,7 @@ class login:
         self.config = lambda: loads(JS.cache("configWS"))
         self.lastLogin = 0
 
-    def onResize(self):
-        if JS.getWindow().innerWidth < 500:
-            CSS.setStyle("loginPage_login", "width", "100%")
-            CSS.setStyle("loginPage_buttons", "width", "100%")
-            for els in HTML.getElements("loginPage_inputHints"):
-                setattr(els.style, "padding", "7px 0px")
-            return None
-
-        elif JS.getWindow().innerWidth < 1000:
-            CSS.setStyle("loginPage_login", "width", "75%")
-            CSS.setStyle("loginPage_buttons", "width", "75%")
-            for els in HTML.getElements("loginPage_inputHints"):
-                setattr(els.style, "padding", "4px 0px")
-            return None
-
-        CSS.setStyle("loginPage_login", "width", "75%")
-        CSS.setStyle("loginPage_buttons", "width", "75%")
-        for els in HTML.getElements("loginPage_inputHints"):
-            setattr(els.style, "padding", "4px 0px")
-
-    def preload(self):
-        pass
-
-    def deload(self):
-        self.busy = True
-        JS.onResize("login", None)
-        self.busy = False
-
-    def indexRedirectHook(self, function):
-        self.indexRedirect = function
-
-    def layout(self):
+    def doOnLayout(self):
         def rememberSubmit():
             newConfig = self.config()
             newConfig["autoSignIn"] = not newConfig["autoSignIn"]
@@ -59,40 +28,41 @@ class login:
             JS.cache("configWS", dumps(newConfig))
 
             if self.config()["autoSignIn"]:
-                JS.clearEvents("loginPage_remember")
-                CSS.onClick("loginPage_remember", "imgClick")
-                JS.addEvent("loginPage_remember", rememberSubmit)
-                CSS.setStyles("loginPage_remember", "imgHover")
+                CSS.setAttribute("loginPage_remember", "className", "imgBtn imgBtnSmall active")
                 return None
 
-            JS.clearEvents("loginPage_remember")
-            CSS.onHoverClick("loginPage_remember", "imgHover", "imgClick")
-            JS.addEvent("loginPage_remember", rememberSubmit)
+            CSS.setAttribute("loginPage_remember", "className", "imgBtn imgBtnSmall")
+
+        if WS.loginState():
+            header = HTML.genElement("h1", nest="Login", style="headerMain")
+            body = HTML.genElement("p", nest="You are logged in.", style="textBig")
+            HTML.setElement("div", "subPage", nest=header + body, align="center")
+            return None
 
         header = HTML.genElement("h1", nest="Login", style="headerMain")
 
-        bodyTxt = HTML.genElement("p", nest="Server", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyTxt = HTML.genElement("p", nest="Server", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; height: 25px; line-height: 25px; margin: 3px auto; padding: 1px 0px; border: 2px solid #191919; border-radius: 6px;")
         bodyInp = HTML.genElement("input", id="loginPage_server", type="url", style="inputMedium %% width: 80%; height: 25px;", custom=f'placeholder="Server" pattern="(WSS||WS)://.+:[0-9]+" value="{self.config()["server"]}"')
         bodyDiv = HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
 
-        bodyTxt = HTML.genElement("p", nest="Username", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyTxt = HTML.genElement("p", nest="Username", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; height: 25px; line-height: 25px; margin: 3px auto; padding: 1px 0px; border: 2px solid #191919; border-radius: 6px;")
         bodyInp = HTML.genElement("input", id="loginPage_username", type="email", style="inputMedium %% width: 80%; height: 25px;", custom='placeholder="Username"')
         bodyDiv += HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
 
-        bodyTxt = HTML.genElement("p", nest="Password", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; margin: 3px auto; padding: 4px 0px; border: 2px solid #191919; border-radius: 6px;")
+        bodyTxt = HTML.genElement("p", nest="Password", classes="loginPage_inputHints", style="headerSmall %% background %% width: 20%; height: 25px; line-height: 25px; margin: 3px auto; padding: 1px 0px; border: 2px solid #191919; border-radius: 6px;")
         bodyInp = HTML.genElement("input", id="loginPage_password", type="password", style="inputMedium %% width: 80%; height: 25px;", custom='placeholder="Password"')
         bodyDiv += HTML.genElement("div", nest=bodyTxt + bodyInp, align="center", style="flex")
-        body = HTML.genElement("div", id="loginPage_login", nest=bodyDiv, style="width: 75%; margin: 20px auto; max-width: 750px; transition: width 0.25s;")
+        body = HTML.genElement("div", id="loginPage_login", nest=bodyDiv, style="width: max(75%, 247px); margin: 20px auto; max-width: 750px; transition: width 0.25s;")
 
-        footerImg = HTML.genElement("img", id="loginPage_rememberImg", style="width: 100%;", custom='src="docs/assets/Login/Pin.svg" alt="Remember"')
-        footerBtn = HTML.genElement("button", id="loginPage_remember", nest=footerImg, style="buttonImg")
-        footerDiv = HTML.genElement("div", nest=footerBtn, id="loginPage_rememberDiv", align="right", style="width: 20%; max-width: 50px; margin: auto auto auto 5px;")
+        footerBtns = Buttons.imgSmall("loginPage_remember", "./docs/assets/Login/Pin.svg", active=self.config()["autoSignIn"], buttonStyle="margin-top: auto; margin-bottom: auto;", alt="Remember", onClick=rememberSubmit)
+        footerBtns += HTML.genElement("div", style="height: 50px; margin: auto;")
+        footerBtns += Buttons.medium("loginPage_submit", "Login", buttonStyle="margin-top: auto; margin-bottom: auto;", onClick=self.loginSubmit)
 
-        footerBtn = HTML.genElement("button", nest="Login", id="loginPage_submit", type="button", style="buttonMedium %% width: 25%;")
-        footerDiv += HTML.genElement("div", nest=footerBtn, align="right", style="width: 80%; margin: auto 5px auto auto;")
-        footer = HTML.genElement("div", id="loginPage_buttons", nest=footerDiv, align="center", style="divNormal %% background %% flex %% width: 50%; max-width: 500px; margin: 10px auto; transition: width 0.25s;")
+        footer = HTML.genElement("div", id="loginPage_buttons", nest=footerBtns, align="center", style="divNormal %% background %% flex %% width: max(75%, 247px); max-width: 500px; margin: 10px auto; transition: width 0.25s;")
 
-        HTML.setElement("div", "mainPage", nest=header + body + footer, id="loginPage", align="center")
+        HTML.setElement("div", "subPage", nest=header + body + footer, id="loginPage", align="center")
+
+        Buttons.applyEvents()
 
         def addEvents():
             self.busy = True
@@ -100,26 +70,17 @@ class login:
                 JS.addEvent(id, self.loginSubmit, action="keyup", includeElement=True)
                 CSS.onHoverFocus(id, "inputHover", "inputFocus")
 
-            JS.addEvent("loginPage_submit", self.loginSubmit, includeElement=True)
-            CSS.onHoverClick("loginPage_submit", "buttonHover", "buttonClick")
-
-            if self.config()["autoSignIn"]:
-                CSS.onClick("loginPage_remember", "imgClick")
-                JS.addEvent("loginPage_remember", rememberSubmit)
-                CSS.setStyles("loginPage_remember", "imgHover")
-                return None
-
-            JS.addEvent("loginPage_remember", rememberSubmit)
-            CSS.onHoverClick("loginPage_remember", "imgHover", "imgClick")
             self.busy = False
 
         JS.afterDelay(addEvents, delay=50)
 
-    def flyin(self):
-        CSS.setStyle("loginPage", "marginTop", f'-{CSS.getAttribute("loginPage", "offsetHeight")}px')
-        JS.aSync(CSS.setStyles, ("loginPage", (("transition", "margin-top 0.25s"), ("marginTop", "0px"))))
+        if self.config()["autoSignIn"] and WS.state() != 1:
+            self.setupConnection()
 
-    def loginSubmit(self, element):
+    def indexRedirectHook(self, function):
+        self.indexRedirect = function
+
+    def loginSubmit(self, element=None):
         def sendLogin():
             if WS.state() == 0 or WS.pub is None:
                 JS.afterDelay(sendLogin, delay=50)
@@ -210,18 +171,3 @@ class login:
             raise ValueError(f"Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]")
 
         WS.start(proto, ip, str(port), loginHandler)
-
-    def main(self, args=None):
-        if WS.loginState():
-            header = HTML.genElement("h1", nest="Login", style="headerMain")
-            body = HTML.genElement("p", nest="You are logged in.", style="textBig")
-            HTML.setElement("div", "mainPage", nest=header + body, align="center")
-            return None
-
-        self.layout()
-        self.flyin()
-
-        if self.config()["autoSignIn"] and WS.state() != 1:
-            self.setupConnection()
-
-        JS.onResize("login", self.onResize)
