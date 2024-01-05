@@ -9,15 +9,11 @@ class buttons:
         self._onEventMap = {}
 
     def _makeButton(self, id: str, text: str, theme: str = "dark", size: str = "medium", active: bool = False, buttonStyle: str = "", buttonKwargs: dict = {}, onClick: object = lambda: None, args: tuple = (), kwargs: dict = {}):
-        # if id in self._onEventMap:
-        #     raise ValueError(f"ID {id} already exists in memory!")
         self._onEventMap[id] = {"function": onClick, "args": args, "kwargs": kwargs}
 
         return HTML.genElement("button", nest=text, id=id, classes=" ".join((theme, size)) + ("active" if active else ""), type="button", style=buttonStyle, **buttonKwargs)
 
     def _makeImgButton(self, id: str, src: str, alt: str = "", active: bool = False, buttonStyle: str = "", buttonKwargs: dict = {}, onClick: object = lambda: None, args: tuple = (), kwargs: dict = {}, size: str = "medium"):
-        # if id in self._onEventMap:
-        #     raise ValueError(f"ID {id} already exists in memory!")
         self._onEventMap[id] = {"function": onClick, "args": args, "kwargs": kwargs}
 
         img = HTML.genElement("img", id=f"{id}_img", custom=f'src="{src}" alt="{alt}"')

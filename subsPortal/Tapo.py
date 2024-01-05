@@ -228,7 +228,11 @@ class tapo(PortalPage):
                 continue
 
             HTML.addElement(
-                f"div", f"portalSubPage_main", nest=f"{header(plug)}{body(plug)}{footer(plug)}", id=f"portalSubPage_main_{plug}", style=f"divNormal %% min-width: 150px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;"
+                f"div",
+                f"portalSubPage_main",
+                nest=f"{header(plug)}{body(plug)}{footer(plug)}",
+                id=f"portalSubPage_main_{plug}",
+                style=f"divNormal %% min-width: 150px; max-width: 250px; margin: 15px; padding: 5px 15px 15px 15px; border: 4px solid #55F; border-radius: 4px;",
             )
 
         for plug in data:

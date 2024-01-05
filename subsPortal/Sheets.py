@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from json import dumps, loads
 
-from WebKit import HTML, JS, WS, PortalPage, Widget
+from WebKit import HTML, JS, WS, Buttons, PortalPage, Widget
 
 
 class sheets(PortalPage):
@@ -172,15 +172,19 @@ class sheets(PortalPage):
         HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
         JS.afterDelay(self.sheet.generateEvents, kwargs={"onMod": self.modCfgRecord}, delay=50)
 
-    def generateLog(self):
+    def generateLog(self, log: str = None):
         file = JS.cache("portalSubPage")
         if not file in (self.template["logs"] if "logs" in self.template else {}):
             return None
 
-        if self.selectedLog is None:
-            self.selectedLog = "2023-12"
-
         self.enableButtons(("Inactive", "Import"))
+
+        btns = "".join(tuple(Buttons.small(f"Log_{file}_{date}", date, onClick=self.generateLog, args=(date,)) for date in self.template["logs"][file]))
+
+        if not log is None:
+            self.selectedLog = log
+        elif self.selectedLog is None:
+            self.selectedLog = self.template["logs"][file][-1]
 
         headers = list(self.logsHeader)
         fileData = WS.dict()[self.mainCom][file][self.selectedLog]
@@ -209,7 +213,8 @@ class sheets(PortalPage):
             quarterView=quarterView,
             wordWrap=self.wordWrap,
         )
-        HTML.setElementRaw("portalSubPage", self.sheet.generateSheet() + HTML.genElement("div", style="height: 100px;"))
+        HTML.setElementRaw("portalSubPage", HTML.genElement("div", nest=btns) + self.sheet.generateSheet())
+        Buttons.applyEvents()
         JS.afterDelay(self.sheet.generateEvents, delay=50)
 
     def exportAsJson(self, typ: str = None, id: str = None):
