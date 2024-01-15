@@ -373,7 +373,7 @@ class sonos(PortalPage):
             trackDiv = HTML.genElement("div", nest=titleTxt + remDiv + creatorTxt + creatorDur, id=f"portalSubPage_que_{track}_txt", style="width: 100%; height: 45px; margin: auto 5px;")
             queListDivs += HTML.genElement("div", nest=trackImg + trackDiv, id=f"portalSubPage_que_{track}", style="divNormal %% flex %% position: relative; height: 50px; padding: 0px 90px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
-        queInp = HTML.genElement("input", id="portalSubPage_queAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="Spotify Sharelink"')
+        queInp = HTML.genElement("input", id="portalSubPage_queAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="share link"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_queAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: 2.5px 0px; white-space: nowrap;")
         nowBtn = HTML.genElement("button", nest="Play Now", id="portalSubPage_queAdd_playNow", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: 2.5px 0px; white-space: nowrap;")
         btnDivs = HTML.genElement("div", nest=nextBtn + nowBtn, style="width: 25%;")
@@ -395,7 +395,7 @@ class sonos(PortalPage):
             CSS.setStyles(f'portalSubPage_que_{data["que"]["position"]}', (("background", "#444"), ("color", "#F7E163"), ("border", "5px solid #F7E163"), ("borderRadius", "0px"), ("zIndex", "100")))
             CSS.getAttribute(f'portalSubPage_que_{data["que"]["position"]}', "scrollIntoView")()
 
-        def doAction(self):
+        def doAction():
             data = WS.dict()[self.mainCom]
 
             for track in data["que"]["tracks"]:
@@ -404,12 +404,12 @@ class sonos(PortalPage):
                 CSS.onHoverClick(f'portalSubPage_que_rem_{track.split("_")[-1]}', "imgHover", "imgClick")
 
             CSS.onHoverFocus("portalSubPage_queAdd_input", "inputHover", "inputFocus")
-            JS.addEvent("portalSubPage_queAdd_playNext", self.comAddQue, (CSS.getAttribute("portalSubPage_queAdd_input", "value"), False))
+            JS.addEvent("portalSubPage_queAdd_playNext", lambda: self.comAddQue(CSS.getAttribute("portalSubPage_queAdd_input", "value"), False))
             CSS.onHoverClick("portalSubPage_queAdd_playNext", "buttonHover", "buttonClick")
-            JS.addEvent("portalSubPage_queAdd_playNow", self.comAddQue, (CSS.getAttribute("portalSubPage_queAdd_input", "value"), True))
+            JS.addEvent("portalSubPage_queAdd_playNow", lambda: self.comAddQue(CSS.getAttribute("portalSubPage_queAdd_input", "value"), True))
             CSS.onHoverClick("portalSubPage_queAdd_playNow", "buttonHover", "buttonClick")
 
-        JS.afterDelay(doAction, (self,), delay=50)
+        JS.afterDelay(doAction, delay=50)
 
     def addPlaylist(self):
         def playPlaylist(args):
@@ -424,7 +424,7 @@ class sonos(PortalPage):
 
                 data = WS.dict()[self.mainCom]["playlists"]
                 self.comClearQue()
-                self.comAddQueUri(f'{data[el.id.split("_")[-1]]["uri"]}', True)
+                self.comAddQue(f'{data[el.id.split("_")[-1]]["url"]}', True)
                 return None
 
         data = WS.dict()[self.mainCom]
@@ -444,7 +444,7 @@ class sonos(PortalPage):
             plDiv = HTML.genElement("div", nest=titleTxt + discriptionTxt, id=f"portalSubPage_playlist_{playlist}_txt", style="width: 100%; height: 50px; margin: auto 5px;")
             plListDivs += HTML.genElement("div", nest=plImg + plDiv, id=f"portalSubPage_playlist_{playlist}", style="divNormal %% flex %% position: relative; height: 75px; padding: 0px 85px 0px 0px; margin: -5px; border: 5px solid #111; overflow: hidden;")
 
-        plInp = HTML.genElement("input", id="portalSubPage_playlistAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="Sonos URI"')
+        plInp = HTML.genElement("input", id="portalSubPage_playlistAdd_input", type="text", style="inputMedium %% width: 75%; font-size: 75%;", custom='placeholder="share link"')
         nextBtn = HTML.genElement("button", nest="Play Next", id="portalSubPage_playlistAdd_playNext", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
         nowBtn = HTML.genElement("button", nest="Play Now", id="portalSubPage_playlistAdd_playNow", type="button", style="buttonSmall %% width: 100%; height: 40%; margin: -1% 0px; white-space: nowrap;")
         btnDivs = HTML.genElement("div", nest=nextBtn + nowBtn, style="width: 25%;")
@@ -462,18 +462,18 @@ class sonos(PortalPage):
             HTML.setElementRaw("portalSubPage_playlistList", plListDivs)
             HTML.setElementRaw("portalSubPage_playlistADD", plAddDivs)
 
-        def doAction(self):
+        def doAction():
             data = WS.dict()[self.mainCom]
             for playlist in data["playlists"]:
                 JS.addEvent(f"portalSubPage_playlist_{playlist}", playPlaylist, action="dblclick", includeElement=True)
 
             CSS.onHoverFocus("portalSubPage_playlistAdd_input", "inputHover", "inputFocus")
-            JS.addEvent("portalSubPage_playlistAdd_playNext", self.comAddQueUri, (CSS.getAttribute("portalSubPage_playlistAdd_input", "value"), False))
+            JS.addEvent("portalSubPage_playlistAdd_playNext", lambda: self.comAddQue(CSS.getAttribute("portalSubPage_playlistAdd_input", "value"), False))
             CSS.onHoverClick("portalSubPage_playlistAdd_playNext", "buttonHover", "buttonClick")
-            JS.addEvent("portalSubPage_playlistAdd_playNow", self.comAddQueUri, (CSS.getAttribute("portalSubPage_playlistAdd_input", "value"), True))
+            JS.addEvent("portalSubPage_playlistAdd_playNow", lambda: self.comAddQue(CSS.getAttribute("portalSubPage_playlistAdd_input", "value"), True))
             CSS.onHoverClick("portalSubPage_playlistAdd_playNow", "buttonHover", "buttonClick")
 
-        JS.afterDelay(doAction, (self,), delay=50)
+        JS.afterDelay(doAction, delay=50)
 
     def addControls(self):
         data = WS.dict()[self.mainCom]
@@ -700,22 +700,10 @@ class sonos(PortalPage):
         WS.send(f"{self.mainCom} queClear")
 
     def comAddQue(self, url: str, playNow: bool = False):
-        if not url.startswith("https://open.spotify.com/track/") and not url.startswith("https://open.spotify.com/playlist/"):
-            return None
-
         if not playNow:
             WS.send(f"{self.mainCom} playNext {url}")
         else:
             WS.send(f"{self.mainCom} playNow {url}")
-
-    def comAddQueUri(self, uri: str, playNow: bool = False):
-        if not uri.startswith("x-rincon-stream:") and not uri.startswith("x-rincon-cpcontainer:"):
-            return None
-
-        if not playNow:
-            WS.send(f"{self.mainCom} playNextUri {uri}")
-        else:
-            WS.send(f"{self.mainCom} playNowUri {uri}")
 
     def comUseAlbumArt(self):
         self.setCachedConfig("useAlbumArt", (not self.getCachedConfig()["useAlbumArt"]))
