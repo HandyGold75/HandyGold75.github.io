@@ -1,15 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./docs/style.css">
-    <link href="./docs/assets/;D.ico" rel="icon" type="image/x-icon">
+    <title>HandyGold75</title>
+
+    <link href="./docs/assets/;D.ico" rel="icon" type="image/x-icon" />
+    <link rel="stylesheet" href="./docs/style.css" />
+
     <script src="https://www.youtube.com/iframe_api"></script>
-</head>
+    <script src="./docs/wasm/wasm_exec.js"></script>
+  </head>
 
-<body>
-    <script src="./docs/python/pysetup.js" type="module"></script>
-</body>
+  <body style="font-family: OpenDyslexic">
+    <script>
+      if (!WebAssembly.instantiateStreaming) {
+        WebAssembly.instantiateStreaming = async (resp, importObject) => {
+          const source = await (await resp).arrayBuffer();
+          return await WebAssembly.instantiate(source, importObject);
+        };
+      }
 
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("./docs/wasm/main.wasm"),
+        go.importObject,
+      ).then((result) => {
+        go.run(result.instance);
+      });
+    </script>
+  </body>
 </html>

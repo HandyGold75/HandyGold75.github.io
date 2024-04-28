@@ -1,0 +1,408 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #111;
+  color: #55f;
+  font-size: min(max(1.5vw, 6px), 16px);
+  margin: auto;
+  max-width: calc(70% + 200px);
+  padding: min(calc(2vw - 10px), 20px);
+}
+
+h1 {
+  color: #55f;
+  font-size: 125%;
+  font-weight: bold;
+  margin: 5px;
+  text-align: center;
+
+  user-select: none;
+}
+
+p {
+  color: #55f;
+  font-size: 100%;
+  margin: 5px;
+  text-align: center;
+}
+
+button {
+  margin: 4px 2px;
+  max-height: 100%;
+  max-width: 100%;
+  outline: none;
+  text-align: center;
+  word-wrap: break-word;
+  z-index: 100;
+
+  &.dark {
+    background: #333;
+    border: 2px solid #55f;
+    color: #bff;
+
+    &:hover:enabled,
+    &.active {
+      background: #444;
+      color: #fff;
+      transition:
+        margin 0.25s,
+        padding 0.25s,
+        color 0.25s,
+        background 0.25s;
+      z-index: 101;
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      background: #bbf;
+      color: #55f;
+      transition:
+        margin 0.1s,
+        padding 0.1s,
+        color 0.1s,
+        background 0.1s;
+      z-index: 102;
+    }
+
+    &:disabled {
+      background: #222;
+      color: #88b;
+    }
+  }
+
+  &.light {
+    background: #44f;
+    border: 2px solid #222;
+    color: #bff;
+
+    &:hover:enabled,
+    &.active {
+      background: #66f;
+      color: #fff;
+      transition:
+        margin 0.25s,
+        padding 0.25s,
+        color 0.25s,
+        background 0.25s;
+      z-index: 101;
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      background: #bbf;
+      color: #55f;
+      transition:
+        margin 0.1s,
+        padding 0.1s,
+        color 0.1s,
+        background 0.1s;
+      z-index: 102;
+    }
+
+    &:disabled {
+      background: #33a;
+      color: #88b;
+    }
+  }
+
+  &.large {
+    border-radius: 8px;
+    font-size: 125%;
+    max-height: 36px;
+    padding: 4px 8px;
+
+    &:hover:enabled,
+    &.active {
+      margin: 6px 6px;
+      padding: 2px 4px;
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      margin: 8px 10px;
+      padding: 0px;
+    }
+  }
+
+  &.medium {
+    border-radius: 6px;
+    font-size: 100%;
+    max-height: 29px;
+    padding: 3px 6px;
+
+    &:hover:enabled,
+    &.active {
+      margin: 5.5px 5px;
+      padding: 1.5px 3px;
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      margin: 7px 8px;
+      padding: 0px;
+    }
+  }
+
+  &.small {
+    border-radius: 4px;
+    font-size: 75%;
+    max-height: 23px;
+    padding: 2px 4px;
+
+    &:hover:enabled,
+    &.active {
+      margin: 5px 4px;
+      padding: 1px 2px;
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      margin: 6px 6px;
+      padding: 0px;
+    }
+  }
+
+  &.imgBtn {
+    background: transparent;
+    border: 3px solid #222;
+    color: #bff;
+    margin: 4px;
+
+    &:hover:enabled,
+    &.active {
+      background: #444;
+      border: 3px solid #fbdf56;
+      color: #fff;
+      transition:
+        margin 0.25s,
+        padding 0.25s,
+        color 0.25s,
+        border 0.25s,
+        background 0.25s;
+      z-index: 101;
+
+      > img {
+        transition:
+          height 0.25s,
+          width 0.25s;
+      }
+    }
+
+    &:active:enabled,
+    &.active:hover:enabled {
+      background: #dbbf36;
+      border: 3px solid #fbdf56;
+      color: #fbdf56;
+      transition:
+        margin 0.1s,
+        padding 0.1s,
+        color 0.1s,
+        border 0.1s,
+        background 0.1s;
+      z-index: 102;
+
+      > img {
+        transition:
+          height 0.1s,
+          width 0.1s;
+      }
+    }
+
+    &:disabled {
+      background: #222;
+      color: #88b;
+    }
+
+    > img {
+      margin: 0px 0px -4px 0px;
+      max-height: 100%;
+      max-width: 100%;
+      user-select: none;
+    }
+
+    &.imgBtnLarge {
+      border-radius: 8px;
+      padding: 8px;
+
+      > img {
+        height: 75px;
+        width: 75px;
+      }
+
+      &:hover:enabled,
+      &.active {
+        margin: 9.5px;
+        padding: 4px;
+
+        > img {
+          height: 72px;
+          width: 72px;
+        }
+      }
+
+      &:active:enabled,
+      &.active:hover:enabled {
+        margin: 15px;
+        padding: 0px;
+
+        > img {
+          height: 69px;
+          width: 69px;
+        }
+      }
+    }
+
+    &.imgBtnMedium {
+      border-radius: 6px;
+      padding: 6px;
+
+      > img {
+        height: 50px;
+        width: 50px;
+      }
+
+      &:hover:enabled,
+      &.active {
+        margin: 8px;
+        padding: 3px;
+
+        > img {
+          height: 48px;
+          width: 48px;
+        }
+      }
+
+      &:active:enabled,
+      &.active:hover:enabled {
+        margin: 12px;
+        padding: 0px;
+
+        > img {
+          height: 46px;
+          width: 46px;
+        }
+      }
+    }
+
+    &.imgBtnSmall {
+      border-radius: 4px;
+      padding: 4px;
+
+      > img {
+        height: 25px;
+        width: 25px;
+      }
+
+      &:hover:enabled,
+      &.active {
+        margin: 6.5px;
+        padding: 2px;
+
+        > img {
+          height: 24px;
+          width: 24px;
+        }
+      }
+
+      &:active:enabled,
+      &.active:hover:enabled {
+        margin: 9px;
+        padding: 0px;
+
+        > img {
+          height: 23px;
+          width: 23px;
+        }
+      }
+    }
+  }
+}
+
+input {
+  background: #333;
+  border: 2px solid #55f;
+  border-radius: 4px;
+  color: #bff;
+  font-size: 100%;
+  margin: 5px;
+  outline: none;
+  padding: 3px 6px;
+  z-index: 110;
+
+  &:hover,
+  &:focus {
+    background: #444;
+    color: #fff;
+    transition:
+      color 0.25s,
+      background 0.25s;
+    z-index: 111;
+  }
+
+  &:focus {
+    background: #444;
+    color: #fff;
+    transition:
+      color 0.1s,
+      background 0.1s;
+    z-index: 112;
+  }
+
+  &:disabled {
+    background: #222;
+    color: #88b;
+  }
+}
+
+select {
+  background: #333;
+  border: 2px solid #55f;
+  border-radius: 4px;
+  color: #bff;
+  font-size: 100%;
+  margin: 5px;
+  outline: none;
+  overflow-y: hidden;
+  padding: 0px;
+  scrollbar-width: none;
+  z-index: 120;
+
+  &:hover,
+  &:focus {
+    background: #444;
+    color: #fff;
+    margin-bottom: -100px;
+    min-height: 100px;
+    overflow-y: scroll;
+    scrollbar-width: auto;
+    transition:
+      margin-bottom 0.25s,
+      min-height 0.25s,
+      color 0.25s,
+      background 0.25s;
+    z-index: 121;
+  }
+
+  &:focus {
+    background: #444;
+    color: #fff;
+    margin-bottom: -100px;
+    min-height: 100px;
+    overflow-y: scroll;
+    scrollbar-width: auto;
+    transition:
+      margin-bottom 0.1s,
+      min-height 0.1s,
+      color 0.1s,
+      background 0.1s;
+    z-index: 122;
+  }
+
+  &:disabled {
+    background: #222;
+    color: #88b;
+  }
+}
+
