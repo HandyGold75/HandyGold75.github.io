@@ -44,7 +44,8 @@ def __timedInput(
             return stdin.read(1)
 
     if not __stdin__.isatty():
-        raise RuntimeError("timedInput() requires an interactive shell, cannot continue.")
+        raise RuntimeError(
+            "timedInput() requires an interactive shell, cannot continue.")
     else:
         __savedConsoleSettings = __getStdoutSettings()
         __enableStdoutAnsiEscape()
@@ -80,7 +81,7 @@ def __timedInput(
                     print(inputCharacter, end="", flush=True)
                 else:
                     if len(userInput):
-                        userInput = userInput[0 : len(userInput) - 1]
+                        userInput = userInput[0: len(userInput) - 1]
                         print("\x1b[1D\x1b[0K", end="", flush=True)
                 if resetOnInput and timeout > -1:
                     timeStart = time()
@@ -95,7 +96,8 @@ def __getStdoutSettings():
     if platform == "win32":
         __savedConsoleSettings = wintypes.DWORD()
         kernel32 = windll.kernel32
-        kernel32.GetConsoleMode(kernel32.GetStdHandle(-11), byref(__savedConsoleSettings))
+        kernel32.GetConsoleMode(
+            kernel32.GetStdHandle(-11), byref(__savedConsoleSettings))
     else:
         __savedConsoleSettings = tcgetattr(stdin)
     return __savedConsoleSettings
@@ -104,7 +106,8 @@ def __getStdoutSettings():
 def __setStdoutSettings(__savedConsoleSettings):
     if platform == "win32":
         kernel32 = windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), __savedConsoleSettings)
+        kernel32.SetConsoleMode(
+            kernel32.GetStdHandle(-11), __savedConsoleSettings)
     else:
         tcsetattr(stdin, TCSADRAIN, __savedConsoleSettings)
 
