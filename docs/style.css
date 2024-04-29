@@ -18,3 +18,29 @@
   font-style: italic;
   src: url("./OpenDyslexic/OpenDyslexicBI.otf") format("opentype");
 }
+
+body {
+  background: #111;
+  color: #55f;
+  font-family: OpenDyslexic;
+  font-size: min(max(1.5vw, 6px), 16px);
+  margin: auto;
+  max-width: calc(70% + 200px);
+  padding: min(calc(2vw - 10px), 20px);
+}
+
+h1 {
+  color: #55f;
+  font-size: 125%;
+  font-weight: bold;
+  margin: 5px;
+  text-align: center;
+  user-select: none;
+}
+
+p {
+  color: #55f;
+  font-size: 100%;
+  margin: 5px;
+  text-align: center;
+}
