@@ -1,7 +1,10 @@
+//go:build js && wasm
+
 package WebKit
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 )
 
@@ -45,4 +48,36 @@ func (html HTML) String() string {
 	finalStr += ">" + html.Inner + "</" + strings.ToLower(html.Tag) + ">" + html.Surfix
 
 	return finalStr
+
+}
+
+func (html HTML) ApplyTemplate(template HTML) HTML {
+	if html.Tag == "" {
+		html.Tag = template.Tag
+	}
+	if template.Attributes != nil {
+		maps.Copy(template.Attributes, html.Attributes)
+		html.Attributes = template.Attributes
+	}
+	if template.Styles != nil {
+		maps.Copy(template.Styles, html.Styles)
+		html.Styles = template.Styles
+	}
+	if html.Inner == "" {
+		html.Inner = template.Inner
+	}
+	if html.Prefix == "" {
+		html.Prefix = template.Prefix
+	}
+	if html.Surfix == "" {
+		html.Surfix = template.Surfix
+	}
+
+	return html
+}
+
+var HTML_Link = HTML{
+	Tag:        "a",
+	Attributes: map[string]string{"target": "_blank"},
+	Inner:      "test",
 }
