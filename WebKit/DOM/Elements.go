@@ -1,17 +1,20 @@
 //go:build js && wasm
 
-package WebKit
+package DOM
 
-import "syscall/js"
+import (
+	"WebKit"
+	"syscall/js"
+)
 
 type (
 	Elements struct{ els js.Value }
 )
 
 func GetElements(class string) (Elements, error) {
-	els := Dom().Get("document").Call("getElementsByClassName", class)
+	els := js.Global().Get("document").Call("getElementsByClassName", class)
 	if els.IsUndefined() || els.IsNaN() || els.IsNull() || els.Length() < 1 {
-		return Elements{}, ErrWebKit.ElementNotFound
+		return Elements{}, WebKit.ErrWebKit.ElementNotFound
 	}
 	return Elements{els: els}, nil
 }
@@ -84,12 +87,24 @@ func (obj Elements) Removes(html string) {
 
 func (obj Elements) Enables() {
 	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Get("style").Set("disabled", false)
+		obj.els.Index(i).Set("disabled", false)
 	}
 }
 
 func (obj Elements) Disables() {
 	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Get("style").Set("disabled", true)
+		obj.els.Index(i).Set("disabled", true)
+	}
+}
+
+func (obj Elements) EventsAdd(action string, f func(js.Value)) {
+	for i := 0; i < obj.els.Length(); i++ {
+		obj.els.Index(i).Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+	}
+}
+
+func (obj Elements) EventsClear() {
+	for i := 0; i < obj.els.Length(); i++ {
+		obj.els.Index(i).Set("outerHTML", obj.els.Index(i).Get("outerHTML"))
 	}
 }

@@ -3,79 +3,82 @@
 package Pages
 
 import (
-	"WebKit"
+	"WebKit/DOM"
+	"WebKit/HTML"
 	"fmt"
+	"syscall/js"
 )
 
 var (
 	AvailablePages = map[string]func(){
-		"TempMovePage": TempMovePage,
+		"Home": PageHome,
 	}
 
-	AvailablePagesOrdered = []string{"TempMovePage"}
+	AvailablePagesOrdered = []string{"Home", "TempMovePage", "TempMovePage1", "TempMovePage2", "TempMovePage3", "TempMovePage4"}
 )
 
-func TempMovePage() {
-	mp, err := WebKit.GetElement("mainpage")
+func ToggleDocker() error {
+	els, err := DOM.GetElements("docker_buttons")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
-	txt := WebKit.HTML{
-		Tag:        "p",
-		Attributes: map[string]string{"id": "someText"},
-		Styles:     map[string]string{"color": "#55F"},
-		Inner:      "Moving towards GO wasm instead of Python wasm<br>For reasons...<br>Old site should still be available at " + WebKit.HTML{Attributes: map[string]string{"href": "./python"}, Inner: "./python"}.ApplyTemplate(WebKit.HTML_Link).String(),
-	}.String()
+	els.Disables()
 
-	mp.InnerSet(txt)
-
-	el, err := WebKit.GetElement("someText")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(el.InnerGet())
+	return nil
 }
 
-func Init() {
-	body, err := WebKit.GetElement("body")
+func Init() error {
+	body, err := DOM.GetElement("body")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
-	mp, err := WebKit.GetElement("mainpage")
+	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		body.InnerAddPrefix(WebKit.HTML{Tag: "div", Attributes: map[string]string{"id": "mainpage"}}.String())
-		mp, err = WebKit.GetElement("mainpage")
+		body.InnerAddPrefix(HTML.HTML{Tag: "div", Attributes: map[string]string{"id": "mainpage"}}.String())
+		mp, err = DOM.GetElement("mainpage")
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 	}
 	mp.InnerClear()
 
-	_, err = WebKit.GetElement("docker")
+	_, err = DOM.GetElement("docker")
 	if err == nil {
-		return
+		return nil
 	}
 
-	items := ""
+	items := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "docker_showhide", "class": "imgBtn imgBtnSmall"}, Inner: HTML.HTML{Tag: "img", Attributes: map[string]string{"src": "./docs/assets/General/Hide-H.svg", "alt": "Fold"}}.String()}.String()
 	for _, v := range AvailablePagesOrdered {
-		items += WebKit.HTML{Tag: "button", Attributes: map[string]string{"class": "dark large"}, Inner: v}.String()
+		items += HTML.HTML{Tag: "button", Attributes: map[string]string{"class": "dark large docker_buttons"}, Styles: map[string]string{"max-width": "100%", "transition": "max-width 0.25s"}, Inner: v}.String()
 	}
 
-	body.InnerAddPrefix(WebKit.HTML{Tag: "div",
+	body.InnerAddPrefix(HTML.HTML{Tag: "div",
 		Styles: map[string]string{
-			"position":   "fixed",
-			"display":    "grid",
-			"top":        "25px",
-			"left":       "25px",
-			"border":     "4px solid #111",
-			"transition": "left 0.25s",
-			"z-index":    "9999",
-		}, Attributes: map[string]string{"id": "docker"}, Inner: items}.String())
+			"position": "fixed",
+			"display":  "grid",
+			"top":      "25px",
+			"left":     "25px",
+			"border":   "4px solid #111",
+			"z-index":  "9999",
+		},
+		Attributes: map[string]string{"id": "docker"},
+		Inner:      items,
+	}.String())
+
+	el, err := DOM.GetElement("docker_showhide")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("click", func(event js.Value) { ToggleDocker() })
+
+	els, err := DOM.GetElements("docker_buttons")
+	if err != nil {
+		return err
+	}
+	els.EventsAdd("click", func(event js.Value) { Open(event.Get("innerHTML").String()) })
+
+	return nil
 }
 
 func Open(page string) {
@@ -85,6 +88,11 @@ func Open(page string) {
 		return
 	}
 
-	Init()
+	err := Init()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	pageEntry()
 }
