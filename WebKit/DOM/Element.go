@@ -1,8 +1,9 @@
 //go:build js && wasm
 
-package WebKit
+package DOM
 
 import (
+	"WebKit"
 	"syscall/js"
 )
 
@@ -11,9 +12,9 @@ type (
 )
 
 func GetElement(id string) (Element, error) {
-	el := Dom().Call("getElementById", id)
+	el := js.Global().Get("document").Call("getElementById", id)
 	if el.IsUndefined() || el.IsNaN() || el.IsNull() {
-		return Element{}, ErrWebKit.ElementNotFound
+		return Element{}, WebKit.ErrWebKit.ElementNotFound
 	}
 	return Element{el: el}, nil
 }
@@ -63,9 +64,17 @@ func (obj Element) Remove() {
 }
 
 func (obj Element) Enable() {
-	obj.el.Get("style").Set("disabled", false)
+	obj.el.Set("disabled", false)
 }
 
 func (obj Element) Disable() {
-	obj.el.Get("style").Set("disabled", true)
+	obj.el.Set("disabled", true)
+}
+
+func (obj Element) EventAdd(action string, f func(js.Value)) {
+	obj.el.Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+}
+
+func (obj Element) EventClear() {
+	obj.el.Set("outerHTML", obj.el.Get("outerHTML"))
 }

@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package WebKit
+package HTML
 
 import (
 	"fmt"
