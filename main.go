@@ -5,5 +5,6 @@ package main
 import "Pages"
 
 func main() {
-	Pages.Open("TempMovePage")
+	Pages.Open("Home")
+	<-make(chan int)
 }
