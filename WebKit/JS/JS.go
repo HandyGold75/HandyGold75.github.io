@@ -21,16 +21,16 @@ func GetVP() [2]string {
 	return [2]string{window.Get("innerHeight").String(), window.Get("innerWidth").String()}
 }
 
-func AfterDelay(delay int, f func(args ...any), args ...any) {
-	js.Global().Call("setTimeout", append([]any{f, delay}, args...)...)
+func AfterDelay(delay int, f func(js.Value)) {
+	js.Global().Call("setTimeout", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), delay)
 }
 
-func Async(f func(args ...any), args ...any) {
-	js.Global().Call("setTimeout", append([]any{f, 1}, args...)...)
+func Async(f func(js.Value)) {
+	js.Global().Call("setTimeout", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), 0)
 }
 
-func AtInterval(delay int, f func(args ...any), args ...any) {
-	js.Global().Call("setInterval", append([]any{f, delay}, args...)...)
+func AtInterval(delay int, f func(js.Value)) {
+	js.Global().Call("setInterval", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), delay)
 }
 
 func Eval(com string) js.Value {

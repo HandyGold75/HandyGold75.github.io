@@ -26,7 +26,7 @@ func (html HTML) String() string {
 			fmt.Printf("Warning invalid style definition: %v: %v", strings.ToLower(k), v)
 			continue
 		}
-		styles = append(styles, strings.ToLower(k)+": "+v+";")
+		styles = append(styles, strings.ToLower(k)+": "+v)
 	}
 
 	attributes := []string{}
@@ -35,7 +35,7 @@ func (html HTML) String() string {
 			fmt.Printf("Warning invalid attribute definition: %v=\"%v\"", strings.ToLower(k), v)
 			continue
 		}
-		attributes = append(attributes, strings.ToLower(k)+"=\""+v+"\" ")
+		attributes = append(attributes, strings.ToLower(k)+"=\""+v+"\"")
 	}
 	if len(styles) > 0 {
 		attributes = append(attributes, "style=\""+strings.Join(styles, "; ")+"\" ")

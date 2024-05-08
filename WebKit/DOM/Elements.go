@@ -51,6 +51,34 @@ func (obj Elements) InnersClear(html string) {
 	}
 }
 
+func (obj Elements) StylesGet(key string) []string {
+	els := []string{}
+	for i := 0; i < obj.els.Length(); i++ {
+		els = append(els, obj.els.Index(i).Get("style").Get(key).String())
+	}
+	return els
+}
+
+func (obj Elements) StylesSet(key string, value string) {
+	for i := 0; i < obj.els.Length(); i++ {
+		obj.els.Index(i).Get("style").Set(key, value)
+	}
+}
+
+func (obj Elements) AttributesGet(key string) []string {
+	els := []string{}
+	for i := 0; i < obj.els.Length(); i++ {
+		els = append(els, obj.els.Index(i).Get(key).String())
+	}
+	return els
+}
+
+func (obj Elements) AttributesSet(key string, value string) {
+	for i := 0; i < obj.els.Length(); i++ {
+		obj.els.Index(i).Set(key, value)
+	}
+}
+
 func (obj Elements) MovesTo(target Element) {
 	for i := 0; i < obj.els.Length(); i++ {
 		target.el.Call("after", obj.els.Index(i))
