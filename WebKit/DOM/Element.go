@@ -19,12 +19,12 @@ func GetElement(id string) (Element, error) {
 	return Element{el: el}, nil
 }
 
-func (obj Element) InnerSet(html string) {
-	obj.el.Set("innerHTML", html)
-}
-
 func (obj Element) InnerGet() string {
 	return obj.el.Get("innerHTML").String()
+}
+
+func (obj Element) InnerSet(html string) {
+	obj.el.Set("innerHTML", html)
 }
 
 func (obj Element) InnerAddPrefix(html string) {
@@ -37,6 +37,22 @@ func (obj Element) InnerAddSurfix(html string) {
 
 func (obj Element) InnerClear() {
 	obj.el.Set("innerHTML", "")
+}
+
+func (obj Element) StyleGet(key string) string {
+	return obj.el.Get("style").Get(key).String()
+}
+
+func (obj Element) StyleSet(key string, value string) {
+	obj.el.Get("style").Set(key, value)
+}
+
+func (obj Element) AttributeGet(key string) string {
+	return obj.el.Get(key).String()
+}
+
+func (obj Element) AttributeSet(key string, value string) {
+	obj.el.Set(key, value)
 }
 
 func (obj Element) MoveTo(target Element) {
