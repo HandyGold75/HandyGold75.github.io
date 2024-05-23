@@ -3,7 +3,7 @@
 package DOM
 
 import (
-	"WebKit"
+	"HandyGold75/WebKit"
 	"syscall/js"
 )
 
@@ -14,7 +14,7 @@ type (
 func GetElements(class string) (Elements, error) {
 	els := js.Global().Get("document").Call("getElementsByClassName", class)
 	if els.IsUndefined() || els.IsNaN() || els.IsNull() || els.Length() < 1 {
-		return Elements{}, WebKit.ErrWebKit.ElementNotFound
+		return Elements{}, WebKit.ErrWebKit.ElementsNotFound
 	}
 	return Elements{els: els}, nil
 }
@@ -35,13 +35,29 @@ func (obj Elements) InnersGet() []string {
 
 func (obj Elements) InnersAddPrefix(html string) {
 	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("innerHTML", html+obj.els.Index(i).Get("innerHTML").String())
+		el := js.Global().Get("document").Call("createElement", "template")
+		el.Set("innerHTML", html)
+
+		els := []any{}
+		for i := 0; i < el.Get("content").Get("children").Length(); i++ {
+			els = append(els, el.Get("content").Get("children").Index(i))
+		}
+
+		obj.els.Index(i).Call("prepent", els...)
 	}
 }
 
 func (obj Elements) InnersAddSurfix(html string) {
 	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("innerHTML", obj.els.Index(i).Get("innerHTML").String()+html)
+		el := js.Global().Get("document").Call("createElement", "template")
+		el.Set("innerHTML", html)
+
+		els := []any{}
+		for i := 0; i < el.Get("content").Get("children").Length(); i++ {
+			els = append(els, el.Get("content").Get("children").Index(i))
+		}
+
+		obj.els.Index(i).Call("append", els...)
 	}
 }
 
@@ -134,5 +150,11 @@ func (obj Elements) EventsAdd(action string, f func(js.Value)) {
 func (obj Elements) EventsClear() {
 	for i := 0; i < obj.els.Length(); i++ {
 		obj.els.Index(i).Set("outerHTML", obj.els.Index(i).Get("outerHTML"))
+	}
+}
+
+func (obj Elements) Calls(function string, args ...any) {
+	for i := 0; i < obj.els.Length(); i++ {
+		obj.els.Index(i).Call(function, args...)
 	}
 }

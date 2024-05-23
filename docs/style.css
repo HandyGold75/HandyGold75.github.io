@@ -35,14 +35,21 @@ div {
   padding: 4px;
   border-radius: 10px;
   overflow: hidden;
+
+  &.light {
+    background: #55f;
+  }
 }
 
 h1 {
   color: #55f;
-  font-size: 125%;
+  font-size: 200%;
   font-weight: bold;
-  margin: 5px;
+  margin: 10px auto;
   text-align: center;
+  background: #202020;
+  border: 4px solid #181818;
+  border-radius: 10px;
   user-select: none;
 }
 
@@ -51,6 +58,10 @@ p {
   font-size: 100%;
   margin: 0px;
   text-align: center;
+
+  &.light {
+    color: #111;
+  }
 }
 
 button {

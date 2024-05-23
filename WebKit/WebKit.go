@@ -8,8 +8,10 @@ import (
 
 var (
 	ErrWebKit = struct {
-		ElementNotFound error
+		ElementNotFound  error
+		ElementsNotFound error
 	}{
-		ElementNotFound: errors.New("element not found"),
+		ElementNotFound:  errors.New("element not found"),
+		ElementsNotFound: errors.New("elements not found"),
 	}
 )

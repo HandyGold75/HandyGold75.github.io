@@ -2,7 +2,7 @@
 
 package main
 
-import "Pages"
+import "HandyGold75/Pages"
 
 func main() {
 	Pages.Open("Home")
