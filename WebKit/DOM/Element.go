@@ -3,7 +3,7 @@
 package DOM
 
 import (
-	"WebKit"
+	"HandyGold75/WebKit"
 	"syscall/js"
 )
 
@@ -28,11 +28,28 @@ func (obj Element) InnerSet(html string) {
 }
 
 func (obj Element) InnerAddPrefix(html string) {
-	obj.el.Set("innerHTML", html+obj.el.Get("innerHTML").String())
+	el := js.Global().Get("document").Call("createElement", "template")
+	el.Set("innerHTML", html)
+
+	els := []any{}
+	for i := 0; i < el.Get("content").Get("children").Length(); i++ {
+		els = append(els, el.Get("content").Get("children").Index(i))
+	}
+
+	obj.el.Call("prepend", els...)
 }
 
 func (obj Element) InnerAddSurfix(html string) {
-	obj.el.Set("innerHTML", obj.el.Get("innerHTML").String()+html)
+	el := js.Global().Get("document").Call("createElement", "template")
+	el.Set("innerHTML", html)
+
+	els := []any{}
+	for i := 0; i < el.Get("content").Get("children").Length(); i++ {
+		els = append(els, el.Get("content").Get("children").Index(i))
+	}
+
+	obj.el.Call("append", els...)
+
 }
 
 func (obj Element) InnerClear() {
@@ -93,4 +110,8 @@ func (obj Element) EventAdd(action string, f func(js.Value)) {
 
 func (obj Element) EventClear() {
 	obj.el.Set("outerHTML", obj.el.Get("outerHTML"))
+}
+
+func (obj Element) Call(function string, args ...any) {
+	obj.el.Call(function, args...)
 }

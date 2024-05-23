@@ -1,6 +1,7 @@
 from json import loads
 
 from pages import console, contact, home, links, login, portal
+
 from WebKit import CSS, HTML, JS, WS, Buttons
 
 
@@ -96,7 +97,7 @@ class mainPage:
 
         nav += Buttons.imgSmall("mainNav_showHide", "docs/assets/Hide-V.svg", alt="Fold", buttonStyle="margin-top: auto; margin-bottom: auto;", onClick=showHideNav)
 
-        footerTxt = HTML.genElement("p", nest="HandyGold75 - 2022 / 2023", style="headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;")
+        footerTxt = HTML.genElement("p", nest="HandyGold75 - 2022 / 2024", style="headerVerySmall %% color: #111; text-align: left; padding: 3px; margin: 0px auto;")
         footer = HTML.genElement("div", nest=footerTxt, id="mainFooter_note", style="width: 50%; margin: auto;")
 
         footerBtns = Buttons.small("mainFooter_Login", "Login", onClick=self.loadPage, args=("Login",), theme="light")

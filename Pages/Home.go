@@ -3,17 +3,16 @@
 package Pages
 
 import (
-	"WebKit/DOM"
-	"WebKit/HTML"
+	"HandyGold75/WebKit/DOM"
+	"HandyGold75/WebKit/HTML"
 	"fmt"
 )
 
 func PageHome() {
+	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 	txt := HTML.HTML{
-		Tag:        "p",
-		Attributes: map[string]string{"id": "someText"},
-		Styles:     map[string]string{"color": "#55F"},
-		Inner:      "Moving towards GO wasm instead of Python wasm<br><br>For reasons...<br>Old site should still be available at " + HTML.HTML{Attributes: map[string]string{"href": "./python"}, Inner: "./python"}.ApplyTemplate(HTML.HTML_Link).String(),
+		Tag:   "p",
+		Inner: "Moving towards GO wasm instead of Python wasm<br><br>For reasons...<br><br>Old site still available at " + HTML.HTML{Attributes: map[string]string{"href": "./python"}, Inner: "./python"}.ApplyTemplate(HTML.HTML_Link).String(),
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
@@ -21,12 +20,6 @@ func PageHome() {
 		fmt.Println(err)
 		return
 	}
-	mp.InnerSet(txt)
-
-	el, err := DOM.GetElement("someText")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(el.InnerGet())
+	mp.InnerSet(header)
+	mp.InnerAddSurfix(txt)
 }
