@@ -20,6 +20,5 @@ func PageHome() {
 		fmt.Println(err)
 		return
 	}
-	mp.InnerSet(header)
-	mp.InnerAddSurfix(txt)
+	mp.InnerSet(header + txt)
 }

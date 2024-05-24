@@ -15,9 +15,10 @@ import (
 var (
 	AvailablePages = map[string]func(){
 		"Home":    PageHome,
+		"Console": PageConsole,
 		"Contact": PageContact,
 	}
-	AvailablePagesOrdered = []string{"Home", "Contact"}
+	AvailablePagesOrdered = []string{"Home", "Console", "Contact"}
 
 	ErrPages = struct {
 		ErrPagesClosingPage error
@@ -237,7 +238,7 @@ func Open(page string) {
 	pageEntry, ok := AvailablePages[page]
 	if !ok {
 		fmt.Println("Page \"" + page + "\" not found!")
-		return
+		pageEntry = AvailablePages[AvailablePagesOrdered[0]]
 	}
 
 	err := Init(pageEntry)
@@ -245,4 +246,6 @@ func Open(page string) {
 		fmt.Println(err)
 		return
 	}
+
+	JS.CacheSet("mainPage", page)
 }
