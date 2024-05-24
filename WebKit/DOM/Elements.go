@@ -8,153 +8,153 @@ import (
 )
 
 type (
-	Elements struct{ els js.Value }
+	Elements struct{ Els js.Value }
 )
 
 func GetElements(class string) (Elements, error) {
-	els := js.Global().Get("document").Call("getElementsByClassName", class)
-	if els.IsUndefined() || els.IsNaN() || els.IsNull() || els.Length() < 1 {
+	Els := js.Global().Get("document").Call("getElementsByClassName", class)
+	if Els.IsUndefined() || Els.IsNaN() || Els.IsNull() || Els.Length() < 1 {
 		return Elements{}, WebKit.ErrWebKit.ElementsNotFound
 	}
-	return Elements{els: els}, nil
+	return Elements{Els: Els}, nil
 }
 
 func (obj Elements) InnersSet(html string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("innerHTML", html)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set("innerHTML", html)
 	}
 }
 
 func (obj Elements) InnersGet() []string {
-	els := []string{}
-	for i := 0; i < obj.els.Length(); i++ {
-		els = append(els, obj.els.Index(i).Get("innerHTML").String())
+	Els := []string{}
+	for i := 0; i < obj.Els.Length(); i++ {
+		Els = append(Els, obj.Els.Index(i).Get("innerHTML").String())
 	}
-	return els
+	return Els
 }
 
 func (obj Elements) InnersAddPrefix(html string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		el := js.Global().Get("document").Call("createElement", "template")
-		el.Set("innerHTML", html)
+	for i := 0; i < obj.Els.Length(); i++ {
+		El := js.Global().Get("document").Call("createElement", "template")
+		El.Set("innerHTML", html)
 
-		els := []any{}
-		for i := 0; i < el.Get("content").Get("children").Length(); i++ {
-			els = append(els, el.Get("content").Get("children").Index(i))
+		Els := []any{}
+		for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+			Els = append(Els, El.Get("content").Get("children").Index(i))
 		}
 
-		obj.els.Index(i).Call("prepent", els...)
+		obj.Els.Index(i).Call("prepent", Els...)
 	}
 }
 
 func (obj Elements) InnersAddSurfix(html string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		el := js.Global().Get("document").Call("createElement", "template")
-		el.Set("innerHTML", html)
+	for i := 0; i < obj.Els.Length(); i++ {
+		El := js.Global().Get("document").Call("createElement", "template")
+		El.Set("innerHTML", html)
 
-		els := []any{}
-		for i := 0; i < el.Get("content").Get("children").Length(); i++ {
-			els = append(els, el.Get("content").Get("children").Index(i))
+		Els := []any{}
+		for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+			Els = append(Els, El.Get("content").Get("children").Index(i))
 		}
 
-		obj.els.Index(i).Call("append", els...)
+		obj.Els.Index(i).Call("append", Els...)
 	}
 }
 
 func (obj Elements) InnersClear(html string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("innerHTML", "")
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set("innerHTML", "")
 	}
 }
 
 func (obj Elements) StylesGet(key string) []string {
-	els := []string{}
-	for i := 0; i < obj.els.Length(); i++ {
-		els = append(els, obj.els.Index(i).Get("style").Get(key).String())
+	Els := []string{}
+	for i := 0; i < obj.Els.Length(); i++ {
+		Els = append(Els, obj.Els.Index(i).Get("style").Get(key).String())
 	}
-	return els
+	return Els
 }
 
 func (obj Elements) StylesSet(key string, value string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Get("style").Set(key, value)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Get("style").Set(key, value)
 	}
 }
 
 func (obj Elements) AttributesGet(key string) []string {
-	els := []string{}
-	for i := 0; i < obj.els.Length(); i++ {
-		els = append(els, obj.els.Index(i).Get(key).String())
+	Els := []string{}
+	for i := 0; i < obj.Els.Length(); i++ {
+		Els = append(Els, obj.Els.Index(i).Get(key).String())
 	}
-	return els
+	return Els
 }
 
 func (obj Elements) AttributesSet(key string, value string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set(key, value)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set(key, value)
 	}
 }
 
 func (obj Elements) MovesTo(target Element) {
-	for i := 0; i < obj.els.Length(); i++ {
-		target.el.Call("after", obj.els.Index(i))
+	for i := 0; i < obj.Els.Length(); i++ {
+		target.El.Call("after", obj.Els.Index(i))
 	}
-	target.el.Call("remove")
+	target.El.Call("remove")
 }
 
 func (obj Elements) MovesToAsChild(target Element) {
-	for i := 0; i < obj.els.Length(); i++ {
-		target.el.Call("appendChild", obj.els.Index(i))
+	for i := 0; i < obj.Els.Length(); i++ {
+		target.El.Call("appendChild", obj.Els.Index(i))
 	}
 }
 
 func (obj Elements) CopysTo(target Element) {
-	for i := 0; i < obj.els.Length(); i++ {
-		el := obj.els.Index(i).Call("cloneNode", true)
-		target.el.Call("after", el)
+	for i := 0; i < obj.Els.Length(); i++ {
+		El := obj.Els.Index(i).Call("cloneNode", true)
+		target.El.Call("after", El)
 	}
-	target.el.Call("remove")
+	target.El.Call("remove")
 }
 
 func (obj Elements) CopysToAsChild(target Element) {
-	for i := 0; i < obj.els.Length(); i++ {
-		el := obj.els.Index(i).Call("cloneNode", true)
-		target.el.Call("appendChild", el)
+	for i := 0; i < obj.Els.Length(); i++ {
+		El := obj.Els.Index(i).Call("cloneNode", true)
+		target.El.Call("appendChild", El)
 	}
 }
 
 func (obj Elements) Removes(html string) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Call("remove")
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Call("remove")
 	}
 }
 
 func (obj Elements) Enables() {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("disabled", false)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set("disabled", false)
 	}
 }
 
 func (obj Elements) Disables() {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("disabled", true)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set("disabled", true)
 	}
 }
 
 func (obj Elements) EventsAdd(action string, f func(js.Value)) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
 	}
 }
 
 func (obj Elements) EventsClear() {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Set("outerHTML", obj.els.Index(i).Get("outerHTML"))
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Set("outerHTML", obj.Els.Index(i).Get("outerHTML"))
 	}
 }
 
 func (obj Elements) Calls(function string, args ...any) {
-	for i := 0; i < obj.els.Length(); i++ {
-		obj.els.Index(i).Call(function, args...)
+	for i := 0; i < obj.Els.Length(); i++ {
+		obj.Els.Index(i).Call(function, args...)
 	}
 }

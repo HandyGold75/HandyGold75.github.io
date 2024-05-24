@@ -79,5 +79,4 @@ func (html HTML) ApplyTemplate(template HTML) HTML {
 var HTML_Link = HTML{
 	Tag:        "a",
 	Attributes: map[string]string{"target": "_blank"},
-	Inner:      "test",
 }
