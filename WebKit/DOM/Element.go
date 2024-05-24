@@ -8,110 +8,110 @@ import (
 )
 
 type (
-	Element struct{ el js.Value }
+	Element struct{ El js.Value }
 )
 
 func GetElement(id string) (Element, error) {
-	el := js.Global().Get("document").Call("getElementById", id)
-	if el.IsUndefined() || el.IsNaN() || el.IsNull() {
+	El := js.Global().Get("document").Call("getElementById", id)
+	if El.IsUndefined() || El.IsNaN() || El.IsNull() {
 		return Element{}, WebKit.ErrWebKit.ElementNotFound
 	}
-	return Element{el: el}, nil
+	return Element{El: El}, nil
 }
 
 func (obj Element) InnerGet() string {
-	return obj.el.Get("innerHTML").String()
+	return obj.El.Get("innerHTML").String()
 }
 
 func (obj Element) InnerSet(html string) {
-	obj.el.Set("innerHTML", html)
+	obj.El.Set("innerHTML", html)
 }
 
 func (obj Element) InnerAddPrefix(html string) {
-	el := js.Global().Get("document").Call("createElement", "template")
-	el.Set("innerHTML", html)
+	El := js.Global().Get("document").Call("createElement", "template")
+	El.Set("innerHTML", html)
 
-	els := []any{}
-	for i := 0; i < el.Get("content").Get("children").Length(); i++ {
-		els = append(els, el.Get("content").Get("children").Index(i))
+	Els := []any{}
+	for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+		Els = append(Els, El.Get("content").Get("children").Index(i))
 	}
 
-	obj.el.Call("prepend", els...)
+	obj.El.Call("prepend", Els...)
 }
 
 func (obj Element) InnerAddSurfix(html string) {
-	el := js.Global().Get("document").Call("createElement", "template")
-	el.Set("innerHTML", html)
+	El := js.Global().Get("document").Call("createElement", "template")
+	El.Set("innerHTML", html)
 
-	els := []any{}
-	for i := 0; i < el.Get("content").Get("children").Length(); i++ {
-		els = append(els, el.Get("content").Get("children").Index(i))
+	Els := []any{}
+	for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+		Els = append(Els, El.Get("content").Get("children").Index(i))
 	}
 
-	obj.el.Call("append", els...)
+	obj.El.Call("append", Els...)
 
 }
 
 func (obj Element) InnerClear() {
-	obj.el.Set("innerHTML", "")
+	obj.El.Set("innerHTML", "")
 }
 
 func (obj Element) StyleGet(key string) string {
-	return obj.el.Get("style").Get(key).String()
+	return obj.El.Get("style").Get(key).String()
 }
 
 func (obj Element) StyleSet(key string, value string) {
-	obj.el.Get("style").Set(key, value)
+	obj.El.Get("style").Set(key, value)
 }
 
 func (obj Element) AttributeGet(key string) string {
-	return obj.el.Get(key).String()
+	return obj.El.Get(key).String()
 }
 
 func (obj Element) AttributeSet(key string, value string) {
-	obj.el.Set(key, value)
+	obj.El.Set(key, value)
 }
 
 func (obj Element) MoveTo(target Element) {
-	target.el.Call("after", obj.el)
-	target.el.Call("remove")
+	target.El.Call("after", obj.El)
+	target.El.Call("remove")
 }
 
 func (obj Element) MoveToAsChild(target Element) {
-	target.el.Call("appendChild", obj.el)
+	target.El.Call("appendChild", obj.El)
 }
 
 func (obj Element) CopyTo(target Element) {
-	el := obj.el.Call("cloneNode", true)
-	target.el.Call("after", el)
-	target.el.Call("remove")
+	El := obj.El.Call("cloneNode", true)
+	target.El.Call("after", El)
+	target.El.Call("remove")
 }
 
 func (obj Element) CopyToAsChild(target Element) {
-	el := obj.el.Call("cloneNode", true)
-	target.el.Call("appendChild", el)
+	El := obj.El.Call("cloneNode", true)
+	target.El.Call("appendChild", El)
 }
 
 func (obj Element) Remove() {
-	obj.el.Call("remove")
+	obj.El.Call("remove")
 }
 
 func (obj Element) Enable() {
-	obj.el.Set("disabled", false)
+	obj.El.Set("disabled", false)
 }
 
 func (obj Element) Disable() {
-	obj.el.Set("disabled", true)
+	obj.El.Set("disabled", true)
 }
 
 func (obj Element) EventAdd(action string, f func(js.Value)) {
-	obj.el.Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+	obj.El.Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
 }
 
 func (obj Element) EventClear() {
-	obj.el.Set("outerHTML", obj.el.Get("outerHTML"))
+	obj.El.Set("outerHTML", obj.El.Get("outerHTML"))
 }
 
 func (obj Element) Call(function string, args ...any) {
-	obj.el.Call(function, args...)
+	obj.El.Call(function, args...)
 }
