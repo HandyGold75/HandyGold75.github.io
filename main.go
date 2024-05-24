@@ -2,9 +2,17 @@
 
 package main
 
-import "HandyGold75/Pages"
+import (
+	"HandyGold75/Pages"
+	"HandyGold75/WebKit/JS"
+)
 
 func main() {
-	Pages.Open("Home")
+	mainPage := JS.CacheGet("mainPage")
+	if mainPage == "" {
+		mainPage = "Home"
+	}
+
+	Pages.Open(mainPage)
 	<-make(chan int)
 }

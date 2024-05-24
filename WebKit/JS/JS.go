@@ -2,7 +2,9 @@
 
 package JS
 
-import "syscall/js"
+import (
+	"syscall/js"
+)
 
 var (
 	onResizeMapping = map[string]func(js.Value){}
@@ -54,7 +56,11 @@ func Prompt(txt string) string {
 }
 
 func CacheGet(key string) string {
-	return js.Global().Get("window").Get("localStorage").Call("getItem", key).String()
+	value := js.Global().Get("window").Get("localStorage").Call("getItem", key)
+	if !value.Truthy() {
+		return ""
+	}
+	return value.String()
 }
 
 func CacheSet(key string, value any) {
@@ -69,10 +75,10 @@ func Title(title string) {
 	js.Global().Get("document").Set("title", title)
 }
 
-func onResizeAdd(key string, f func(js.Value)) {
+func OnResizeAdd(key string, f func(js.Value)) {
 	onResizeMapping[key] = f
 
-	js.Global().Get("window").Set("onResize", js.FuncOf(func(e js.Value, a []js.Value) any {
+	js.Global().Get("window").Set("onresize", js.FuncOf(func(e js.Value, a []js.Value) any {
 		for _, f := range onResizeMapping {
 			f(e)
 		}
@@ -80,6 +86,6 @@ func onResizeAdd(key string, f func(js.Value)) {
 	}))
 }
 
-func onResizeDelete(key string) {
+func OnResizeDelete(key string) {
 	delete(onResizeMapping, key)
 }
