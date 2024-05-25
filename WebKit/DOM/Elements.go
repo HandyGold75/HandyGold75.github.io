@@ -141,9 +141,9 @@ func (obj Elements) Disables() {
 	}
 }
 
-func (obj Elements) EventsAdd(action string, f func(js.Value)) {
+func (obj Elements) EventsAdd(action string, f func(el js.Value, evs []js.Value)) {
 	for i := 0; i < obj.Els.Length(); i++ {
-		obj.Els.Index(i).Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+		obj.Els.Index(i).Call("addEventListener", action, js.FuncOf(func(el js.Value, evs []js.Value) any { f(el, evs); return nil }))
 	}
 }
 
