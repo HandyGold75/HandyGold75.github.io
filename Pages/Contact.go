@@ -8,7 +8,6 @@ import (
 	"HandyGold75/WebKit/JS"
 	"fmt"
 	"strings"
-	"syscall/js"
 )
 
 type (
@@ -83,10 +82,10 @@ func PageContact() {
 	for i := 0; i < els.Els.Length(); i++ {
 		curEl := els.Els.Index(i)
 		if i%2 == 0 {
-			JS.AfterDelay((i+1)*500, func(event js.Value) { curEl.Get("style").Set("margin-left", "-2vw") })
+			JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-left", "-2vw") })
 			continue
 		}
-		JS.AfterDelay((i+1)*500, func(event js.Value) { curEl.Get("style").Set("margin-right", "-2vw") })
+		JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-right", "-2vw") })
 	}
 
 	els, err = DOM.GetElements("contact_txtInsides")
@@ -96,7 +95,7 @@ func PageContact() {
 	}
 	for i := 0; i < els.Els.Length(); i++ {
 		curEl := els.Els.Index(i)
-		JS.AfterDelay(((i+1)*1000)-500, func(event js.Value) { curEl.Get("style").Set("margin-right", "10%") })
+		JS.AfterDelay(((i+1)*1000)-500, func() { curEl.Get("style").Set("margin-right", "10%") })
 	}
 
 	els, err = DOM.GetElements("contact_imgInsides")
@@ -106,6 +105,6 @@ func PageContact() {
 	}
 	for i := 0; i < els.Els.Length(); i++ {
 		curEl := els.Els.Index(i)
-		JS.AfterDelay((i+1)*1000, func(event js.Value) { curEl.Get("style").Set("margin-left", "10%") })
+		JS.AfterDelay((i+1)*1000, func() { curEl.Get("style").Set("margin-left", "10%") })
 	}
 }

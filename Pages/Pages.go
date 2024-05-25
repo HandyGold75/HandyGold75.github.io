@@ -13,11 +13,7 @@ import (
 )
 
 var (
-	AvailablePages = map[string]func(){
-		"Home":    PageHome,
-		"Console": PageConsole,
-		"Contact": PageContact,
-	}
+	AvailablePages        = map[string]func(){}
 	AvailablePagesOrdered = []string{"Home", "Console", "Contact"}
 
 	ErrPages = struct {
@@ -130,15 +126,15 @@ func InitDocker() error {
 	if err != nil {
 		return err
 	}
-	el.EventAdd("click", func(event js.Value) { ToggleDocker() })
+	el.EventAdd("click", func(el js.Value, evs []js.Value) { ToggleDocker() })
 
 	els, err := DOM.GetElements("docker_buttons")
 	if err != nil {
 		return err
 	}
-	els.EventsAdd("click", func(event js.Value) {
+	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		ToggleDocker()
-		Open(event.Get("innerHTML").String())
+		Open(el.Get("innerHTML").String())
 	})
 
 	return nil
@@ -169,7 +165,7 @@ func InitFooter() error {
 	if err != nil {
 		return err
 	}
-	el.EventAdd("click", func(event js.Value) {
+	el.EventAdd("click", func(el js.Value, evs []js.Value) {
 		if body, err := DOM.GetElement("body"); err != nil {
 			body.Call("scrollIntoView")
 		}
@@ -179,7 +175,7 @@ func InitFooter() error {
 	if err != nil {
 		return err
 	}
-	els.EventAdd("click", func(event js.Value) { JS.CacheClear() })
+	els.EventAdd("click", func(el js.Value, evs []js.Value) { JS.CacheClear() })
 
 	return nil
 }
@@ -211,8 +207,8 @@ func Init(onDeloadedCallback func()) error {
 	if mp.InnerGet() != "" {
 		inTransition = true
 		mp.StyleSet("max-height", "100vh")
-		JS.Async(func(event js.Value) { mp.StyleSet("max-height", "0vh") })
-		JS.AfterDelay(250, func(event js.Value) {
+		JS.Async(func() { mp.StyleSet("max-height", "0vh") })
+		JS.AfterDelay(250, func() {
 			mp.InnerSet("")
 			Init(onDeloadedCallback)
 		})
@@ -220,7 +216,7 @@ func Init(onDeloadedCallback func()) error {
 
 	} else {
 		mp.StyleSet("max-height", "100vh")
-		JS.AfterDelay(250, func(event js.Value) {
+		JS.AfterDelay(250, func() {
 			mp.StyleSet("max-height", "")
 			inTransition = false
 		})
@@ -230,9 +226,12 @@ func Init(onDeloadedCallback func()) error {
 	return nil
 }
 
-func Open(page string) {
-	if inTransition {
-		return
+func ForcePage(page string) {
+	AvailablePages = map[string]func(){
+		"Home":    PageHome,
+		"Console": PageConsole,
+		"Contact": PageContact,
+		"Login":   PageLogin,
 	}
 
 	pageEntry, ok := AvailablePages[page]
@@ -248,4 +247,11 @@ func Open(page string) {
 	}
 
 	JS.CacheSet("mainPage", page)
+}
+
+func Open(page string) {
+	if inTransition {
+		return
+	}
+	ForcePage(page)
 }

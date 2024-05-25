@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	onResizeMapping = map[string]func(js.Value){}
+	onResizeMapping = map[string]func(){}
 )
 
 func Log(msg any) {
@@ -18,21 +18,24 @@ func F5() {
 	js.Global().Get("window").Get("location").Call("reload")
 }
 
-func GetVP() [2]string {
-	window := js.Global().Get("window")
-	return [2]string{window.Get("innerHeight").String(), window.Get("innerWidth").String()}
+func GetVP() [2]int {
+	return [2]int{js.Global().Get("window").Get("innerHeight").Int(), js.Global().Get("window").Get("innerWidth").Int()}
 }
 
-func AfterDelay(delay int, f func(js.Value)) {
-	js.Global().Call("setTimeout", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), delay)
+func AfterDelay(delay int, f func()) {
+	var fOf js.Func
+	fOf = js.FuncOf(func(el js.Value, evs []js.Value) any { defer fOf.Release(); f(); return nil })
+	js.Global().Call("setTimeout", fOf, delay)
 }
 
-func Async(f func(js.Value)) {
-	js.Global().Call("setTimeout", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), 0)
+func Async(f func()) {
+	var fOf js.Func
+	fOf = js.FuncOf(func(el js.Value, evs []js.Value) any { defer fOf.Release(); f(); return nil })
+	js.Global().Call("setTimeout", fOf, 0)
 }
 
-func AtInterval(delay int, f func(js.Value)) {
-	js.Global().Call("setInterval", js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }), delay)
+func AtInterval(delay int, f func()) {
+	js.Global().Call("setInterval", js.FuncOf(func(el js.Value, evs []js.Value) any { f(); return nil }), delay)
 }
 
 func Eval(com string) js.Value {
@@ -75,15 +78,17 @@ func Title(title string) {
 	js.Global().Get("document").Set("title", title)
 }
 
-func OnResizeAdd(key string, f func(js.Value)) {
+func OnResizeAdd(key string, f func()) {
 	onResizeMapping[key] = f
 
-	js.Global().Get("window").Set("onresize", js.FuncOf(func(e js.Value, a []js.Value) any {
+	js.Global().Get("window").Set("onresize", js.FuncOf(func(el js.Value, evs []js.Value) any {
 		for _, f := range onResizeMapping {
-			f(e)
+			f()
 		}
 		return nil
 	}))
+
+	f()
 }
 
 func OnResizeDelete(key string) {

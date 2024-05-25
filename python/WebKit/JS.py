@@ -62,9 +62,9 @@ def clearCache():
 
 def cache(key: str, value: any = None):
     if value is None:
-        return window.localStorage.getItem(key)
+        return window.localStorage.getItem("python/" + key)
 
-    window.localStorage.setItem(key, value)
+    window.localStorage.setItem("python/" + key, value)
 
 
 def addEvent(id: str, function: object, args: tuple = (), kwargs: dict = {}, action: str = "click", includeElement: bool = False):

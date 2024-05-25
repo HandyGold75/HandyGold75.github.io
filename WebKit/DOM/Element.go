@@ -104,8 +104,8 @@ func (obj Element) Disable() {
 	obj.El.Set("disabled", true)
 }
 
-func (obj Element) EventAdd(action string, f func(js.Value)) {
-	obj.El.Call("addEventListener", action, js.FuncOf(func(e js.Value, a []js.Value) any { f(e); return nil }))
+func (obj Element) EventAdd(action string, f func(el js.Value, evs []js.Value)) {
+	obj.El.Call("addEventListener", action, js.FuncOf(func(el js.Value, evs []js.Value) any { f(el, evs); return nil }))
 }
 
 func (obj Element) EventClear() {
