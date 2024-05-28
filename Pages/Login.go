@@ -5,6 +5,7 @@ package Pages
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
+	"HandyGold75/WebKit/WS"
 	"fmt"
 )
 
@@ -21,4 +22,9 @@ func PageLogin() {
 		return
 	}
 	mp.InnerSet(header + txt)
+
+	WS.SetServer("10.69.2.58:5500")
+	if !WS.IsAuthenticated() {
+		WS.Authenticate("", "")
+	}
 }
