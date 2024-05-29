@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"crypto/sha512"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -21,6 +22,12 @@ import (
 
 var (
 	UnauthorizedCallback = func() {}
+
+	transportSkipVerify = func() *http.Transport {
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{ServerName: "wss.handygold75.com", InsecureSkipVerify: true}
+		return customTransport
+	}()
 )
 
 func Sha1(s string) string {
@@ -55,58 +62,100 @@ func SetServer(server string) {
 	JS.CacheSet("server", server)
 }
 
-func Authenticate(username string, password string) error {
+func isAuthenticated(callback func(error)) {
+	token := JS.CacheGet("token")
+	if token == "" {
+		callback(WebKit.ErrWebKit.WSUnauthorized)
+		return
+	}
 	server := JS.CacheGet("server")
 	if server == "" {
-		return WebKit.ErrWebKit.WSNoServerSpecified
+		callback(WebKit.ErrWebKit.WSUnauthorized)
+		return
 	}
 
-	res, err := (&http.Client{}).PostForm("https://"+server+"/auth", url.Values{
+	res, err := (&http.Client{Transport: transportSkipVerify}).PostForm("https://"+server+"/auth", url.Values{
+		"token": []string{token},
+	})
+	if err != nil {
+		callback(err)
+		return
+	}
+	if res.StatusCode == http.StatusTooManyRequests {
+		callback(errors.New(strconv.Itoa(http.StatusTooManyRequests) + " StatusTooManyRequest retry-after:" + res.Header.Get("retry-after")))
+		return
+	}
+	if res.StatusCode != 200 {
+		callback(WebKit.ErrWebKit.WSUnauthorized)
+		return
+	}
+
+	callback(nil)
+	return
+}
+
+func IsAuthenticated(callback func(error)) {
+	go isAuthenticated(callback)
+}
+
+func authenticate(callback func(error), username string, password string) {
+	server := JS.CacheGet("server")
+	if server == "" {
+		callback(WebKit.ErrWebKit.WSNoServerSpecified)
+		return
+	}
+
+	res, err := (&http.Client{Transport: transportSkipVerify}).PostForm("https://"+server+"/auth", url.Values{
 		"usrHash": []string{Sha1(username + Sha512(password))},
 		"pswHash": []string{Sha512(Sha512(password) + time.Now().Format(time.DateTime))},
 	})
+
 	if err != nil {
-		return err
+		callback(err)
+		return
+	}
+	if res.StatusCode == http.StatusTooManyRequests {
+		callback(errors.New(strconv.Itoa(http.StatusTooManyRequests) + " StatusTooManyRequest retry-after:" + res.Header.Get("retry-after")))
+		return
 	}
 	if res.StatusCode != 200 {
-		return WebKit.ErrWebKit.WSUnauthorized
+		callback(WebKit.ErrWebKit.WSUnauthorized)
+		return
 	}
 
-	JS.CacheSet("token", res.Header.Get("Authorization"))
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		callback(err)
+		return
+	}
+	// JS.CacheSet("token", string(body))
 
-	return nil
+	bodyType := res.Header.Get("Content-Type") // WHY ME NOT GET HEAD!?!!!?
+	if strings.HasPrefix(bodyType, "text/") {
+		JS.CacheSet("token", string(body))
+		callback(nil)
+		return
+	}
+
+	callback(WebKit.ErrWebKit.WSUnexpectedResponse)
 }
 
-func IsAuthenticated() bool {
-	token := JS.CacheGet("token")
-	if token == "" {
-		return false
-	}
-	server := JS.CacheGet("server")
-	if server == "" {
-		return false
-	}
-
-	res, err := (&http.Client{}).PostForm("https://"+server+"/auth", url.Values{
-		"token": []string{token},
-	})
-	if err != nil || res.StatusCode != 200 {
-		return false
-	}
-
-	return true
+func Authenticate(callback func(error), username string, password string) {
+	go authenticate(callback, username, password)
 }
 
-func Send(com string, args ...string) (string, error) {
+func send(callback func(string, error), com string, args ...string) {
 	token := JS.CacheGet("token")
 	if token == "" {
 		UnauthorizedCallback()
-		return "", WebKit.ErrWebKit.WSUnauthorized
+		callback("", WebKit.ErrWebKit.WSUnauthorized)
+		return
 	}
 	server := JS.CacheGet("server")
 	if server == "" {
 		UnauthorizedCallback()
-		return "", WebKit.ErrWebKit.WSNoServerSpecified
+		callback("", WebKit.ErrWebKit.WSNoServerSpecified)
+		return
 	}
 
 	req, err := http.NewRequest("POST", "https://"+server+"/com", strings.NewReader(url.Values{
@@ -114,40 +163,52 @@ func Send(com string, args ...string) (string, error) {
 		"args": []string{strings.Join(args, " ")},
 	}.Encode()))
 	if err != nil {
-		return "", err
+		callback("", err)
+		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", token)
 
-	res, err := (&http.Client{}).Do(req)
+	res, err := (&http.Client{Transport: transportSkipVerify}).Do(req)
 	if err != nil {
-		return "", err
+		callback("", err)
+		return
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		if res.StatusCode == http.StatusUnauthorized {
 			UnauthorizedCallback()
 		}
-		return "", errors.New(strconv.Itoa(res.StatusCode) + ": " + res.Header.Get("x-error"))
+		callback("", errors.New(strconv.Itoa(res.StatusCode)+": "+res.Header.Get("x-error")))
+		return
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "", err
+		callback("", err)
+		return
 	}
 
 	bodyType := res.Header.Get("Content-Type")
 	if strings.HasPrefix(bodyType, "text/") {
-		return string(body), nil
+		callback(string(body), nil)
+		return
 
 	} else if strings.HasPrefix(bodyType, "video/") {
 		if err := downloadToFile(strings.Replace(bodyType, "video/", "", 1), &body); err != nil {
-			return "", err
+			callback("", err)
+			return
 		}
 
-		return "downloaded: " + strings.Replace(bodyType, "video/", "", 1), nil
+		callback("downloaded: "+strings.Replace(bodyType, "video/", "", 1), nil)
+		return
 
 	}
 
-	return "", WebKit.ErrWebKit.WSUnexpectedResponse
+	callback("", WebKit.ErrWebKit.WSUnexpectedResponse)
+	return
+}
+
+func Send(callback func(string, error), com string, args ...string) {
+	go send(callback, com, args...)
 }

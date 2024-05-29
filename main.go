@@ -14,5 +14,5 @@ func main() {
 	}
 
 	Pages.Open(mainPage)
-	<-make(chan int)
+	<-make(chan bool)
 }
