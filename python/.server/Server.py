@@ -24,7 +24,7 @@ class server:
     requiredFiles = {
         "/config.json": {
             "IP": "127.0.0.1",
-            "PORT": 17500,
+            "PORT": 17510,
             "Domain": "HandyGold75.com",
             "SonosSubnet": [],
             "TapoPlugIps": [],

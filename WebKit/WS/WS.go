@@ -58,10 +58,6 @@ func downloadToFile(name string, data *[]byte) error {
 	return nil
 }
 
-func SetServer(server string) {
-	JS.CacheSet("server", server)
-}
-
 func isAuthenticated(callback func(error)) {
 	token := JS.CacheGet("token")
 	if token == "" {
@@ -109,7 +105,6 @@ func authenticate(callback func(error), username string, password string) {
 		"usrHash": []string{Sha1(username + Sha512(password))},
 		"pswHash": []string{Sha512(Sha512(password) + time.Now().Format(time.DateTime))},
 	})
-
 	if err != nil {
 		callback(err)
 		return

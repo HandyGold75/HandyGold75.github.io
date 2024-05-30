@@ -88,7 +88,7 @@ func PageConsole() {
 	consoleIn := HTML.HTML{
 		Tag:        "input",
 		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "> command ...args"},
-		Styles:     map[string]string{"width": "100%", "margin": "0px 0px -2px -2px", "padding": "3px 0px", "border-radius": "0px 0px 10px 10px", "border-color": "#f7e163", "overflow": "scroll"},
+		Styles:     map[string]string{"width": "100%", "margin": "0px 0px -2px -2px", "padding": "3px 0px", "border-radius": "0px 0px 10px 10px", "border-color": "#f7e163"},
 	}.String()
 
 	consoleDiv := HTML.HTML{
