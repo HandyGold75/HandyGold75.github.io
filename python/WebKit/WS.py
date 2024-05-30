@@ -30,13 +30,13 @@ class WebSocket:
 
         self.indexLogout = None
 
-        if window.localStorage.getItem("configWS") is None:
-            window.localStorage.setItem("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17510", "autoSignIn": False, "token": ""}))
+        if window.localStorage.getItem("python/configWS") is None:
+            window.localStorage.setItem("python/configWS", dumps({"server": "WSS://wss.HandyGold75.com:17510", "autoSignIn": False, "token": ""}))
 
-        self.config = loads(window.localStorage.getItem("configWS"))
+        self.config = loads(window.localStorage.getItem("python/configWS"))
         if not self.config["autoSignIn"]:
             self.config["token"] = ""
-            window.localStorage.setItem("configWS", dumps(self.config))
+            window.localStorage.setItem("python/configWS", dumps(self.config))
 
     def indexLogoutHook(self, function):
         self.indexLogout = function
@@ -140,7 +140,7 @@ class WebSocket:
     def onLoginTokenFail(self):
         self.loggedIn = False
         self.config["token"] = ""
-        window.localStorage.setItem("configWS", dumps(self.config))
+        window.localStorage.setItem("python/configWS", dumps(self.config))
         self.reconnectTries = 99
         self.onClose(msg="Unable to connect to the server, token authetication failed!")
 
@@ -150,7 +150,7 @@ class WebSocket:
     def onLoginSucces(self):
         if self.msg().startswith("<LOGIN_SUCCESS> "):
             self.config["token"] = f'{self.msg().split("<LOGIN_SUCCESS> ")[1]}'
-            window.localStorage.setItem("configWS", dumps(self.config))
+            window.localStorage.setItem("python/configWS", dumps(self.config))
 
         self.loggedIn = True
         self.reconnectTries = 0
@@ -166,7 +166,7 @@ class WebSocket:
     def onLoginFail(self):
         self.loggedIn = False
         self.config["token"] = ""
-        window.localStorage.setItem("configWS", dumps(self.config))
+        window.localStorage.setItem("python/configWS", dumps(self.config))
 
         if callable(self.raiseOnLoginUpdate):
             self.raiseOnLoginUpdate("loginFail")
@@ -214,7 +214,7 @@ class WebSocket:
             self.ws.send("logout")
 
         self.config["token"] = ""
-        window.localStorage.setItem("configWS", dumps(self.config))
+        window.localStorage.setItem("python/configWS", dumps(self.config))
         self.loggedIn = False
         self.ws.close()
 

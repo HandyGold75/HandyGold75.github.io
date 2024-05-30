@@ -7,34 +7,168 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/JS"
 	"HandyGold75/WebKit/WS"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+	"syscall/js"
 )
 
-func IsAuthenticatedCallback(authError error) {
-	if strings.HasPrefix(authError.Error(), "429 TooManyRequest") {
-		errSplit := strings.Split(authError.Error(), ":")
+type config struct {
+	Server         string
+	RememberSignIn bool
+	Token          string
+}
+
+var (
+	OnSuccessCallback = func() {}
+	Config            = config{
+		Server:         "https.HandyGold75.com:17500",
+		RememberSignIn: true,
+		Token:          "",
+	}
+)
+
+func isAuthenticatedCallback(authErr error) {
+	if strings.HasPrefix(authErr.Error(), "429 TooManyRequest") {
+		errSplit := strings.Split(authErr.Error(), ":")
 		retryAfter, err := strconv.Atoi(errSplit[len(errSplit)-1])
 		if err != nil {
 			fmt.Println(err)
 			retryAfter = 60
 		}
-		PageLoginTimeout(retryAfter)
+
+		JS.Alert("You've got timed out for " + strconv.Itoa(retryAfter) + "!")
+		JS.AfterDelay(retryAfter*1000, func() { WS.IsAuthenticated(isAuthenticatedCallback) })
 		return
 	}
-	if authError != nil {
-		fmt.Println(authError)
+	if authErr != nil {
+		el, err := DOM.GetElement("login_server")
+		if err != nil {
+			fmt.Println(authErr)
+			return
+		}
+		el.Enable()
+
+		el, err = DOM.GetElement("login_username")
+		if err != nil {
+			fmt.Println(authErr)
+			return
+		}
+		el.Enable()
+
+		el, err = DOM.GetElement("login_password")
+		if err != nil {
+			fmt.Println(authErr)
+			return
+		}
+		el.Enable()
+
+		el, err = DOM.GetElement("login_submit")
+		if err != nil {
+			fmt.Println(authErr)
+			return
+		}
+		el.Enable()
+
 		return
+	}
+
+	OnSuccessCallback()
+	OnSuccessCallback = func() {}
+}
+
+func authenticateCallback(authErr error) {
+	if authErr != nil {
+		fmt.Println(authErr)
+		return
+	}
+
+	fmt.Println("Auth success")
+	OnSuccessCallback()
+	OnSuccessCallback = func() {}
+}
+
+func toggleRemember(el js.Value, evs []js.Value) {
+	*&Config.RememberSignIn = !Config.RememberSignIn
+
+	cfgBytes, err := json.Marshal(&Config)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	JS.CacheSet("Login", string(cfgBytes))
+
+	elRem, err := DOM.GetElement("login_remember")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if Config.RememberSignIn {
+		elRem.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
+	} else {
+		elRem.AttributeSet("className", "imgBtn imgBtnSmall")
 	}
 }
 
-func PageLoginTimeout(duration int) {
+func submitLogin(el js.Value, evs []js.Value) {
+	if len(evs) < 1 {
+		fmt.Println("evs was not parsed")
+		return
+	}
+
+	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
+		return
+	}
+
+	elSrv, err := DOM.GetElement("login_server")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	server := elSrv.AttributeGet("value")
+
+	elUsr, err := DOM.GetElement("login_username")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	username := elUsr.AttributeGet("value")
+
+	elPsw, err := DOM.GetElement("login_password")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	password := elPsw.AttributeGet("value")
+
+	*&Config.Server = server
+
+	cfgBytes, err := json.Marshal(&Config)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	JS.CacheSet("Login", string(cfgBytes))
+
+	JS.CacheSet("server", server)
+	WS.Authenticate(authenticateCallback, username, password)
 }
 
 func PageLogin() {
-	if JS.CacheGet("server") == "" {
-		JS.CacheSet("server", "https.HandyGold75.com:17500")
+	if JS.CacheGet("Login") == "" {
+		cfgBytes, err := json.Marshal(&Config)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		JS.CacheSet("Login", string(cfgBytes))
+	}
+	err := json.Unmarshal([]byte(JS.CacheGet("Login")), &Config)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
@@ -45,7 +179,7 @@ func PageLogin() {
 			Inner:  "Server",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "url", "id": "login_server", "placeholder": "Server", "value": JS.CacheGet("server")},
+			Attributes: map[string]string{"type": "url", "id": "login_server", "placeholder": "Server", "value": Config.Server},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -75,7 +209,7 @@ func PageLogin() {
 	pinBtn := HTML.HTML{
 		Tag:        "button",
 		Attributes: map[string]string{"id": "login_remember", "class": "imgBtn imgBtnSmall"},
-		Styles:     map[string]string{"max-width": "50px", "max-height": "50px"},
+		Styles:     map[string]string{"margin-top": "auto", "margin-bottom": "auto"},
 		Inner: HTML.HTML{
 			Tag:        "img",
 			Attributes: map[string]string{"id": "login_remember_img", "src": "./docs/assets/Login/Pin.svg", "alt": "remember"},
@@ -99,6 +233,48 @@ func PageLogin() {
 	}
 	mp.InnerSet(header + server + username + password + buttons)
 
-	WS.IsAuthenticated(IsAuthenticatedCallback)
-	WS.Authenticate(func(err error) {}, "handygold75", "Password123")
+	el, err := DOM.GetElement("login_server")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("keyup", submitLogin)
+	el.Disable()
+
+	el, err = DOM.GetElement("login_username")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("keyup", submitLogin)
+	el.Disable()
+
+	el, err = DOM.GetElement("login_password")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("keyup", submitLogin)
+	el.Disable()
+
+	el, err = DOM.GetElement("login_submit")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("click", submitLogin)
+	el.Disable()
+
+	el, err = DOM.GetElement("login_remember")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("click", toggleRemember)
+
+	if Config.RememberSignIn {
+		el.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
+	}
+
+	WS.IsAuthenticated(isAuthenticatedCallback)
 }
