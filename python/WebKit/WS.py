@@ -31,7 +31,7 @@ class WebSocket:
         self.indexLogout = None
 
         if window.localStorage.getItem("configWS") is None:
-            window.localStorage.setItem("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17500", "autoSignIn": False, "token": ""}))
+            window.localStorage.setItem("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17510", "autoSignIn": False, "token": ""}))
 
         self.config = loads(window.localStorage.getItem("configWS"))
         if not self.config["autoSignIn"]:

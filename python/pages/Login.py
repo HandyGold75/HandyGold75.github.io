@@ -15,7 +15,7 @@ class login(Page):
         self.indexRedirect = None
 
         if JS.cache("configWS") is None:
-            JS.cache("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17500", "autoSignIn": False, "token": ""}))
+            JS.cache("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17510", "autoSignIn": False, "token": ""}))
 
         self.config = lambda: loads(JS.cache("configWS"))
         self.lastLogin = 0
