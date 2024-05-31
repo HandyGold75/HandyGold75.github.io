@@ -23,10 +23,10 @@ import (
 var (
 	UnauthorizedCallback = func() {}
 
-	transportSkipVerify = func() *http.Transport {
-		customTransport := http.DefaultTransport.(*http.Transport).Clone()
-		customTransport.TLSClientConfig = &tls.Config{ServerName: "wss.handygold75.com", InsecureSkipVerify: true}
-		return customTransport
+	transportRules = func() *http.Transport {
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.TLSClientConfig = &tls.Config{ServerName: "wss.handygold75.com"}
+		return transport
 	}()
 )
 
@@ -70,13 +70,15 @@ func isAuthenticated(callback func(error)) {
 		return
 	}
 
-	res, err := (&http.Client{Transport: transportSkipVerify}).PostForm("https://"+server+"/auth", url.Values{
+	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+server+"/auth", url.Values{
 		"token": []string{token},
 	})
 	if err != nil {
 		callback(err)
 		return
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode == http.StatusTooManyRequests {
 		callback(errors.New(strconv.Itoa(http.StatusTooManyRequests) + " StatusTooManyRequest retry-after:" + res.Header.Get("retry-after")))
 		return
@@ -101,7 +103,7 @@ func authenticate(callback func(error), username string, password string) {
 		return
 	}
 
-	res, err := (&http.Client{Transport: transportSkipVerify}).PostForm("https://"+server+"/auth", url.Values{
+	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+server+"/auth", url.Values{
 		"usrHash": []string{Sha1(username + Sha512(password))},
 		"pswHash": []string{Sha512(Sha512(password) + time.Now().Format(time.DateTime))},
 	})
@@ -109,6 +111,8 @@ func authenticate(callback func(error), username string, password string) {
 		callback(err)
 		return
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode == http.StatusTooManyRequests {
 		callback(errors.New(strconv.Itoa(http.StatusTooManyRequests) + " StatusTooManyRequest retry-after:" + res.Header.Get("retry-after")))
 		return
@@ -164,11 +168,12 @@ func send(callback func(string, error), com string, args ...string) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", token)
 
-	res, err := (&http.Client{Transport: transportSkipVerify}).Do(req)
+	res, err := (&http.Client{Transport: transportRules}).Do(req)
 	if err != nil {
 		callback("", err)
 		return
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		if res.StatusCode == http.StatusUnauthorized {

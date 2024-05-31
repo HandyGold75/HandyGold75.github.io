@@ -6,6 +6,7 @@ import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/WS"
 	"fmt"
 	"strconv"
 	"strings"
@@ -17,6 +18,14 @@ var (
 	CommandHistorySelected = -1
 	Token                  = ""
 )
+
+func CommandSubmitCallback(res string, err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(res)
+}
 
 func CommandEdited(el js.Value, evs []js.Value) {
 	in, err := DOM.GetElement("console_in")
@@ -61,17 +70,23 @@ func CommandEdited(el js.Value, evs []js.Value) {
 		return
 	}
 
-	com := in.AttributeGet("value")
+	input := in.AttributeGet("value")
 	CommandHistorySelected = -1
-	CommandHistory = append([]string{com}, CommandHistory...)
+	CommandHistory = append([]string{input}, CommandHistory...)
 
-	fmt.Println("COM: " + com)
+	inputSplit := strings.Split(input, " ")
+	com := inputSplit[0]
+	args := inputSplit[1:]
+
+	fmt.Println("COM: " + com + "\nARGS: " + strings.Join(args, ", "))
+	WS.Send(CommandSubmitCallback, com, args...)
 	in.AttributeSet("value", "")
 }
 
 func PageConsole() {
 	Token := JS.CacheGet("token")
 	if Token == "" {
+		OnSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}
@@ -87,14 +102,18 @@ func PageConsole() {
 
 	consoleIn := HTML.HTML{
 		Tag:        "input",
-		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "> command ...args"},
-		Styles:     map[string]string{"width": "100%", "margin": "0px 0px -2px -2px", "padding": "3px 0px", "border-radius": "0px 0px 10px 10px", "border-color": "#f7e163"},
+		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "command ...args"},
+		Styles:     map[string]string{"width": "95%", "margin": "0px 0px -2px -2px", "padding": "3px 2.5%", "border-radius": "10px", "border-color": "#f7e163"},
+		Prefix: HTML.HTML{Tag: "p",
+			Styles: map[string]string{"position": "absolute", "padding": "5px 0px 5px 0.5em", "text-align": "left", "color": "#F55", "font-weight": "bold"},
+			Inner:  ">",
+		}.String(),
 	}.String()
 
 	consoleDiv := HTML.HTML{
 		Tag:        "div",
 		Attributes: map[string]string{"id": "console_div"},
-		Styles:     map[string]string{"width": "95%", "padding": "2px", "background": "#111", "transistion": "height 1s"},
+		Styles:     map[string]string{"width": "95%", "margin": "10px auto", "padding": "2px", "background": "#111", "transistion": "height 1s"},
 		Inner:      consoleOut + consoleIn,
 	}.String()
 
@@ -142,7 +161,7 @@ func PageConsole() {
 			JS.OnResizeDelete("Console")
 			return
 		}
-		out.StyleSet("height", strconv.Itoa(height-8-17)+"px")
+		out.StyleSet("height", strconv.Itoa(height-18-10)+"px")
 	})
 
 	el, err := DOM.GetElement("console_in")
