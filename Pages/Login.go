@@ -22,7 +22,8 @@ type config struct {
 
 var (
 	OnSuccessCallback = func() {}
-	Config            = config{
+
+	Config = config{
 		Server:         "https.HandyGold75.com:17500",
 		RememberSignIn: true,
 		Token:          "",
@@ -30,7 +31,7 @@ var (
 )
 
 func isAuthenticatedCallback(authErr error) {
-	if strings.HasPrefix(authErr.Error(), "429 TooManyRequest") {
+	if authErr != nil && strings.HasPrefix(authErr.Error(), "429 TooManyRequest") {
 		errSplit := strings.Split(authErr.Error(), ":")
 		retryAfter, err := strconv.Atoi(errSplit[len(errSplit)-1])
 		if err != nil {
@@ -43,36 +44,29 @@ func isAuthenticatedCallback(authErr error) {
 		return
 	}
 	if authErr != nil {
-		el, err := DOM.GetElement("login_server")
+		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
-			fmt.Println(authErr)
+			fmt.Println(err)
 			return
 		}
-		el.Enable()
+		els.Enables()
 
-		el, err = DOM.GetElement("login_username")
+		elSub, err := DOM.GetElement("login_submit")
 		if err != nil {
-			fmt.Println(authErr)
+			fmt.Println(err)
 			return
 		}
-		el.Enable()
-
-		el, err = DOM.GetElement("login_password")
-		if err != nil {
-			fmt.Println(authErr)
-			return
-		}
-		el.Enable()
-
-		el, err = DOM.GetElement("login_submit")
-		if err != nil {
-			fmt.Println(authErr)
-			return
-		}
-		el.Enable()
+		elSub.Enable()
 
 		return
 	}
+
+	elSub, err := DOM.GetElement("login_submit")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	elSub.StyleSet("border", "2px solid #5F5")
 
 	OnSuccessCallback()
 	OnSuccessCallback = func() {}
@@ -80,11 +74,33 @@ func isAuthenticatedCallback(authErr error) {
 
 func authenticateCallback(authErr error) {
 	if authErr != nil {
+		els, err := DOM.GetElements("login_inputs")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		els.Enables()
+
+		elSub, err := DOM.GetElement("login_submit")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		elSub.Enable()
+		elSub.StyleSet("border", "2px solid #F55")
+		JS.AfterDelay(3000, func() { elSub.StyleSet("border", "2px solid #55F") })
+
 		fmt.Println(authErr)
 		return
 	}
 
-	fmt.Println("Auth success")
+	elSub, err := DOM.GetElement("login_submit")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	elSub.StyleSet("border", "2px solid #5F5")
+
 	OnSuccessCallback()
 	OnSuccessCallback = func() {}
 }
@@ -117,10 +133,23 @@ func submitLogin(el js.Value, evs []js.Value) {
 		fmt.Println("evs was not parsed")
 		return
 	}
-
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
 		return
 	}
+
+	els, err := DOM.GetElements("login_inputs")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	els.Disables()
+
+	elSub, err := DOM.GetElement("login_submit")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	elSub.Disable()
 
 	elSrv, err := DOM.GetElement("login_server")
 	if err != nil {
@@ -179,7 +208,7 @@ func PageLogin() {
 			Inner:  "Server",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "url", "id": "login_server", "placeholder": "Server", "value": Config.Server},
+			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "placeholder": "Server", "value": Config.Server},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -191,7 +220,7 @@ func PageLogin() {
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{
 			Tag:        "input",
-			Attributes: map[string]string{"type": "email", "id": "login_username", "placeholder": "Username"},
+			Attributes: map[string]string{"type": "email", "id": "login_username", "class": "login_inputs", "placeholder": "Username"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -202,7 +231,7 @@ func PageLogin() {
 			Inner:  "Password",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "password", "id": "login_password", "placeholder": "Password"},
+			Attributes: map[string]string{"type": "password", "id": "login_password", "class": "login_inputs", "placeholder": "Password"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -233,47 +262,31 @@ func PageLogin() {
 	}
 	mp.InnerSet(header + server + username + password + buttons)
 
-	el, err := DOM.GetElement("login_server")
+	els, err := DOM.GetElements("login_inputs")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	el.EventAdd("keyup", submitLogin)
-	el.Disable()
+	els.Disables()
+	els.EventsAdd("keyup", submitLogin)
 
-	el, err = DOM.GetElement("login_username")
+	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	el.EventAdd("keyup", submitLogin)
-	el.Disable()
+	elSub.Disable()
+	elSub.EventAdd("click", submitLogin)
 
-	el, err = DOM.GetElement("login_password")
+	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	el.EventAdd("keyup", submitLogin)
-	el.Disable()
-
-	el, err = DOM.GetElement("login_submit")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	el.EventAdd("click", submitLogin)
-	el.Disable()
-
-	el, err = DOM.GetElement("login_remember")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	el.EventAdd("click", toggleRemember)
+	elRem.EventAdd("click", toggleRemember)
 
 	if Config.RememberSignIn {
-		el.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
+		elRem.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
 	}
 
 	WS.IsAuthenticated(isAuthenticatedCallback)
