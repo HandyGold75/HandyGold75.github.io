@@ -6,6 +6,7 @@ import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/WS"
 	"fmt"
 	"strconv"
 	"strings"
@@ -17,6 +18,14 @@ var (
 	CommandHistorySelected = -1
 	Token                  = ""
 )
+
+func CommandSubmitCallback(res string, err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(res)
+}
 
 func CommandEdited(el js.Value, evs []js.Value) {
 	in, err := DOM.GetElement("console_in")
@@ -61,11 +70,16 @@ func CommandEdited(el js.Value, evs []js.Value) {
 		return
 	}
 
-	com := in.AttributeGet("value")
+	input := in.AttributeGet("value")
 	CommandHistorySelected = -1
-	CommandHistory = append([]string{com}, CommandHistory...)
+	CommandHistory = append([]string{input}, CommandHistory...)
 
-	fmt.Println("COM: " + com)
+	inputSplit := strings.Split(input, " ")
+	com := inputSplit[0]
+	args := inputSplit[1:]
+
+	fmt.Println("COM: " + com + "\nARGS: " + strings.Join(args, ", "))
+	WS.Send(CommandSubmitCallback, com, args...)
 	in.AttributeSet("value", "")
 }
 
@@ -88,10 +102,10 @@ func PageConsole() {
 
 	consoleIn := HTML.HTML{
 		Tag:        "input",
-		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "> command ...args"},
-		Styles:     map[string]string{"width": "100%", "margin": "0px 0px -2px -2px", "padding": "3px 1%", "border-radius": "0px 0px 10px 10px", "border-color": "#f7e163"},
-		Surfix: HTML.HTML{Tag: "p",
-			Styles: map[string]string{"width": "100%", "margin": "-35px auto 0px auto", "padding": "0px 0px 3px 0px", "text-align": "left"},
+		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "command ...args"},
+		Styles:     map[string]string{"width": "95%", "margin": "0px 0px -2px -2px", "padding": "3px 2.5%", "border-radius": "10px", "border-color": "#f7e163"},
+		Prefix: HTML.HTML{Tag: "p",
+			Styles: map[string]string{"position": "absolute", "padding": "5px 0px 5px 0.5em", "text-align": "left", "color": "#F55", "font-weight": "bold"},
 			Inner:  ">",
 		}.String(),
 	}.String()
