@@ -4,6 +4,7 @@ package main
 
 import (
 	"HandyGold75/Pages"
+	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 )
 
@@ -12,6 +13,9 @@ func main() {
 	if mainPage == "" {
 		mainPage = "Home"
 	}
+
+	HTTP.Config.Load()
+	HTTP.UnauthorizedCallback = func() { JS.Async(func() { Pages.ForcePage("Login") }) }
 
 	Pages.Open(mainPage)
 	<-make(chan bool)

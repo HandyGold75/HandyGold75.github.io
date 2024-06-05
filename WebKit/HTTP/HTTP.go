@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package WS
+package HTTP
 
 import (
 	"HandyGold75/WebKit"
@@ -9,6 +9,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha512"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,6 +21,12 @@ import (
 	"time"
 )
 
+type config struct {
+	Server         string
+	RememberSignIn bool
+	Token          string
+}
+
 var (
 	UnauthorizedCallback = func() {}
 
@@ -28,7 +35,49 @@ var (
 		transport.TLSClientConfig = &tls.Config{ServerName: "wss.handygold75.com"}
 		return transport
 	}()
+
+	defaultConfig = config{
+		Server:         "https.HandyGold75.com:17500",
+		RememberSignIn: true,
+		Token:          "",
+	}
+
+	Config = defaultConfig
 )
+
+func (cfg *config) Load() {
+	if JS.CacheGet("HTTP") == "" {
+		cfgBytes, err := json.Marshal(&Config)
+		if err != nil {
+			cfgBytes, _ = json.Marshal(&defaultConfig)
+		}
+		JS.CacheSet("HTTP", string(cfgBytes))
+	}
+
+	err := json.Unmarshal([]byte(JS.CacheGet("HTTP")), &Config)
+	if err != nil {
+		Config = defaultConfig
+	}
+}
+
+func (cfg *config) Set(key string, value string) error {
+	switch strings.ToLower(key) {
+	case "server":
+		Config.Server = value
+	case "remembersignin":
+		Config.RememberSignIn = strings.ToLower(value) == "true"
+	case "token":
+		Config.Token = value
+	}
+
+	cfgBytes, err := json.Marshal(&Config)
+	if err != nil {
+		return err
+	}
+	JS.CacheSet("HTTP", string(cfgBytes))
+
+	return nil
+}
 
 func Sha1(s string) string {
 	hasher := sha1.New()
@@ -59,19 +108,17 @@ func downloadToFile(name string, data *[]byte) error {
 }
 
 func isAuthenticated(callback func(error)) {
-	token := JS.CacheGet("token")
-	if token == "" {
-		callback(WebKit.ErrWebKit.WSUnauthorized)
+	if Config.Token == "" {
+		callback(WebKit.ErrWebKit.HTTPUnauthorized)
 		return
 	}
-	server := JS.CacheGet("server")
-	if server == "" {
-		callback(WebKit.ErrWebKit.WSUnauthorized)
+	if Config.Server == "" {
+		callback(WebKit.ErrWebKit.HTTPUnauthorized)
 		return
 	}
 
-	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+server+"/auth", url.Values{
-		"token": []string{token},
+	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+Config.Server+"/auth", url.Values{
+		"token": []string{Config.Token},
 	})
 	if err != nil {
 		callback(err)
@@ -84,7 +131,7 @@ func isAuthenticated(callback func(error)) {
 		return
 	}
 	if res.StatusCode != 200 {
-		callback(WebKit.ErrWebKit.WSUnauthorized)
+		callback(WebKit.ErrWebKit.HTTPUnauthorized)
 		return
 	}
 
@@ -96,14 +143,23 @@ func IsAuthenticated(callback func(error)) {
 	go isAuthenticated(callback)
 }
 
+func IsMaybeAuthenticated() bool {
+	if Config.Token == "" {
+		return false
+	}
+	if Config.Server == "" {
+		return false
+	}
+	return true
+}
+
 func authenticate(callback func(error), username string, password string) {
-	server := JS.CacheGet("server")
-	if server == "" {
-		callback(WebKit.ErrWebKit.WSNoServerSpecified)
+	if Config.Server == "" {
+		callback(WebKit.ErrWebKit.HTTPNoServerSpecified)
 		return
 	}
 
-	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+server+"/auth", url.Values{
+	res, err := (&http.Client{Transport: transportRules}).PostForm("https://"+Config.Server+"/auth", url.Values{
 		"usrHash": []string{Sha1(username + Sha512(password))},
 		"pswHash": []string{Sha512(Sha512(password) + time.Now().Format(time.DateTime))},
 	})
@@ -118,25 +174,17 @@ func authenticate(callback func(error), username string, password string) {
 		return
 	}
 	if res.StatusCode != 200 {
-		callback(WebKit.ErrWebKit.WSUnauthorized)
+		callback(WebKit.ErrWebKit.HTTPUnauthorized)
 		return
 	}
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		callback(err)
-		return
-	}
-	// JS.CacheSet("token", string(body))
-
-	bodyType := res.Header.Get("Content-Type") // WHY ME NOT GET HEAD!?!!!?
-	if strings.HasPrefix(bodyType, "text/") {
-		JS.CacheSet("token", string(body))
+	token := res.Header.Get("token")
+	if token != "" {
+		Config.Set("token", token)
 		callback(nil)
 		return
 	}
 
-	callback(WebKit.ErrWebKit.WSUnexpectedResponse)
+	callback(WebKit.ErrWebKit.HTTPUnexpectedResponse)
 }
 
 func Authenticate(callback func(error), username string, password string) {
@@ -144,29 +192,28 @@ func Authenticate(callback func(error), username string, password string) {
 }
 
 func send(callback func(string, error), com string, args ...string) {
-	token := JS.CacheGet("token")
-	if token == "" {
+	if Config.Token == "" {
+		callback("", WebKit.ErrWebKit.HTTPUnauthorized)
 		UnauthorizedCallback()
-		callback("", WebKit.ErrWebKit.WSUnauthorized)
 		return
 	}
-	server := JS.CacheGet("server")
-	if server == "" {
+	if Config.Server == "" {
+		Config.Set("token", "")
+		callback("", WebKit.ErrWebKit.HTTPNoServerSpecified)
 		UnauthorizedCallback()
-		callback("", WebKit.ErrWebKit.WSNoServerSpecified)
 		return
 	}
 
-	req, err := http.NewRequest("POST", "https://"+server+"/com", strings.NewReader(url.Values{
+	req, err := http.NewRequest("POST", "https://"+Config.Server+"/com", strings.NewReader(url.Values{
 		"com":  []string{com},
-		"args": []string{strings.Join(args, " ")},
+		"args": []string{strings.Join(args, "%20")},
 	}.Encode()))
 	if err != nil {
 		callback("", err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", token)
+	req.Header.Set("token", Config.Token)
 
 	res, err := (&http.Client{Transport: transportRules}).Do(req)
 	if err != nil {
@@ -176,10 +223,12 @@ func send(callback func(string, error), com string, args ...string) {
 	defer res.Body.Close()
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		callback("", errors.New(strconv.Itoa(res.StatusCode)+": "+res.Header.Get("x-error")))
+
 		if res.StatusCode == http.StatusUnauthorized {
+			Config.Set("token", "")
 			UnauthorizedCallback()
 		}
-		callback("", errors.New(strconv.Itoa(res.StatusCode)+": "+res.Header.Get("x-error")))
 		return
 	}
 
@@ -205,7 +254,7 @@ func send(callback func(string, error), com string, args ...string) {
 
 	}
 
-	callback("", WebKit.ErrWebKit.WSUnexpectedResponse)
+	callback("", WebKit.ErrWebKit.HTTPUnexpectedResponse)
 	return
 }
 

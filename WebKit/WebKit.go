@@ -8,16 +8,16 @@ import (
 
 var (
 	ErrWebKit = struct {
-		ElementNotFound      error
-		ElementsNotFound     error
-		WSUnauthorized       error
-		WSNoServerSpecified  error
-		WSUnexpectedResponse error
+		ElementNotFound        error
+		ElementsNotFound       error
+		HTTPUnauthorized       error
+		HTTPNoServerSpecified  error
+		HTTPUnexpectedResponse error
 	}{
-		ElementNotFound:      errors.New("element not found"),
-		ElementsNotFound:     errors.New("elements not found"),
-		WSUnauthorized:       errors.New("unauthorized"),
-		WSNoServerSpecified:  errors.New("no server specific"),
-		WSUnexpectedResponse: errors.New("unexpected response"),
+		ElementNotFound:        errors.New("element not found"),
+		ElementsNotFound:       errors.New("elements not found"),
+		HTTPUnauthorized:       errors.New("unauthorized"),
+		HTTPNoServerSpecified:  errors.New("no server specific"),
+		HTTPUnexpectedResponse: errors.New("unexpected response"),
 	}
 )
