@@ -3,10 +3,11 @@
 package Pages
 
 import (
+	"HandyGold75/WebKit"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
+	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
-	"HandyGold75/WebKit/WS"
 	"fmt"
 	"strconv"
 	"strings"
@@ -20,15 +21,51 @@ var (
 )
 
 func CommandSubmitCallback(res string, err error) {
-	if err != nil {
-		fmt.Println(err)
+	elIn, errIn := DOM.GetElement("console_in")
+	if errIn != nil {
+		fmt.Println(errIn)
+		return
+	}
+	elIn.Enable()
+
+	elArrow, errArrow := DOM.GetElement("console_arrow")
+	if errArrow != nil {
+		fmt.Println(errArrow)
+		return
+	}
+	elArrow.StyleSet("color", "#5F5")
+
+	if err == WebKit.ErrWebKit.HTTPUnauthorized || err == WebKit.ErrWebKit.HTTPNoServerSpecified {
+		fmt.Println("set console page callback")
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
+		return
+	} else if err != nil {
+		JS.Alert(err.Error())
+		return
 	}
 
-	fmt.Println(res)
+	elOut, errOut := DOM.GetElement("console_out")
+	if errOut != nil {
+		fmt.Println(errOut)
+		return
+	}
+
+	for _, line := range strings.Split(strings.ReplaceAll(res, "\r", ""), "\n") {
+		if line == "" {
+			line = " "
+		}
+
+		elOut.InnerAddSurfix(HTML.HTML{Tag: "p",
+			Styles: map[string]string{"text-align": "left"},
+			Inner:  strings.ReplaceAll(strings.ReplaceAll(line, "<", "&lt"), ">", "&gt"),
+		}.String())
+	}
+
+	elOut.El.Get("lastElementChild").Call("scrollIntoView")
 }
 
 func CommandEdited(el js.Value, evs []js.Value) {
-	in, err := DOM.GetElement("console_in")
+	elIn, err := DOM.GetElement("console_in")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -49,7 +86,7 @@ func CommandEdited(el js.Value, evs []js.Value) {
 		if evs[0].Get("ctrlKey").Bool() {
 			CommandHistorySelected = len(CommandHistory) - 1
 		}
-		in.AttributeSet("value", CommandHistory[CommandHistorySelected])
+		elIn.AttributeSet("value", CommandHistory[CommandHistorySelected])
 
 		return
 
@@ -62,7 +99,7 @@ func CommandEdited(el js.Value, evs []js.Value) {
 		if evs[0].Get("ctrlKey").Bool() {
 			CommandHistorySelected = 0
 		}
-		in.AttributeSet("value", CommandHistory[CommandHistorySelected])
+		elIn.AttributeSet("value", CommandHistory[CommandHistorySelected])
 
 		return
 
@@ -70,7 +107,20 @@ func CommandEdited(el js.Value, evs []js.Value) {
 		return
 	}
 
-	input := in.AttributeGet("value")
+	input := elIn.AttributeGet("value")
+	if input == "" {
+		return
+	}
+
+	elArrow, err := DOM.GetElement("console_arrow")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	elArrow.StyleSet("color", "#F55")
+
+	elIn.Disable()
+
 	CommandHistorySelected = -1
 	CommandHistory = append([]string{input}, CommandHistory...)
 
@@ -78,15 +128,13 @@ func CommandEdited(el js.Value, evs []js.Value) {
 	com := inputSplit[0]
 	args := inputSplit[1:]
 
-	fmt.Println("COM: " + com + "\nARGS: " + strings.Join(args, ", "))
-	WS.Send(CommandSubmitCallback, com, args...)
-	in.AttributeSet("value", "")
+	HTTP.Send(CommandSubmitCallback, com, args...)
+	elIn.AttributeSet("value", "")
 }
 
 func PageConsole() {
-	Token := JS.CacheGet("token")
-	if Token == "" {
-		OnSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
+	if !HTTP.IsMaybeAuthenticated() {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}
@@ -96,8 +144,7 @@ func PageConsole() {
 	consoleOut := HTML.HTML{
 		Tag:        "div",
 		Attributes: map[string]string{"id": "console_out"},
-		Styles:     map[string]string{"height": "0px", "background": "#111", "color": "#f7e163", "border-radius": "10px", "overflow": "scroll"},
-		Inner:      strings.Repeat("<p style='text-align: left; height: 1.5em'>text</p>", 10),
+		Styles:     map[string]string{"height": "0px", "white-space": "pre", "font-family": "Hack", "background": "#111", "color": "#f7e163", "border-radius": "10px", "overflow": "scroll"},
 	}.String()
 
 	consoleIn := HTML.HTML{
@@ -105,15 +152,16 @@ func PageConsole() {
 		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "command ...args"},
 		Styles:     map[string]string{"width": "95%", "margin": "0px 0px -2px -2px", "padding": "3px 2.5%", "border-radius": "10px", "border-color": "#f7e163"},
 		Prefix: HTML.HTML{Tag: "p",
-			Styles: map[string]string{"position": "absolute", "padding": "5px 0px 5px 0.5em", "text-align": "left", "color": "#F55", "font-weight": "bold"},
-			Inner:  ">",
+			Attributes: map[string]string{"id": "console_arrow"},
+			Styles:     map[string]string{"position": "absolute", "padding": "5px 0px 5px 0.5em", "text-align": "left", "color": "#5F5", "font-weight": "bold"},
+			Inner:      ">",
 		}.String(),
 	}.String()
 
 	consoleDiv := HTML.HTML{
 		Tag:        "div",
 		Attributes: map[string]string{"id": "console_div"},
-		Styles:     map[string]string{"width": "95%", "margin": "10px auto", "padding": "2px", "background": "#111", "transistion": "height 1s"},
+		Styles:     map[string]string{"width": "95%", "margin": "10px auto", "padding": "2px", "background": "#111", "transition": "height 1s"},
 		Inner:      consoleOut + consoleIn,
 	}.String()
 
