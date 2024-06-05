@@ -5,29 +5,16 @@ package Pages
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
+	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
-	"HandyGold75/WebKit/WS"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"syscall/js"
 )
 
-type config struct {
-	Server         string
-	RememberSignIn bool
-	Token          string
-}
-
 var (
-	OnSuccessCallback = func() {}
-
-	Config = config{
-		Server:         "https.HandyGold75.com:17500",
-		RememberSignIn: true,
-		Token:          "",
-	}
+	OnLoginSuccessCallback = func() {}
 )
 
 func isAuthenticatedCallback(authErr error) {
@@ -40,7 +27,7 @@ func isAuthenticatedCallback(authErr error) {
 		}
 
 		JS.Alert("You've got timed out for " + strconv.Itoa(retryAfter) + "!")
-		JS.AfterDelay(retryAfter*1000, func() { WS.IsAuthenticated(isAuthenticatedCallback) })
+		JS.AfterDelay(retryAfter*1000, func() { HTTP.IsAuthenticated(isAuthenticatedCallback) })
 		return
 	}
 	if authErr != nil {
@@ -68,8 +55,8 @@ func isAuthenticatedCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	OnSuccessCallback()
-	OnSuccessCallback = func() {}
+	OnLoginSuccessCallback()
+	OnLoginSuccessCallback = func() {}
 }
 
 func authenticateCallback(authErr error) {
@@ -101,19 +88,16 @@ func authenticateCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	OnSuccessCallback()
-	OnSuccessCallback = func() {}
+	OnLoginSuccessCallback()
+	OnLoginSuccessCallback = func() {}
 }
 
 func toggleRemember(el js.Value, evs []js.Value) {
-	*&Config.RememberSignIn = !Config.RememberSignIn
-
-	cfgBytes, err := json.Marshal(&Config)
+	err := HTTP.Config.Set("RememberSignIn", strconv.FormatBool(!HTTP.Config.RememberSignIn))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	JS.CacheSet("Login", string(cfgBytes))
 
 	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
@@ -121,7 +105,7 @@ func toggleRemember(el js.Value, evs []js.Value) {
 		return
 	}
 
-	if Config.RememberSignIn {
+	if HTTP.Config.RememberSignIn {
 		elRem.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
 	} else {
 		elRem.AttributeSet("className", "imgBtn imgBtnSmall")
@@ -172,34 +156,17 @@ func submitLogin(el js.Value, evs []js.Value) {
 	}
 	password := elPsw.AttributeGet("value")
 
-	*&Config.Server = server
-
-	cfgBytes, err := json.Marshal(&Config)
+	err = HTTP.Config.Set("Server", server)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	JS.CacheSet("Login", string(cfgBytes))
 
 	JS.CacheSet("server", server)
-	WS.Authenticate(authenticateCallback, username, password)
+	HTTP.Authenticate(authenticateCallback, username, password)
 }
 
 func PageLogin() {
-	if JS.CacheGet("Login") == "" {
-		cfgBytes, err := json.Marshal(&Config)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		JS.CacheSet("Login", string(cfgBytes))
-	}
-	err := json.Unmarshal([]byte(JS.CacheGet("Login")), &Config)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
 
 	server := HTML.HTML{Tag: "div",
@@ -208,7 +175,7 @@ func PageLogin() {
 			Inner:  "Server",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "placeholder": "Server", "value": Config.Server},
+			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "placeholder": "Server", "value": HTTP.Config.Server},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -285,9 +252,9 @@ func PageLogin() {
 	}
 	elRem.EventAdd("click", toggleRemember)
 
-	if Config.RememberSignIn {
+	if HTTP.Config.RememberSignIn {
 		elRem.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
 	}
 
-	WS.IsAuthenticated(isAuthenticatedCallback)
+	HTTP.IsAuthenticated(isAuthenticatedCallback)
 }
