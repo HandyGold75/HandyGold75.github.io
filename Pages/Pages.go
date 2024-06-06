@@ -16,7 +16,7 @@ import (
 var (
 	AvailablePages           = map[string]func(){}
 	AvailablePagesOrdered    = []string{"Home", "Console", "Contact", "sub:Admin"}
-	AvailableSubPagesOrdered = []string{"Admin:Users", "Admin:Config", "Admin:Monitor"}
+	AvailableSubPagesOrdered = []string{"Admin:Users", "Admin:Config", "Admin:Logs"}
 
 	ErrPages = struct {
 		ErrPagesClosingPage error
@@ -304,13 +304,13 @@ func Init(onDeloadedCallback func()) error {
 
 func ForcePage(page string) {
 	AvailablePages = map[string]func(){
-		"Home":          PageHome,
-		"Console":       PageConsole,
-		"Contact":       PageContact,
-		"Admin:Users":   PageLogin,
-		"Admin:Config":  PageLogin,
-		"Admin:Monitor": PageAdminMonitor,
-		"Login":         PageLogin,
+		"Home":         PageHome,
+		"Console":      PageConsole,
+		"Contact":      PageContact,
+		"Admin:Users":  PageLogin,
+		"Admin:Config": PageLogin,
+		"Admin:Logs":   PageAdminLogs,
+		"Login":        PageLogin,
 	}
 
 	pageEntry, ok := AvailablePages[page]
