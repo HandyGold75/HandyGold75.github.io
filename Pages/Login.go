@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	OnLoginSuccessCallback = func() {}
+	OnLoginSuccessCallback = (func())(nil)
 )
 
 func isAuthenticatedCallback(authErr error) {
@@ -30,7 +30,7 @@ func isAuthenticatedCallback(authErr error) {
 		JS.AfterDelay(retryAfter*1000, func() { HTTP.IsAuthenticated(isAuthenticatedCallback) })
 		return
 	}
-	if authErr != nil {
+	if authErr != nil || !HTTP.Config.RememberSignIn {
 		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
 			fmt.Println(err)
@@ -55,8 +55,13 @@ func isAuthenticatedCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
+	if OnLoginSuccessCallback == nil {
+		JS.Async(func() { ForcePage("Home") })
+		return
+	}
+
 	OnLoginSuccessCallback()
-	OnLoginSuccessCallback = func() {}
+	OnLoginSuccessCallback = nil
 }
 
 func authenticateCallback(authErr error) {
@@ -88,8 +93,13 @@ func authenticateCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
+	if OnLoginSuccessCallback == nil {
+		JS.Async(func() { ForcePage("Home") })
+		return
+	}
+
 	OnLoginSuccessCallback()
-	OnLoginSuccessCallback = func() {}
+	OnLoginSuccessCallback = nil
 }
 
 func toggleRemember(el js.Value, evs []js.Value) {
@@ -175,7 +185,7 @@ func PageLogin() {
 			Inner:  "Server",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "placeholder": "Server", "value": HTTP.Config.Server},
+			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "autocomplete": "url", "placeholder": "Server", "value": HTTP.Config.Server},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -187,7 +197,7 @@ func PageLogin() {
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{
 			Tag:        "input",
-			Attributes: map[string]string{"type": "email", "id": "login_username", "class": "login_inputs", "placeholder": "Username"},
+			Attributes: map[string]string{"type": "email", "id": "login_username", "class": "login_inputs", "autocomplete": "username", "placeholder": "Username"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 
@@ -198,7 +208,7 @@ func PageLogin() {
 			Inner:  "Password",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{Tag: "input",
-			Attributes: map[string]string{"type": "password", "id": "login_password", "class": "login_inputs", "placeholder": "Password"},
+			Attributes: map[string]string{"type": "password", "id": "login_password", "class": "login_inputs", "autocomplete": "current-password", "placeholder": "Password"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
 		}.String()}.String()
 

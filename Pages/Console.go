@@ -27,6 +27,7 @@ func CommandSubmitCallback(res string, err error) {
 		return
 	}
 	elIn.Enable()
+	elIn.El.Call("focus")
 
 	elArrow, errArrow := DOM.GetElement("console_arrow")
 	if errArrow != nil {
@@ -218,4 +219,5 @@ func PageConsole() {
 		return
 	}
 	el.EventAdd("keyup", CommandEdited)
+	el.El.Call("focus")
 }

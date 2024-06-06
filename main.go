@@ -17,6 +17,10 @@ func main() {
 	HTTP.Config.Load()
 	HTTP.UnauthorizedCallback = func() { JS.Async(func() { Pages.ForcePage("Login") }) }
 
+	if !HTTP.Config.RememberSignIn {
+		HTTP.Config.Set("Token", "")
+	}
+
 	Pages.Open(mainPage)
 	<-make(chan bool)
 }
