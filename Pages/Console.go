@@ -20,7 +20,7 @@ var (
 	Token                  = ""
 )
 
-func CommandSubmitCallback(res string, err error) {
+func CommandSubmitCallback(res string, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
 		fmt.Println(errIn)
@@ -36,13 +36,12 @@ func CommandSubmitCallback(res string, err error) {
 	}
 	elArrow.StyleSet("color", "#5F5")
 
-	if err == WebKit.ErrWebKit.HTTPUnauthorized || err == WebKit.ErrWebKit.HTTPNoServerSpecified {
-		fmt.Println("set console page callback")
+	if resErr == WebKit.ErrWebKit.HTTPUnauthorized || resErr == WebKit.ErrWebKit.HTTPNoServerSpecified {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
 		return
-	} else if err != nil {
-		JS.Alert(err.Error())
-		return
+	} else if resErr != nil {
+		fmt.Println(resErr.Error())
+		res = resErr.Error()
 	}
 
 	elOut, errOut := DOM.GetElement("console_out")
