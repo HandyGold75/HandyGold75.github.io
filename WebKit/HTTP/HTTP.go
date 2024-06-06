@@ -47,10 +47,7 @@ var (
 
 func (cfg *config) Load() {
 	if JS.CacheGet("HTTP") == "" {
-		cfgBytes, err := json.Marshal(&Config)
-		if err != nil {
-			cfgBytes, _ = json.Marshal(&defaultConfig)
-		}
+		cfgBytes, _ := json.Marshal(&defaultConfig)
 		JS.CacheSet("HTTP", string(cfgBytes))
 	}
 
