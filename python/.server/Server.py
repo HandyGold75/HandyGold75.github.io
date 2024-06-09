@@ -232,7 +232,7 @@ class server:
                 print(f"\nUnknown command!")
 
     def help(self):
-        return f'Commands: \n    {f"\n    ".join(self.commands)}'
+        return f'Commands: \n    { chr(10) + "    ".join(self.commands)}'
 
     def restart(self):
         self.quit(doExit=False)

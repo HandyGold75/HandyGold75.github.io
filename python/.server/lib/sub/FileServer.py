@@ -166,7 +166,7 @@ class fileServer:
                 self.log(criticality="info", msg=f"Started HTTPS service on {ip}:{port}")
                 break
         else:
-            self.log(criticality="warning", msg=f'Missing doc certificates! Valid locations: \n    {"\n    ".join(self.sslCertPaths)}')
+            self.log(criticality="warning", msg=f'Missing doc certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
             self.log(criticality="info", msg=f"Started HTTP service on {ip}:{port}")
 
         self.httpd.serve_forever()
