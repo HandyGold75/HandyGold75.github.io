@@ -109,7 +109,7 @@ class clientHandler:
                 self.sslCert.load_cert_chain(certfile=f"{path}/fullchain.pem", keyfile=f"{path}/privkey.pem")
                 break
         if self.sslCert is None:
-            self.log(criticality="warning", msg=f'Missing wss certificates! Valid locations: \n    {"\n    ".join(self.sslCertPaths)}')
+            self.log(criticality="warning", msg=f'Missing wss certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
 
     def loadFiles(self):
         from Server import server as rootServer

@@ -80,8 +80,7 @@ class fileManager:
 
     def _verifyAllowed(self, file: str, allowSheets: bool = False, allowConfig: bool = False):
         if not file in [*(self.sheets if allowSheets else []), *(self.configs if allowConfig else [])]:
-            raise SyntaxError(f"File is not allowed, use one of {
-                              (*self.sheets, *self.configs)}")
+            raise SyntaxError(f"File is not allowed, use one of {(*self.sheets, *self.configs)}")
 
         if file in self.sheets:
             if not osPath.exists(f"{self.workFolder}/{file}") or not osPath.isdir(f"{self.workFolder}/{file}"):
@@ -90,8 +89,7 @@ class fileManager:
                     if osPath.isdir(f"{self.workFolder}/{folder}"):
                         folders.append(folder)
 
-                raise SyntaxError(
-                    f"Sheet does not exist, use one of {tuple(folders)}")
+                raise SyntaxError(f"Sheet does not exist, use one of {tuple(folders)}")
 
         elif file in self.configs:
             file = self._findFile(file)
@@ -107,23 +105,19 @@ class fileManager:
 
         if type(index) is int:
             if (not allowUnder and index < 0) or (not allowOver and index > sheetCount - 1):
-                raise SyntaxError(f'Index is formated incorrectly, use "{
-                                  "-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
+                raise SyntaxError(f'Index is formated incorrectly, use "{"-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
 
         elif type(index) is str and allowStr:
             if index.count(":") != 1:
-                raise SyntaxError(f'Index is formated incorrectly, use "{
-                                  "-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
+                raise SyntaxError(f'Index is formated incorrectly, use "{"-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
 
             index1 = int(index.split(":")[0])
             index2 = int(index.split(":")[-1])
             if index1 > index2 or (not allowUnder and index1 < 0) or (not allowOver and index2 > sheetCount - 1):
-                raise SyntaxError(f'Index is formated incorrectly, use "{
-                                  "-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
+                raise SyntaxError(f'Index is formated incorrectly, use "{"-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
 
         else:
-            raise SyntaxError(f'Index is formated incorrectly, use "{
-                              "-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
+            raise SyntaxError(f'Index is formated incorrectly, use "{"-" if allowUnder else ""}0:{sheetCount - 1}{"+" if allowOver else ""}"')
 
     def _verifyData(self, healtyData: tuple | list | dict, data: tuple | list):
         if len(healtyData) > len(data):
@@ -139,8 +133,7 @@ class fileManager:
                 if not key in data:
                     raise KeyError(f"Missing key {key}!")
                 if not type(data[key]) is type(healtyData[key] and not (type(healtyData[key]) is bytes and type(data[key]) is str)):
-                    raise TypeError(f"Type mismatch for key {
-                                    key} ({type(data[key])} != {type(healtyData[key])})!")
+                    raise TypeError(f"Type mismatch for key {key} ({type(data[key])} != {type(healtyData[key])})!")
 
                 if type(healtyData[key]) is dict:
                     data[key] = self._verifyData(healtyData[key], data[key])
@@ -154,8 +147,7 @@ class fileManager:
                 data[i] = datetime.now().timestamp()
 
             if not type(data[i]) is stype and not (stype is bytes and type(data[i]) is str):
-                raise TypeError(f"Type mismatch for key {
-                                skey} ({type(data[i])} != {stype})!")
+                raise TypeError(f"Type mismatch for key {skey} ({type(data[i])} != {stype})!")
 
         return data
 
@@ -217,11 +209,9 @@ class fileManager:
 
             file = listdir(f"{self.workFolder}/{sheet}/{folder}")
             if len(file) > 1:
-                raise FileExistsError(f"Record with index {
-                                      folder} contains multible records!")
+                raise FileExistsError(f"Record with index {folder} contains multible records!")
             elif len(file) == 0:
-                raise FileNotFoundError(f"Record with index {
-                                        folder} contains no records!")
+                raise FileNotFoundError(f"Record with index {folder} contains no records!")
             file = file[0]
 
             if not osPath.isfile(f"{self.workFolder}/{sheet}/{folder}/{file}"):
@@ -261,13 +251,11 @@ class fileManager:
         if not osPath.exists(f"{self.workFolder}/{sheet}/{index}"):
             makedirs(f"{self.workFolder}/{sheet}/{index}")
         elif preventOverwrite:
-            raise FileExistsError(
-                f"Sheet already has an record at index {index}!")
+            raise FileExistsError(f"Sheet already has an record at index {index}!")
 
         file = listdir(f"{self.workFolder}/{sheet}/{index}")
         if len(file) > 1:
-            raise FileExistsError(f"Record with index {
-                                  index} contains multible records!")
+            raise FileExistsError(f"Record with index {index} contains multible records!")
         elif len(file) == 1:
             remove(f"{self.workFolder}/{sheet}/{index}/{file[0]}")
 
@@ -375,16 +363,13 @@ class fileManager:
         self._verfiyIndex(sheet, index2, allowStr=False, allowOver=True)
 
         if osPath.exists(f"{self.workFolder}/{sheet}/{index2}"):
-            raise FileExistsError(
-                f"Sheet already has an record at index {index2}!")
+            raise FileExistsError(f"Sheet already has an record at index {index2}!")
 
         file1 = listdir(f"{self.workFolder}/{sheet}/{index1}")
         if len(file1) > 1:
-            raise FileExistsError(f"Record with index {
-                                  index1} contains multible records!")
+            raise FileExistsError(f"Record with index {index1} contains multible records!")
         elif len(file1) == 0:
-            raise FileNotFoundError(f"Record with index {
-                                    index1} contains no records!")
+            raise FileNotFoundError(f"Record with index {index1} contains no records!")
         file1 = file1[0]
 
         makedirs(f"{self.workFolder}/{sheet}/{index2}")
@@ -399,20 +384,16 @@ class fileManager:
 
         file1 = listdir(f"{self.workFolder}/{sheet}/{index1}")
         if len(file1) > 1:
-            raise FileExistsError(f"Record with index {
-                                  index1} contains multible records!")
+            raise FileExistsError(f"Record with index {index1} contains multible records!")
         elif len(file1) == 0:
-            raise FileNotFoundError(f"Record with index {
-                                    index1} contains no records!")
+            raise FileNotFoundError(f"Record with index {index1} contains no records!")
         file1 = file1[0]
 
         file2 = listdir(f"{self.workFolder}/{sheet}/{index2}")
         if len(file2) > 1:
-            raise FileExistsError(f"Record with index {
-                                  index2} contains multible records!")
+            raise FileExistsError(f"Record with index {index2} contains multible records!")
         elif len(file2) == 0:
-            raise FileNotFoundError(f"Record with index {
-                                    index2} contains no records!")
+            raise FileNotFoundError(f"Record with index {index2} contains no records!")
         file2 = file2[0]
 
         move(f"{self.workFolder}/{sheet}/{index1}/{file1}",
@@ -447,8 +428,7 @@ class fileManager:
     def read(self, sheet: str, index: int | None = None):
         if sheet in self.configs:
             if not index is None:
-                raise TypeError(
-                    "unsupported positional argument for configs: 'index'")
+                raise TypeError("unsupported positional argument for configs: 'index'")
             return {sheet: self._sanatizeData(self._readcfg(sheet))}
 
         return {sheet: self._read(sheet, self._tryInt(index))}
