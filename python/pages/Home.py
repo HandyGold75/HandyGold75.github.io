@@ -8,10 +8,11 @@ class home(Page):
         self.onLayout = self.doOnLayout
 
     def doOnLayout(self):
-        header = HTML.genElement("h1", nest="Page content for home.", style="headerMain")
 
-        body = ""
-        for txt in ("filler", "extra", "more"):
-            body += HTML.genElement("p", nest=f"Some {txt} text.", style="textBig")
+
+        header = HTML.genElement("h1", nest="Home", style="headerMain")
+
+        link = HTML.linkWrap("../", nest="../")
+        body = HTML.genElement("p", nest=f"Moving towards GO WASM instead of Python WASM.\n\nFor reasons...\n\nNew site is available at {link}", style="textMedium")
 
         HTML.setElementRaw("subPage", header + body)
