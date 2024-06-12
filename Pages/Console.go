@@ -20,7 +20,7 @@ var (
 	Token                  = ""
 )
 
-func CommandSubmitCallback(res string, resErr error) {
+func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
 		fmt.Println(errIn)
@@ -42,6 +42,8 @@ func CommandSubmitCallback(res string, resErr error) {
 	} else if resErr != nil {
 		fmt.Println(resErr.Error())
 		res = resErr.Error()
+	} else if res == "" && len(resBytes) > 0 {
+		res = string(resBytes)
 	}
 
 	elOut, errOut := DOM.GetElement("console_out")

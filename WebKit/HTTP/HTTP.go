@@ -188,15 +188,17 @@ func Authenticate(callback func(error), username string, password string) {
 	go authenticate(callback, username, password)
 }
 
-func send(callback func(string, error), com string, args ...string) {
+// Returns string in case response is type text/*
+// Returns []byte in case response is type application/json
+func send(callback func(string, []byte, error), com string, args ...string) {
 	if Config.Token == "" {
-		callback("", WebKit.ErrWebKit.HTTPUnauthorized)
+		callback("", []byte{}, WebKit.ErrWebKit.HTTPUnauthorized)
 		UnauthorizedCallback()
 		return
 	}
 	if Config.Server == "" {
 		Config.Set("token", "")
-		callback("", WebKit.ErrWebKit.HTTPNoServerSpecified)
+		callback("", []byte{}, WebKit.ErrWebKit.HTTPNoServerSpecified)
 		UnauthorizedCallback()
 		return
 	}
@@ -206,7 +208,7 @@ func send(callback func(string, error), com string, args ...string) {
 		"args": []string{strings.Join(args, "%20")},
 	}.Encode()))
 	if err != nil {
-		callback("", err)
+		callback("", []byte{}, err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -214,13 +216,13 @@ func send(callback func(string, error), com string, args ...string) {
 
 	res, err := (&http.Client{Transport: transportRules}).Do(req)
 	if err != nil {
-		callback("", err)
+		callback("", []byte{}, err)
 		return
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		callback("", errors.New(strconv.Itoa(res.StatusCode)+": "+res.Header.Get("x-error")))
+		callback("", []byte{}, errors.New(strconv.Itoa(res.StatusCode)+": "+res.Header.Get("x-error")))
 
 		if res.StatusCode == http.StatusUnauthorized {
 			Config.Set("token", "")
@@ -231,30 +233,34 @@ func send(callback func(string, error), com string, args ...string) {
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		callback("", err)
+		callback("", []byte{}, err)
 		return
 	}
 
 	bodyType := res.Header.Get("Content-Type")
 	if strings.HasPrefix(bodyType, "text/") {
-		callback(string(body), nil)
+		callback(string(body), []byte{}, nil)
+		return
+
+	} else if strings.HasPrefix(bodyType, "application/json") {
+		callback("", body, nil)
 		return
 
 	} else if strings.HasPrefix(bodyType, "video/") {
 		if err := downloadToFile(strings.Replace(bodyType, "video/", "", 1), &body); err != nil {
-			callback("", err)
+			callback("", []byte{}, err)
 			return
 		}
 
-		callback("downloaded: "+strings.Replace(bodyType, "video/", "", 1), nil)
+		callback("downloaded: "+strings.Replace(bodyType, "video/", "", 1), []byte{}, nil)
 		return
 
 	}
 
-	callback("", WebKit.ErrWebKit.HTTPUnexpectedResponse)
+	callback("", []byte{}, WebKit.ErrWebKit.HTTPUnexpectedResponse)
 	return
 }
 
-func Send(callback func(string, error), com string, args ...string) {
+func Send(callback func(string, []byte, error), com string, args ...string) {
 	go send(callback, com, args...)
 }

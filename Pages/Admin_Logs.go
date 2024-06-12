@@ -11,7 +11,7 @@ import (
 	"fmt"
 )
 
-func LogListCallback(res string, resErr error) {
+func LogListCallback(res string, resBytes []byte, resErr error) {
 	if resErr == WebKit.ErrWebKit.HTTPUnauthorized || resErr == WebKit.ErrWebKit.HTTPNoServerSpecified {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
 		return
