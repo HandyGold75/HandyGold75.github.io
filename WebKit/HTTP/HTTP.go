@@ -231,6 +231,11 @@ func send(callback func(string, []byte, error), com string, args ...string) {
 		return
 	}
 
+	if res.StatusCode == http.StatusAccepted {
+		callback("", []byte{}, WebKit.ErrWebKit.HTTPAccepted)
+		return
+	}
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		callback("", []byte{}, err)
