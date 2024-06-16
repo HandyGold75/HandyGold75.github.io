@@ -74,6 +74,10 @@ func CacheClear() {
 	js.Global().Get("window").Get("localStorage").Call("clear")
 }
 
+func ScrollToTop() {
+	js.Global().Get("window").Call("scrollTo", 0, 0)
+}
+
 func Title(title string) {
 	js.Global().Get("document").Set("title", title)
 }
