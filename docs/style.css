@@ -102,25 +102,49 @@ button {
   margin: 4px 2px;
   max-height: 100%;
   max-width: 100%;
+  color: #bff;
   outline: none;
   text-align: center;
   word-wrap: break-word;
   z-index: 100;
 
+  transition:
+    max-width 0.25s,
+    max-height 0.25s,
+    opacity 0.25s;
+
+  &:hover:enabled,
+  &.active {
+    transition:
+      margin 0.25s,
+      padding 0.25s,
+      color 0.25s,
+      background 0.25s,
+      border 0.25s;
+  }
+
+  &.active:hover:enabled {
+    transition:
+      margin 0.1s,
+      padding 0.1s,
+      color 0.1s,
+      background 0.1s,
+      border 0.1s;
+  }
+
+  &:disabled {
+    background: #222 !important;
+    color: #88b !important;
+  }
+
   &.dark {
     background: #333;
     border: 2px solid #55f;
-    color: #bff;
 
     &:hover:enabled,
     &.active {
-      background: #444;
       color: #fff;
-      transition:
-        margin 0.25s,
-        padding 0.25s,
-        color 0.25s,
-        background 0.25s;
+      background: #444;
       z-index: 101;
     }
 
@@ -128,34 +152,18 @@ button {
     &.active:hover:enabled {
       background: #bbf;
       color: #55f;
-      transition:
-        margin 0.1s,
-        padding 0.1s,
-        color 0.1s,
-        background 0.1s;
       z-index: 102;
-    }
-
-    &:disabled {
-      background: #222;
-      color: #88b;
     }
   }
 
   &.light {
     background: #44f;
     border: 2px solid #222;
-    color: #bff;
 
     &:hover:enabled,
     &.active {
-      background: #66f;
       color: #fff;
-      transition:
-        margin 0.25s,
-        padding 0.25s,
-        color 0.25s,
-        background 0.25s;
+      background: #66f;
       z-index: 101;
     }
 
@@ -163,11 +171,6 @@ button {
     &.active:hover:enabled {
       background: #bbf;
       color: #55f;
-      transition:
-        margin 0.1s,
-        padding 0.1s,
-        color 0.1s,
-        background 0.1s;
       z-index: 102;
     }
 
@@ -234,20 +237,13 @@ button {
   &.imgBtn {
     background: transparent;
     border: 3px solid #222;
-    color: #bff;
     margin: 4px;
 
     &:hover:enabled,
     &.active {
+      color: #fff;
       background: #444;
       border: 3px solid #fbdf56;
-      color: #fff;
-      transition:
-        margin 0.25s,
-        padding 0.25s,
-        color 0.25s,
-        border 0.25s,
-        background 0.25s;
       z-index: 101;
 
       > img {
@@ -263,12 +259,6 @@ button {
       background: #dbbf36;
       border: 3px solid #fbdf56;
       color: #fbdf56;
-      transition:
-        margin 0.1s,
-        padding 0.1s,
-        color 0.1s,
-        border 0.1s,
-        background 0.1s;
       z-index: 102;
 
       > img {
@@ -279,16 +269,14 @@ button {
       }
     }
 
-    &:disabled {
-      background: #222;
-      color: #88b;
-    }
-
     > img {
       margin: 0px 0px -7.75px 0px;
       max-height: 100%;
       max-width: 100%;
       user-select: none;
+      transition:
+        max-width 0.25s,
+        max-height 0.25s;
     }
     &.imgBtnBorder {
       background: #333;
@@ -402,7 +390,9 @@ button {
   }
 }
 
-input {
+input,
+select {
+  z-index: 110;
   background: #333;
   border: 2px solid #55f;
   border-radius: 10px;
@@ -411,75 +401,31 @@ input {
   margin: 5px;
   outline: none;
   padding: 3px 6px;
-  z-index: 110;
-
-  &:hover,
-  &:focus {
-    background: #444;
-    color: #fff;
-    transition:
-      color 0.25s,
-      background 0.25s;
-    z-index: 111;
-  }
-
-  &:focus {
-    background: #444;
-    color: #fff;
-    transition:
-      color 0.1s,
-      background 0.1s;
-    z-index: 112;
-  }
-
-  &:disabled {
-    background: #222;
-    color: #88b;
-  }
-}
-
-select {
-  background: #333;
-  border: 2px solid #55f;
-  border-radius: 10px;
-  color: #bff;
-  font-size: 100%;
-  margin: 5px;
-  outline: none;
+  box-sizing: content-box;
   overflow-y: hidden;
-  padding: 0px;
   scrollbar-width: none;
-  z-index: 120;
 
   &:hover,
   &:focus {
+    z-index: 111;
     background: #444;
     color: #fff;
-    margin-bottom: -100px;
-    min-height: 100px;
     overflow-y: scroll;
     scrollbar-width: auto;
     transition:
-      margin-bottom 0.25s,
-      min-height 0.25s,
       color 0.25s,
       background 0.25s;
-    z-index: 121;
   }
 
   &:focus {
+    z-index: 112;
     background: #444;
     color: #fff;
-    margin-bottom: -100px;
-    min-height: 100px;
     overflow-y: scroll;
     scrollbar-width: auto;
     transition:
-      margin-bottom 0.1s,
-      min-height 0.1s,
       color 0.1s,
       background 0.1s;
-    z-index: 122;
   }
 
   &:disabled {

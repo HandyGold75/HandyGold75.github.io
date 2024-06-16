@@ -120,10 +120,10 @@ func InitDocker() error {
 
 	items := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "docker_showhide", "class": "imgBtn imgBtnBorder imgBtnSmall"},
-		Styles:     map[string]string{"max-width": "250px", "transition": "max-width 0.25s"},
+		Styles:     map[string]string{"max-width": "250px"},
 		Inner: HTML.HTML{Tag: "img",
 			Attributes: map[string]string{"id": "docker_showhide_img", "src": "./docs/assets/General/Hide-H.svg", "alt": "Fold"},
-			Styles:     map[string]string{"max-width": "250px", "transition": "max-width 0.25s"},
+			Styles:     map[string]string{"max-width": "250px"},
 		}.String(),
 	}.String()
 
@@ -139,7 +139,7 @@ func InitDocker() error {
 				if strings.Replace(page, "sub:", "", 1) == strings.Split(subPage, ":")[0] {
 					subPages += HTML.HTML{Tag: "button",
 						Attributes: map[string]string{"id": "page_" + subPage, "class": "dark large docker_buttons"},
-						Styles:     map[string]string{"opacity": "1", "transition": "opacity 0.25s"},
+						Styles:     map[string]string{"opacity": "1"},
 						Inner:      strings.Split(subPage, ":")[1],
 					}.String()
 				}
@@ -165,7 +165,7 @@ func InitDocker() error {
 
 		items += HTML.HTML{Tag: "button",
 			Attributes: map[string]string{"id": "page_" + page, "class": "dark large docker_buttons"},
-			Styles:     map[string]string{"opacity": "1", "transition": "opacity 0.25s"},
+			Styles:     map[string]string{"opacity": "1"},
 			Inner:      page,
 		}.String()
 	}
@@ -237,11 +237,7 @@ func InitFooter() error {
 	if err != nil {
 		return err
 	}
-	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		if body, err := DOM.GetElement("body"); err != nil {
-			body.Call("scrollIntoView")
-		}
-	})
+	el.EventAdd("click", func(el js.Value, evs []js.Value) { JS.ScrollToTop() })
 
 	els, err := DOM.GetElement("footer_clearcache")
 	if err != nil {
@@ -307,7 +303,7 @@ func ForcePage(page string) {
 		"Home":         PageHome,
 		"Console":      PageConsole,
 		"Contact":      PageContact,
-		"Admin:Users":  PageLogin,
+		"Admin:Users":  PageAdminUsers,
 		"Admin:Config": PageLogin,
 		"Admin:Logs":   PageAdminLogs,
 		"Login":        PageLogin,

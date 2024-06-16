@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Created using Krita: https://krita.org -->
+<svg xmlns="http://www.w3.org/2000/svg" 
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:krita="http://krita.org/namespaces/svg/krita"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    width="122.88pt"
+    height="122.88pt"
+    viewBox="0 0 122.88 122.88">
+<defs/>
+<path id="shape0" transform="matrix(1.00000008940696 0 0 1.00000008940696 38.4000034332277 92.4012578991615)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M0 0L46.08 0" sodipodi:nodetypes="cc"/><path id="shape1" transform="matrix(1.00000008940696 0 0 1.00000008940696 92.1600082397466 76.8000068664554)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M23.04 0L23.04 15.36C23.04 30.72 15.36 38.4 0 38.4" sodipodi:nodetypes="ccc"/><path id="shape2" transform="matrix(1.00000008940696 0 0 1.00000008940696 7.68000068664554 76.8000068664554)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M0 0L0 15.36C0 30.72 7.68 38.4 23.04 38.4C38.4 38.4 53.76 38.4 69.12 38.4" sodipodi:nodetypes="cczc"/><path id="shape3" transform="matrix(1.00000008940696 0 0 1.00000008940696 61.4400054931643 7.63675389015617)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M0 68.9005L0 0" sodipodi:nodetypes="cc"/><path id="shape4" transform="matrix(1.00000008940696 0 0 1.00000008940696 61.4400054931643 46.0800041198733)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M0 30.4572L23.04 0" sodipodi:nodetypes="cc"/><path id="shape5" transform="matrix(1.00000008940696 0 0 1.00000008940696 38.4000034332277 46.0800041198733)" fill="none" stroke="#f7e163" stroke-width="7.68" stroke-linecap="round" stroke-linejoin="round" d="M23.04 30.6269L0 0" sodipodi:nodetypes="cc"/>
+</svg>
