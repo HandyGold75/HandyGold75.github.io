@@ -10,15 +10,11 @@ import (
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall/js"
 	"time"
-)
-
-var (
-	allLogs     = map[string][]string{}
-	selectedLog = ""
 )
 
 func LogListCallback(res string, resBytes []byte, resErr error) {
@@ -36,8 +32,6 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 		fmt.Println(err)
 		return
 	}
-
-	allLogs = logs
 
 	logTypes := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for k := range logs {
@@ -63,16 +57,15 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(logs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		selectedLog = el.Get("innerHTML").String()
-
-		logs, ok := allLogs[selectedLog]
+		selectedLog := el.Get("innerHTML").String()
+		log, ok := logs[selectedLog]
 		if !ok {
 			fmt.Println(err)
 			return
 		}
 
 		logDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
-		for _, v := range logs {
+		for _, v := range log {
 			logDates += HTML.HTML{Tag: "button",
 				Attributes: map[string]string{"class": "dark small logs_types_dates"},
 				Inner:      v,
@@ -109,7 +102,9 @@ func getLogCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	rows := ""
-	for _, line := range strings.Split(strings.Join(log, ""), "<EOR>\n") {
+	lines := strings.Split(strings.Join(log, ""), "<EOR>\n")
+	slices.Reverse(lines)
+	for _, line := range lines {
 		if len(line) <= 0 {
 			continue
 		}
