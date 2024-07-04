@@ -106,6 +106,7 @@ button {
   outline: none;
   text-align: center;
   word-wrap: break-word;
+  overflow: hidden;
   z-index: 100;
 
   transition:
