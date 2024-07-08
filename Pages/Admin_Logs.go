@@ -210,80 +210,6 @@ func showLogContent(lines []string) {
 	JS.AfterDelay((len(lines)-1)*5, func() { isBusy = false })
 }
 
-func getLogCallbackOld(res string, resBytes []byte, resErr error) {
-	log := []string{}
-	err := json.Unmarshal(resBytes, &log)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	rows := ""
-	lines := strings.Split(strings.Join(log, ""), "<EOR>\n")
-	slices.Reverse(lines)
-	for _, line := range lines {
-		if len(line) <= 0 {
-			continue
-		}
-
-		cols := ""
-		lineSplit := strings.Split(line, "<SEP>")
-		for i, col := range lineSplit {
-			if i == 0 {
-				t, err := time.Parse(time.RFC3339Nano, col)
-				if err == nil {
-					col = t.Format(time.DateTime)
-				}
-			}
-
-			if i == len(lineSplit)-1 {
-				cols += HTML.HTML{Tag: "p",
-					Styles: map[string]string{
-						"scrollbar-width": "thin",
-						"scrollbar-color": "transparent transparent",
-						"overflow":        "scroll",
-					},
-					Inner: col,
-				}.String()
-
-				continue
-			}
-
-			cols += HTML.HTML{Tag: "p",
-				Styles: map[string]string{
-					"min-width":       "10%",
-					"border-right":    "2px dashed #151515",
-					"border-radius":   "0px",
-					"scrollbar-width": "thin",
-					"scrollbar-color": "transparent transparent",
-					"overflow":        "scroll",
-				},
-				Inner: col,
-			}.String()
-		}
-
-		rows += HTML.HTML{Tag: "div",
-			Styles: map[string]string{
-				"display":       "flex",
-				"padding":       "0px",
-				"margin-bottom": "-2px",
-				"background":    "#202020",
-				"border":        "2px solid #151515",
-				"border-radius": "0px",
-				"font-size":     "75%",
-			},
-			Inner: cols,
-		}.String()
-	}
-
-	el, err := DOM.GetElement("logs_out")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	el.InnerSet(rows)
-}
-
 func PageAdminLogs() {
 	if !HTTP.IsMaybeAuthenticated() {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
@@ -301,7 +227,8 @@ func PageAdminLogs() {
 			"border-left":   "2px solid #111",
 			"border-right":  "2px solid #111",
 			"border-top":    "2px solid #111",
-			"border-radius": "10px 10px 0px 0px"},
+			"border-radius": "10px 10px 0px 0px",
+		},
 	}.String()
 
 	dates := HTML.HTML{Tag: "div",
@@ -314,7 +241,8 @@ func PageAdminLogs() {
 			"border-right":  "2px solid #111",
 			"border-bottom": "2px solid #111",
 			"border-radius": "0px 0px 10px 10px",
-			"transition":    "max-height 0.25s"},
+			"transition":    "max-height 0.25s",
+		},
 	}.String()
 
 	out := HTML.HTML{Tag: "div",
