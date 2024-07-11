@@ -3,7 +3,6 @@
 package Pages
 
 import (
-	"HandyGold75/WebKit"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
@@ -23,7 +22,7 @@ var (
 )
 
 func LogListCallback(res string, resBytes []byte, resErr error) {
-	if resErr == WebKit.ErrWebKit.HTTPUnauthorized || resErr == WebKit.ErrWebKit.HTTPNoServerSpecified {
+	if HTTP.IsAuthError(resErr) {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
 		return
 	} else if resErr != nil {
@@ -122,6 +121,14 @@ func showLogDates(selected string) {
 }
 
 func getLogCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		return
+	} else if resErr != nil {
+		JS.Alert(resErr.Error())
+		return
+	}
+
 	log := []string{}
 	err := json.Unmarshal(resBytes, &log)
 	if err != nil {

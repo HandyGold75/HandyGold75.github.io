@@ -3,7 +3,6 @@
 package Pages
 
 import (
-	"HandyGold75/WebKit"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
@@ -36,7 +35,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 	}
 	elArrow.StyleSet("color", "#5F5")
 
-	if resErr == WebKit.ErrWebKit.HTTPUnauthorized || resErr == WebKit.ErrWebKit.HTTPNoServerSpecified {
+	if HTTP.IsAuthError(resErr) {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
 		return
 	} else if resErr != nil {
