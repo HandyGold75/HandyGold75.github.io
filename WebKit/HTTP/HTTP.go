@@ -188,6 +188,19 @@ func Authenticate(callback func(error), username string, password string) {
 	go authenticate(callback, username, password)
 }
 
+func deauthenticate(callback func(error), username string, password string) {
+	Config.Set("token", "")
+
+	callback(WebKit.ErrWebKit.HTTPUnexpectedResponse)
+}
+
+func IsAuthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return err == WebKit.ErrWebKit.HTTPUnauthorized || err == WebKit.ErrWebKit.HTTPNoServerSpecified || strings.HasPrefix(err.Error(), "401:")
+}
+
 // Returns string in case response is type text/*
 // Returns []byte in case response is type application/json
 func send(callback func(string, []byte, error), com string, args ...string) {
