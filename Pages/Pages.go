@@ -221,6 +221,7 @@ func InitFooter() error {
 	txt := HTML.HTML{Tag: "p", Styles: map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"}, Attributes: map[string]string{"class": "light"}, Inner: "HandyGold75 - 2022 / 2024"}.String()
 
 	btnBackToTop := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_backtotop", "class": "small light"}, Inner: "Back to top"}.String()
+	btnLogout := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_logout", "class": "small light"}, Inner: "Logout"}.String()
 	btnClearCache := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"}, Inner: "Clear cache"}.String()
 
 	body.InnerAddSurfix(HTML.HTML{Tag: "div",
@@ -230,7 +231,7 @@ func InitFooter() error {
 			"padding":    "0px 10px",
 		},
 		Attributes: map[string]string{"id": "footer", "class": "light"},
-		Inner:      txt + btnBackToTop + btnClearCache,
+		Inner:      txt + btnBackToTop + btnLogout + btnClearCache,
 	}.String())
 
 	el, err := DOM.GetElement("footer_backtotop")
@@ -238,6 +239,15 @@ func InitFooter() error {
 		return err
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) { JS.ScrollToTop() })
+
+	el, err = DOM.GetElement("footer_logout")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("click", func(el js.Value, evs []js.Value) {
+		HTTP.Config.Set("token", "")
+		HTTP.UnauthorizedCallback()
+	})
 
 	els, err := DOM.GetElement("footer_clearcache")
 	if err != nil {

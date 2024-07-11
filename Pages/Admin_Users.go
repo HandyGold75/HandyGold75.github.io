@@ -3,7 +3,6 @@
 package Pages
 
 import (
-	"HandyGold75/WebKit"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
@@ -33,31 +32,85 @@ var (
 )
 
 func createUserCallback(res string, resBytes []byte, resErr error) {
-	// TODO
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	}
 
-	elsInp, err := DOM.GetElements("users_inputs")
+	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	elsInp.Enables()
+	username := elUsername.AttributeGet("value")
 
-	elsSub, err := DOM.GetElements("users_submitnew")
+	elPassword, err := DOM.GetElement("users_password")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	elsSub.Enables()
+	password := elPassword.AttributeGet("value")
 
-	JS.AfterDelay(3000, func() { elsSub.StylesSet("border", "2px solid #55F") })
+	els, err := DOM.GetElements("users_inputs")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	els.Enables()
+
+	elSub, err := DOM.GetElement("users_submitnew")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	elSub.Enable()
+
+	JS.AfterDelay(3000, func() { elSub.StyleSet("border", "2px solid #55F") })
 	if resErr != nil {
-		elsSub.StylesSet("border", "2px solid #F55")
-		fmt.Println(resErr.Error())
+		JS.Alert(resErr.Error())
+		elSub.StyleSet("border", "2px solid #F55")
 		return
 	} else {
-		elsSub.StylesSet("border", "2px solid #5F5")
+		elSub.StyleSet("border", "2px solid #5F5")
 	}
 
+	elList, err := DOM.GetElement("users_list")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	userHash := HTTP.Sha1(username + HTTP.Sha512(password))
+
+	elList.InnerAddPrefix(HTML.HTML{Tag: "button",
+		Attributes: map[string]string{"id": "users_list_buttons_" + userHash, "class": "dark small users_list_buttons"},
+		Styles:     map[string]string{"white-space": "pre", "overflow-x": "scroll"},
+		Inner:      userHash,
+	}.String())
+
+	elBtn, err := DOM.GetElement("users_list_buttons_" + userHash)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	elBtn.EventAdd("click", func(el js.Value, evs []js.Value) {
+		elOut, err := DOM.GetElement("users_out")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		delay := 0
+		if elOut.StyleGet("max-height") != "0px" {
+			elOut.StyleSet("max-height", "0px")
+			delay = 250
+		}
+
+		JS.AfterDelay(delay, func() {
+			HTTP.Send(getUserCallback, "users", "get", el.Get("innerHTML").String())
+		})
+	})
 }
 
 func createUser(el js.Value, els []js.Value) {
@@ -103,10 +156,15 @@ func createUser(el js.Value, els []js.Value) {
 	}
 	roles := elRoles.AttributeGet("value")
 
-	HTTP.Send(userListCallback, "users", "create", username, password, authlevel, roles)
+	HTTP.Send(createUserCallback, "users", "create", username, password, authlevel, roles)
 }
 
 func modifyUserCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	}
+
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
 		fmt.Println(err)
@@ -123,8 +181,8 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 	JS.AfterDelay(3000, func() { elsSub.StylesSet("border", "2px solid #55F") })
 	if resErr != nil {
+		JS.Alert(resErr.Error())
 		elsSub.StylesSet("border", "2px solid #F55")
-		fmt.Println(resErr.Error())
 		return
 	} else {
 		elsSub.StylesSet("border", "2px solid #5F5")
@@ -216,7 +274,12 @@ func modifyUser(el js.Value, evs []js.Value) {
 }
 
 func deletedUserCallback(res string, resBytes []byte, resErr error) {
-	if resErr != nil {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	} else if resErr != nil {
+		JS.Alert(resErr.Error())
+
 		elsInp, err := DOM.GetElements("users_inputs")
 		if err != nil {
 			fmt.Println(err)
@@ -310,6 +373,11 @@ func deleteUser(el js.Value, els []js.Value) {
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	}
+
 	el, err := DOM.GetElement("users_deauth")
 	if err != nil {
 		fmt.Println(err)
@@ -317,6 +385,7 @@ func deauthUserCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if resErr != nil {
+		JS.Alert(resErr.Error())
 		el.StyleSet("border", "2px solid #F55")
 	} else {
 		el.StyleSet("border", "2px solid #5F5")
@@ -338,7 +407,7 @@ func deauthUser(el js.Value, els []js.Value) {
 }
 
 func userListCallback(res string, resBytes []byte, resErr error) {
-	if resErr == WebKit.ErrWebKit.HTTPUnauthorized || resErr == WebKit.ErrWebKit.HTTPNoServerSpecified {
+	if HTTP.IsAuthError(resErr) {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
 		return
 	} else if resErr != nil {
@@ -422,6 +491,14 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 }
 
 func getUserCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	} else if resErr != nil {
+		JS.Alert(resErr.Error())
+		return
+	}
+
 	user := User{}
 	err := json.Unmarshal(resBytes, &user)
 	if err != nil {
