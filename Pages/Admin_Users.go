@@ -19,6 +19,7 @@ type (
 		Password  string   `json:"Password"`
 		AuthLevel int      `json:"AuthLevel"`
 		Roles     []string `json:"Roles"`
+		Enabled   bool     `json:"Enabled"`
 	}
 )
 
@@ -156,7 +157,17 @@ func createUser(el js.Value, els []js.Value) {
 	}
 	roles := elRoles.AttributeGet("value")
 
-	HTTP.Send(createUserCallback, "users", "create", username, password, authlevel, roles)
+	elBtn, err := DOM.GetElement("users_enabled_img")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	state := "1"
+	if elBtn.AttributeGet("alt") == "Disabled" {
+		state = "0"
+	}
+
+	HTTP.Send(createUserCallback, "users", "create", username, password, authlevel, roles, state)
 }
 
 func modifyUserCallback(res string, resBytes []byte, resErr error) {
@@ -270,6 +281,7 @@ func modifyUser(el js.Value, evs []js.Value) {
 
 	elInp.Disable()
 	elSub.Disable()
+
 	HTTP.Send(modifyUserCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), key, value)
 }
 
@@ -370,6 +382,34 @@ func deleteUser(el js.Value, els []js.Value) {
 	elDea.Disable()
 
 	HTTP.Send(deletedUserCallback, "users", "delete", HTTP.Sha1(selectedUser.Username+selectedUser.Password))
+}
+
+func toggleEnabledCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		return
+	} else if resErr != nil {
+		JS.Alert(resErr.Error())
+	}
+}
+
+func toggleEnabled(el js.Value, els []js.Value) {
+	elBtn, err := DOM.GetElement("users_enabled_img")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	state := "Disabled"
+	stateCode := "0"
+	if elBtn.AttributeGet("alt") == "Disabled" {
+		state = "Enabled"
+		stateCode = "1"
+	}
+
+	elBtn.AttributeSet("alt", state)
+	elBtn.AttributeSet("src", "./docs/assets/Admin/Users/"+state+".svg")
+
+	HTTP.Send(modifyUserCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
@@ -549,15 +589,26 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 
 	roles := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Roles", "text", "", strings.Join(user.Roles, ", ")), "")}.String()
 
-	spacer := HTML.HTML{Tag: "div"}.String()
+	state := "Disabled"
+	if user.Enabled {
+		state = "Enabled"
+	}
+	enabledBtn := HTML.HTML{
+		Tag:        "button",
+		Attributes: map[string]string{"id": "users_enabled", "class": "imgBtn imgBtnMedium"},
+		Inner:      HTML.HTML{Tag: "img", Attributes: map[string]string{"id": "users_enabled_img", "src": "./docs/assets/Admin/Users/" + state + ".svg", "alt": state}}.String(),
+	}.String()
+
 	trashBtn := HTML.HTML{
 		Tag:        "button",
 		Attributes: map[string]string{"id": "users_delete", "class": "imgBtn imgBtnMedium"},
 		Inner:      HTML.HTML{Tag: "img", Attributes: map[string]string{"id": "users_delete_img", "src": "./docs/assets/General/Trash.svg", "alt": "delete"}}.String(),
 	}.String()
+
 	deauthBtn := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "users_deauth", "class": "dark large"}, Inner: "Deauth"}.String()
 
-	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "10% 35% 10% 35% 10%"}, Inner: spacer + trashBtn + spacer + deauthBtn + spacer}.String()
+	spacer := HTML.HTML{Tag: "div"}.String()
+	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 25% 5% 30% 5%"}, Inner: spacer + enabledBtn + spacer + trashBtn + spacer + deauthBtn + spacer}.String()
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
@@ -582,6 +633,13 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 		}
 		el.EventAdd("click", modifyUser)
 	}
+
+	el, err = DOM.GetElement("users_enabled")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_delete")
 	if err != nil {
@@ -639,10 +697,16 @@ func newUserForm() {
 
 	roles := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Roles", "text", ""), "")}.String()
 
-	spacer := HTML.HTML{Tag: "div"}.String()
+	enabledBtn := HTML.HTML{
+		Tag:        "button",
+		Attributes: map[string]string{"id": "users_enabled", "class": "imgBtn imgBtnMedium"},
+		Inner:      HTML.HTML{Tag: "img", Attributes: map[string]string{"id": "users_enabled_img", "src": "./docs/assets/Admin/Users/Enabled.svg", "alt": "Enabled"}}.String(),
+	}.String()
+
 	submitBtn := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "users_submitnew", "class": "dark large"}, Inner: "Confirm"}.String()
 
-	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "55% 35% 10%"}, Inner: spacer + submitBtn + spacer}.String()
+	spacer := HTML.HTML{Tag: "div"}.String()
+	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 60% 5%"}, Inner: spacer + enabledBtn + spacer + submitBtn + spacer}.String()
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
