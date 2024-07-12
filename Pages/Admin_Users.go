@@ -409,7 +409,7 @@ func toggleEnabled(el js.Value, els []js.Value) {
 	elBtn.AttributeSet("alt", state)
 	elBtn.AttributeSet("src", "./docs/assets/Admin/Users/"+state+".svg")
 
-	HTTP.Send(modifyUserCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
+	HTTP.Send(toggleEnabledCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
