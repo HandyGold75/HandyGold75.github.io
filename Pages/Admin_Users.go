@@ -409,7 +409,10 @@ func toggleEnabled(el js.Value, els []js.Value) {
 	elBtn.AttributeSet("alt", state)
 	elBtn.AttributeSet("src", "./docs/assets/Admin/Users/"+state+".svg")
 
-	HTTP.Send(toggleEnabledCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
+	if selectedUser.Username != "" && selectedUser.Password != "" {
+		HTTP.Send(toggleEnabledCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
+	}
+
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
@@ -666,6 +669,8 @@ func newUserForm() {
 		return []string{txt, inp}
 	}
 
+	selectedUser = User{}
+
 	gridStyle := map[string]string{"display": "grid", "grid-template-columns": "20% 80%"}
 
 	header := HTML.HTML{Tag: "h1",
@@ -715,6 +720,13 @@ func newUserForm() {
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
 	el.StyleSet("max-height", "100vh")
+
+	el, err = DOM.GetElement("users_enabled")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_submitnew")
 	if err != nil {
