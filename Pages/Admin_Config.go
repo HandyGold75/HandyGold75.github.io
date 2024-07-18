@@ -40,6 +40,11 @@ func PageAdminConfig() {
 
 	header := HTML.HTML{Tag: "h1", Inner: "Config"}.String()
 
+	configs := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "config_configs"},
+		Styles:     map[string]string{"display": "flex", "width": "75%"},
+	}.String()
+
 	exitBtn := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "config_actions_exit", "class": "dark medium"},
 		Styles:     map[string]string{"width": "100%"},
@@ -58,14 +63,9 @@ func PageAdminConfig() {
 		Inner:      exitBtn + restartBtn,
 	}.String()
 
-	configs := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "config_configs"},
-		Styles:     map[string]string{"display": "flex", "width": "75%"},
-	}.String()
-
 	body := HTML.HTML{Tag: "div",
 		Styles: map[string]string{"display": "flex"},
-		Inner:  actions + configs,
+		Inner:  configs + actions,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
