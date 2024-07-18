@@ -314,7 +314,7 @@ func ForcePage(page string) {
 		"Console":      PageConsole,
 		"Contact":      PageContact,
 		"Admin:Users":  PageAdminUsers,
-		"Admin:Config": PageLogin,
+		"Admin:Config": PageAdminConfig,
 		"Admin:Logs":   PageAdminLogs,
 		"Login":        PageLogin,
 	}
