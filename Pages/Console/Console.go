@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Console
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -133,7 +133,7 @@ func CommandEdited(el js.Value, evs []js.Value) {
 	elIn.AttributeSet("value", "")
 }
 
-func PageConsole() {
+func Page() {
 	if !HTTP.IsMaybeAuthenticated() {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
 		JS.Async(func() { ForcePage("Login") })

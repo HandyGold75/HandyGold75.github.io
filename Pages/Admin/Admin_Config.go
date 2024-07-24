@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Admin
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -31,7 +31,7 @@ func restartCallback(res string, resBytes []byte, resErr error) {
 	}
 }
 
-func PageAdminConfig() {
+func PageConfig() {
 	if !HTTP.IsMaybeAuthenticated() {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
 		JS.Async(func() { ForcePage("Login") })

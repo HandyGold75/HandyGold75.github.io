@@ -3,6 +3,12 @@
 package Pages
 
 import (
+	"HandyGold75/Pages/Admin"
+	"HandyGold75/Pages/Console"
+	"HandyGold75/Pages/Contact"
+	"HandyGold75/Pages/Home"
+	"HandyGold75/Pages/Links"
+	"HandyGold75/Pages/Login"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
@@ -15,7 +21,7 @@ import (
 
 var (
 	AvailablePages           = map[string]func(){}
-	AvailablePagesOrdered    = []string{"Home", "Console", "Contact", "sub:Admin"}
+	AvailablePagesOrdered    = []string{"Home", "Links", "Contact", "Console", "sub:Admin"}
 	AvailableSubPagesOrdered = []string{"Admin:Users", "Admin:Config", "Admin:Logs"}
 
 	ErrPages = struct {
@@ -310,13 +316,14 @@ func Init(onDeloadedCallback func()) error {
 
 func ForcePage(page string) {
 	AvailablePages = map[string]func(){
-		"Home":         PageHome,
-		"Console":      PageConsole,
-		"Contact":      PageContact,
-		"Admin:Users":  PageAdminUsers,
-		"Admin:Config": PageAdminConfig,
-		"Admin:Logs":   PageAdminLogs,
-		"Login":        PageLogin,
+		"Home":         Home.Page,
+		"Links":        Links.Page,
+		"Contact":      Contact.Page,
+		"Console":      Console.Page,
+		"Admin:Users":  Admin.PageUsers,
+		"Admin:Config": Admin.PageConfig,
+		"Admin:Logs":   Admin.PageLogs,
+		"Login":        Login.Page,
 	}
 
 	pageEntry, ok := AvailablePages[page]

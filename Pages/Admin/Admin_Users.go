@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Admin
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -736,7 +736,7 @@ func newUserForm() {
 	el.EventAdd("click", createUser)
 }
 
-func PageAdminUsers() {
+func PageUsers() {
 	if !HTTP.IsMaybeAuthenticated() {
 		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
 		JS.Async(func() { ForcePage("Login") })
