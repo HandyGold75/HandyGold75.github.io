@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Login
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -176,7 +176,7 @@ func submitLogin(el js.Value, evs []js.Value) {
 	HTTP.Authenticate(authenticateCallback, username, password)
 }
 
-func PageLogin() {
+func Page() {
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
 
 	server := HTML.HTML{Tag: "div",

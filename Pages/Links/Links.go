@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Links
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -15,7 +15,7 @@ import (
 )
 
 type (
-	contact struct {
+	links struct {
 		Img  string
 		Text string
 		Url  string
@@ -23,14 +23,14 @@ type (
 )
 
 var (
-	Contacts = map[int]contact{
-		0: {Img: "./docs/assets/Contact/Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
-		1: {Img: "./docs/assets/Contact/Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
-		2: {Img: "./docs/assets/Contact/YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
-		3: {Img: "./docs/assets/Contact/Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
-		4: {Img: "./docs/assets/Contact/Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
-		5: {Img: "./docs/assets/Contact/Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
-		6: {Img: "./docs/assets/Contact/Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
+	Links = map[int]links{
+		0: {Img: "./docs/assets/Link/Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
+		1: {Img: "./docs/assets/Link/Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
+		2: {Img: "./docs/assets/Link/YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
+		3: {Img: "./docs/assets/Link/Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
+		4: {Img: "./docs/assets/Link/Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
+		5: {Img: "./docs/assets/Link/Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
+		6: {Img: "./docs/assets/Link/Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
 	}
 
 	headers = []string{}
@@ -38,7 +38,7 @@ var (
 
 func autocompleteCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showContacts()
+		showLinks()
 		return
 	}
 
@@ -50,20 +50,20 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if !slices.Contains(autocomplete, "db-query") {
-		showContacts()
+		showLinks()
 		return
 	}
 
 	if len(headers) == 0 {
-		HTTP.Send(headerCallback, "db-query", "header", "Contact")
+		HTTP.Send(headerCallback, "db-query", "header", "Link")
 		return
 	}
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Contact")
+	HTTP.Send(dbqueryCallback, "db-query", "read", "Link")
 }
 
 func headerCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showContacts()
+		showLinks()
 		return
 	}
 
@@ -73,23 +73,23 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Contact")
+	HTTP.Send(dbqueryCallback, "db-query", "read", "Link")
 }
 
 func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showContacts()
+		showLinks()
 		return
 	}
 
-	remoteContacts := [][]string{}
-	err := json.Unmarshal(resBytes, &remoteContacts)
+	remoteLinks := [][]string{}
+	err := json.Unmarshal(resBytes, &remoteLinks)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	for _, record := range remoteContacts {
+	for _, record := range remoteLinks {
 		if len(record)-1 < slices.Index(headers, "Active") {
 			fmt.Println("invalid index for Active")
 			continue
@@ -120,55 +120,55 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		Contacts[index] = contact{
+		Links[index] = links{
 			Img:  record[imgIndex],
 			Text: record[textIndex],
 			Url:  record[urlIndex],
 		}
 	}
 
-	showContacts()
+	showLinks()
 }
 
-func showContacts() {
-	header := HTML.HTML{Tag: "h1", Inner: "Contact"}.String()
+func showLinks() {
+	header := HTML.HTML{Tag: "h1", Inner: "Link"}.String()
 
-	contactKeys := []int{}
-	for k := range Contacts {
-		contactKeys = append(contactKeys, k)
+	linkKeys := []int{}
+	for k := range Links {
+		linkKeys = append(linkKeys, k)
 	}
-	slices.Sort(contactKeys)
+	slices.Sort(linkKeys)
 
-	contactDivs := ""
-	for i, k := range contactKeys {
-		splitIMG := strings.Split(Contacts[k].Img, "/")
+	linksDivs := ""
+	for i, k := range linkKeys {
+		splitIMG := strings.Split(Links[k].Img, "/")
 
 		marginDiv := "5px -100vw 5px auto"
-		classImg := "contact_imgInsides"
+		classImg := "links_imgInsides"
 		classTxt := ""
 		marginImg := "0px 10px 0px 100%"
 		marginTxt := "auto auto auto 10px"
 		if i%2 == 0 {
 			marginDiv = "5px auto 5px -100vw"
 			classImg = ""
-			classTxt = "contact_txtInsides"
+			classTxt = "links_txtInsides"
 			marginImg = "0px 10px 0px auto"
 			marginTxt = "auto 100% auto 10px"
 		}
 
 		img := HTML.HTML{
 			Tag:        "img",
-			Attributes: map[string]string{"class": classImg, "src": Contacts[k].Img, "alt": strings.Replace(splitIMG[len(splitIMG)-1], ".png", "", 1), "href": Contacts[k].Url, "target": "_blank"},
+			Attributes: map[string]string{"class": classImg, "src": Links[k].Img, "alt": strings.Replace(splitIMG[len(splitIMG)-1], ".png", "", 1), "href": Links[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"width": "10vw", "height": "10vw", "margin": marginImg, "transition": "margin 1s"},
 		}.ApplyTemplate(HTML.HTML_Link).String()
 
-		txt := HTML.HTML{Inner: Contacts[k].Text, Attributes: map[string]string{"class": classTxt}, Styles: map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"}}.ApplyTemplate(HTML.HTML_Link).String()
+		txt := HTML.HTML{Inner: Links[k].Text, Attributes: map[string]string{"class": classTxt}, Styles: map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"}}.ApplyTemplate(HTML.HTML_Link).String()
 
-		contactDivs = HTML.HTML{Tag: "div",
-			Attributes: map[string]string{"class": "contact_divs"},
+		linksDivs = HTML.HTML{Tag: "div",
+			Attributes: map[string]string{"class": "links_divs"},
 			Styles:     map[string]string{"display": "flex", "width": "85%", "margin": marginDiv, "background": "#1F1F1F", "border": "4px solid #111", "transition": "margin 1s"},
 			Inner:      img + txt,
-			Prefix:     contactDivs,
+			Prefix:     linksDivs,
 		}.String()
 	}
 
@@ -177,9 +177,9 @@ func showContacts() {
 		fmt.Println(err)
 		return
 	}
-	mp.InnerSet(header + contactDivs)
+	mp.InnerSet(header + linksDivs)
 
-	els, err := DOM.GetElements("contact_divs")
+	els, err := DOM.GetElements("links_divs")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -193,7 +193,7 @@ func showContacts() {
 		JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-right", "-2vw") })
 	}
 
-	els, err = DOM.GetElements("contact_txtInsides")
+	els, err = DOM.GetElements("links_txtInsides")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -203,7 +203,7 @@ func showContacts() {
 		JS.AfterDelay(((i+1)*1000)-500, func() { curEl.Get("style").Set("margin-right", "10%") })
 	}
 
-	els, err = DOM.GetElements("contact_imgInsides")
+	els, err = DOM.GetElements("links_imgInsides")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -214,9 +214,9 @@ func showContacts() {
 	}
 }
 
-func PageContact() {
+func Page() {
 	if !HTTP.IsMaybeAuthenticated() {
-		showContacts()
+		showLinks()
 		return
 	}
 

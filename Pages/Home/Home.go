@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Pages
+package Home
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func PageHome() {
+func Page() {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 	txt := HTML.HTML{
 		Tag:   "p",
