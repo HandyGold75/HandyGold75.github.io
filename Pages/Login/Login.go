@@ -15,6 +15,7 @@ import (
 
 var (
 	OnLoginSuccessCallback = (func())(nil)
+	ForcePage              = func(string) {}
 )
 
 func isAuthenticatedCallback(authErr error) {
@@ -176,7 +177,9 @@ func submitLogin(el js.Value, evs []js.Value) {
 	HTTP.Authenticate(authenticateCallback, username, password)
 }
 
-func Page() {
+func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
 
 	server := HTML.HTML{Tag: "div",

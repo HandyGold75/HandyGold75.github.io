@@ -15,30 +15,41 @@ import (
 )
 
 type (
-	links struct {
+	link struct {
 		Img  string
 		Text string
 		Url  string
+		Cat  string
 	}
 )
 
 var (
-	Links = map[int]links{
-		0: {Img: "./docs/assets/Link/Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
-		1: {Img: "./docs/assets/Link/Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
-		2: {Img: "./docs/assets/Link/YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
-		3: {Img: "./docs/assets/Link/Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
-		4: {Img: "./docs/assets/Link/Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
-		5: {Img: "./docs/assets/Link/Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
-		6: {Img: "./docs/assets/Link/Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
+	Links = map[int]link{
+		1:  {Img: "./docs/assets/Links/Outlook.png", Text: "Outlook", Url: "https://outlook.office.com/", Cat: "Microsoft/ Google"},
+		2:  {Img: "./docs/assets/Links/OutlookCalendar.png", Text: "Outlook Calendar", Url: "https://outlook.office.com/calendar/", Cat: "Microsoft/ Google"},
+		3:  {Img: "./docs/assets/Links/OneDrive.png", Text: "OneDrive", Url: "https://www.office.com/login?ru=%2Flaunch%2Fonedrive", Cat: "Microsoft/ Google"},
+		4:  {Img: "./docs/assets/Links/M365.png", Text: "Microsoft 365", Url: "https://www.microsoft365.com/", Cat: "Microsoft/ Google"},
+		5:  {Img: "./docs/assets/Links/G-Mail.png", Text: "Google Mail", Url: "https://mail.google.com/", Cat: "Microsoft/ Google"},
+		6:  {Img: "./docs/assets/Links/G-Drive.png", Text: "Google Drive", Url: "https://drive.google.com/", Cat: "Microsoft/ Google"},
+		7:  {Img: "./docs/assets/Links/G-Photos.png", Text: "Google Photos", Url: "https://photos.google.com/", Cat: "Microsoft/ Google"},
+		8:  {Img: "./docs/assets/Links/G-Calendar.png", Text: "Google Calendar", Url: "https://calendar.google.com/", Cat: "Microsoft/ Google"},
+		9:  {Img: "./docs/assets/Links/YouTube.png", Text: "YouTube", Url: "https://www.youtube.com/", Cat: "Media"},
+		10: {Img: "./docs/assets/Links/YouTubeMusic.png", Text: "YouTube Music", Url: "https://music.youtube.com/", Cat: "Media"},
+		11: {Img: "./docs/assets/Links/Spotify.png", Text: "Spotify", Url: "https://open.spotify.com/", Cat: "Media"},
+		12: {Img: "./docs/assets/Links/OneTimeSecret.png", Text: "One Time Secret", Url: "https://onetimesecret.com/", Cat: "Tools"},
+		13: {Img: "./docs/assets/Links/SpeedTest.png", Text: "SpeedTest Ookla", Url: "https://www.speedtest.net/", Cat: "Tools"},
+		14: {Img: "./docs/assets/Links/DownDetector.png", Text: "Down Detector", Url: "https://downdetector.com/", Cat: "Tools"},
+		15: {Img: "./docs/assets/Links/CloudConvert.png", Text: "Cloud Convert", Url: "https://cloudconvert.com/", Cat: "Tools"},
 	}
+
+	colCount = 5
 
 	headers = []string{}
 )
 
 func autocompleteCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showLinks()
+		updateCols()
 		return
 	}
 
@@ -50,20 +61,20 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if !slices.Contains(autocomplete, "db-query") {
-		showLinks()
+		updateCols()
 		return
 	}
 
 	if len(headers) == 0 {
-		HTTP.Send(headerCallback, "db-query", "header", "Link")
+		HTTP.Send(headerCallback, "db-query", "header", "Links")
 		return
 	}
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Link")
+	HTTP.Send(dbqueryCallback, "db-query", "read", "Links")
 }
 
 func headerCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showLinks()
+		updateCols()
 		return
 	}
 
@@ -73,12 +84,12 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Link")
+	HTTP.Send(dbqueryCallback, "db-query", "read", "Links")
 }
 
 func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
-		showLinks()
+		updateCols()
 		return
 	}
 
@@ -89,7 +100,7 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	for _, record := range remoteLinks {
+	for i, record := range remoteLinks {
 		if len(record)-1 < slices.Index(headers, "Active") {
 			fmt.Println("invalid index for Active")
 			continue
@@ -99,11 +110,6 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		index, err := strconv.Atoi(record[slices.Index(headers, "Index")])
-		if err != nil {
-			fmt.Println("invalid index for Index")
-			continue
-		}
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
 			fmt.Println("invalid index for Img")
@@ -119,15 +125,48 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			fmt.Println("invalid index for Url")
 			continue
 		}
+		catIndex := slices.Index(headers, "Cat")
+		if len(record)-1 < urlIndex {
+			fmt.Println("invalid index for Cat")
+			continue
+		}
 
-		Links[index] = links{
+		Links[i] = link{
 			Img:  record[imgIndex],
 			Text: record[textIndex],
 			Url:  record[urlIndex],
+			Cat:  record[catIndex],
 		}
 	}
 
+	updateCols()
+}
+
+func updateCols() {
 	showLinks()
+	JS.OnResizeAdd("links", func() {
+		if _, err := DOM.GetElements("cat_divs"); err != nil {
+			JS.OnResizeDelete("links")
+		}
+
+		oldColCount := colCount
+		vp := JS.GetVP()
+		if vp[1] < 300 {
+			colCount = 3
+		} else if vp[1] < 600 {
+			colCount = 4
+		} else if vp[1] < 900 {
+			colCount = 5
+		} else {
+			colCount = 6
+		}
+
+		fmt.Println(vp[1])
+
+		if oldColCount != colCount {
+			showLinks()
+		}
+	})
 }
 
 func showLinks() {
@@ -139,36 +178,61 @@ func showLinks() {
 	}
 	slices.Sort(linkKeys)
 
-	linksDivs := ""
-	for i, k := range linkKeys {
-		splitIMG := strings.Split(Links[k].Img, "/")
+	linkByCat := map[string][]link{}
+	for _, k := range linkKeys {
+		if _, ok := linkByCat[Links[k].Cat]; !ok {
+			linkByCat[Links[k].Cat] = []link{Links[k]}
+			continue
+		}
+		linkByCat[Links[k].Cat] = append(linkByCat[Links[k].Cat], Links[k])
+	}
 
-		marginDiv := "5px -100vw 5px auto"
-		classImg := "links_imgInsides"
-		classTxt := ""
-		marginImg := "0px 10px 0px 100%"
-		marginTxt := "auto auto auto 10px"
-		if i%2 == 0 {
-			marginDiv = "5px auto 5px -100vw"
-			classImg = ""
-			classTxt = "links_txtInsides"
-			marginImg = "0px 10px 0px auto"
-			marginTxt = "auto 100% auto 10px"
+	catDivs := ""
+	for cat, links := range linkByCat {
+		catDivs += HTML.HTML{Tag: "h2",
+			Inner:  cat,
+			Styles: map[string]string{"margin": "0px 5%"},
+		}.String()
+
+		catDiv := ""
+		linkDivs := ""
+		for i, l := range links {
+			img := HTML.HTML{Tag: "img",
+				Attributes: map[string]string{"src": l.Img, "alt": l.Text},
+				Styles:     map[string]string{"width": "100%"},
+			}.LinkWrap(l.Url).String()
+
+			txt := HTML.HTML{Tag: "p",
+				Styles: map[string]string{"width": "100%"},
+				Inner: HTML.HTML{Tag: "a",
+					Attributes: map[string]string{"href": l.Url, "target": "_blank"},
+					Inner:      l.Text,
+				}.String(),
+			}.String()
+
+			linkDivs += HTML.HTML{Tag: "div", Inner: img + txt}.String()
+
+			if (i+1)%colCount == 0 {
+				catDiv += HTML.HTML{Tag: "div",
+					Attributes: map[string]string{},
+					Styles:     map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount)},
+					Inner:      linkDivs,
+				}.String()
+				linkDivs = ""
+			}
 		}
 
-		img := HTML.HTML{
-			Tag:        "img",
-			Attributes: map[string]string{"class": classImg, "src": Links[k].Img, "alt": strings.Replace(splitIMG[len(splitIMG)-1], ".png", "", 1), "href": Links[k].Url, "target": "_blank"},
-			Styles:     map[string]string{"width": "10vw", "height": "10vw", "margin": marginImg, "transition": "margin 1s"},
-		}.ApplyTemplate(HTML.HTML_Link).String()
+		if linkDivs != "" {
+			catDiv += HTML.HTML{Tag: "div",
+				Attributes: map[string]string{},
+				Styles:     map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(linkDivs, "<img "))},
+				Inner:      linkDivs,
+			}.String()
+		}
 
-		txt := HTML.HTML{Inner: Links[k].Text, Attributes: map[string]string{"class": classTxt}, Styles: map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"}}.ApplyTemplate(HTML.HTML_Link).String()
-
-		linksDivs = HTML.HTML{Tag: "div",
-			Attributes: map[string]string{"class": "links_divs"},
-			Styles:     map[string]string{"display": "flex", "width": "85%", "margin": marginDiv, "background": "#1F1F1F", "border": "4px solid #111", "transition": "margin 1s"},
-			Inner:      img + txt,
-			Prefix:     linksDivs,
+		catDivs += HTML.HTML{Tag: "div",
+			Attributes: map[string]string{"class": "cat_divs"},
+			Inner:      catDiv,
 		}.String()
 	}
 
@@ -177,46 +241,27 @@ func showLinks() {
 		fmt.Println(err)
 		return
 	}
-	mp.InnerSet(header + linksDivs)
+	mp.InnerSet(header + catDivs)
 
-	els, err := DOM.GetElements("links_divs")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	for i := 0; i < els.Els.Length(); i++ {
-		curEl := els.Els.Index(i)
-		if i%2 == 0 {
-			JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-left", "-2vw") })
-			continue
-		}
-		JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-right", "-2vw") })
-	}
+	// els, err := DOM.GetElements("cat_divs")
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// for i := 0; i < els.Els.Length(); i++ {
+	// 	curEl := els.Els.Index(i)
+	// 	if i%2 == 0 {
+	// 		JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-left", "-2vw") })
+	// 		continue
+	// 	}
+	// 	JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-right", "-2vw") })
+	// }
 
-	els, err = DOM.GetElements("links_txtInsides")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	for i := 0; i < els.Els.Length(); i++ {
-		curEl := els.Els.Index(i)
-		JS.AfterDelay(((i+1)*1000)-500, func() { curEl.Get("style").Set("margin-right", "10%") })
-	}
-
-	els, err = DOM.GetElements("links_imgInsides")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	for i := 0; i < els.Els.Length(); i++ {
-		curEl := els.Els.Index(i)
-		JS.AfterDelay((i+1)*1000, func() { curEl.Get("style").Set("margin-left", "10%") })
-	}
 }
 
-func Page() {
+func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 	if !HTTP.IsMaybeAuthenticated() {
-		showLinks()
+		updateCols()
 		return
 	}
 

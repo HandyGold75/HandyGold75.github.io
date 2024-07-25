@@ -31,7 +31,7 @@ func (html HTML) String() string {
 
 	attributes := []string{}
 	for k, v := range html.Attributes {
-		if strings.ContainsAny(k, "=\"") || strings.ContainsAny(v, "=\"") {
+		if strings.ContainsAny(k, "\"") || strings.ContainsAny(v, "\"") {
 			fmt.Printf("Warning invalid attribute definition: %v=\"%v\"", strings.ToLower(k), v)
 			continue
 		}
@@ -49,6 +49,13 @@ func (html HTML) String() string {
 
 	return finalStr
 
+}
+
+func (html HTML) LinkWrap(href string) HTML {
+	return HTML{Tag: "a",
+		Attributes: map[string]string{"href": href, "target": "_blank"},
+		Inner:      html.String(),
+	}
 }
 
 func (html HTML) ApplyTemplate(template HTML) HTML {
@@ -74,9 +81,4 @@ func (html HTML) ApplyTemplate(template HTML) HTML {
 	}
 
 	return html
-}
-
-var HTML_Link = HTML{
-	Tag:        "a",
-	Attributes: map[string]string{"target": "_blank"},
 }

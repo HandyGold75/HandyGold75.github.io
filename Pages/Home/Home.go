@@ -8,11 +8,17 @@ import (
 	"fmt"
 )
 
-func Page() {
+func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
+
+	link := HTML.HTML{Tag: "a",
+		Attributes: map[string]string{"href": "./python"},
+		Inner:      "python",
+	}.String()
+
 	txt := HTML.HTML{
 		Tag:   "p",
-		Inner: "Moving towards GO wasm instead of Python wasm<br><br>For reasons...<br><br>Old site still available at " + HTML.HTML{Attributes: map[string]string{"href": "./python"}, Inner: "./python"}.ApplyTemplate(HTML.HTML_Link).String(),
+		Inner: "Moving towards GO wasm instead of Python wasm<br><br>For reasons...<br><br>Old site still available at " + link,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")

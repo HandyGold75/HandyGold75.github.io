@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"strconv"
-	"strings"
 )
 
 type (
@@ -89,7 +87,7 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	for _, record := range remoteContacts {
+	for i, record := range remoteContacts {
 		if len(record)-1 < slices.Index(headers, "Active") {
 			fmt.Println("invalid index for Active")
 			continue
@@ -99,11 +97,6 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		index, err := strconv.Atoi(record[slices.Index(headers, "Index")])
-		if err != nil {
-			fmt.Println("invalid index for Index")
-			continue
-		}
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
 			fmt.Println("invalid index for Img")
@@ -120,7 +113,7 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		Contacts[index] = contact{
+		Contacts[i] = contact{
 			Img:  record[imgIndex],
 			Text: record[textIndex],
 			Url:  record[urlIndex],
@@ -141,8 +134,6 @@ func showContacts() {
 
 	contactDivs := ""
 	for i, k := range contactKeys {
-		splitIMG := strings.Split(Contacts[k].Img, "/")
-
 		marginDiv := "5px -100vw 5px auto"
 		classImg := "contact_imgInsides"
 		classTxt := ""
@@ -156,19 +147,25 @@ func showContacts() {
 			marginTxt = "auto 100% auto 10px"
 		}
 
-		img := HTML.HTML{
-			Tag:        "img",
-			Attributes: map[string]string{"class": classImg, "src": Contacts[k].Img, "alt": strings.Replace(splitIMG[len(splitIMG)-1], ".png", "", 1), "href": Contacts[k].Url, "target": "_blank"},
+		img := HTML.HTML{Tag: "a",
+			Attributes: map[string]string{"class": classImg, "href": Contacts[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"width": "10vw", "height": "10vw", "margin": marginImg, "transition": "margin 1s"},
-		}.ApplyTemplate(HTML.HTML_Link).String()
+			Inner: HTML.HTML{Tag: "img",
+				Attributes: map[string]string{"src": Contacts[k].Img, "alt": Contacts[k].Text},
+				Styles:     map[string]string{"width": "10vw", "height": "10vw"},
+			}.String(),
+		}.String()
 
-		txt := HTML.HTML{Inner: Contacts[k].Text, Attributes: map[string]string{"class": classTxt}, Styles: map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"}}.ApplyTemplate(HTML.HTML_Link).String()
+		txt := HTML.HTML{Tag: "a",
+			Attributes: map[string]string{"class": classTxt, "href": Contacts[k].Url, "target": "_blank"},
+			Styles:     map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"},
+			Inner:      Contacts[k].Text,
+		}.String()
 
-		contactDivs = HTML.HTML{Tag: "div",
+		contactDivs += HTML.HTML{Tag: "div",
 			Attributes: map[string]string{"class": "contact_divs"},
 			Styles:     map[string]string{"display": "flex", "width": "85%", "margin": marginDiv, "background": "#1F1F1F", "border": "4px solid #111", "transition": "margin 1s"},
 			Inner:      img + txt,
-			Prefix:     contactDivs,
 		}.String()
 	}
 
@@ -214,7 +211,7 @@ func showContacts() {
 	}
 }
 
-func Page() {
+func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 	if !HTTP.IsMaybeAuthenticated() {
 		showContacts()
 		return

@@ -14,6 +14,9 @@ import (
 )
 
 var (
+	ForcePage               = func(string) {}
+	SetLoginSuccessCallback = func(func()) {}
+
 	CommandHistory         = []string{""}
 	CommandHistorySelected = -1
 	Token                  = ""
@@ -36,7 +39,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elArrow.StyleSet("color", "#5F5")
 
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Console") }) })
 		return
 	} else if resErr != nil {
 		fmt.Println(resErr.Error())
@@ -133,9 +136,12 @@ func CommandEdited(el js.Value, evs []js.Value) {
 	elIn.AttributeSet("value", "")
 }
 
-func Page() {
+func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+	SetLoginSuccessCallback = setLoginSuccessCallback
+
 	if !HTTP.IsMaybeAuthenticated() {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Console") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Console") }) })
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}

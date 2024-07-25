@@ -34,7 +34,7 @@ var (
 
 func createUserCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	}
 
@@ -172,7 +172,7 @@ func createUser(el js.Value, els []js.Value) {
 
 func modifyUserCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	}
 
@@ -287,7 +287,7 @@ func modifyUser(el js.Value, evs []js.Value) {
 
 func deletedUserCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -386,7 +386,7 @@ func deleteUser(el js.Value, els []js.Value) {
 
 func toggleEnabledCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -417,7 +417,7 @@ func toggleEnabled(el js.Value, els []js.Value) {
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	}
 
@@ -451,7 +451,7 @@ func deauthUser(el js.Value, els []js.Value) {
 
 func userListCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -535,7 +535,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 func getUserCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -736,9 +736,12 @@ func newUserForm() {
 	el.EventAdd("click", createUser)
 }
 
-func PageUsers() {
+func PageUsers(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+	SetLoginSuccessCallback = setLoginSuccessCallback
+
 	if !HTTP.IsMaybeAuthenticated() {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Users") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}
