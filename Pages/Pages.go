@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	AvailablePages           = map[string]func(){}
+	AvailablePages           = map[string]func(func(string), func(func())){}
 	AvailablePagesOrdered    = []string{"Home", "Links", "Contact", "Console", "sub:Admin"}
 	AvailableSubPagesOrdered = []string{"Admin:Users", "Admin:Config", "Admin:Logs"}
 
@@ -314,8 +314,12 @@ func Init(onDeloadedCallback func()) error {
 	return nil
 }
 
+func SetOnLoginSuccess(f func()) {
+	Login.OnLoginSuccessCallback = f
+}
+
 func ForcePage(page string) {
-	AvailablePages = map[string]func(){
+	AvailablePages = map[string]func(func(string), func(func())){
 		"Home":         Home.Page,
 		"Links":        Links.Page,
 		"Contact":      Contact.Page,
@@ -332,7 +336,7 @@ func ForcePage(page string) {
 		pageEntry = AvailablePages[AvailablePagesOrdered[0]]
 	}
 
-	err := Init(pageEntry)
+	err := Init(func() { pageEntry(ForcePage, SetOnLoginSuccess) })
 	if err != nil {
 		fmt.Println(err)
 		return

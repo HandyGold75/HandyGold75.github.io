@@ -13,7 +13,7 @@ import (
 
 func exitCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -23,7 +23,7 @@ func exitCallback(res string, resBytes []byte, resErr error) {
 
 func restartCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -31,9 +31,12 @@ func restartCallback(res string, resBytes []byte, resErr error) {
 	}
 }
 
-func PageConfig() {
+func PageConfig(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+	SetLoginSuccessCallback = setLoginSuccessCallback
+
 	if !HTTP.IsMaybeAuthenticated() {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}

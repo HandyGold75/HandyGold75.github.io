@@ -23,7 +23,7 @@ var (
 
 func LogListCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -122,7 +122,7 @@ func showLogDates(selected string) {
 
 func getLogCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -217,9 +217,12 @@ func showLogContent(lines []string) {
 	JS.AfterDelay((len(lines)-1)*5, func() { isBusy = false })
 }
 
-func PageLogs() {
+func PageLogs(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+	SetLoginSuccessCallback = setLoginSuccessCallback
+
 	if !HTTP.IsMaybeAuthenticated() {
-		OnLoginSuccessCallback = func() { JS.Async(func() { ForcePage("Admin:Logs") }) }
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}
