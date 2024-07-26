@@ -34,20 +34,8 @@ var (
 	headers = []string{}
 )
 
-func autocompleteCallback(res string, resBytes []byte, resErr error) {
-	if resErr != nil {
-		showContacts()
-		return
-	}
-
-	autocomplete := []string{}
-	err := json.Unmarshal(resBytes, &autocomplete)
+func accessCallback(hasAccess bool, err error) {
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if !slices.Contains(autocomplete, "db-query") {
 		showContacts()
 		return
 	}
@@ -67,7 +55,7 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -75,15 +63,15 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 }
 
 func dbqueryCallback(res string, resBytes []byte, resErr error) {
+	defer showContacts()
 	if resErr != nil {
-		showContacts()
 		return
 	}
 
 	remoteContacts := [][]string{}
 	err := json.Unmarshal(resBytes, &remoteContacts)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -119,8 +107,6 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 			Url:  record[urlIndex],
 		}
 	}
-
-	showContacts()
 }
 
 func showContacts() {
@@ -171,14 +157,14 @@ func showContacts() {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + contactDivs)
 
 	els, err := DOM.GetElements("contact_divs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -192,7 +178,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_txtInsides")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -202,7 +188,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_imgInsides")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -217,5 +203,5 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 
-	HTTP.Send(autocompleteCallback, "autocomplete")
+	HTTP.HasAccessTo(accessCallback, "db-query")
 }

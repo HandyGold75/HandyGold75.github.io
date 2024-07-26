@@ -13,7 +13,7 @@ import (
 
 func exitCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -23,7 +23,7 @@ func exitCallback(res string, resBytes []byte, resErr error) {
 
 func restartCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
 		JS.Alert(resErr.Error())
@@ -31,13 +31,18 @@ func restartCallback(res string, resBytes []byte, resErr error) {
 	}
 }
 
-func PageConfig(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
+func showConfig(hasAccess bool, err error) {
+	if HTTP.IsAuthError(err) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
+		return
+	} else if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
 
-	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		JS.Async(func() { ForcePage("Login") })
+	fmt.Println("test")
+	if !hasAccess {
+		JS.Alert("unauthorized")
 		return
 	}
 
@@ -73,14 +78,14 @@ func PageConfig(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + body)
 
 	el, err := DOM.GetElement("config_actions_exit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
@@ -89,10 +94,23 @@ func PageConfig(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	el, err = DOM.GetElement("config_actions_restart")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
 		HTTP.Send(restartCallback, "restart")
 	})
+}
+
+func PageConfig(forcePage func(string), setLoginSuccessCallback func(func())) {
+	ForcePage = forcePage
+	SetLoginSuccessCallback = setLoginSuccessCallback
+
+	if !HTTP.IsMaybeAuthenticated() {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
+		JS.Async(func() { ForcePage("Login") })
+		return
+	}
+
+	HTTP.HasAccessTo(showConfig, "exit")
 }
