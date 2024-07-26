@@ -21,6 +21,68 @@ var (
 	isBusy        = false
 )
 
+func showLogs(hasAccess bool, err error) {
+	if HTTP.IsAuthError(err) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
+		return
+	} else if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+
+	if !hasAccess {
+		JS.Alert("unauthorized")
+		return
+	}
+
+	header := HTML.HTML{Tag: "h1", Inner: "Logs"}.String()
+
+	types := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_types"},
+		Styles: map[string]string{"display": "flex",
+			"width":         "90%",
+			"background":    "#202020",
+			"border-left":   "2px solid #111",
+			"border-right":  "2px solid #111",
+			"border-top":    "2px solid #111",
+			"border-radius": "10px 10px 0px 0px",
+		},
+	}.String()
+
+	dates := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_dates"},
+		Styles: map[string]string{"display": "flex",
+			"width":         "90%",
+			"max-height":    "0px",
+			"background":    "#202020",
+			"border-left":   "2px solid #111",
+			"border-right":  "2px solid #111",
+			"border-bottom": "2px solid #111",
+			"border-radius": "0px 0px 10px 10px",
+			"transition":    "max-height 0.25s",
+		},
+	}.String()
+
+	out := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_out"},
+		Styles: map[string]string{
+			"width":       "95%",
+			"margin":      "15px auto",
+			"white-space": "pre",
+			"font-family": "Hack",
+		},
+	}.String()
+
+	mp, err := DOM.GetElement("mainpage")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	mp.InnerSet(header + types + dates + out)
+
+	HTTP.Send(LogListCallback, "logs", "list")
+}
+
 func LogListCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
@@ -33,7 +95,7 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 	availableLogs = map[string][]string{}
 	err := json.Unmarshal(resBytes, &availableLogs)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -52,22 +114,21 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("logs_types")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet(logTypes)
 
 	els, err := DOM.GetElements("logs_types_buttons")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
-
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(availableLogs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		elDates, err := DOM.GetElement("logs_dates")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 
@@ -102,7 +163,7 @@ func showLogDates(selected string) {
 
 	elDates, err := DOM.GetElement("logs_dates")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elDates.InnerSet(logDates)
@@ -110,7 +171,7 @@ func showLogDates(selected string) {
 
 	els, err := DOM.GetElements("logs_types_dates")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -132,7 +193,7 @@ func getLogCallback(res string, resBytes []byte, resErr error) {
 	log := []string{}
 	err := json.Unmarshal(resBytes, &log)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -150,7 +211,7 @@ func showLogContent(lines []string) {
 
 	el, err := DOM.GetElement("logs_out")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet("")
@@ -227,50 +288,5 @@ func PageLogs(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 
-	header := HTML.HTML{Tag: "h1", Inner: "Logs"}.String()
-
-	types := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_types"},
-		Styles: map[string]string{"display": "flex",
-			"width":         "95%",
-			"background":    "#202020",
-			"border-left":   "2px solid #111",
-			"border-right":  "2px solid #111",
-			"border-top":    "2px solid #111",
-			"border-radius": "10px 10px 0px 0px",
-		},
-	}.String()
-
-	dates := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_dates"},
-		Styles: map[string]string{"display": "flex",
-			"width":         "95%",
-			"max-height":    "0px",
-			"background":    "#202020",
-			"border-left":   "2px solid #111",
-			"border-right":  "2px solid #111",
-			"border-bottom": "2px solid #111",
-			"border-radius": "0px 0px 10px 10px",
-			"transition":    "max-height 0.25s",
-		},
-	}.String()
-
-	out := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_out"},
-		Styles: map[string]string{
-			"width":       "95%",
-			"margin":      "15px auto",
-			"white-space": "pre",
-			"font-family": "Hack",
-		},
-	}.String()
-
-	mp, err := DOM.GetElement("mainpage")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	mp.InnerSet(header + types + dates + out)
-
-	HTTP.Send(LogListCallback, "logs", "list")
+	HTTP.HasAccessTo(showLogs, "logs")
 }

@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -18,12 +19,32 @@ var (
 	ForcePage              = func(string) {}
 )
 
+func autocompleteCallback(res string, resBytes []byte, resErr error) {
+	defer func() {
+		if OnLoginSuccessCallback == nil {
+			JS.Async(func() { ForcePage("Home") })
+			return
+		}
+		OnLoginSuccessCallback()
+		OnLoginSuccessCallback = nil
+	}()
+	if resErr != nil {
+		return
+	}
+
+	err := json.Unmarshal(resBytes, &HTTP.Autocompletes)
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+}
+
 func isAuthenticatedCallback(authErr error) {
 	if authErr != nil && strings.HasPrefix(authErr.Error(), "429 TooManyRequest") {
 		errSplit := strings.Split(authErr.Error(), ":")
 		retryAfter, err := strconv.Atoi(errSplit[len(errSplit)-1])
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			retryAfter = 60
 		}
 
@@ -34,14 +55,14 @@ func isAuthenticatedCallback(authErr error) {
 	if authErr != nil || !HTTP.Config.RememberSignIn {
 		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		els.Enables()
 
 		elSub, err := DOM.GetElement("login_submit")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elSub.Enable()
@@ -51,32 +72,32 @@ func isAuthenticatedCallback(authErr error) {
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	if OnLoginSuccessCallback == nil {
-		JS.Async(func() { ForcePage("Home") })
-		return
+	if el, err := DOM.GetElement("docker"); err == nil {
+		el.Remove()
 	}
-
-	OnLoginSuccessCallback()
-	OnLoginSuccessCallback = nil
+	if el, err := DOM.GetElement("footer_login"); err == nil {
+		el.AttributeSet("innerHTML", "Logout")
+	}
+	HTTP.Send(autocompleteCallback, "autocomplete")
 }
 
 func authenticateCallback(authErr error) {
 	if authErr != nil {
 		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		els.Enables()
 
 		elSub, err := DOM.GetElement("login_submit")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elSub.Enable()
@@ -89,30 +110,30 @@ func authenticateCallback(authErr error) {
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	if OnLoginSuccessCallback == nil {
-		JS.Async(func() { ForcePage("Home") })
-		return
+	if el, err := DOM.GetElement("docker"); err == nil {
+		el.Remove()
 	}
-
-	OnLoginSuccessCallback()
-	OnLoginSuccessCallback = nil
+	if el, err := DOM.GetElement("footer_login"); err == nil {
+		el.AttributeSet("innerHTML", "Logout")
+	}
+	HTTP.Send(autocompleteCallback, "autocomplete")
 }
 
 func toggleRemember(el js.Value, evs []js.Value) {
 	err := HTTP.Config.Set("RememberSignIn", strconv.FormatBool(!HTTP.Config.RememberSignIn))
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
 	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -134,42 +155,42 @@ func submitLogin(el js.Value, evs []js.Value) {
 
 	els, err := DOM.GetElements("login_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	els.Disables()
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.Disable()
 
 	elSrv, err := DOM.GetElement("login_server")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	server := elSrv.AttributeGet("value")
 
 	elUsr, err := DOM.GetElement("login_username")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	username := elUsr.AttributeGet("value")
 
 	elPsw, err := DOM.GetElement("login_password")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	password := elPsw.AttributeGet("value")
 
 	err = HTTP.Config.Set("Server", server)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -237,14 +258,14 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + server + username + password + buttons)
 
 	els, err := DOM.GetElements("login_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	els.Disables()
@@ -252,7 +273,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.Disable()
@@ -260,7 +281,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elRem.EventAdd("click", toggleRemember)

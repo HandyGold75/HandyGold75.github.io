@@ -71,7 +71,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 func CommandEdited(el js.Value, evs []js.Value) {
 	elIn, err := DOM.GetElement("console_in")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -118,7 +118,7 @@ func CommandEdited(el js.Value, evs []js.Value) {
 
 	elArrow, err := DOM.GetElement("console_arrow")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elArrow.StyleSet("color", "#F55")
@@ -174,7 +174,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + consoleDiv)
@@ -185,7 +185,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		in, err := DOM.GetElement("console_in")
 		if err != nil {
 			fmt.Print("Disabled onresize: Console > ")
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -194,7 +194,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		header, err := DOM.GetElement("console_header")
 		if err != nil {
 			fmt.Print("Disabled onresize: Console > ")
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -203,7 +203,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		footer, err := DOM.GetElement("footer")
 		if err != nil {
 			fmt.Print("Disabled onresize: Console > ")
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -212,7 +212,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		out, err := DOM.GetElement("console_out")
 		if err != nil {
 			fmt.Print("Disabled onresize: Console > ")
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -221,7 +221,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	el, err := DOM.GetElement("console_in")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("keyup", CommandEdited)

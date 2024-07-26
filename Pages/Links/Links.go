@@ -47,20 +47,8 @@ var (
 	headers = []string{}
 )
 
-func autocompleteCallback(res string, resBytes []byte, resErr error) {
-	if resErr != nil {
-		updateCols()
-		return
-	}
-
-	autocomplete := []string{}
-	err := json.Unmarshal(resBytes, &autocomplete)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if !slices.Contains(autocomplete, "db-query") {
+func accessCallback(hasAccess bool, err error) {
+	if err != nil || !hasAccess {
 		updateCols()
 		return
 	}
@@ -80,7 +68,7 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -96,7 +84,7 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	remoteLinks := [][]string{}
 	err := json.Unmarshal(resBytes, &remoteLinks)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -160,8 +148,6 @@ func updateCols() {
 		} else {
 			colCount = 6
 		}
-
-		fmt.Println(vp[1])
 
 		if oldColCount != colCount {
 			showLinks()
@@ -238,25 +224,10 @@ func showLinks() {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + catDivs)
-
-	// els, err := DOM.GetElements("cat_divs")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// for i := 0; i < els.Els.Length(); i++ {
-	// 	curEl := els.Els.Index(i)
-	// 	if i%2 == 0 {
-	// 		JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-left", "-2vw") })
-	// 		continue
-	// 	}
-	// 	JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-right", "-2vw") })
-	// }
-
 }
 
 func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
@@ -265,5 +236,5 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 
-	HTTP.Send(autocompleteCallback, "autocomplete")
+	HTTP.HasAccessTo(accessCallback, "db-query")
 }

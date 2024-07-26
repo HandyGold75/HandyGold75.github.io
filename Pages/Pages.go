@@ -9,20 +9,56 @@ import (
 	"HandyGold75/Pages/Home"
 	"HandyGold75/Pages/Links"
 	"HandyGold75/Pages/Login"
+	"HandyGold75/Pages/Sheets"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"syscall/js"
 )
 
 var (
-	AvailablePages           = map[string]func(func(string), func(func())){}
-	AvailablePagesOrdered    = []string{"Home", "Links", "Contact", "Console", "sub:Admin"}
-	AvailableSubPagesOrdered = []string{"Admin:Users", "Admin:Config", "Admin:Logs"}
+	PagesOrdered   = []string{"Home", "Links", "Contact", "Console", "sub:Admin", "sub:Sheets"}
+	SubPagesOrderd = []string{
+		"Admin:Users",
+		"Admin:Config",
+		"Admin:Logs",
+		"Sheets:Assets",
+		"Sheets:Licenses",
+		"Sheets:Querys",
+		"Sheets:Tests",
+	}
+
+	PagesToEntry = map[string]func(func(string), func(func())){
+		"Home":            Home.Page,
+		"Links":           Links.Page,
+		"Contact":         Contact.Page,
+		"Console":         Console.Page,
+		"Admin:Users":     Admin.PageUsers,
+		"Admin:Config":    Admin.PageConfig,
+		"Admin:Logs":      Admin.PageLogs,
+		"Sheets:Assets":   Sheets.PageAssets,
+		"Sheets:Licenses": Sheets.PageLicenses,
+		"Sheets:Querys":   Sheets.PageQuerys,
+		"Sheets:Tests":    Sheets.PageTests,
+		"Login":           Login.Page,
+	}
+
+	PagesToRequiredComs = map[string][]string{
+		"Console":         {"help"},
+		"Admin:Users":     {"users"},
+		"Admin:Config":    {"exit", "restart"},
+		"Admin:Logs":      {"logs"},
+		"Sheets:Assets":   {"db-asset"},
+		"Sheets:Licenses": {"db-license"},
+		"Sheets:Querys":   {"db-query"},
+		"Sheets:Tests":    {"db-test"},
+	}
 
 	ErrPages = struct {
 		ErrPagesClosingPage error
@@ -32,7 +68,35 @@ var (
 
 	dockerShowing = true
 	inTransition  = false
+	requestedPage = ""
 )
+
+func autocompleteCallback(res string, resBytes []byte, resErr error) {
+	defer ForcePage(requestedPage)
+	requestedPage = ""
+	if resErr != nil {
+		return
+	}
+
+	err := json.Unmarshal(resBytes, &HTTP.Autocompletes)
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+}
+
+func isAuthorizedForPage(page string) bool {
+	hasAccess := true
+	if requirements, ok := PagesToRequiredComs[page]; ok {
+		for _, req := range requirements {
+			if !slices.Contains(HTTP.Autocompletes, req) {
+				hasAccess = false
+				break
+			}
+		}
+	}
+	return hasAccess
+}
 
 func ToggleDocker() error {
 	buttons, err := DOM.GetElements("docker_buttons")
@@ -113,7 +177,10 @@ func InitMainpage() error {
 		return err
 	}
 
-	body.InnerAddPrefix(HTML.HTML{Tag: "div", Attributes: map[string]string{"id": "mainpage"}, Styles: map[string]string{"transition": "max-height 0.25s"}}.String())
+	body.InnerAddPrefix(HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "mainpage"},
+		Styles:     map[string]string{"min-height": "10%", "transition": "max-height 0.25s"},
+	}.String())
 
 	return nil
 }
@@ -133,15 +200,18 @@ func InitDocker() error {
 		}.String(),
 	}.String()
 
-	for _, page := range AvailablePagesOrdered {
-		if strings.HasPrefix(page, "sub:") {
-			subPages := HTML.HTML{Tag: "p",
-				Attributes: map[string]string{"class": "docker_titles"},
-				Styles:     map[string]string{"color": "#bff", "font-size": "125%", "transition": "opacity 0.25s"},
-				Inner:      strings.Replace(page, "sub:", "", 1),
-			}.String()
+	for _, page := range PagesOrdered {
+		if !isAuthorizedForPage(page) {
+			continue
+		}
 
-			for _, subPage := range AvailableSubPagesOrdered {
+		if strings.HasPrefix(page, "sub:") {
+			subPages := ""
+			for _, subPage := range SubPagesOrderd {
+				if !isAuthorizedForPage(subPage) {
+					continue
+				}
+
 				if strings.Replace(page, "sub:", "", 1) == strings.Split(subPage, ":")[0] {
 					subPages += HTML.HTML{Tag: "button",
 						Attributes: map[string]string{"id": "page_" + subPage, "class": "dark large docker_buttons"},
@@ -150,6 +220,17 @@ func InitDocker() error {
 					}.String()
 				}
 			}
+
+			if subPages == "" {
+				continue
+			}
+
+			subPages = HTML.HTML{Tag: "p",
+				Attributes: map[string]string{"class": "docker_titles"},
+				Styles:     map[string]string{"color": "#bff", "font-size": "125%", "transition": "opacity 0.25s"},
+				Inner:      strings.Replace(page, "sub:", "", 1),
+				Surfix:     subPages,
+			}.String()
 
 			items += HTML.HTML{Tag: "div",
 				Attributes: map[string]string{"class": "docker_subs"},
@@ -193,27 +274,21 @@ func InitDocker() error {
 		Inner: items,
 	}.String())
 
-	el, err := DOM.GetElement("docker_showhide")
-	if err != nil {
-		return err
+	if el, err := DOM.GetElement("docker_showhide"); err == nil {
+		el.EventAdd("click", func(el js.Value, evs []js.Value) { ToggleDocker() })
 	}
-	el.EventAdd("click", func(el js.Value, evs []js.Value) { ToggleDocker() })
 
-	els, err := DOM.GetElements("docker_buttons")
-	if err != nil {
-		return err
+	if els, err := DOM.GetElements("docker_buttons"); err == nil {
+		els.EventsAdd("click", func(el js.Value, evs []js.Value) {
+			ToggleDocker()
+			Open(strings.Replace(el.Get("id").String(), "page_", "", 1))
+		})
 	}
-	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		ToggleDocker()
-		Open(strings.Replace(el.Get("id").String(), "page_", "", 1))
-	})
 
-	els, err = DOM.GetElements("docker_subs")
-	if err != nil {
-		return err
+	if els, err := DOM.GetElements("docker_subs"); err == nil {
+		els.EventsAdd("mouseover", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "25em") })
+		els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
 	}
-	els.EventsAdd("mouseover", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "25em") })
-	els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
 
 	return nil
 }
@@ -226,8 +301,13 @@ func InitFooter() error {
 
 	txt := HTML.HTML{Tag: "p", Styles: map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"}, Attributes: map[string]string{"class": "light"}, Inner: "HandyGold75 - 2022 / 2024"}.String()
 
+	loginText := "Login"
+	if HTTP.IsMaybeAuthenticated() {
+		loginText = "Logout"
+	}
+
 	btnBackToTop := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_backtotop", "class": "small light"}, Inner: "Back to top"}.String()
-	btnLogout := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_logout", "class": "small light"}, Inner: "Logout"}.String()
+	btnLogin := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_login", "class": "small light"}, Inner: loginText}.String()
 	btnClearCache := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"}, Inner: "Clear cache"}.String()
 
 	body.InnerAddSurfix(HTML.HTML{Tag: "div",
@@ -237,7 +317,7 @@ func InitFooter() error {
 			"padding":    "0px 10px",
 		},
 		Attributes: map[string]string{"id": "footer", "class": "light"},
-		Inner:      txt + btnBackToTop + btnLogout + btnClearCache,
+		Inner:      txt + btnBackToTop + btnLogin + btnClearCache,
 	}.String())
 
 	el, err := DOM.GetElement("footer_backtotop")
@@ -246,13 +326,27 @@ func InitFooter() error {
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) { JS.ScrollToTop() })
 
-	el, err = DOM.GetElement("footer_logout")
+	el, err = DOM.GetElement("footer_login")
 	if err != nil {
 		return err
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		HTTP.Config.Set("token", "")
-		HTTP.UnauthorizedCallback()
+		if HTTP.IsMaybeAuthenticated() {
+			HTTP.Config.Set("token", "")
+			HTTP.Autocompletes = []string{}
+
+			if el, err := DOM.GetElement("docker"); err == nil {
+				el.Remove()
+			}
+			if el, err := DOM.GetElement("footer_login"); err == nil {
+				el.AttributeSet("innerHTML", "Login")
+			}
+
+			HTTP.UnauthorizedCallback()
+
+		} else {
+			ForcePage("Login")
+		}
 	})
 
 	els, err := DOM.GetElement("footer_clearcache")
@@ -319,26 +413,15 @@ func SetOnLoginSuccess(f func()) {
 }
 
 func ForcePage(page string) {
-	AvailablePages = map[string]func(func(string), func(func())){
-		"Home":         Home.Page,
-		"Links":        Links.Page,
-		"Contact":      Contact.Page,
-		"Console":      Console.Page,
-		"Admin:Users":  Admin.PageUsers,
-		"Admin:Config": Admin.PageConfig,
-		"Admin:Logs":   Admin.PageLogs,
-		"Login":        Login.Page,
-	}
-
-	pageEntry, ok := AvailablePages[page]
+	pageEntry, ok := PagesToEntry[page]
 	if !ok {
 		fmt.Println("Page \"" + page + "\" not found!")
-		pageEntry = AvailablePages[AvailablePagesOrdered[0]]
+		pageEntry = PagesToEntry[PagesOrdered[0]]
 	}
 
 	err := Init(func() { pageEntry(ForcePage, SetOnLoginSuccess) })
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -349,5 +432,17 @@ func Open(page string) {
 	if inTransition {
 		return
 	}
+
+	if !HTTP.IsMaybeAuthenticated() {
+		ForcePage(page)
+		return
+	}
+
+	if len(HTTP.Autocompletes) == 0 {
+		requestedPage = page
+		HTTP.Send(autocompleteCallback, "autocomplete")
+		return
+	}
+
 	ForcePage(page)
 }

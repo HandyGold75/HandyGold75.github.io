@@ -5,7 +5,7 @@ package Home
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
-	"fmt"
+	"HandyGold75/WebKit/JS"
 )
 
 func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
@@ -23,7 +23,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	mp.InnerSet(header + txt)
