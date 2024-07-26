@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -43,6 +44,8 @@ var (
 	}
 
 	Config = defaultConfig
+
+	Autocompletes = []string{}
 )
 
 func (cfg *config) Load() {
@@ -199,6 +202,38 @@ func IsAuthError(err error) bool {
 		return false
 	}
 	return err == WebKit.ErrWebKit.HTTPUnauthorized || err == WebKit.ErrWebKit.HTTPNoServerSpecified || strings.HasPrefix(err.Error(), "401:")
+}
+
+func HasAccessTo(callback func(bool, error), com string) {
+	if len(Autocompletes) == 0 {
+		go send(func(res string, resBytes []byte, resErr error) {
+			if resErr != nil {
+				callback(false, resErr)
+				return
+			}
+
+			err := json.Unmarshal(resBytes, &Autocompletes)
+			if err != nil {
+				callback(false, err)
+				return
+			}
+
+			if !slices.Contains(Autocompletes, com) {
+				callback(false, nil)
+				return
+			}
+			callback(true, nil)
+
+		}, "autocomplete")
+
+		return
+	}
+
+	if !slices.Contains(Autocompletes, com) {
+		callback(false, nil)
+		return
+	}
+	callback(true, nil)
 }
 
 // Returns string in case response is type text/*

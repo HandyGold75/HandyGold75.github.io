@@ -40,28 +40,28 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	username := elUsername.AttributeGet("value")
 
 	elPassword, err := DOM.GetElement("users_password")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	password := elPassword.AttributeGet("value")
 
 	els, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	els.Enables()
 
 	elSub, err := DOM.GetElement("users_submitnew")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.Enable()
@@ -77,7 +77,7 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elList, err := DOM.GetElement("users_list")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -91,14 +91,14 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elBtn, err := DOM.GetElement("users_list_buttons_" + userHash)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
 	elBtn.EventAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 
@@ -117,49 +117,49 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 func createUser(el js.Value, els []js.Value) {
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elsInp.Disables()
 
 	elSub, err := DOM.GetElement("users_submitnew")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elSub.Disable()
 
 	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	username := elUsername.AttributeGet("value")
 
 	elPassword, err := DOM.GetElement("users_password")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	password := elPassword.AttributeGet("value")
 
 	elAuthlevel, err := DOM.GetElement("users_authlevel")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	authlevel := elAuthlevel.AttributeGet("value")
 
 	elRoles, err := DOM.GetElement("users_roles")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	roles := elRoles.AttributeGet("value")
 
 	elBtn, err := DOM.GetElement("users_enabled_img")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	state := "1"
@@ -178,14 +178,14 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elsInp.Enables()
 
 	elsSub, err := DOM.GetElements("users_submits")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elsSub.Enables()
@@ -202,7 +202,7 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 	user := User{}
 	err = json.Unmarshal(resBytes, &user)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -211,14 +211,14 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_header")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet(HTTP.Sha1(selectedUser.Username + selectedUser.Password))
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -240,14 +240,14 @@ func modifyUser(el js.Value, evs []js.Value) {
 
 	elSub, err := DOM.GetElement(strings.Join(strings.Split(el.Get("id").String(), "_")[0:2], "_") + "_submit")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
 	key := strings.Split(el.Get("id").String(), "_")[1]
 	elInp, err := DOM.GetElement(strings.Join(strings.Split(el.Get("id").String(), "_")[0:2], "_"))
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	value := elInp.AttributeGet("value")
@@ -294,28 +294,28 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 
 		elsInp, err := DOM.GetElements("users_inputs")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elsInp.Enables()
 
 		elsSub, err := DOM.GetElements("users_submits")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elsSub.Enables()
 
 		elDel, err := DOM.GetElement("users_delete")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elDel.Enable()
 
 		elDea, err := DOM.GetElement("users_deauth")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		elDea.Enable()
@@ -327,7 +327,7 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -339,7 +339,7 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet("")
@@ -355,28 +355,28 @@ func deleteUser(el js.Value, els []js.Value) {
 
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elsInp.Disables()
 
 	elsSub, err := DOM.GetElements("users_submits")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elsSub.Disables()
 
 	elDel, err := DOM.GetElement("users_delete")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elDel.Disable()
 
 	elDea, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elDea.Disable()
@@ -396,7 +396,7 @@ func toggleEnabledCallback(res string, resBytes []byte, resErr error) {
 func toggleEnabled(el js.Value, els []js.Value) {
 	elBtn, err := DOM.GetElement("users_enabled_img")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	state := "Disabled"
@@ -412,7 +412,6 @@ func toggleEnabled(el js.Value, els []js.Value) {
 	if selectedUser.Username != "" && selectedUser.Password != "" {
 		HTTP.Send(toggleEnabledCallback, "users", "modify", HTTP.Sha1(selectedUser.Username+selectedUser.Password), "enabled", stateCode)
 	}
-
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
@@ -423,7 +422,7 @@ func deauthUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -441,12 +440,64 @@ func deauthUserCallback(res string, resBytes []byte, resErr error) {
 func deauthUser(el js.Value, els []js.Value) {
 	elDea, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	elDea.Disable()
 
 	HTTP.Send(deauthUserCallback, "users", "deauth", "user", HTTP.Sha1(selectedUser.Username+selectedUser.Password))
+}
+
+func showUsers(hasAccess bool, err error) {
+	if HTTP.IsAuthError(err) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
+		return
+	} else if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+
+	if !hasAccess {
+		JS.Alert("unauthorized")
+		return
+	}
+
+	header := HTML.HTML{Tag: "h1", Inner: "Users"}.String()
+
+	types := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "users_list"},
+		Styles: map[string]string{
+			"display":       "grid",
+			"height":        "100%",
+			"width":         "25%",
+			"margin":        "0px 15px 0px auto",
+			"background":    "#202020",
+			"border":        "2px solid #111",
+			"border-radius": "10px"},
+	}.String()
+
+	out := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "users_out"},
+		Styles: map[string]string{
+			"width":       "75%",
+			"max-height":  "0px",
+			"margin":      "0px auto",
+			"background":  "#202020",
+			"border":      "2px solid #111",
+			"transition":  "max-height 0.25s",
+			"white-space": "pre",
+			"font-family": "Hack",
+		},
+	}.String()
+
+	mp, err := DOM.GetElement("mainpage")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
+
+	HTTP.Send(userListCallback, "users", "list")
 }
 
 func userListCallback(res string, resBytes []byte, resErr error) {
@@ -461,7 +512,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 	users := []string{}
 	err := json.Unmarshal(resBytes, &users)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -476,7 +527,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_list")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet(usersList + HTML.HTML{Tag: "button",
@@ -487,14 +538,14 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 
@@ -511,13 +562,13 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err = DOM.GetElement("users_newuser")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 
@@ -545,7 +596,7 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 	user := User{}
 	err := json.Unmarshal(resBytes, &user)
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 
@@ -615,7 +666,7 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
@@ -624,14 +675,14 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 	for _, key := range []string{"username", "password", "authlevel", "roles"} {
 		el, err = DOM.GetElement("users_" + key)
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		el.EventAdd("keyup", modifyUser)
 
 		el, err = DOM.GetElement("users_" + key + "_submit")
 		if err != nil {
-			fmt.Println(err)
+			JS.Alert(err.Error())
 			return
 		}
 		el.EventAdd("click", modifyUser)
@@ -639,21 +690,21 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err = DOM.GetElement("users_enabled")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_delete")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", deleteUser)
 
 	el, err = DOM.GetElement("users_deauth")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", deauthUser)
@@ -715,7 +766,7 @@ func newUserForm() {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
@@ -723,14 +774,14 @@ func newUserForm() {
 
 	el, err = DOM.GetElement("users_enabled")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_submitnew")
 	if err != nil {
-		fmt.Println(err)
+		JS.Alert(err.Error())
 		return
 	}
 	el.EventAdd("click", createUser)
@@ -745,41 +796,5 @@ func PageUsers(forcePage func(string), setLoginSuccessCallback func(func())) {
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}
-
-	header := HTML.HTML{Tag: "h1", Inner: "Users"}.String()
-
-	types := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "users_list"},
-		Styles: map[string]string{
-			"display":       "grid",
-			"height":        "100%",
-			"width":         "25%",
-			"margin":        "0px 15px 0px auto",
-			"background":    "#202020",
-			"border":        "2px solid #111",
-			"border-radius": "10px"},
-	}.String()
-
-	out := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "users_out"},
-		Styles: map[string]string{
-			"width":       "75%",
-			"max-height":  "0px",
-			"margin":      "0px auto",
-			"background":  "#202020",
-			"border":      "2px solid #111",
-			"transition":  "max-height 0.25s",
-			"white-space": "pre",
-			"font-family": "Hack",
-		},
-	}.String()
-
-	mp, err := DOM.GetElement("mainpage")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
-
-	HTTP.Send(userListCallback, "users", "list")
+	HTTP.HasAccessTo(showUsers, "users")
 }

@@ -49,7 +49,6 @@ func (obj Element) InnerAddSurfix(html string) {
 	}
 
 	obj.El.Call("append", Els...)
-
 }
 
 func (obj Element) InnerClear() {
