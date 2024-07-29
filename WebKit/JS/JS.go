@@ -3,6 +3,8 @@
 package JS
 
 import (
+	"HandyGold75/WebKit/DOM"
+	"HandyGold75/WebKit/HTML"
 	"syscall/js"
 )
 
@@ -97,4 +99,29 @@ func OnResizeAdd(key string, f func()) {
 
 func OnResizeDelete(key string) {
 	delete(onResizeMapping, key)
+}
+
+func Download(fileName string, data []byte) error {
+	elBody, err := DOM.GetElement("body")
+	if err != nil {
+		return err
+	}
+
+	elBody.InnerAddSurfix(HTML.HTML{Tag: "a",
+		Attributes: map[string]string{
+			"id":       fileName + "_download",
+			"href":     "data:text/json;charset=utf-8," + UriFriendlyfy(string(data)),
+			"download": fileName + ".json"},
+		Styles: map[string]string{"display": "none"},
+	}.String())
+
+	elDl, err := DOM.GetElement(fileName + "_download")
+	if err != nil {
+		return err
+	}
+
+	elDl.Call("click")
+	elDl.Remove()
+
+	return nil
 }

@@ -146,7 +146,7 @@ func toggleRemember(el js.Value, evs []js.Value) {
 
 func submitLogin(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		fmt.Println("evs was not parsed")
+		JS.Alert("evs was not parsed")
 		return
 	}
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
