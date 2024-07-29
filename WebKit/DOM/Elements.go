@@ -123,9 +123,9 @@ func (obj Elements) CopysToAsChild(target Element) {
 	}
 }
 
-func (obj Elements) Removes(html string) {
-	for i := 0; i < obj.Els.Length(); i++ {
-		obj.Els.Index(i).Call("remove")
+func (obj Elements) Removes() {
+	for obj.Els.Length() != 0 {
+		obj.Els.Index(0).Call("remove")
 	}
 }
 
