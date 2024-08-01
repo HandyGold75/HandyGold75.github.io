@@ -571,7 +571,6 @@ func actionImport(el js.Value, evs []js.Value) {
 	// TODO
 }
 
-// pagename: Tests, dbname: db-test
 func ShowSheet(pagename string, dbname string) {
 	pageName = pagename
 	dbName = dbname
