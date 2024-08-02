@@ -8,7 +8,6 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"syscall/js"
 )
@@ -231,7 +230,7 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 func modifyUser(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		fmt.Println("evs was not parsed")
+		JS.Alert("evs was not parsed")
 		return
 	}
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
@@ -275,7 +274,7 @@ func modifyUser(el js.Value, evs []js.Value) {
 		}
 
 	default:
-		fmt.Println("invalid key \"" + key + "\"")
+		JS.Alert("invalid key \"" + key + "\"")
 		return
 	}
 

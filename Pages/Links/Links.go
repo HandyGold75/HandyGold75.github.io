@@ -8,7 +8,6 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -90,32 +89,32 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 
 	for i, record := range remoteLinks {
 		if len(record)-1 < slices.Index(headers, "Active") {
-			fmt.Println("invalid index for Active")
+			JS.Alert("invalid index for Active")
 			continue
 		}
 		if record[slices.Index(headers, "Active")] != "true" {
-			fmt.Println("record not active")
+			JS.Alert("record not active")
 			continue
 		}
 
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
-			fmt.Println("invalid index for Img")
+			JS.Alert("invalid index for Img")
 			continue
 		}
 		textIndex := slices.Index(headers, "Text")
 		if len(record)-1 < textIndex {
-			fmt.Println("invalid index for Text")
+			JS.Alert("invalid index for Text")
 			continue
 		}
 		urlIndex := slices.Index(headers, "Url")
 		if len(record)-1 < urlIndex {
-			fmt.Println("invalid index for Url")
+			JS.Alert("invalid index for Url")
 			continue
 		}
 		catIndex := slices.Index(headers, "Cat")
 		if len(record)-1 < urlIndex {
-			fmt.Println("invalid index for Cat")
+			JS.Alert("invalid index for Cat")
 			continue
 		}
 
