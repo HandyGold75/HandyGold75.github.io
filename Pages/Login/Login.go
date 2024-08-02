@@ -77,13 +77,25 @@ func isAuthenticatedCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	if el, err := DOM.GetElement("docker"); err == nil {
-		el.Remove()
-	}
 	if el, err := DOM.GetElement("footer_login"); err == nil {
 		el.AttributeSet("innerHTML", "Logout")
 	}
-	HTTP.Send(autocompleteCallback, "autocomplete")
+
+	err = toggleDocker(false)
+	if err != nil {
+		if el, err := DOM.GetElement("docker"); err == nil {
+			el.Remove()
+		}
+		HTTP.Send(autocompleteCallback, "autocomplete")
+		return
+	}
+
+	JS.AfterDelay(250, func() {
+		if el, err := DOM.GetElement("docker"); err == nil {
+			el.Remove()
+		}
+		HTTP.Send(autocompleteCallback, "autocomplete")
+	})
 }
 
 func authenticateCallback(authErr error) {
@@ -115,13 +127,24 @@ func authenticateCallback(authErr error) {
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
 
-	if el, err := DOM.GetElement("docker"); err == nil {
-		el.Remove()
-	}
 	if el, err := DOM.GetElement("footer_login"); err == nil {
 		el.AttributeSet("innerHTML", "Logout")
 	}
-	HTTP.Send(autocompleteCallback, "autocomplete")
+
+	if err := toggleDocker(false); err != nil {
+		if el, err := DOM.GetElement("docker"); err == nil {
+			el.Remove()
+		}
+		HTTP.Send(autocompleteCallback, "autocomplete")
+		return
+	}
+
+	JS.AfterDelay(250, func() {
+		if el, err := DOM.GetElement("docker"); err == nil {
+			el.Remove()
+		}
+		HTTP.Send(autocompleteCallback, "autocomplete")
+	})
 }
 
 func toggleRemember(el js.Value, evs []js.Value) {
@@ -142,6 +165,52 @@ func toggleRemember(el js.Value, evs []js.Value) {
 	} else {
 		elRem.AttributeSet("className", "imgBtn imgBtnSmall")
 	}
+}
+
+func toggleDocker(show bool) error {
+	buttons, _ := DOM.GetElements("docker_buttons")
+	titles, _ := DOM.GetElements("docker_titles")
+	subs, _ := DOM.GetElements("docker_subs")
+	docker, err := DOM.GetElement("docker")
+	if err != nil {
+		return err
+	}
+	docker_showhide, err := DOM.GetElement("docker_showhide")
+	if err != nil {
+		return err
+	}
+	docker_showhide_img, err := DOM.GetElement("docker_showhide_img")
+	if err != nil {
+		return err
+	}
+
+	if show {
+		buttons.Enables()
+		buttons.StylesSet("opacity", "1")
+		titles.StylesSet("color", "#bff")
+		titles.StylesSet("opacity", "1")
+		subs.StylesSet("opacity", "1")
+		docker.StyleSet("max-width", "250px")
+		docker.StyleSet("max-height", "100vh")
+		docker.StyleSet("margin", "0px")
+		docker.StyleSet("padding", "4px")
+		docker_showhide.AttributeSet("className", "imgBtn imgBtnBorder imgBtnSmall")
+		docker_showhide_img.AttributeSet("src", "./docs/assets/General/Hide-H.svg")
+		return nil
+	}
+
+	buttons.Disables()
+	buttons.StylesSet("opacity", "0")
+	titles.StylesSet("color", "#88b")
+	titles.StylesSet("opacity", "0")
+	subs.StylesSet("opacity", "0")
+	docker.StyleSet("max-width", "50px")
+	docker.StyleSet("max-height", "48px")
+	docker.StyleSet("margin", "-20px 0px 0px -20px")
+	docker.StyleSet("padding", "0px")
+	docker_showhide.AttributeSet("className", "imgBtn imgBtnSmall")
+	docker_showhide_img.AttributeSet("src", "./docs/assets/General/Show-H.svg")
+	return nil
 }
 
 func submitLogin(el js.Value, evs []js.Value) {

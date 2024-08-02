@@ -16,7 +16,6 @@ import (
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"slices"
 	"strings"
 	"syscall/js"
@@ -66,7 +65,7 @@ var (
 		ErrPagesClosingPage: errors.New("page closing, please skip page load"),
 	}
 
-	dockerShowing = true
+	dockerShowing = false
 	inTransition  = false
 	requestedPage = ""
 )
@@ -99,75 +98,49 @@ func isAuthorizedForPage(page string) bool {
 }
 
 func ToggleDocker() error {
-	buttons, err := DOM.GetElements("docker_buttons")
-	if err != nil {
-		return err
-	}
-
-	titles, err := DOM.GetElements("docker_titles")
-	if err != nil {
-		return err
-	}
-
-	subs, err := DOM.GetElements("docker_subs")
-	if err != nil {
-		return err
-	}
-
+	buttons, _ := DOM.GetElements("docker_buttons")
+	titles, _ := DOM.GetElements("docker_titles")
+	subs, _ := DOM.GetElements("docker_subs")
 	docker, err := DOM.GetElement("docker")
 	if err != nil {
 		return err
 	}
-
 	docker_showhide, err := DOM.GetElement("docker_showhide")
 	if err != nil {
 		return err
 	}
-
 	docker_showhide_img, err := DOM.GetElement("docker_showhide_img")
 	if err != nil {
 		return err
 	}
 
+	dockerShowing = !dockerShowing
 	if dockerShowing {
-		buttons.Disables()
-		buttons.StylesSet("opacity", "0")
-
-		titles.StylesSet("color", "#88b")
-		titles.StylesSet("opacity", "0")
-
-		subs.StylesSet("opacity", "0")
-
-		docker.StyleSet("max-width", "50px")
-		docker.StyleSet("max-height", "48px")
-		docker.StyleSet("margin", "-20px 0px 0px -20px")
-
-		docker_showhide.AttributeSet("className", "imgBtn imgBtnSmall")
-		docker_showhide.StyleSet("max-width", "42px")
-
-		docker_showhide_img.AttributeSet("src", "./docs/assets/General/Show-H.svg")
-
-	} else {
 		buttons.Enables()
 		buttons.StylesSet("opacity", "1")
-
-		titles.StylesSet("opacity", "1")
 		titles.StylesSet("color", "#bff")
-
+		titles.StylesSet("opacity", "1")
 		subs.StylesSet("opacity", "1")
-
 		docker.StyleSet("max-width", "250px")
-		docker.StyleSet("max-height", "1000px")
+		docker.StyleSet("max-height", "100vh")
 		docker.StyleSet("margin", "0px")
-
+		docker.StyleSet("padding", "4px")
 		docker_showhide.AttributeSet("className", "imgBtn imgBtnBorder imgBtnSmall")
-		docker_showhide.StyleSet("max-width", "250px")
-
 		docker_showhide_img.AttributeSet("src", "./docs/assets/General/Hide-H.svg")
+		return nil
 	}
 
-	dockerShowing = !dockerShowing
-
+	buttons.Disables()
+	buttons.StylesSet("opacity", "0")
+	titles.StylesSet("color", "#88b")
+	titles.StylesSet("opacity", "0")
+	subs.StylesSet("opacity", "0")
+	docker.StyleSet("max-width", "50px")
+	docker.StyleSet("max-height", "48px")
+	docker.StyleSet("margin", "-20px 0px 0px -20px")
+	docker.StyleSet("padding", "0px")
+	docker_showhide.AttributeSet("className", "imgBtn imgBtnSmall")
+	docker_showhide_img.AttributeSet("src", "./docs/assets/General/Show-H.svg")
 	return nil
 }
 
@@ -192,10 +165,10 @@ func InitDocker() error {
 	}
 
 	items := HTML.HTML{Tag: "button",
-		Attributes: map[string]string{"id": "docker_showhide", "class": "imgBtn imgBtnBorder imgBtnSmall"},
+		Attributes: map[string]string{"id": "docker_showhide", "class": "imgBtn imgBtnSmall"},
 		Styles:     map[string]string{"max-width": "250px"},
 		Inner: HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"id": "docker_showhide_img", "src": "./docs/assets/General/Hide-H.svg", "alt": "Fold"},
+			Attributes: map[string]string{"id": "docker_showhide_img", "src": "./docs/assets/General/Show-H.svg", "alt": "ShowHide"},
 			Styles:     map[string]string{"max-width": "250px"},
 		}.String(),
 	}.String()
@@ -215,7 +188,7 @@ func InitDocker() error {
 				if strings.Replace(page, "sub:", "", 1) == strings.Split(subPage, ":")[0] {
 					subPages += HTML.HTML{Tag: "button",
 						Attributes: map[string]string{"id": "page_" + subPage, "class": "dark large docker_buttons"},
-						Styles:     map[string]string{"opacity": "1"},
+						Styles:     map[string]string{"opacity": "0"},
 						Inner:      strings.Split(subPage, ":")[1],
 					}.String()
 				}
@@ -227,7 +200,7 @@ func InitDocker() error {
 
 			subPages = HTML.HTML{Tag: "p",
 				Attributes: map[string]string{"class": "docker_titles"},
-				Styles:     map[string]string{"color": "#bff", "font-size": "125%", "transition": "opacity 0.25s"},
+				Styles:     map[string]string{"opacity": "0", "color": "#88b", "font-size": "125%", "transition": "opacity 0.25s"},
 				Inner:      strings.Replace(page, "sub:", "", 1),
 				Surfix:     subPages,
 			}.String()
@@ -241,7 +214,7 @@ func InitDocker() error {
 					"padding":       "4px 6px 4px 3px",
 					"border-left":   "3px solid #55f",
 					"border-radius": "0px",
-					"opacity":       "1",
+					"opacity":       "0",
 					"transition":    "max-height 0.25s, opacity 0.25s",
 				},
 				Inner: subPages,
@@ -252,7 +225,7 @@ func InitDocker() error {
 
 		items += HTML.HTML{Tag: "button",
 			Attributes: map[string]string{"id": "page_" + page, "class": "dark large docker_buttons"},
-			Styles:     map[string]string{"opacity": "1"},
+			Styles:     map[string]string{"opacity": "0"},
 			Inner:      page,
 		}.String()
 	}
@@ -262,13 +235,14 @@ func InitDocker() error {
 		Styles: map[string]string{
 			"position":   "fixed",
 			"display":    "grid",
-			"max-width":  "250px",
-			"max-height": "1000px",
-			"margin":     "0px",
+			"max-width":  "50px",
+			"max-height": "48px",
+			"margin":     "-20px 0px 0px -20px",
+			"padding":    "0px",
 			"top":        "25px",
 			"left":       "25px",
 			"border":     "4px solid #111",
-			"transition": "max-width 0.25s, max-height 0.25s, margin 0.25s",
+			"transition": "max-width 0.25s, max-height 0.25s, margin 0.25s, padding 0.25s",
 			"z-index":    "9999",
 		},
 		Inner: items,
@@ -279,6 +253,7 @@ func InitDocker() error {
 	}
 
 	if els, err := DOM.GetElements("docker_buttons"); err == nil {
+		els.Disables()
 		els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 			ToggleDocker()
 			Open(strings.Replace(el.Get("id").String(), "page_", "", 1))
@@ -289,6 +264,9 @@ func InitDocker() error {
 		els.EventsAdd("mouseover", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "25em") })
 		els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
 	}
+
+	dockerShowing = false
+	JS.Async(func() { ToggleDocker() })
 
 	return nil
 }
@@ -415,7 +393,7 @@ func SetOnLoginSuccess(f func()) {
 func ForcePage(page string) {
 	pageEntry, ok := PagesToEntry[page]
 	if !ok {
-		fmt.Println("Page \"" + page + "\" not found!")
+		JS.Alert("Page \"" + page + "\" not found!")
 		pageEntry = PagesToEntry[PagesOrdered[0]]
 	}
 
