@@ -30,6 +30,7 @@ var (
 	sheetData     = [][]string{}
 
 	toDelete = []int{}
+	toImport = [][]string{}
 )
 
 func accessCallback(hasAccess bool, err error) {
@@ -518,10 +519,12 @@ func actionDeleteEmpty(el js.Value, evs []js.Value) {
 		}
 	}
 
-	if len(toDelete) > 0 {
-		HTTP.Send(deleteEmptyCallback, dbName, "delete", selectedSheet, strconv.Itoa(toDelete[0]))
-		toDelete = toDelete[1:]
+	if len(toDelete) <= 0 {
+		return
 	}
+
+	HTTP.Send(deleteEmptyCallback, dbName, "delete", selectedSheet, strconv.Itoa(toDelete[0]))
+	toDelete = toDelete[1:]
 }
 
 func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
@@ -569,10 +572,68 @@ func actionExport(el js.Value, evs []js.Value) {
 }
 
 func actionImport(el js.Value, evs []js.Value) {
-	// TODO
-	if err := JS.PopupConfirm("test", "testing", "no", "yes", func(state bool) { fmt.Println(state) }); err != nil {
-		fmt.Println(err)
+	err := JS.PopupFile("Import - "+pageName+" > "+selectedSheet, "testing", func(title string, data []byte) {
+		if err := json.Unmarshal(data, &toImport); err != nil {
+			JS.Alert(err.Error())
+			return
+		}
+
+		if len(toImport) <= 0 {
+			return
+		}
+
+		if len(toImport[0]) != len(headers) {
+			fmt.Println("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			toImport = toImport[1:]
+			toImportCallback("", []byte{}, nil)
+		} else {
+			HTTP.Send(toImportCallback, dbName, append([]string{"add", selectedSheet}, toImport[0]...)...)
+			toImport = toImport[1:]
+		}
+	})
+	if err != nil {
+		JS.Alert(err.Error())
 	}
+}
+
+func toImportCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
+		return
+	} else if resErr != nil {
+		els, err := DOM.GetElements("sheets_rows")
+		if err != nil {
+			JS.Alert(err.Error())
+			return
+		}
+		els.Removes()
+
+		JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
+
+		JS.Alert(resErr.Error())
+		return
+	}
+
+	if len(toImport) > 0 {
+		if len(toImport[0]) != len(headers) {
+			fmt.Println("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			toImport = toImport[1:]
+			toImportCallback("", []byte{}, nil)
+		} else {
+			HTTP.Send(toImportCallback, dbName, append([]string{"add", selectedSheet}, toImport[0]...)...)
+			toImport = toImport[1:]
+		}
+		return
+	}
+
+	els, err := DOM.GetElements("sheets_rows")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	els.Removes()
+
+	JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
 }
 
 func ShowSheet(pagename string, dbname string) {

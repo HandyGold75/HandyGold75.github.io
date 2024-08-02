@@ -114,7 +114,8 @@ img {
   user-select: none;
 }
 
-button {
+button,
+.button {
   margin: 4px 2px;
   max-height: 100%;
   max-width: 100%;
@@ -408,7 +409,9 @@ button {
 }
 
 input,
-select {
+.input,
+select,
+.select {
   z-index: 110;
   background: #333;
   border: 2px solid #55f;

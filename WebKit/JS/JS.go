@@ -5,6 +5,7 @@ package JS
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
+	"strings"
 	"syscall/js"
 )
 
@@ -111,7 +112,7 @@ func Download(fileName string, data []byte) error {
 		Attributes: map[string]string{
 			"id":       fileName + "_download",
 			"href":     "data:text/json;charset=utf-8," + UriFriendlyfy(string(data)),
-			"download": fileName + ".json"},
+			"download": fileName},
 		Styles: map[string]string{"display": "none"},
 	}.String())
 
@@ -124,6 +125,18 @@ func Download(fileName string, data []byte) error {
 	el.Remove()
 
 	return nil
+}
+
+func Reader() js.Value {
+	return js.Global().Get("new FileReader()").New()
+}
+
+func FuncWrap(f func(el js.Value, evs []js.Value)) js.Func {
+	return js.FuncOf(func(el js.Value, evs []js.Value) any { f(el, evs); return nil })
+}
+
+func FuncWrapSimple(f func()) js.Func {
+	return js.FuncOf(func(el js.Value, evs []js.Value) any { f(); return nil })
 }
 
 func ensurePopupDiv(title string, txt string, buttons string) error {
@@ -251,6 +264,199 @@ func PopupConfirm(title string, txt string, falseText string, trueText string, c
 			elPop.Remove()
 			callback(value)
 		})
+	})
+
+	return nil
+}
+
+func PopupButtons(title string, txt string, options []string, callback func(string)) error {
+	spacer := HTML.HTML{Tag: "div"}.String()
+
+	btns := []string{}
+	for _, option := range options {
+		btns = append(btns, HTML.HTML{
+			Tag:        "button",
+			Attributes: map[string]string{"id": "popup_" + option, "class": "dark medium popup_buttons"},
+			Styles:     map[string]string{"min-width": "10%"},
+			Inner:      option,
+		}.String())
+	}
+
+	if err := ensurePopupDiv(title, txt, spacer+strings.Join(btns, spacer)+spacer); err != nil {
+		return err
+	}
+
+	els, err := DOM.GetElements("popup_buttons")
+	if err != nil {
+		return err
+	}
+	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
+		elPop, err := DOM.GetElement("popup")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+		elPop.StyleSet("opacity", "0")
+
+		value := strings.Replace(el.Get("id").String(), "popup_", "", 1)
+
+		AfterDelay(250, func() {
+			elPop.Remove()
+			callback(value)
+		})
+	})
+
+	return nil
+}
+
+func PopupInput(title string, txt string, callback func(string)) error {
+	spacer := HTML.HTML{Tag: "div"}.String()
+
+	input := HTML.HTML{
+		Tag:        "input",
+		Attributes: map[string]string{"type": "text", "id": "popup_input"},
+		Styles:     map[string]string{"min-width": "60%"},
+	}.String()
+	button := HTML.HTML{
+		Tag:        "button",
+		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
+		Styles:     map[string]string{"min-width": "10%"},
+		Inner:      "confirm",
+	}.String()
+
+	if err := ensurePopupDiv(title, txt, spacer+input+spacer+button+spacer); err != nil {
+		return err
+	}
+
+	el, err := DOM.GetElement("popup_confirm")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("click", func(el js.Value, evs []js.Value) {
+		elInp, err := DOM.GetElement("popup_input")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+		value := elInp.AttributeGet("value")
+
+		elPop, err := DOM.GetElement("popup")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+		elPop.StyleSet("opacity", "0")
+
+		AfterDelay(250, func() {
+			elPop.Remove()
+			callback(value)
+		})
+	})
+
+	el, err = DOM.GetElement("popup_input")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("keyup", func(el js.Value, evs []js.Value) {
+		if evs[0].Get("key").String() != "Enter" {
+			return
+		}
+		value := el.Get("value").String()
+
+		elPop, err := DOM.GetElement("popup")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+		elPop.StyleSet("opacity", "0")
+
+		AfterDelay(250, func() {
+			elPop.Remove()
+			callback(value)
+		})
+	})
+
+	return nil
+}
+
+func PopupFile(title string, txt string, callback func(string, []byte)) error {
+	spacer := HTML.HTML{Tag: "div"}.String()
+
+	input := HTML.HTML{Tag: "input",
+		Attributes: map[string]string{"type": "file", "id": "popup_input"},
+		Styles:     map[string]string{"display": "none"},
+	}.String()
+	file := HTML.HTML{Tag: "p",
+		Attributes: map[string]string{"id": "popup_file"},
+		Styles:     map[string]string{"color": "#bff"},
+		Inner:      "Upload",
+	}.String()
+	label := HTML.HTML{Tag: "label",
+		Attributes: map[string]string{"class": "input"},
+		Styles:     map[string]string{"min-width": "60%"},
+		Inner:      input + file,
+	}.String()
+
+	button := HTML.HTML{Tag: "button",
+		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
+		Styles:     map[string]string{"min-width": "10%"},
+		Inner:      "confirm",
+	}.String()
+
+	if err := ensurePopupDiv(title, txt, spacer+label+spacer+button+spacer); err != nil {
+		return err
+	}
+
+	el, err := DOM.GetElement("popup_confirm")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("click", func(el js.Value, evs []js.Value) {
+		elInp, err := DOM.GetElement("popup_input")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+		nameSplit := strings.Split(elInp.AttributeGet("value"), "\\")
+
+		elPop, err := DOM.GetElement("popup")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+
+		reader := js.Global().Get("FileReader").New()
+		reader.Set("onload", js.FuncOf(func(el js.Value, args []js.Value) any {
+			in := js.Global().Get("Uint8Array").New(el.Get("result"))
+			result := make([]byte, in.Get("length").Int())
+			js.CopyBytesToGo(result, in)
+
+			elPop.StyleSet("opacity", "0")
+
+			AfterDelay(250, func() {
+				elPop.Remove()
+				callback(nameSplit[len(nameSplit)-1], result)
+			})
+
+			return nil
+		}))
+		reader.Call("readAsArrayBuffer", elInp.El.Get("files").Index(0))
+	})
+
+	el, err = DOM.GetElement("popup_input")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("change", func(el js.Value, evs []js.Value) {
+		elFile, err := DOM.GetElement("popup_file")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+
+		nameSplit := strings.Split(el.Get("value").String(), "\\")
+		elFile.InnerSet(nameSplit[len(nameSplit)-1])
+
 	})
 
 	return nil
