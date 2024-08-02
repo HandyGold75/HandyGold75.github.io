@@ -8,6 +8,7 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -569,6 +570,9 @@ func actionExport(el js.Value, evs []js.Value) {
 
 func actionImport(el js.Value, evs []js.Value) {
 	// TODO
+	if err := JS.PopupConfirm("test", "testing", "no", "yes", func(state bool) { fmt.Println(state) }); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func ShowSheet(pagename string, dbname string) {

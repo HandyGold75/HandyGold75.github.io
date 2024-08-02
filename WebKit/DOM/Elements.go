@@ -14,7 +14,7 @@ type (
 func GetElements(class string) (Elements, error) {
 	Els := js.Global().Get("document").Call("getElementsByClassName", class)
 	if Els.IsUndefined() || Els.IsNaN() || Els.IsNull() || Els.Length() < 1 {
-		return Elements{}, WebKit.ErrWebKit.ElementsNotFound
+		return Elements{Els: Els}, WebKit.ErrWebKit.ElementsNotFound
 	}
 	return Elements{Els: Els}, nil
 }
