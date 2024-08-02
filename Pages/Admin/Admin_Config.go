@@ -7,7 +7,6 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
-	"fmt"
 	"syscall/js"
 )
 
@@ -40,7 +39,6 @@ func showConfig(hasAccess bool, err error) {
 		return
 	}
 
-	fmt.Println("test")
 	if !hasAccess {
 		JS.Alert("unauthorized")
 		return

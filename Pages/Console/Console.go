@@ -7,7 +7,6 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
-	"fmt"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -25,7 +24,7 @@ var (
 func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
-		fmt.Println(errIn)
+		JS.Alert(errIn.Error())
 		return
 	}
 	elIn.Enable()
@@ -33,7 +32,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elArrow, errArrow := DOM.GetElement("console_arrow")
 	if errArrow != nil {
-		fmt.Println(errArrow)
+		JS.Alert(errArrow.Error())
 		return
 	}
 	elArrow.StyleSet("color", "#5F5")
@@ -42,7 +41,6 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Console") }) })
 		return
 	} else if resErr != nil {
-		fmt.Println(resErr.Error())
 		res = resErr.Error()
 	} else if res == "" && len(resBytes) > 0 {
 		res = string(resBytes)
@@ -50,7 +48,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elOut, errOut := DOM.GetElement("console_out")
 	if errOut != nil {
-		fmt.Println(errOut)
+		JS.Alert(errOut.Error())
 		return
 	}
 
@@ -76,7 +74,7 @@ func CommandEdited(el js.Value, evs []js.Value) {
 	}
 
 	if len(evs) < 1 {
-		fmt.Println("evs was not parsed")
+		JS.Alert("evs was not parsed")
 		return
 	}
 	key := evs[0].Get("key").String()
@@ -184,8 +182,6 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 		in, err := DOM.GetElement("console_in")
 		if err != nil {
-			fmt.Print("Disabled onresize: Console > ")
-			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -193,8 +189,6 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 		header, err := DOM.GetElement("console_header")
 		if err != nil {
-			fmt.Print("Disabled onresize: Console > ")
-			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -202,8 +196,6 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 		footer, err := DOM.GetElement("footer")
 		if err != nil {
-			fmt.Print("Disabled onresize: Console > ")
-			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}
@@ -211,8 +203,6 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 		out, err := DOM.GetElement("console_out")
 		if err != nil {
-			fmt.Print("Disabled onresize: Console > ")
-			JS.Alert(err.Error())
 			JS.OnResizeDelete("Console")
 			return
 		}

@@ -8,7 +8,6 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -583,7 +582,7 @@ func actionImport(el js.Value, evs []js.Value) {
 		}
 
 		if len(toImport[0]) != len(headers) {
-			fmt.Println("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			JS.Alert("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)
 		} else {
@@ -616,7 +615,7 @@ func toImportCallback(res string, resBytes []byte, resErr error) {
 
 	if len(toImport) > 0 {
 		if len(toImport[0]) != len(headers) {
-			fmt.Println("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			JS.Alert("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)
 		} else {

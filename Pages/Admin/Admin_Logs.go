@@ -8,7 +8,6 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -148,7 +147,7 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 func showLogDates(selected string) {
 	log, ok := availableLogs[selected]
 	if !ok {
-		fmt.Println("log \"" + selected + "\" not available!")
+		JS.Alert("log \"" + selected + "\" not available!")
 		return
 	}
 
