@@ -12,7 +12,7 @@ class home(Page):
 
         header = HTML.genElement("h1", nest="Home", style="headerMain")
 
-        link = HTML.linkWrap("../", nest="../")
+        link = '<a style="color: #44F;" href="../">go</a>'
         body = HTML.genElement("p", nest=f"Moving towards GO WASM instead of Python WASM.\n\nFor reasons...\n\nNew site is available at {link}", style="textMedium")
 
         HTML.setElementRaw("subPage", header + body)
