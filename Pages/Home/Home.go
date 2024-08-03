@@ -12,7 +12,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 
 	link := HTML.HTML{Tag: "a",
-		Attributes: map[string]string{"href": "./python/"},
+		Attributes: map[string]string{"href": "./.python/"},
 		Inner:      "python",
 	}.String()
 
