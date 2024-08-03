@@ -32,6 +32,8 @@ var (
 	toImport = [][]string{}
 )
 
+// TODO: Drag n Drop
+
 func accessCallback(hasAccess bool, err error) {
 	if HTTP.IsAuthError(err) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })

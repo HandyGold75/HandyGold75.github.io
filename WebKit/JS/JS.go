@@ -25,6 +25,14 @@ func GetVP() [2]int {
 	return [2]int{js.Global().Get("window").Get("innerHeight").Int(), js.Global().Get("window").Get("innerWidth").Int()}
 }
 
+func New(global string, args ...any) js.Value {
+	item := js.Global()
+	for _, part := range strings.Split(global, ".") {
+		item = item.Get(part)
+	}
+	return item.New(args...)
+}
+
 func AfterDelay(delay int, f func()) {
 	var fOf js.Func
 	fOf = js.FuncOf(func(el js.Value, evs []js.Value) any { defer fOf.Release(); f(); return nil })
@@ -125,10 +133,6 @@ func Download(fileName string, data []byte) error {
 	el.Remove()
 
 	return nil
-}
-
-func Reader() js.Value {
-	return js.Global().Get("new FileReader()").New()
 }
 
 func FuncWrap(f func(el js.Value, evs []js.Value)) js.Func {

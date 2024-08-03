@@ -58,6 +58,10 @@ func (cfg *config) Load() {
 	if err != nil {
 		Config = defaultConfig
 	}
+
+	if Config.Server == "" {
+		Config.Server = defaultConfig.Server
+	}
 }
 
 func (cfg *config) Set(key string, value string) error {
