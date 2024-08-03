@@ -10,6 +10,7 @@ import (
 	"HandyGold75/Pages/Links"
 	"HandyGold75/Pages/Login"
 	"HandyGold75/Pages/Sheets"
+	"HandyGold75/Pages/Tools"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
@@ -22,11 +23,14 @@ import (
 )
 
 var (
-	PagesOrdered   = []string{"Home", "Links", "Contact", "Console", "sub:Admin", "sub:Sheets"}
+	PagesOrdered   = []string{"Home", "Links", "Contact", "Console", "sub:Admin", "sub:Tools", "sub:Sheets"}
 	SubPagesOrderd = []string{
 		"Admin:Users",
 		"Admin:Config",
 		"Admin:Logs",
+		"Tools:Sonos",
+		"Tools:Tapo",
+		"Tools:YTDL",
 		"Sheets:Assets",
 		"Sheets:Licenses",
 		"Sheets:Querys",
@@ -41,6 +45,9 @@ var (
 		"Admin:Users":     Admin.PageUsers,
 		"Admin:Config":    Admin.PageConfig,
 		"Admin:Logs":      Admin.PageLogs,
+		"Tools:Sonos":     Tools.PageSonos,
+		"Tools:Tapo":      Tools.PageTapo,
+		"Tools:YTDL":      Tools.PageYTDL,
 		"Sheets:Assets":   Sheets.PageAssets,
 		"Sheets:Licenses": Sheets.PageLicenses,
 		"Sheets:Querys":   Sheets.PageQuerys,
@@ -53,6 +60,9 @@ var (
 		"Admin:Users":     {"users"},
 		"Admin:Config":    {"exit", "restart"},
 		"Admin:Logs":      {"logs"},
+		"Tools:Sonos":     {"sonos"},
+		"Tools:Tapo":      {"tapo"},
+		"Tools:YTDL":      {"ytdl"},
 		"Sheets:Assets":   {"db-asset"},
 		"Sheets:Licenses": {"db-license"},
 		"Sheets:Querys":   {"db-query"},
