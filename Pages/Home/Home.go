@@ -6,9 +6,6 @@ import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/JS"
-	"fmt"
-
-	"github.com/raitonoberu/ytsearch"
 )
 
 func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
@@ -30,16 +27,4 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 	mp.InnerSet(header + txt)
-
-	searchStr := "Spacemen - Electric Callboy"
-	fmt.Println(searchStr)
-
-	search := ytsearch.VideoSearch(searchStr)
-	result, err := search.Next()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(result)
 }
