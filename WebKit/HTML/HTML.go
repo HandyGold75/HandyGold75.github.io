@@ -23,7 +23,7 @@ func (html HTML) String() string {
 	styles := []string{}
 	for k, v := range html.Styles {
 		if strings.ContainsAny(k, ":;") || strings.ContainsAny(v, ":;") {
-			fmt.Printf("Warning invalid style definition: %v: %v", strings.ToLower(k), v)
+			fmt.Printf("Warning invalid style definition: %v: %v\r\n", strings.ToLower(k), v)
 			continue
 		}
 		styles = append(styles, strings.ToLower(k)+": "+v)
@@ -32,7 +32,7 @@ func (html HTML) String() string {
 	attributes := []string{}
 	for k, v := range html.Attributes {
 		if strings.ContainsAny(k, "\"") || strings.ContainsAny(v, "\"") {
-			fmt.Printf("Warning invalid attribute definition: %v=\"%v\"", strings.ToLower(k), v)
+			fmt.Printf("Warning invalid attribute definition: %v=\"%v\"\r\n", strings.ToLower(k), v)
 			continue
 		}
 		attributes = append(attributes, strings.ToLower(k)+"=\""+v+"\"")

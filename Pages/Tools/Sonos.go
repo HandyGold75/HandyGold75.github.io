@@ -20,6 +20,9 @@ type (
 			QuePosition string
 			Duration    string
 			Progress    string
+			Title       string
+			Creator     string
+			Album       string
 		}
 		Que struct {
 			Count      string
@@ -56,14 +59,22 @@ type (
 		Creator     string
 		Album       string
 	}
+
+	YTInfo struct {
+		ID        string
+		Title     string
+		Duration  int
+		ViewCount int
+		Creator   string
+	}
 )
 
 var (
 	ytPlayer = js.Value{}
 
-	syncInfo  = SyncInfo{}
-	trackInfo = TrackInfo{}
-	queInfo   = QueInfo{}
+	syncInfo = SyncInfo{}
+	ytInfo   = []YTInfo{}
+	queInfo  = QueInfo{}
 )
 
 func accessCallback(hasAccess bool, err error) {
@@ -125,6 +136,26 @@ func setEventsYTPlayer() error {
 }
 
 func updateYTPlayer() error {
+	if !ytPlayer.Get("s").Bool() {
+		if _, err := DOM.GetElement("sonos_player_ifr"); err != nil {
+			return nil
+		}
+
+		JS.AfterDelay(100, func() { updateYTPlayer() })
+		return nil
+	}
+
+	video := ytInfo[0]
+
+	pro, err := time.Parse(time.TimeOnly, syncInfo.Track.Progress)
+	if err != nil {
+		return err
+	}
+	h, m, s := pro.Add(time.Second).Clock()
+
+	ytPlayer.Call("mute")
+	ytPlayer.Call("loadVideoById", video.ID, (h*1440)+(m*60)+s)
+
 	return nil
 }
 
@@ -489,7 +520,7 @@ func updateQue() error {
 		}
 
 		img := HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"src": track.AlbumArtURI, "alt": track.Title},
+			Attributes: map[string]string{"src": track.AlbumArtURI},
 			Styles: map[string]string{
 				"width":         "3.5em",
 				"height":        "3.5em",
@@ -612,10 +643,10 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount {
-		HTTP.Send(trackCallback, "sonos", "track")
+		HTTP.Send(ytqueryCallback, "sonos", "ytquery", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		HTTP.Send(queCallback, "sonos", "que")
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
-		HTTP.Send(trackCallback, "sonos", "track")
+		HTTP.Send(ytqueryCallback, "sonos", "ytquery", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		if err := updateQue(); err != nil {
 			return
 		}
@@ -631,10 +662,10 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	// JS.AfterDelay(1000, func() { HTTP.Send(syncCallback, "sonos", "sync") })
+	JS.AfterDelay(1000, func() { HTTP.Send(syncCallback, "sonos", "sync") })
 }
 
-func trackCallback(res string, resBytes []byte, resErr error) {
+func ytqueryCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
@@ -643,7 +674,7 @@ func trackCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	err := json.Unmarshal(resBytes, &trackInfo)
+	err := json.Unmarshal(resBytes, &ytInfo)
 	if err != nil {
 		JS.Alert(err.Error())
 		return
