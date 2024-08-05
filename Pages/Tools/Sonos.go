@@ -8,6 +8,7 @@ import (
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -97,39 +98,36 @@ func accessCallback(hasAccess bool, err error) {
 func getYTPlayer() string {
 	ifr := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "sonos_player_ifr", "frameborder": "0"},
-		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "70vh"},
+		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "75vh"},
 	}.String()
 
 	img := HTML.HTML{Tag: "img",
 		Attributes: map[string]string{"src": "docs/assets/General/Transparent.svg"},
-		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "70vh"},
+		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "75vh"},
 	}.String()
 
 	return HTML.HTML{Tag: "div",
-		Styles: map[string]string{"position": "relative", "padding": "0px 0px min(70vh, 56.25%) 0px"},
+		Styles: map[string]string{"position": "relative", "padding": "0px 0px min(75vh, 56.25%) 0px"},
 		Inner:  ifr + img,
 	}.String()
 }
 
 func setEventsYTPlayer() error {
 	JS.Async(func() {
-		argBytes, err := json.Marshal(map[string]any{
+		args := map[string]any{
 			"videoId": "",
-			"playerVars": map[string]int{
+			"playerVars": map[string]any{
 				"autoplay":       0,
 				"controls":       0,
 				"disablekb":      1,
+				"enablejsapi":    1,
 				"fs":             0,
 				"iv_load_policy": 3,
-				"modestbranding": 1,
+				"origin":         "https://www.HandyGold75.com",
 				"rel":            0,
 			},
-		})
-		if err != nil {
-			JS.Alert(err.Error())
-			return
 		}
-		ytPlayer = JS.New("YT.Player", "sonos_player_ifr", string(argBytes))
+		ytPlayer = JS.New("YT.Player", "sonos_player_ifr", args)
 	})
 
 	return nil
@@ -154,6 +152,8 @@ func updateYTPlayer() error {
 	h, m, s := pro.Add(time.Second).Clock()
 
 	ytPlayer.Call("mute")
+	ytPlayer.Call("setVolume", 0)
+	ytPlayer.Call("setLoop", true)
 	ytPlayer.Call("loadVideoById", video.ID, (h*1440)+(m*60)+s)
 
 	return nil
@@ -233,20 +233,15 @@ func setEventsTimeline() error {
 }
 
 func updateTimeline() error {
-	el, err := DOM.GetElement("sonos_timeline_progress")
+	pro, err := time.Parse(time.TimeOnly, syncInfo.Track.Progress)
 	if err != nil {
 		return err
 	}
-
-	if strings.HasPrefix(syncInfo.Track.Progress, "0:") {
-		el.InnerSet(strings.Replace(syncInfo.Track.Progress, "0:", "", 1))
-	} else {
-		el.InnerSet(syncInfo.Track.Progress)
-	}
-
-	el, err = DOM.GetElement("sonos_timeline_slider")
-	if err != nil {
-		return err
+	hp, mp, sp := pro.Add(time.Second).Clock()
+	proSecs := (hp * 1440) + (mp * 60) + sp
+	proStr := fmt.Sprintf("%d:%02d", mp, sp)
+	if hp != 0 {
+		proStr = strconv.Itoa(hp) + ":" + proStr
 	}
 
 	dur, err := time.Parse(time.TimeOnly, syncInfo.Track.Duration)
@@ -254,25 +249,38 @@ func updateTimeline() error {
 		JS.Alert(err.Error())
 		return err
 	}
-	h, m, s := dur.Clock()
-	el.AttributeSet("max", strconv.Itoa((h*1440)+(m*60)+s))
+	hd, md, sd := dur.Clock()
+	durSecs := (hd * 1440) + (md * 60) + sd
+	durStr := fmt.Sprintf("%d:%02d", md, sd)
+	if hd != 0 {
+		durStr = strconv.Itoa(hd) + ":" + durStr
+	}
 
-	pro, err := time.Parse(time.TimeOnly, syncInfo.Track.Progress)
+	el, err := DOM.GetElement("sonos_timeline_progress")
 	if err != nil {
 		return err
 	}
-	h, m, s = pro.Add(time.Second).Clock()
-	el.AttributeSet("value", strconv.Itoa((h*1440)+(m*60)+s))
+	el.InnerSet(proStr)
+
+	el, err = DOM.GetElement("sonos_timeline_slider")
+	if err != nil {
+		return err
+	}
+	el.AttributeSet("max", strconv.Itoa(durSecs))
+	el.AttributeSet("value", strconv.Itoa(proSecs))
 
 	el, err = DOM.GetElement("sonos_timeline_duration")
 	if err != nil {
 		return err
 	}
 
-	if strings.HasPrefix(syncInfo.Track.Duration, "0:") {
-		el.InnerSet(strings.Replace(syncInfo.Track.Duration, "0:", "", 1))
-	} else {
-		el.InnerSet(syncInfo.Track.Duration)
+	el.InnerSet(durStr)
+
+	if ytPlayer.Get("s").Bool() {
+		playerPos := ytPlayer.Call("getCurrentTime").Int()
+		if proSecs > playerPos+1 || proSecs < playerPos-1 {
+			ytPlayer.Call("seekTo", proSecs)
+		}
 	}
 
 	return nil
@@ -300,7 +308,7 @@ func getControls() string {
 	spacer := HTML.HTML{Tag: "div"}.String()
 
 	return HTML.HTML{Tag: "div",
-		Styles: map[string]string{"display": "flex", "margin": "0px auto -15px auto"},
+		Styles: map[string]string{"display": "flex", "margin": "0px auto -25px auto"},
 		Inner:  spacer + buttons + spacer,
 	}.String()
 }
@@ -381,9 +389,16 @@ func updateControls() error {
 	}
 
 	if syncInfo.Playing {
+		if ytPlayer.Get("s").Bool() {
+			ytPlayer.Call("playVideo")
+		}
 		el.AttributeSet("src", "./docs/assets/Sonos/Pause.svg")
 		el.AttributeSet("alt", "pause")
+
 	} else {
+		if ytPlayer.Get("s").Bool() {
+			ytPlayer.Call("pauseVideo")
+		}
 		el.AttributeSet("src", "./docs/assets/Sonos/Play.svg")
 		el.AttributeSet("alt", "play")
 	}
@@ -421,7 +436,7 @@ func getVolume() string {
 
 	sliderVolume := HTML.HTML{Tag: "input",
 		Attributes: map[string]string{"id": "sonos_actions_volume_slider", "type": "range", "min": "0", "max": "100", "list": "sonos_actions_volume_slider_datalist"},
-		Styles:     map[string]string{"width": "25%", "margin": "10px", "padding": "0px", "accent-color": "#F7E163"},
+		Styles:     map[string]string{"width": "30%", "margin": "10px", "padding": "0px", "accent-color": "#F7E163"},
 	}.String()
 
 	btnVolumeUp := HTML.HTML{Tag: "button",
