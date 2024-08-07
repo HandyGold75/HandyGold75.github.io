@@ -413,7 +413,7 @@ func ForcePage(page string) {
 		return
 	}
 
-	JS.CacheSet("mainPage", page)
+	JS.CacheSet("page", page)
 }
 
 func Open(page string) {

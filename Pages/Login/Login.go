@@ -261,7 +261,6 @@ func submitLogin(el js.Value, evs []js.Value) {
 		return
 	}
 
-	JS.CacheSet("server", server)
 	HTTP.Authenticate(authenticateCallback, username, password)
 }
 
