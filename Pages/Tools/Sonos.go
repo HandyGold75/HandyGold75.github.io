@@ -76,6 +76,8 @@ var (
 	syncInfo = SyncInfo{}
 	ytInfo   = []YTInfo{}
 	queInfo  = QueInfo{}
+
+	toAddImgs = [][]string{}
 )
 
 func accessCallback(hasAccess bool, err error) {
@@ -535,7 +537,7 @@ func updateQue() error {
 		}
 
 		img := HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"src": track.AlbumArtURI},
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img"},
 			Styles: map[string]string{
 				"width":         "3.5em",
 				"height":        "3.5em",
@@ -583,6 +585,8 @@ func updateQue() error {
 			},
 			Inner: img + div,
 		}.String()
+
+		toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
 	}
 
 	el, err := DOM.GetElement("sonos_que")
@@ -599,6 +603,10 @@ func updateQue() error {
 		idSplit := strings.Split(el.Get("id").String(), "_")
 		HTTP.Send(func(res string, resBytes []byte, resErr error) {}, "sonos", "position", idSplit[len(idSplit)-1])
 	})
+
+	if len(toAddImgs) > 0 {
+		HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[0][1])
+	}
 
 	JS.OnResizeAdd("Sonos", func() {
 		el, err = DOM.GetElement("sonos_que_track_" + syncInfo.Track.QuePosition)
@@ -645,6 +653,10 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
 	} else if resErr != nil {
+		if strings.HasPrefix(resErr.Error(), "429: ") {
+			JS.AfterDelay(5000, func() { HTTP.Send(syncCallback, "sonos", "sync") })
+			return
+		}
 		JS.Alert(resErr.Error())
 		return
 	}
@@ -658,10 +670,10 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount {
-		HTTP.Send(ytqueryCallback, "sonos", "ytquery", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
+		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		HTTP.Send(queCallback, "sonos", "que")
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
-		HTTP.Send(ytqueryCallback, "sonos", "ytquery", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
+		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		if err := updateQue(); err != nil {
 			return
 		}
@@ -718,6 +730,38 @@ func queCallback(res string, resBytes []byte, resErr error) {
 	if err := updateQue(); err != nil {
 		return
 	}
+}
+
+func addImgCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
+		return
+	} else if resErr != nil {
+		if strings.HasPrefix(resErr.Error(), "429: ") {
+			JS.AfterDelay(5000, func() { HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[0][1]) })
+			return
+		}
+		return
+	}
+
+	if len(toAddImgs) <= 0 {
+		return
+	}
+
+	el, err := DOM.GetElement(toAddImgs[0][0])
+	if err != nil {
+		return
+	}
+	el.AttributeSet("src", "data:image/png;base64,"+res)
+
+	if len(toAddImgs) <= 1 {
+		toAddImgs = toAddImgs[1:]
+		return
+	}
+
+	HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[1][1])
+	toAddImgs = toAddImgs[1:]
+
 }
 
 func PageSonos(forcePage func(string), setLoginSuccessCallback func(func())) {

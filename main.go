@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	mainPage := JS.CacheGet("mainPage")
-	if mainPage == "" {
-		mainPage = "Home"
+	page := JS.CacheGet("page")
+	if page == "" {
+		page = "Home"
 	}
 
 	HTTP.Config.Load()
@@ -21,6 +21,6 @@ func main() {
 		HTTP.Config.Set("Token", "")
 	}
 
-	Pages.Open(mainPage)
+	Pages.Open(page)
 	<-make(chan bool)
 }
