@@ -77,6 +77,9 @@ var (
 	ytInfo   = []YTInfo{}
 	queInfo  = QueInfo{}
 
+	SonosDBVersion = 1
+
+	imgCache  = map[string]string{}
 	toAddImgs = [][]string{}
 )
 
@@ -536,8 +539,14 @@ func updateQue() error {
 			divBackground = "#333"
 		}
 
+		uri, ok := imgCache[track.AlbumArtURI]
+		if !ok {
+			uri = ""
+			toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
+		}
+
 		img := HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img", "src": uri},
 			Styles: map[string]string{
 				"width":         "3.5em",
 				"height":        "3.5em",
@@ -585,8 +594,6 @@ func updateQue() error {
 			},
 			Inner: img + div,
 		}.String()
-
-		toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
 	}
 
 	el, err := DOM.GetElement("sonos_que")
@@ -669,9 +676,10 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount {
+	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount || syncInfo.Shuffle != oldSyncInfo.Shuffle {
 		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		HTTP.Send(queCallback, "sonos", "que")
+
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
 		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		if err := updateQue(); err != nil {
@@ -727,9 +735,14 @@ func queCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	if err := updateQue(); err != nil {
-		return
-	}
+	JS.DBNew(func(db JS.DB, dbErr error) {
+		db.GetAll(func(value map[string]string) {
+			imgCache = value
+			if err := updateQue(); err != nil {
+				return
+			}
+		}, "uris")
+	}, "Sonos", []string{"uris"}, SonosDBVersion)
 }
 
 func addImgCallback(res string, resBytes []byte, resErr error) {
@@ -754,6 +767,11 @@ func addImgCallback(res string, resBytes []byte, resErr error) {
 	}
 	el.AttributeSet("src", "data:image/png;base64,"+res)
 
+	uri := toAddImgs[0][1]
+	JS.DBNew(func(db JS.DB, dbErr error) {
+		db.Set("uris", uri, "data:image/png;base64,"+res)
+	}, "Sonos", []string{"uris"}, SonosDBVersion)
+
 	if len(toAddImgs) <= 1 {
 		toAddImgs = toAddImgs[1:]
 		return
@@ -761,7 +779,6 @@ func addImgCallback(res string, resBytes []byte, resErr error) {
 
 	HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[1][1])
 	toAddImgs = toAddImgs[1:]
-
 }
 
 func PageSonos(forcePage func(string), setLoginSuccessCallback func(func())) {
