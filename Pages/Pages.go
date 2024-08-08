@@ -343,6 +343,7 @@ func InitFooter() error {
 	}
 	els.EventAdd("click", func(el js.Value, evs []js.Value) {
 		JS.CacheClear()
+		JS.DBClear()
 		HTTP.Config.Load()
 		JS.Async(func() { ForcePage("Home") })
 	})
