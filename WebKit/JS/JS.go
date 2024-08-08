@@ -5,8 +5,15 @@ package JS
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
+	"errors"
 	"strings"
 	"syscall/js"
+)
+
+type (
+	DB struct {
+		db js.Value
+	}
 )
 
 var (
@@ -83,6 +90,89 @@ func CacheSet(key string, value any) {
 
 func CacheClear() {
 	js.Global().Get("window").Get("localStorage").Call("clear")
+}
+
+func DBNew(onOpenCallback func(db DB, dbErr error), name string, stores []string, version int) {
+	openReq := js.Global().Get("window").Get("indexedDB").Call("open", name, version)
+
+	openReq.Set("onerror", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		onOpenCallback(DB{}, errors.New(openReq.Get("error").String()))
+		return nil
+	}))
+
+	openReq.Set("onsuccess", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		db := DB{db: openReq.Get("result")}
+
+		onOpenCallback(db, nil)
+		db.db.Call("close")
+
+		return nil
+	}))
+
+	openReq.Set("onupgradeneeded", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		db := DB{db: openReq.Get("result")}
+
+		for _, store := range stores {
+			if db.db.Get("objectStoreNames").Get("uris").IsUndefined() {
+				db.db.Call("createObjectStore", store)
+			}
+		}
+
+		return nil
+	}))
+}
+
+func (db DB) GetAll(onGetCallback func(value map[string]string), store string) {
+	tran := db.db.Call("transaction", store, "readonly")
+	values := tran.Call("objectStore", store)
+
+	results := map[string]string{}
+	cursor := values.Call("openCursor")
+
+	cursor.Set("onsuccess", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		cur := cursor.Get("result")
+		if cur.Truthy() {
+			results[cur.Get("primaryKey").String()] = cur.Get("value").String()
+			cur.Call("continue")
+		} else {
+			onGetCallback(results)
+		}
+
+		return nil
+	}))
+}
+
+func (db DB) Get(onGetCallback func(value string), store string, key string) {
+	tran := db.db.Call("transaction", store, "readonly")
+	values := tran.Call("objectStore", store)
+
+	getReq := values.Call("get", key)
+
+	getReq.Set("onsuccess", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		res := getReq.Get("result")
+		if res.IsUndefined() {
+			onGetCallback("")
+			return nil
+		}
+		onGetCallback(res.String())
+		return nil
+	}))
+}
+
+func (db DB) Set(store string, key string, value string) {
+	tran := db.db.Call("transaction", store, "readwrite")
+	values := tran.Call("objectStore", store)
+	values.Call("put", value, key)
+}
+
+func (db DB) Clear(store string) {
+	tran := db.db.Call("transaction", store, "readwrite")
+	values := tran.Call("objectStore", store)
+	values.Call("clear")
+}
+
+func DBClear() {
+	js.Global().Get("window").Get("indexedDB").Call("deleteDatabase", "Sonos")
 }
 
 func ScrollToTop() {
