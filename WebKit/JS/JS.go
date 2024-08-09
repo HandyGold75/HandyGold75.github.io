@@ -142,6 +142,29 @@ func (db DB) GetAll(onGetCallback func(value map[string]string), store string) {
 	}))
 }
 
+func (db DB) GetAllKeys(onGetCallback func(keys []string), store string) {
+	tran := db.db.Call("transaction", store, "readonly")
+	values := tran.Call("objectStore", store)
+
+	getReq := values.Call("getAllKeys")
+
+	getReq.Set("onsuccess", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		res := getReq.Get("result")
+		if res.IsUndefined() {
+			onGetCallback([]string{})
+			return nil
+		}
+
+		result := []string{}
+		for i := 0; i < res.Length(); i++ {
+			result = append(result, res.Index(i).String())
+		}
+
+		onGetCallback(result)
+		return nil
+	}))
+}
+
 func (db DB) Get(onGetCallback func(value string), store string, key string) {
 	tran := db.db.Call("transaction", store, "readonly")
 	values := tran.Call("objectStore", store)
@@ -163,6 +186,12 @@ func (db DB) Set(store string, key string, value string) {
 	tran := db.db.Call("transaction", store, "readwrite")
 	values := tran.Call("objectStore", store)
 	values.Call("put", value, key)
+}
+
+func (db DB) Del(store string, key string) {
+	tran := db.db.Call("transaction", store, "readwrite")
+	values := tran.Call("objectStore", store)
+	values.Call("delete", key)
 }
 
 func (db DB) Clear(store string) {

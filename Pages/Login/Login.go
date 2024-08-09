@@ -115,6 +115,8 @@ func authenticateCallback(authErr error) {
 		elSub.StyleSet("border", "2px solid #F55")
 		JS.AfterDelay(3000, func() { elSub.StyleSet("border", "2px solid #55F") })
 
+		JS.Alert(authErr.Error())
+
 		return
 	}
 
