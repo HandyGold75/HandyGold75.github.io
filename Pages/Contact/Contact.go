@@ -134,16 +134,16 @@ func showContacts() {
 
 		img := HTML.HTML{Tag: "a",
 			Attributes: map[string]string{"class": classImg, "href": Contacts[k].Url, "target": "_blank"},
-			Styles:     map[string]string{"width": "10vw", "height": "10vw", "margin": marginImg, "transition": "margin 1s"},
+			Styles:     map[string]string{"width": "10vh", "height": "10vh", "margin": marginImg, "transition": "margin 1s"},
 			Inner: HTML.HTML{Tag: "img",
 				Attributes: map[string]string{"src": Contacts[k].Img, "alt": Contacts[k].Text},
-				Styles:     map[string]string{"width": "10vw", "height": "10vw"},
+				Styles:     map[string]string{"width": "10vh", "height": "10vh"},
 			}.String(),
 		}.String()
 
 		txt := HTML.HTML{Tag: "a",
 			Attributes: map[string]string{"class": classTxt, "href": Contacts[k].Url, "target": "_blank"},
-			Styles:     map[string]string{"font-size": "3vw", "margin": marginTxt, "transition": "margin 1s"},
+			Styles:     map[string]string{"font-size": "3vh", "margin": marginTxt, "transition": "margin 1s"},
 			Inner:      Contacts[k].Text,
 		}.String()
 

@@ -132,9 +132,10 @@ func ToggleDocker() error {
 		titles.StylesSet("opacity", "1")
 		subs.StylesSet("opacity", "1")
 		docker.StyleSet("max-width", "250px")
-		docker.StyleSet("max-height", "100vh")
+		docker.StyleSet("max-height", "90vh")
 		docker.StyleSet("margin", "0px")
 		docker.StyleSet("padding", "4px")
+		docker.StyleSet("overflow-y", "scroll")
 		docker_showhide.AttributeSet("className", "imgBtn imgBtnBorder imgBtnSmall")
 		docker_showhide_img.AttributeSet("src", "./docs/assets/General/Hide-H.svg")
 		return nil
@@ -149,6 +150,7 @@ func ToggleDocker() error {
 	docker.StyleSet("max-height", "48px")
 	docker.StyleSet("margin", "-20px 0px 0px -20px")
 	docker.StyleSet("padding", "0px")
+	docker.StyleSet("overflow-y", "hidden")
 	docker_showhide.AttributeSet("className", "imgBtn imgBtnSmall")
 	docker_showhide_img.AttributeSet("src", "./docs/assets/General/Show-H.svg")
 	return nil
@@ -249,6 +251,7 @@ func InitDocker() error {
 			"max-height": "48px",
 			"margin":     "-20px 0px 0px -20px",
 			"padding":    "0px",
+			"overflow-y": "hidden",
 			"top":        "25px",
 			"left":       "25px",
 			"border":     "4px solid #111",
