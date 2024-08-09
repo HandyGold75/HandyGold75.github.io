@@ -3,16 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>HandyGold75</title>
-
     <link href="./docs/assets/;D.ico" rel="icon" type="image/x-icon" />
     <link rel="stylesheet" href="./docs/style.css" />
-
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="./docs/wasm/wasm_exec.js"></script>
   </head>
-
   <body id="body">
     <script>
       if (!WebAssembly.instantiateStreaming) {
@@ -21,7 +17,6 @@
           return await WebAssembly.instantiate(source, importObject);
         };
       }
-
       const go = new Go();
       WebAssembly.instantiateStreaming(
         fetch("./docs/wasm/main.wasm"),
