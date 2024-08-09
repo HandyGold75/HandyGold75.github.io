@@ -9,6 +9,7 @@ import (
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -79,8 +80,8 @@ var (
 
 	SonosDBVersion = 1
 
-	imgCache  = map[string]string{}
-	toAddImgs = [][]string{}
+	imgCacheKeys = []string{}
+	toAddImgs    = [][]string{}
 )
 
 func accessCallback(hasAccess bool, err error) {
@@ -117,6 +118,13 @@ func getYTPlayer() string {
 	}.String()
 }
 
+func isYTPlayerActive() bool {
+	if ytPlayer.IsUndefined() {
+		return false
+	}
+	return ytPlayer.Get("s").Bool()
+}
+
 func setEventsYTPlayer() error {
 	JS.Async(func() {
 		args := map[string]any{
@@ -139,7 +147,7 @@ func setEventsYTPlayer() error {
 }
 
 func updateYTPlayer() error {
-	if !ytPlayer.Get("s").Bool() {
+	if !isYTPlayerActive() {
 		if _, err := DOM.GetElement("sonos_player_ifr"); err != nil {
 			return nil
 		}
@@ -281,8 +289,12 @@ func updateTimeline() error {
 
 	el.InnerSet(durStr)
 
-	if ytPlayer.Get("s").Bool() {
-		playerPos := ytPlayer.Call("getCurrentTime").Int()
+	if isYTPlayerActive() {
+		curTime := ytPlayer.Call("getCurrentTime")
+		if curTime.IsUndefined() {
+			return nil
+		}
+		playerPos := curTime.Int()
 		if proSecs > playerPos+1 || proSecs < playerPos-1 {
 			ytPlayer.Call("seekTo", proSecs)
 		}
@@ -394,14 +406,14 @@ func updateControls() error {
 	}
 
 	if syncInfo.Playing {
-		if ytPlayer.Get("s").Bool() {
+		if isYTPlayerActive() {
 			ytPlayer.Call("playVideo")
 		}
 		el.AttributeSet("src", "./docs/assets/Sonos/Pause.svg")
 		el.AttributeSet("alt", "pause")
 
 	} else {
-		if ytPlayer.Get("s").Bool() {
+		if isYTPlayerActive() {
 			ytPlayer.Call("pauseVideo")
 		}
 		el.AttributeSet("src", "./docs/assets/Sonos/Play.svg")
@@ -528,25 +540,19 @@ func updateQue() error {
 			imgMargin = "-4px 5px -4px -4px"
 		}
 
-		textColor := "#55F"
 		imgBorder := "4px solid #111"
 		imgBorderRadius := "10px"
+		textColor := "#55F"
 		divBackground := "#202020"
 		if i == quePos {
-			textColor = "#f7e163"
 			imgBorder = "4px solid #f7e163"
 			imgBorderRadius = "0px"
+			textColor = "#f7e163"
 			divBackground = "#333"
 		}
 
-		uri, ok := imgCache[track.AlbumArtURI]
-		if !ok {
-			uri = ""
-			toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
-		}
-
 		img := HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img", "src": uri},
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img", "src": "./docs/assets/General/Load.svg"},
 			Styles: map[string]string{
 				"width":         "3.5em",
 				"height":        "3.5em",
@@ -557,6 +563,7 @@ func updateQue() error {
 		}.String()
 
 		title := HTML.HTML{Tag: "p",
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_title"},
 			Styles: map[string]string{
 				"color":         textColor,
 				"text-overflow": "ellipsis",
@@ -565,6 +572,7 @@ func updateQue() error {
 			Inner: track.Title,
 		}.String()
 		creator := HTML.HTML{Tag: "p",
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_creator"},
 			Styles: map[string]string{
 				"color":         textColor,
 				"text-overflow": "ellipsis",
@@ -573,6 +581,7 @@ func updateQue() error {
 			},
 			Inner: track.Creator}.String()
 		div := HTML.HTML{Tag: "div",
+			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_div"},
 			Styles: map[string]string{
 				"margin":     "auto 5px auto auto",
 				"padding":    "0px",
@@ -611,10 +620,24 @@ func updateQue() error {
 		HTTP.Send(func(res string, resBytes []byte, resErr error) {}, "sonos", "position", idSplit[len(idSplit)-1])
 	})
 
-	if len(toAddImgs) > 0 {
-		HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[0][1])
+	toAddImgs = [][]string{}
+	for i, track := range queInfo.Tracks {
+		toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
 	}
 
+	if len(toAddImgs) > 0 {
+		nextUri := toAddImgs[0][1]
+		if slices.Contains(imgCacheKeys, nextUri) {
+			JS.DBNew(func(db JS.DB, dbErr error) {
+				db.Get(func(value string) {
+					JS.Async(func() { addImgCallback(value, []byte{0}, nil) })
+				}, "uris", nextUri)
+			}, "Sonos", []string{"uris"}, SonosDBVersion)
+		} else {
+			HTTP.Send(addImgCallback, "sonos", "uri", nextUri)
+		}
+
+	}
 	JS.OnResizeAdd("Sonos", func() {
 		el, err = DOM.GetElement("sonos_que_track_" + syncInfo.Track.QuePosition)
 		if err != nil {
@@ -623,6 +646,77 @@ func updateQue() error {
 		}
 		el.El.Call("scrollIntoView", map[string]any{"inline": "start"})
 	})
+
+	return nil
+}
+
+func updatedSelectedQueTrack(oldTrackPos string, newTrackPos string) error {
+	fmt.Println("Pos index: " + oldTrackPos + " -> " + newTrackPos)
+
+	el, err := DOM.GetElement("sonos_que_track_" + oldTrackPos + "_img")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("border", "4px solid #111")
+	el.StyleSet("border-radius", "10px")
+
+	el, err = DOM.GetElement("sonos_que_track_" + oldTrackPos + "_title")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("color", "#55F")
+
+	el, err = DOM.GetElement("sonos_que_track_" + oldTrackPos + "_creator")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("color", "#55F")
+
+	el, err = DOM.GetElement("sonos_que_track_" + oldTrackPos + "_div")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("background", "#202020")
+
+	el, err = DOM.GetElement("sonos_que_track_" + oldTrackPos)
+	if err != nil {
+		return err
+	}
+	el.StyleSet("background", "#202020")
+
+	el, err = DOM.GetElement("sonos_que_track_" + newTrackPos + "_img")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("border", "4px solid #f7e163")
+	el.StyleSet("border-radius", "0px")
+
+	el, err = DOM.GetElement("sonos_que_track_" + newTrackPos + "_title")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("color", "#f7e163")
+
+	el, err = DOM.GetElement("sonos_que_track_" + newTrackPos + "_creator")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("color", "#f7e163")
+
+	el, err = DOM.GetElement("sonos_que_track_" + newTrackPos + "_div")
+	if err != nil {
+		return err
+	}
+	el.StyleSet("background", "#333")
+
+	el, err = DOM.GetElement("sonos_que_track_" + newTrackPos)
+	if err != nil {
+		return err
+	}
+	el.StyleSet("background", "#333")
+	el.El.Call("scrollIntoView", map[string]any{"inline": "start"})
+
+	fmt.Println("done")
 
 	return nil
 }
@@ -652,6 +746,7 @@ func showSonos() {
 		return
 	}
 
+	syncInfo = SyncInfo{}
 	HTTP.Send(syncCallback, "sonos", "sync")
 }
 
@@ -682,7 +777,7 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
 		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
-		if err := updateQue(); err != nil {
+		if err := updatedSelectedQueTrack(oldSyncInfo.Track.QuePosition, syncInfo.Track.QuePosition); err != nil {
 			return
 		}
 	}
@@ -736,8 +831,8 @@ func queCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	JS.DBNew(func(db JS.DB, dbErr error) {
-		db.GetAll(func(value map[string]string) {
-			imgCache = value
+		db.GetAllKeys(func(keys []string) {
+			imgCacheKeys = keys
 			if err := updateQue(); err != nil {
 				return
 			}
@@ -749,36 +844,46 @@ func addImgCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
+
+	} else if len(toAddImgs) <= 0 {
+		return
+
 	} else if resErr != nil {
 		if strings.HasPrefix(resErr.Error(), "429: ") {
 			JS.AfterDelay(5000, func() { HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[0][1]) })
-			return
 		}
 		return
 	}
 
-	if len(toAddImgs) <= 0 {
-		return
+	id, uri := toAddImgs[0][0], toAddImgs[0][1]
+	toAddImgs = toAddImgs[1:]
+
+	if len(resBytes) == 0 {
+		JS.DBNew(func(db JS.DB, dbErr error) {
+			db.Set("uris", uri, res)
+		}, "Sonos", []string{"uris"}, SonosDBVersion)
 	}
 
-	el, err := DOM.GetElement(toAddImgs[0][0])
+	el, err := DOM.GetElement(id)
 	if err != nil {
 		return
 	}
 	el.AttributeSet("src", "data:image/png;base64,"+res)
 
-	uri := toAddImgs[0][1]
-	JS.DBNew(func(db JS.DB, dbErr error) {
-		db.Set("uris", uri, "data:image/png;base64,"+res)
-	}, "Sonos", []string{"uris"}, SonosDBVersion)
-
-	if len(toAddImgs) <= 1 {
-		toAddImgs = toAddImgs[1:]
+	if len(toAddImgs) <= 0 {
 		return
 	}
 
-	HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[1][1])
-	toAddImgs = toAddImgs[1:]
+	nextUri := toAddImgs[0][1]
+	if slices.Contains(imgCacheKeys, nextUri) {
+		JS.DBNew(func(db JS.DB, dbErr error) {
+			db.Get(func(value string) {
+				JS.Async(func() { addImgCallback(value, []byte{0}, nil) })
+			}, "uris", nextUri)
+		}, "Sonos", []string{"uris"}, SonosDBVersion)
+	} else {
+		HTTP.Send(addImgCallback, "sonos", "uri", nextUri)
+	}
 }
 
 func PageSonos(forcePage func(string), setLoginSuccessCallback func(func())) {
