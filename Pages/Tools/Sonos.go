@@ -84,7 +84,7 @@ var (
 	toAddImgs    = [][]string{}
 )
 
-func accessCallback(hasAccess bool, err error) {
+func accessCallbackSonos(hasAccess bool, err error) {
 	if HTTP.IsAuthError(err) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
@@ -896,5 +896,5 @@ func PageSonos(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 
-	HTTP.HasAccessTo(accessCallback, "sonos")
+	HTTP.HasAccessTo(accessCallbackSonos, "sonos")
 }
