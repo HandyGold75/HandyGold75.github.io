@@ -172,6 +172,12 @@ button,
       color: #55f;
       z-index: 102;
     }
+
+    &.border {
+      background: #444;
+      /* background: #333; */
+      /* border: 3px solid #fbdf56; */
+    }
   }
 
   &.light {
@@ -195,6 +201,12 @@ button,
     &:disabled {
       background: #33a;
       color: #88b;
+    }
+
+    &.border {
+      background: #66f;
+      /* background: #333; */
+      /* border: 3px solid #fbdf56; */
     }
   }
 
