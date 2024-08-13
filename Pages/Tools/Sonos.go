@@ -747,16 +747,16 @@ func showSonos() {
 	}
 
 	syncInfo = SyncInfo{}
-	HTTP.Send(syncCallback, "sonos", "sync")
+	HTTP.Send(syncCallbackSonos, "sonos", "sync")
 }
 
-func syncCallback(res string, resBytes []byte, resErr error) {
+func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
 	} else if resErr != nil {
 		if strings.HasPrefix(resErr.Error(), "429: ") {
-			JS.AfterDelay(5000, func() { HTTP.Send(syncCallback, "sonos", "sync") })
+			JS.AfterDelay(5000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
 			return
 		}
 		JS.Alert(resErr.Error())
@@ -792,7 +792,7 @@ func syncCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	JS.AfterDelay(1000, func() { HTTP.Send(syncCallback, "sonos", "sync") })
+	JS.AfterDelay(1000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
 }
 
 func ytqueryCallback(res string, resBytes []byte, resErr error) {
