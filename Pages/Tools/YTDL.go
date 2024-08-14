@@ -151,62 +151,56 @@ func toggleForceMP4(el js.Value, evs []js.Value) {
 }
 
 func showYTDL() {
-	header := HTML.HTML{Tag: "h1", Inner: "YTDL"}.String()
+	header := HTML.HTML{Tag: "h1", Inner: "YTDL",
+		Styles: map[string]string{"max-width": "min(100%, 1250px)"},
+	}.String()
 
-	spacer := HTML.HTML{Tag: "div"}.String()
+	spacer := HTML.HTML{Tag: "div", Styles: map[string]string{"background": "#2A2A2A"}}.String()
 
-	inp := HTML.HTML{
-		Tag:        "input",
+	inp := HTML.HTML{Tag: "input",
 		Attributes: map[string]string{"type": "url", "id": "ytdl_input", "autocomplete": "url", "placeholder": "URL"},
-		Styles: map[string]string{
-			"width":  "60%",
-			"margin": "auto 5px",
-		},
+		Styles:     map[string]string{"width": "55%"},
 	}.String()
 
-	btnConfirm := HTML.HTML{Tag: "button",
+	btnConfirm := HTML.HTML{Tag: "button", Inner: "Download",
 		Attributes: map[string]string{"id": "ytdl_confirm", "class": "dark medium"},
-		Styles:     map[string]string{"margin": "auto 2px"},
-		Inner:      "Download",
 	}.String()
 
-	selectDiv := HTML.HTML{Tag: "div",
+	selectDiv := HTML.HTML{Tag: "div", Inner: spacer + inp + btnConfirm + spacer,
 		Styles: map[string]string{
-			"display": "flex",
-			"width":   "70%",
+			"display":    "flex",
+			"max-width":  "min(75%, 1000px)",
+			"margin":     "25px auto 0px auto",
+			"padding":    "10px 4px",
+			"background": "#2A2A2A",
+			"border":     "2px solid #191919",
 		},
-		Inner: spacer + inp + btnConfirm + spacer,
 	}.String()
 
-	btnAudio := HTML.HTML{Tag: "button",
+	btnAudio := HTML.HTML{Tag: "button", Inner: "Audio Only",
 		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
-		Inner:      "Audio Only",
 	}.String()
 
-	btnLow := HTML.HTML{Tag: "button",
+	btnLow := HTML.HTML{Tag: "button", Inner: "Low Quality",
 		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
-		Inner:      "Low Quality",
 	}.String()
 
-	btnMP4 := HTML.HTML{Tag: "button",
+	btnMP4 := HTML.HTML{Tag: "button", Inner: "Force MP4",
 		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
-		Inner:      "Force MP4",
 	}.String()
 
-	optionsDiv := HTML.HTML{Tag: "div",
+	optionsDiv := HTML.HTML{Tag: "div", Inner: spacer + btnAudio + btnLow + btnMP4 + spacer,
 		Styles: map[string]string{
-			"display": "flex",
-			"width":   "30%",
+			"display":    "flex",
+			"max-width":  "min(75%, 1000px)",
+			"margin":     "-2px auto 25px auto",
+			"padding":    "10px 4px",
+			"background": "#2A2A2A",
+			"border":     "2px solid #191919",
 		},
-		Inner: spacer + btnAudio + btnLow + btnMP4 + spacer,
-	}.String()
-
-	div := HTML.HTML{Tag: "div",
-		Styles: map[string]string{"display": "flex"},
-		Inner:  selectDiv + optionsDiv,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
@@ -214,7 +208,7 @@ func showYTDL() {
 		JS.Alert(err.Error())
 		return
 	}
-	mp.InnerSet(header + div)
+	mp.InnerSet(header + selectDiv + optionsDiv)
 
 	el, err := DOM.GetElement("ytdl_confirm")
 	if err != nil {
