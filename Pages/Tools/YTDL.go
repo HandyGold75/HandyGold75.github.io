@@ -7,7 +7,8 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
-	"fmt"
+	"encoding/base64"
+	"strings"
 	"syscall/js"
 )
 
@@ -57,15 +58,23 @@ func submitURL(el js.Value, evs []js.Value) {
 	}
 	elInp.Disable()
 
-	HTTP.Send(submitURLCallback, "ytdl", "download", elInp.AttributeGet("value"), "low", "mp4")
+	args := []string{}
+	if audioOnly {
+		args = append(args, "audio")
+	}
+	if lowQuality {
+		args = append(args, "low")
+	}
+	if forceMP4 {
+		args = append(args, "mp4")
+	}
+
+	HTTP.Send(submitURLCallback, "ytdl", append([]string{"download", elInp.AttributeGet("value")}, args...)...)
 }
 
 func submitURLCallback(res string, resBytes []byte, resErr error) {
 	if HTTP.IsAuthError(resErr) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-	} else if resErr != nil {
-		JS.Alert(resErr.Error())
 		return
 	}
 
@@ -83,7 +92,20 @@ func submitURLCallback(res string, resBytes []byte, resErr error) {
 	}
 	elInp.Enable()
 
-	fmt.Println(res)
+	if resErr != nil {
+		JS.Alert(resErr.Error())
+		return
+	}
+
+	resBase := make([]byte, base64.RawStdEncoding.EncodedLen(len(resBytes)))
+	base64.RawStdEncoding.Encode(resBase, resBytes)
+
+	resSplit := strings.Split(res, ".")
+	err = JS.Download(res, "video/"+resSplit[len(resSplit)-1]+";base64", resBase)
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
 }
 
 func toggleAudioOnly(el js.Value, evs []js.Value) {
@@ -94,10 +116,10 @@ func toggleAudioOnly(el js.Value, evs []js.Value) {
 	}
 
 	if audioOnly {
-		elOpt.AttributeSet("className", "dark medium border")
+		elOpt.AttributeSet("className", "dark small border")
 		return
 	}
-	elOpt.AttributeSet("className", "dark medium")
+	elOpt.AttributeSet("className", "dark small")
 }
 
 func toggleLowQuality(el js.Value, evs []js.Value) {
@@ -108,10 +130,10 @@ func toggleLowQuality(el js.Value, evs []js.Value) {
 	}
 
 	if lowQuality {
-		elOpt.AttributeSet("className", "dark medium border")
+		elOpt.AttributeSet("className", "dark small border")
 		return
 	}
-	elOpt.AttributeSet("className", "dark medium")
+	elOpt.AttributeSet("className", "dark small")
 }
 
 func toggleForceMP4(el js.Value, evs []js.Value) {
@@ -122,10 +144,10 @@ func toggleForceMP4(el js.Value, evs []js.Value) {
 	}
 
 	if forceMP4 {
-		elOpt.AttributeSet("className", "dark medium border")
+		elOpt.AttributeSet("className", "dark small border")
 		return
 	}
-	elOpt.AttributeSet("className", "dark medium")
+	elOpt.AttributeSet("className", "dark small")
 }
 
 func showYTDL() {
@@ -151,24 +173,25 @@ func showYTDL() {
 	selectDiv := HTML.HTML{Tag: "div",
 		Styles: map[string]string{
 			"display": "flex",
+			"width":   "70%",
 		},
 		Inner: spacer + inp + btnConfirm + spacer,
 	}.String()
 
 	btnAudio := HTML.HTML{Tag: "button",
-		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark medium"},
+		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 		Inner:      "Audio Only",
 	}.String()
 
 	btnLow := HTML.HTML{Tag: "button",
-		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark medium"},
+		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 		Inner:      "Low Quality",
 	}.String()
 
 	btnMP4 := HTML.HTML{Tag: "button",
-		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark medium"},
+		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 		Inner:      "Force MP4",
 	}.String()
@@ -176,16 +199,22 @@ func showYTDL() {
 	optionsDiv := HTML.HTML{Tag: "div",
 		Styles: map[string]string{
 			"display": "flex",
-			"width":   "50%",
+			"width":   "30%",
 		},
-		Inner: btnAudio + spacer + btnLow + spacer + btnMP4}.String()
+		Inner: spacer + btnAudio + btnLow + btnMP4 + spacer,
+	}.String()
+
+	div := HTML.HTML{Tag: "div",
+		Styles: map[string]string{"display": "flex"},
+		Inner:  selectDiv + optionsDiv,
+	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
 		JS.Alert(err.Error())
 		return
 	}
-	mp.InnerSet(header + selectDiv + optionsDiv)
+	mp.InnerSet(header + div)
 
 	el, err := DOM.GetElement("ytdl_confirm")
 	if err != nil {

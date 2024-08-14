@@ -229,7 +229,7 @@ func OnResizeDelete(key string) {
 	delete(onResizeMapping, key)
 }
 
-func Download(fileName string, data []byte) error {
+func Download(fileName string, dataType string, data []byte) error {
 	el, err := DOM.GetElement("body")
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func Download(fileName string, data []byte) error {
 	el.InnerAddSurfix(HTML.HTML{Tag: "a",
 		Attributes: map[string]string{
 			"id":       fileName + "_download",
-			"href":     "data:text/json;charset=utf-8," + UriFriendlyfy(string(data)),
+			"href":     "data:" + dataType + "," + UriFriendlyfy(string(data)),
 			"download": fileName},
 		Styles: map[string]string{"display": "none"},
 	}.String())
