@@ -41,7 +41,7 @@ func accessCallbackTapo(hasAccess bool, err error) {
 	HTTP.Send(syncCallbackTapo, "tapo", "sync")
 }
 
-func addDevice(name string) {
+func addDevice(name string) error {
 	headStyle := map[string]string{"font-size": "125%", "font-weight": "bold", "white-space": "nowrap"}
 	txtStyle := map[string]string{"margin": "0px auto 0px 0px", "white-space": "nowrap"}
 	outStyle := map[string]string{"margin": "0px 5px", "white-space": "nowrap"}
@@ -113,12 +113,11 @@ func addDevice(name string) {
 
 	el, err := DOM.GetElement("tapo_monitors")
 	if err != nil {
-		JS.Alert(err.Error())
-		return
+		return err
 	}
 	el.InnerAddSurfix(div)
 
-	updateDevice(name, DeviceEnergy{})
+	return updateDevice(name, DeviceEnergy{})
 }
 
 func updateDevice(name string, specs DeviceEnergy) error {
@@ -171,14 +170,14 @@ func syncCallbackTapo(res string, resBytes []byte, resErr error) {
 	}
 
 	for name, spec := range resp {
-		_, err := DOM.GetElement("tapo_devices_" + name)
-		if err != nil {
-			addDevice(name)
+		if _, err := DOM.GetElement("tapo_devices_" + name); err != nil {
+			if err := addDevice(name); err != nil {
+				return
+			}
 			continue
 		}
 
-		if err = updateDevice(name, spec); err != nil {
-			JS.Alert(err.Error())
+		if err := updateDevice(name, spec); err != nil {
 			return
 		}
 	}
