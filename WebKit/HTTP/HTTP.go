@@ -5,7 +5,6 @@ package HTTP
 import (
 	"HandyGold75/WebKit"
 	"HandyGold75/WebKit/JS"
-	"bufio"
 	"crypto/sha1"
 	"crypto/sha512"
 	"crypto/tls"
@@ -15,7 +14,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -93,22 +91,6 @@ func Sha512(s string) string {
 	hasher := sha512.New()
 	hasher.Write([]byte(s))
 	return fmt.Sprintf("%x", hasher.Sum(nil))
-}
-
-func downloadToFile(name string, data *[]byte) error {
-	file, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	bw := bufio.NewWriter(file)
-
-	for _, b := range *data {
-		bw.WriteByte(b)
-	}
-
-	return nil
 }
 
 func isAuthenticated(callback func(error)) {
@@ -304,12 +286,7 @@ func send(callback func(string, []byte, error), com string, args ...string) {
 		return
 
 	} else if strings.HasPrefix(bodyType, "video/") {
-		if err := downloadToFile(strings.Replace(bodyType, "video/", "", 1), &body); err != nil {
-			callback("", []byte{}, err)
-			return
-		}
-
-		callback("downloaded: "+strings.Replace(bodyType, "video/", "", 1), []byte{}, nil)
+		callback(strings.Replace(bodyType, "video/", "", 1), body, nil)
 		return
 
 	}
