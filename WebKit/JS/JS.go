@@ -229,28 +229,42 @@ func OnResizeDelete(key string) {
 	delete(onResizeMapping, key)
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs#length_limitations
 func Download(fileName string, dataType string, data []byte) error {
-	el, err := DOM.GetElement("body")
-	if err != nil {
-		return err
-	}
+	js.Global().Call("fetch", "data:"+dataType+","+UriFriendlyfy(string(data))).Call("then", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		if len(evs) < 0 {
+			return nil
+		}
+		evs[0].Call("blob").Call("then", js.FuncOf(func(el js.Value, evs []js.Value) any {
+			if len(evs) < 0 {
+				return nil
+			}
 
-	el.InnerAddSurfix(HTML.HTML{Tag: "a",
-		Attributes: map[string]string{
-			"id":       fileName + "_download",
-			"href":     "data:" + dataType + "," + UriFriendlyfy(string(data)),
-			"download": fileName},
-		Styles: map[string]string{"display": "none"},
-	}.String())
+			body, err := DOM.GetElement("body")
+			if err != nil {
+				return err
+			}
+			body.InnerAddSurfix(HTML.HTML{Tag: "a",
+				Attributes: map[string]string{
+					"id":       "download_" + fileName,
+					"type":     dataType,
+					"download": fileName,
+					"href":     js.Global().Get("URL").Call("createObjectURL", evs[0]).String(),
+				},
+				Styles: map[string]string{"display": "none"},
+			}.String())
 
-	el, err = DOM.GetElement(fileName + "_download")
-	if err != nil {
-		return err
-	}
+			download, err := DOM.GetElement("download_" + fileName)
+			if err != nil {
+				return err
+			}
+			download.Call("click")
+			download.Remove()
 
-	el.Call("click")
-	el.Remove()
-
+			return nil
+		}))
+		return nil
+	}))
 	return nil
 }
 

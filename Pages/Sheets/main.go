@@ -82,7 +82,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 		Styles: map[string]string{"display": "flex",
 			"width":         "90%",
 			"margin":        "10px auto",
-			"background":    "#202020",
+			"background":    "#2A2A2A",
 			"border":        "2px solid #111",
 			"border-radius": "10px",
 		},
@@ -183,7 +183,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				"display":       "flex",
 				"padding":       "0px",
 				"margin-bottom": "-2px",
-				"background":    "#202020",
+				"background":    "#252525",
 				"border":        "2px solid #151515",
 				"border-radius": "0px",
 				"font-size":     "150%",
@@ -195,7 +195,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				"display":       "flex",
 				"padding":       "0px",
 				"margin-bottom": "-2px",
-				"background":    "#202020",
+				"background":    "#2A2A2A",
 				"border-radius": "0px",
 				"font-size":     "100%",
 				"font-weight":   "bold",
@@ -303,7 +303,7 @@ func addRow(record []string, recordIndex int, delay int) {
 				"width":           strconv.FormatFloat(100/float64(len(record)), 'f', -1, 64) + "%",
 				"margin":          "0px",
 				"padding":         "0px",
-				"background":      "#202020",
+				"background":      "#2A2A2A",
 				"border-top":      "0px solid #55f",
 				"border-right":    borderRight,
 				"border-bottom":   "0px solid #55f",
@@ -324,7 +324,7 @@ func addRow(record []string, recordIndex int, delay int) {
 			"display":       "flex",
 			"padding":       "0px",
 			"margin-bottom": "-2px",
-			"background":    "#202020",
+			"background":    "#2A2A2A",
 			"border":        "2px solid #151515",
 			"border-radius": "0px",
 			"font-size":     "100%",
@@ -489,14 +489,14 @@ func enableEditingCol(success bool, skipColor bool) {
 	if !success {
 		el.StyleSet("background", "#802020")
 		JS.AfterDelay(2000, func() {
-			el.StyleSet("background", "#202020")
+			el.StyleSet("background", "#2A2A2A")
 		})
 		return
 	}
 
 	el.StyleSet("background", "#208020")
 	JS.AfterDelay(2000, func() {
-		el.StyleSet("background", "#202020")
+		el.StyleSet("background", "#2A2A2A")
 	})
 }
 

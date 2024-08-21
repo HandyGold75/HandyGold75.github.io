@@ -153,6 +153,9 @@ func ToggleDocker() error {
 	docker.StyleSet("overflow-y", "hidden")
 	docker_showhide.AttributeSet("className", "imgBtn imgBtnSmall")
 	docker_showhide_img.AttributeSet("src", "./docs/assets/General/Show-H.svg")
+
+	docker.El.Call("scroll", map[string]any{"top": 0})
+
 	return nil
 }
 
