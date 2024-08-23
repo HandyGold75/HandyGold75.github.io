@@ -569,7 +569,7 @@ func actionExport(el js.Value, evs []js.Value) {
 		return
 	}
 
-	JS.Download(selectedSheet+".json", "text/json;charset=utf-8", data)
+	JS.Download(selectedSheet+".json", "text/json;charset=utf-8", data, func(err error) {})
 }
 
 func actionImport(el js.Value, evs []js.Value) {

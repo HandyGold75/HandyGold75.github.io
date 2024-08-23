@@ -230,19 +230,27 @@ func OnResizeDelete(key string) {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs#length_limitations
-func Download(fileName string, dataType string, data []byte) error {
-	js.Global().Call("fetch", "data:"+dataType+","+UriFriendlyfy(string(data))).Call("then", js.FuncOf(func(el js.Value, evs []js.Value) any {
+func Download(fileName string, dataType string, data []byte, onComplete func(error)) {
+	fetch := js.Global().Call("fetch", "data:"+dataType+","+UriFriendlyfy(string(data)))
+
+	fetch.Call("then", js.FuncOf(func(el js.Value, evs []js.Value) any {
 		if len(evs) < 0 {
-			return nil
+			err := errors.New("failed to catch response")
+			onComplete(err)
+			return err.Error()
 		}
+
 		evs[0].Call("blob").Call("then", js.FuncOf(func(el js.Value, evs []js.Value) any {
 			if len(evs) < 0 {
-				return nil
+				err := errors.New("failed to catch response")
+				onComplete(err)
+				return err.Error()
 			}
 
 			body, err := DOM.GetElement("body")
 			if err != nil {
-				return err
+				onComplete(err)
+				return err.Error()
 			}
 			body.InnerAddSurfix(HTML.HTML{Tag: "a",
 				Attributes: map[string]string{
@@ -256,16 +264,30 @@ func Download(fileName string, dataType string, data []byte) error {
 
 			download, err := DOM.GetElement("download_" + fileName)
 			if err != nil {
-				return err
+				onComplete(err)
+				return err.Error()
 			}
 			download.Call("click")
 			download.Remove()
 
+			onComplete(nil)
 			return nil
 		}))
 		return nil
 	}))
-	return nil
+
+	fetch.Call("catch", js.FuncOf(func(el js.Value, evs []js.Value) any {
+		if len(evs) < 0 {
+			err := errors.New("failed to catch response")
+			onComplete(err)
+			return err.Error()
+		}
+
+		err := errors.New(evs[0].Get("message").String())
+		onComplete(err)
+		return err.Error()
+	}))
+
 }
 
 func FuncWrap(f func(el js.Value, evs []js.Value)) js.Func {
