@@ -9,9 +9,11 @@ import (
 	"HandyGold75/WebKit/JS"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall/js"
+	"time"
 )
 
 type (
@@ -27,6 +29,8 @@ type (
 )
 
 var (
+	availableHists = map[string][]string{}
+
 	selectedDevice     = ""
 	skipBtnUpdateCount = 0
 )
@@ -49,6 +53,10 @@ func accessCallbackTapo(hasAccess bool, err error) {
 }
 
 func togglePower(el js.Value, evs []js.Value) {
+	if selectedDevice != "" {
+		return
+	}
+
 	name := strings.Split(el.Get("id").String(), "_")[2]
 
 	elBtn, err := DOM.GetElement(el.Get("id").String())
@@ -64,7 +72,7 @@ func togglePower(el js.Value, evs []js.Value) {
 		return
 	}
 
-	JS.PopupConfirm("Tapo", "Power off "+name+"?", "No", "Yes", func(accepted bool) {
+	JS.PopupConfirm("Tapo", "Power off <b>"+name+"<\\b>?", "No", "Yes", func(accepted bool) {
 		if accepted {
 			selectedDevice = name
 			HTTP.Send(togglePowerCallback, "tapo", "off", name)
@@ -76,13 +84,14 @@ func togglePowerCallback(res string, resBytes []byte, resErr error) {
 	if selectedDevice == "" {
 		return
 	}
+	defer func() { selectedDevice = "" }()
 
 	el, err := DOM.GetElement("tapo_devices_" + selectedDevice + "_power")
 	if err != nil {
+		JS.Alert(err.Error())
 		return
 	}
 	skipBtnUpdateCount = 5
-	selectedDevice = ""
 
 	if res == "false" {
 		el.AttributeSet("className", "imgBtn imgBtnMedium")
@@ -91,9 +100,159 @@ func togglePowerCallback(res string, resBytes []byte, resErr error) {
 	}
 }
 
-func toggleInfo(el js.Value, evs []js.Value) {
-	// name := strings.Split(el.Get("id").String(), "_")[2:3]
-	fmt.Println(el.Get("id").String())
+func showInfoList(el js.Value, evs []js.Value) {
+	if selectedDevice != "" {
+		return
+	}
+
+	selectedDevice = strings.Split(el.Get("id").String(), "_")[2]
+
+	HTTP.Send(showInfoListCallback, "tapo", "histlist")
+}
+
+func showInfoListCallback(res string, resBytes []byte, resErr error) {
+	if selectedDevice == "" {
+		return
+	}
+	defer func() { selectedDevice = "" }()
+
+	els, err := DOM.GetElements("tapo_devices_infos")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	els.AttributesSet("className", "imgBtn imgBtnMedium tapo_devices_infos")
+
+	el, err := DOM.GetElement("tapo_devices_" + selectedDevice + "_info")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	el.AttributeSet("className", "imgBtn imgBtnMedium imgBtnBorder tapo_devices_infos")
+
+	availableHists = map[string][]string{}
+	err = json.Unmarshal(resBytes, &availableHists)
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+
+	hists, ok := availableHists[selectedDevice]
+	if !ok {
+		JS.Alert("history \"" + selectedDevice + "\" not available!")
+		return
+	}
+
+	elDates, err := DOM.GetElement("tapo_history_dates")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+
+	delay := 0
+	if elDates.StyleGet("max-height") != "0px" {
+		elDates.StyleSet("max-height", "0px")
+		delay = 250
+	}
+
+	selected := selectedDevice
+	JS.AfterDelay(delay, func() {
+		showInfoDates(selected)
+		HTTP.Send(showInfoCallback, "tapo", "histget", selected, hists[len(hists)-1])
+	})
+
+}
+
+func showInfoDates(selected string) {
+	hists, ok := availableHists[selected]
+	if !ok {
+		JS.Alert("history \"" + selected + "\" not available!")
+		return
+	}
+
+	histDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
+	for _, v := range hists {
+		histDates += HTML.HTML{Tag: "button",
+			Attributes: map[string]string{"class": "dark small tapo_history_dates_btns"},
+			Inner:      v,
+		}.String()
+	}
+	histDates += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
+
+	elDates, err := DOM.GetElement("tapo_history_dates")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	elDates.InnerSet(histDates)
+	elDates.StyleSet("max-height", "40px")
+
+	els, err := DOM.GetElements("tapo_history_dates_btns")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableHists)))+"%")
+	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
+		HTTP.Send(showInfoCallback, "tapo", "histget", selectedDevice, el.Get("innerHTML").String())
+	})
+}
+
+func showInfoCallback(res string, resBytes []byte, resErr error) {
+	if HTTP.IsAuthError(resErr) {
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
+		return
+	} else if resErr != nil {
+		JS.Alert(resErr.Error())
+		return
+	}
+
+	hist := []string{}
+	err := json.Unmarshal(resBytes, &hist)
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+
+	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
+	slices.Reverse(lines)
+
+	for _, line := range lines {
+		l := strings.Split(line, "<SEP>")
+		if len(l) != 4 {
+			continue
+		}
+
+		if l[1] != "info" {
+			continue
+		}
+
+		localTime, err := time.Parse(time.RFC3339Nano, l[0])
+		if err != nil {
+			continue
+		}
+
+		todayRuntime, err := strconv.Atoi(l[2])
+		if err != nil {
+			continue
+		}
+
+		todayEnergy, err := strconv.Atoi(l[3])
+		if err != nil {
+
+			continue
+		}
+
+		fmt.Println(localTime, todayRuntime, todayEnergy)
+	}
+
+	elDates, err := DOM.GetElement("tapo_history_out")
+	if err != nil {
+		JS.Alert(err.Error())
+		return
+	}
+	elDates.InnerSet("")
+	elDates.StyleSet("max-height", "500px")
 }
 
 func addDevice(name string) error {
@@ -114,7 +273,7 @@ func addDevice(name string) error {
 	}.String()
 
 	btnInfo := HTML.HTML{Tag: "button",
-		Attributes: map[string]string{"id": "tapo_devices_" + name + "_info", "class": "imgBtn imgBtnMedium"},
+		Attributes: map[string]string{"id": "tapo_devices_" + name + "_info", "class": "imgBtn imgBtnMedium tapo_devices_infos"},
 		Inner: HTML.HTML{Tag: "img",
 			Attributes: map[string]string{"src": "./docs/assets/Tapo/Info.svg", "alt": "info"},
 		}.String(),
@@ -210,7 +369,7 @@ func addDevice(name string) error {
 	if err != nil {
 		return err
 	}
-	el.EventAdd("click", toggleInfo)
+	el.EventAdd("click", showInfoList)
 
 	return updateDevice(name, DeviceEnergy{})
 }
@@ -291,6 +450,7 @@ func syncCallbackTapo(res string, resBytes []byte, resErr error) {
 	for name, spec := range resp {
 		if _, err := DOM.GetElement("tapo_devices_" + name); err != nil {
 			if err := addDevice(name); err != nil {
+				JS.Alert(err.Error())
 				return
 			}
 			continue
@@ -347,12 +507,39 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 		Styles:     map[string]string{"display": "flex", "overflow-x": "scroll"},
 	}.String()
 
+	out := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history_out"},
+		Styles: map[string]string{"display": "flex",
+			"max-height": "0px",
+			"margin":     "10px auto",
+			"background": "#202020",
+			"transition": "max-height 0.25s",
+		},
+	}.String()
+
+	dates := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history_dates"},
+		Styles: map[string]string{"display": "flex",
+			"width":      "90%",
+			"max-height": "0px",
+			"margin":     "10px auto",
+			"background": "#202020",
+			"border":     "2px solid #111",
+			"transition": "max-height 0.25s",
+		},
+	}.String()
+
+	hists := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history"},
+		Inner:      out + dates,
+	}.String()
+
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
 		JS.Alert(err.Error())
 		return
 	}
-	mp.InnerSet(header + monitors)
+	mp.InnerSet(header + monitors + hists)
 
 	HTTP.HasAccessTo(accessCallbackTapo, "tapo")
 }

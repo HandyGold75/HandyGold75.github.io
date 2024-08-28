@@ -173,7 +173,6 @@ func showLogDates(selected string) {
 		JS.Alert(err.Error())
 		return
 	}
-
 	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableLogs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		HTTP.Send(getLogCallback, "logs", "get", selected, el.Get("innerHTML").String())
