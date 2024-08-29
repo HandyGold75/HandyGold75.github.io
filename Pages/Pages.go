@@ -4,7 +4,6 @@ package Pages
 
 import (
 	"HandyGold75/Pages/Admin"
-	"HandyGold75/Pages/Console"
 	"HandyGold75/Pages/Contact"
 	"HandyGold75/Pages/Home"
 	"HandyGold75/Pages/Links"
@@ -23,11 +22,12 @@ import (
 )
 
 var (
-	PagesOrdered   = []string{"Home", "Links", "Contact", "Console", "sub:Admin", "sub:Tools", "sub:Sheets"}
+	PagesOrdered   = []string{"Home", "Links", "Contact", "sub:Admin", "sub:Tools", "sub:Sheets"}
 	SubPagesOrderd = []string{
 		"Admin:Users",
 		"Admin:Config",
 		"Admin:Logs",
+		"Tools:Console",
 		"Tools:Sonos",
 		"Tools:Tapo",
 		"Tools:YTDL",
@@ -41,10 +41,10 @@ var (
 		"Home":            Home.Page,
 		"Links":           Links.Page,
 		"Contact":         Contact.Page,
-		"Console":         Console.Page,
 		"Admin:Users":     Admin.PageUsers,
 		"Admin:Config":    Admin.PageConfig,
 		"Admin:Logs":      Admin.PageLogs,
+		"Tools:Console":   Tools.PageConsole,
 		"Tools:Sonos":     Tools.PageSonos,
 		"Tools:Tapo":      Tools.PageTapo,
 		"Tools:YTDL":      Tools.PageYTDL,
