@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package Console
+package Tools
 
 import (
 	"HandyGold75/WebKit/DOM"
@@ -13,15 +13,12 @@ import (
 )
 
 var (
-	ForcePage               = func(string) {}
-	SetLoginSuccessCallback = func(func()) {}
-
 	CommandHistory         = []string{""}
 	CommandHistorySelected = -1
 	Token                  = ""
 )
 
-func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
+func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
 		JS.Alert(errIn.Error())
@@ -66,7 +63,7 @@ func CommandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elOut.El.Get("lastElementChild").Call("scrollIntoView")
 }
 
-func CommandEdited(el js.Value, evs []js.Value) {
+func commandEdited(el js.Value, evs []js.Value) {
 	elIn, err := DOM.GetElement("console_in")
 	if err != nil {
 		JS.Alert(err.Error())
@@ -130,11 +127,11 @@ func CommandEdited(el js.Value, evs []js.Value) {
 	com := inputSplit[0]
 	args := inputSplit[1:]
 
-	HTTP.Send(CommandSubmitCallback, com, args...)
+	HTTP.Send(commandSubmitCallback, com, args...)
 	elIn.AttributeSet("value", "")
 }
 
-func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 	ForcePage = forcePage
 	SetLoginSuccessCallback = setLoginSuccessCallback
 
@@ -214,6 +211,6 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		JS.Alert(err.Error())
 		return
 	}
-	el.EventAdd("keyup", CommandEdited)
+	el.EventAdd("keyup", commandEdited)
 	el.El.Call("focus")
 }
