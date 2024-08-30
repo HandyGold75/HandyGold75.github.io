@@ -35,7 +35,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elArrow.StyleSet("color", "#5F5")
 
 	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Console") }) })
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Console") }) })
 		return
 	} else if resErr != nil {
 		res = resErr.Error()
@@ -136,7 +136,7 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 	SetLoginSuccessCallback = setLoginSuccessCallback
 
 	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Console") }) })
+		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Console") }) })
 		JS.Async(func() { ForcePage("Login") })
 		return
 	}

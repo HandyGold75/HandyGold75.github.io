@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall/js"
-	"time"
 )
 
 type (
@@ -160,7 +159,6 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 		showInfoDates(selected)
 		HTTP.Send(showInfoCallback, "tapo", "histget", selected, hists[len(hists)-1])
 	})
-
 }
 
 func showInfoDates(selected string) {
@@ -194,7 +192,7 @@ func showInfoDates(selected string) {
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableHists)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		HTTP.Send(showInfoCallback, "tapo", "histget", selectedDevice, el.Get("innerHTML").String())
+		HTTP.Send(showInfoCallback, "tapo", "histget", selected, el.Get("innerHTML").String())
 	})
 }
 
@@ -214,45 +212,174 @@ func showInfoCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
-	slices.Reverse(lines)
-
-	for _, line := range lines {
-		l := strings.Split(line, "<SEP>")
-		if len(l) != 4 {
-			continue
-		}
-
-		if l[1] != "info" {
-			continue
-		}
-
-		localTime, err := time.Parse(time.RFC3339Nano, l[0])
-		if err != nil {
-			continue
-		}
-
-		todayRuntime, err := strconv.Atoi(l[2])
-		if err != nil {
-			continue
-		}
-
-		todayEnergy, err := strconv.Atoi(l[3])
-		if err != nil {
-
-			continue
-		}
-
-		fmt.Println(localTime, todayRuntime, todayEnergy)
-	}
-
 	elDates, err := DOM.GetElement("tapo_history_out")
 	if err != nil {
 		JS.Alert(err.Error())
 		return
 	}
-	elDates.InnerSet("")
-	elDates.StyleSet("max-height", "500px")
+	elDates.StyleSet("max-height", "750px")
+
+	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
+	slices.Reverse(lines)
+
+	JS.AfterDelay(300, func() {
+		JS.OnResizeDelete("Tapo")
+		JS.OnResizeAdd("Tapo", func() { drawSvg(lines) })
+	})
+}
+
+func drawSvg(lines []string) {
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		JS.Alert(err.Error())
+		return
+	}
+
+	// elRows, err := DOM.GetElement("tapo_history_out_rows")
+	// if err != nil {
+	// 	JS.OnResizeDelete("Tapo")
+	// 	JS.Alert(err.Error())
+	// 	return
+	// }
+	// elCols, err := DOM.GetElement("tapo_history_out_cols")
+	// if err != nil {
+	// 	JS.OnResizeDelete("Tapo")
+	// 	JS.Alert(err.Error())
+	// 	return
+	// }
+
+	c_width := float64(elSvg.El.Get("clientWidth").Int())
+	c_height := float64(elSvg.El.Get("clientHeight").Int())
+
+	// minTime := time.Now()
+	// maxTime := time.Now()
+
+	maxValue := float64(0)
+
+	linesLen := 0.0
+	for _, line := range lines {
+		l := strings.Split(line, "<SEP>")
+		if len(l) != 4 {
+			continue
+		}
+		if l[1] != "info" {
+			continue
+		}
+
+		// localTime, err := time.Parse(time.RFC3339Nano, l[0])
+		// if err != nil {
+		// 	continue
+		// }
+
+		todayRuntime, err := strconv.ParseFloat(l[2], 64)
+		if err != nil {
+			continue
+		}
+		todayEnergy, err := strconv.ParseFloat(l[3], 64)
+		if err != nil {
+			continue
+		}
+
+		// if localTime < minTime {
+		// 	maxTime = localTime
+		// }
+		// if localTime > maxTime {
+		// 	maxTime = localTime
+		// }
+
+		if todayEnergy > maxValue {
+			maxValue = todayEnergy
+		}
+		if todayRuntime > maxValue {
+			maxValue = todayRuntime
+		}
+		linesLen++
+	}
+
+	// rows := ""
+	// for i := 0; i < 10; i++ {
+	// 	rows += HTML.HTML{Tag: "p",
+	// 		Styles: map[string]string{"": ""},
+	// 		Inner:  strconv.Itoa(i),
+	// 	}.String()
+	// }
+	// elRows.InnerSet(rows)
+
+	// cols := ""
+	// for i := 0; i < 10; i++ {
+	// 	cols += HTML.HTML{Tag: "p",
+	// 		Styles: map[string]string{"": ""},
+	// 		Inner:  strconv.Itoa(i),
+	// 	}.String()
+	// }
+	// elCols.InnerSet(cols)
+
+	svgHtml := ""
+	cordsRuntimeStr := []string{}
+	cordsEnergyStr := []string{}
+
+	i := 0
+	for _, line := range lines {
+		l := strings.Split(line, "<SEP>")
+		if len(l) != 4 {
+			continue
+		}
+		if l[1] != "info" {
+			continue
+		}
+
+		todayRuntime, err := strconv.ParseFloat(l[2], 64)
+		if err != nil {
+			continue
+		}
+		todayEnergy, err := strconv.ParseFloat(l[3], 64)
+		if err != nil {
+			continue
+		}
+
+		runtimeY := 0.0
+		if todayRuntime != 0 {
+			runtimeY = c_height - ((todayRuntime / maxValue) * c_height)
+		}
+		energyY := 0.0
+		if todayEnergy != 0 {
+			energyY = c_height - ((todayEnergy / maxValue) * c_height)
+		}
+
+		cordX := (float64(i) / (linesLen - 1)) * c_width
+
+		runtimeCords := []float64{min(c_width, max(0, cordX)), min(c_height, max(0, runtimeY))}
+		energyCords := []float64{min(c_width, max(0, cordX)), min(c_height, max(0, energyY))}
+
+		runtimeCordsStr := []string{strconv.FormatFloat(runtimeCords[0], 'f', -1, 64), strconv.FormatFloat(runtimeCords[1], 'f', -1, 64)}
+		energyCordsStr := []string{strconv.FormatFloat(energyCords[0], 'f', -1, 64), strconv.FormatFloat(energyCords[1], 'f', -1, 64)}
+
+		cordsRuntimeStr = append(cordsRuntimeStr, runtimeCordsStr[0]+","+runtimeCordsStr[1])
+		cordsEnergyStr = append(cordsEnergyStr, energyCordsStr[0]+","+energyCordsStr[1])
+
+		svgHtml += HTML.HTML{Tag: "circle",
+			Attributes: map[string]string{"r": "10", "cx": runtimeCordsStr[0], "cy": runtimeCordsStr[1], "fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5"},
+		}.String()
+		svgHtml += HTML.HTML{Tag: "circle",
+			Attributes: map[string]string{"r": "10", "cx": energyCordsStr[0], "cy": energyCordsStr[1], "fill": "#FFAA55", "stroke": "#2A2A2A", "stroke-width": "5"},
+		}.String()
+
+		i++
+	}
+
+	runtimeLine := HTML.HTML{Tag: "polyline",
+		Attributes: map[string]string{"points": strings.Join(cordsRuntimeStr, " ")},
+		Styles:     map[string]string{"fill": "none", "stroke": "#55F", "stroke-width": "10"},
+	}.String()
+
+	energyLine := HTML.HTML{Tag: "polyline",
+		Attributes: map[string]string{"points": strings.Join(cordsEnergyStr, " ")},
+		Styles:     map[string]string{"fill": "none", "stroke": "#FFAA55", "stroke-width": "5"},
+	}.String()
+
+	elSvg.InnerSet(runtimeLine + energyLine + svgHtml)
+
 }
 
 func addDevice(name string) error {
@@ -507,19 +634,10 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 		Styles:     map[string]string{"display": "flex", "overflow-x": "scroll"},
 	}.String()
 
-	out := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "tapo_history_out"},
-		Styles: map[string]string{"display": "flex",
-			"max-height": "0px",
-			"margin":     "10px auto",
-			"background": "#202020",
-			"transition": "max-height 0.25s",
-		},
-	}.String()
-
 	dates := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "tapo_history_dates"},
-		Styles: map[string]string{"display": "flex",
+		Styles: map[string]string{
+			"display":    "flex",
 			"width":      "90%",
 			"max-height": "0px",
 			"margin":     "10px auto",
@@ -529,9 +647,69 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 		},
 	}.String()
 
+	rows := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history_out_rows"},
+		Styles: map[string]string{
+			"width":         "46px",
+			"height":        "700px",
+			"margin":        "0px",
+			"padding":       "0px",
+			"border-right":  "4px solid #111",
+			"border-radius": "0px",
+		},
+	}.String()
+	cor := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history_out_cor"},
+		Styles: map[string]string{
+			"display":       "flex",
+			"width":         "50px",
+			"height":        "50px",
+			"margin":        "0px",
+			"padding":       "0px",
+			"border-radius": "0px",
+		},
+	}.String()
+	cols := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tapo_history_out_cols"},
+		Styles: map[string]string{
+			"display":       "flex",
+			"width":         "100%",
+			"height":        "46px",
+			"margin":        "0px",
+			"padding":       "0px",
+			"border-top":    "4px solid #111",
+			"border-radius": "0px",
+		},
+	}.String()
+
+	svg := HTML.HTML{Tag: "svg",
+		Attributes: map[string]string{"id": "tapo_history_out_svg", "xmlns": "http://www.w3.org/2000/svg"},
+		Styles: map[string]string{
+			"width":  "100%",
+			"height": "700px",
+		},
+	}.String()
+
+	out := HTML.HTML{Tag: "div", Inner: rows + svg + cor + cols,
+		Attributes: map[string]string{"id": "tapo_history_out"},
+		Styles: map[string]string{
+			"display":               "grid",
+			"justify-content":       "space-evenly",
+			"grid-template-columns": "50px calc(100% - 50px)",
+			"width":                 "95%",
+			"max-height":            "0px",
+			"paddinf":               "0px",
+			"margin":                "10px auto",
+			"background":            "#2A2A2A",
+			"border":                "4px solid #f7e163",
+			"border-radius":         "10px",
+			"transition":            "max-height 0.25s",
+		},
+	}.String()
+
 	hists := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "tapo_history"},
-		Inner:      out + dates,
+		Inner:      dates + out,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
