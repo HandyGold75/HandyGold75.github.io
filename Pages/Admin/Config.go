@@ -15,7 +15,7 @@ func exitCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 }
@@ -25,7 +25,7 @@ func restartCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 }
@@ -35,12 +35,12 @@ func showConfig(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.Alert("unauthorized")
+		JS.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -76,14 +76,14 @@ func showConfig(hasAccess bool, err error) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + body)
 
 	el, err := DOM.GetElement("config_actions_exit")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
@@ -92,7 +92,7 @@ func showConfig(hasAccess bool, err error) {
 
 	el, err = DOM.GetElement("config_actions_restart")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {

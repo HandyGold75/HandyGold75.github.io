@@ -89,7 +89,7 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &HTTP.Autocompletes)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 }
@@ -410,13 +410,13 @@ func SetOnLoginSuccess(f func()) {
 func ForcePage(page string) {
 	pageEntry, ok := PagesToEntry[page]
 	if !ok {
-		JS.Alert("Page \"" + page + "\" not found!")
+		JS.PopupAlert("Error", "Page \""+page+"\" not found!", func() {})
 		pageEntry = PagesToEntry[PagesOrdered[0]]
 	}
 
 	err := Init(func() { pageEntry(ForcePage, SetOnLoginSuccess) })
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 

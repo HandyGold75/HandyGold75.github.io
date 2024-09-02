@@ -54,7 +54,7 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -70,33 +70,33 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	remoteContacts := [][]string{}
 	err := json.Unmarshal(resBytes, &remoteContacts)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	for i, record := range remoteContacts {
 		if len(record)-1 < slices.Index(headers, "Active") {
-			JS.Alert("invalid index for Active")
+			JS.PopupAlert("Error", "invalid index for Active", func() {})
 			continue
 		}
 		if record[slices.Index(headers, "Active")] != "true" {
-			JS.Alert("record not active")
+			JS.PopupAlert("Error", "record not active", func() {})
 			continue
 		}
 
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
-			JS.Alert("invalid index for Img")
+			JS.PopupAlert("Error", "invalid index for Img", func() {})
 			continue
 		}
 		textIndex := slices.Index(headers, "Text")
 		if len(record)-1 < textIndex {
-			JS.Alert("invalid index for Text")
+			JS.PopupAlert("Error", "invalid index for Text", func() {})
 			continue
 		}
 		urlIndex := slices.Index(headers, "Url")
 		if len(record)-1 < urlIndex {
-			JS.Alert("invalid index for Url")
+			JS.PopupAlert("Error", "invalid index for Url", func() {})
 			continue
 		}
 
@@ -156,14 +156,14 @@ func showContacts() {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + contactDivs)
 
 	els, err := DOM.GetElements("contact_divs")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -177,7 +177,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_txtInsides")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -187,7 +187,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_imgInsides")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {

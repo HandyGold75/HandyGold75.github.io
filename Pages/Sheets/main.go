@@ -39,12 +39,12 @@ func accessCallback(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
 		return
 	} else if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.Alert("unauthorized")
+		JS.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -56,13 +56,13 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -125,14 +125,14 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + nav + out + actions)
 
 	els, err := DOM.GetElements("sheets_showdb_buttons")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(headers)))+"%")
@@ -175,7 +175,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 		elOut, err := DOM.GetElement("sheets_out")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elOut.InnerSet(HTML.HTML{Tag: "div",
@@ -205,7 +205,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 		els, err := DOM.GetElements("sheets_inputs_add")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		els.EventsAdd("keyup", submitNewRecord)
@@ -216,28 +216,28 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 	els, err = DOM.GetElements("sheets_action_buttons")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Disables()
 
 	el, err := DOM.GetElement("sheets_deleteempty")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", actionDeleteEmpty)
 
 	el, err = DOM.GetElement("sheets_export")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", actionExport)
 
 	el, err = DOM.GetElement("sheets_import")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", actionImport)
@@ -253,14 +253,14 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	sheetData = [][]string{}
 	err := json.Unmarshal(resBytes, &sheetData)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -271,7 +271,7 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("sheets_action_buttons")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Enables()
@@ -280,7 +280,7 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 func addRow(record []string, recordIndex int, delay int) {
 	el, err := DOM.GetElement("sheets_out")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -293,7 +293,7 @@ func addRow(record []string, recordIndex int, delay int) {
 
 		colHeader, ok := headers[selectedSheet]
 		if !ok || i > len(colHeader)-1 {
-			JS.Alert("missing header for " + selectedSheet)
+			JS.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
 			break
 		}
 
@@ -337,13 +337,13 @@ func addRow(record []string, recordIndex int, delay int) {
 		for i, _ := range record {
 			colHeader, ok := headers[selectedSheet]
 			if !ok || i > len(colHeader)-1 {
-				JS.Alert("missing header for " + selectedSheet)
+				JS.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
 				break
 			}
 
 			el, err := DOM.GetElement("sheets_inputs_edit_" + strconv.Itoa(recordIndex) + "_" + colHeader[i])
 			if err != nil {
-				JS.Alert(err.Error())
+				JS.PopupAlert("Error", err.Error(), func() {})
 				break
 			}
 
@@ -355,7 +355,7 @@ func addRow(record []string, recordIndex int, delay int) {
 
 func submitNewRecord(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		JS.Alert("evs was not parsed")
+		JS.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	if evs[0].Get("key").String() != "Enter" {
@@ -364,7 +364,7 @@ func submitNewRecord(el js.Value, evs []js.Value) {
 
 	els, err := DOM.GetElements("sheets_inputs_add")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	values := els.AttributesGet("value")
@@ -378,14 +378,14 @@ func submitNewRecordCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	sheetData = [][]string{}
 	err := json.Unmarshal(resBytes, &sheetData)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -394,7 +394,7 @@ func submitNewRecordCallback(res string, resBytes []byte, resErr error) {
 
 func submitEditRecord(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		JS.Alert("evs was not parsed")
+		JS.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	if editingCol != "" {
@@ -407,18 +407,18 @@ func submitEditRecord(el js.Value, evs []js.Value) {
 	idSplit := strings.Split(editingCol, "_")
 	index, err := strconv.Atoi(idSplit[len(idSplit)-2])
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	colHeader, ok := headers[selectedSheet]
 	if !ok {
-		JS.Alert("missing header for " + selectedSheet)
+		JS.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
 	}
 
 	keyIndex := slices.Index(colHeader, idSplit[len(idSplit)-1])
 	if keyIndex < 0 {
-		JS.Alert("missing key for " + idSplit[len(idSplit)-1])
+		JS.PopupAlert("Error", "missing key for "+idSplit[len(idSplit)-1], func() {})
 	}
 
 	if sheetData[index][keyIndex] == el.Get("value").String() {
@@ -439,14 +439,14 @@ func submitEditRecordCallback(res string, resBytes []byte, resErr error) {
 	recordData := []string{}
 	err := json.Unmarshal(resBytes, &recordData)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	idSplit := strings.Split(editingCol, "_")
 	index, err := strconv.Atoi(idSplit[len(idSplit)-2])
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -454,18 +454,18 @@ func submitEditRecordCallback(res string, resBytes []byte, resErr error) {
 
 	colHeader, ok := headers[selectedSheet]
 	if !ok {
-		JS.Alert("missing header for " + selectedSheet)
+		JS.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
 	}
 
 	keyIndex := slices.Index(colHeader, idSplit[len(idSplit)-1])
 	if keyIndex < 0 {
-		JS.Alert("missing key for " + idSplit[len(idSplit)-1])
+		JS.PopupAlert("Error", "missing key for "+idSplit[len(idSplit)-1], func() {})
 	}
 
 	el, err := DOM.GetElement(editingCol)
 	if err != nil {
 		editingCol = ""
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.AttributeSet("value", sheetData[index][keyIndex])
@@ -475,7 +475,7 @@ func enableEditingCol(success bool, skipColor bool) {
 	el, err := DOM.GetElement(editingCol)
 	if err != nil {
 		editingCol = ""
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -535,14 +535,14 @@ func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
 	} else if resErr != nil {
 		els, err := DOM.GetElements("sheets_rows")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		els.Removes()
 
 		JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
 
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -554,7 +554,7 @@ func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("sheets_rows")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Removes()
@@ -565,7 +565,7 @@ func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
 func actionExport(el js.Value, evs []js.Value) {
 	data, err := json.Marshal(&sheetData)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -575,7 +575,7 @@ func actionExport(el js.Value, evs []js.Value) {
 func actionImport(el js.Value, evs []js.Value) {
 	err := JS.PopupFile("Import - "+pageName+" > "+selectedSheet, "testing", func(title string, data []byte) {
 		if err := json.Unmarshal(data, &toImport); err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 
@@ -584,7 +584,7 @@ func actionImport(el js.Value, evs []js.Value) {
 		}
 
 		if len(toImport[0]) != len(headers) {
-			JS.Alert("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			JS.PopupAlert("Error", "Invalid record: ["+strings.Join(toImport[0], ", ")+"]", func() {})
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)
 		} else {
@@ -593,7 +593,7 @@ func actionImport(el js.Value, evs []js.Value) {
 		}
 	})
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 	}
 }
 
@@ -604,20 +604,20 @@ func toImportCallback(res string, resBytes []byte, resErr error) {
 	} else if resErr != nil {
 		els, err := DOM.GetElements("sheets_rows")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		els.Removes()
 
 		JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
 
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	if len(toImport) > 0 {
 		if len(toImport[0]) != len(headers) {
-			JS.Alert("Invalid record: [" + strings.Join(toImport[0], ", ") + "]")
+			JS.PopupAlert("Error", "Invalid record: ["+strings.Join(toImport[0], ", ")+"]", func() {})
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)
 		} else {
@@ -629,7 +629,7 @@ func toImportCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("sheets_rows")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Removes()
