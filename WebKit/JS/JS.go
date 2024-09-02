@@ -299,6 +299,10 @@ func FuncWrapSimple(f func()) js.Func {
 }
 
 func ensurePopupDiv(title string, txt string, buttons string) error {
+	if _, err := DOM.GetElement("popup"); err == nil {
+		return errors.New("popup already active")
+	}
+
 	header := HTML.HTML{Tag: "h1", Inner: "Alert - " + title}.String()
 	text := HTML.HTML{Tag: "p", Inner: txt}.String()
 	btnDiv := HTML.HTML{Tag: "div",
@@ -556,17 +560,41 @@ func PopupFile(title string, txt string, callback func(string, []byte)) error {
 		Inner:      input + file,
 	}.String()
 
-	button := HTML.HTML{Tag: "button",
+	confirm := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 		Inner:      "confirm",
 	}.String()
 
-	if err := ensurePopupDiv(title, txt, spacer+label+spacer+button+spacer); err != nil {
+	cancel := HTML.HTML{Tag: "button",
+		Attributes: map[string]string{"id": "popup_cancel", "class": "dark medium popup_buttons"},
+		Styles:     map[string]string{"min-width": "10%"},
+		Inner:      "cancel",
+	}.String()
+
+	if err := ensurePopupDiv(title, txt, spacer+label+spacer+cancel+spacer+confirm+spacer); err != nil {
 		return err
 	}
 
-	el, err := DOM.GetElement("popup_confirm")
+	el, err := DOM.GetElement("popup_cancel")
+	if err != nil {
+		return err
+	}
+	el.EventAdd("click", func(el js.Value, evs []js.Value) {
+		elPop, err := DOM.GetElement("popup")
+		if err != nil {
+			Alert(err.Error())
+			return
+		}
+
+		elPop.StyleSet("opacity", "0")
+
+		AfterDelay(250, func() {
+			elPop.Remove()
+		})
+	})
+
+	el, err = DOM.GetElement("popup_confirm")
 	if err != nil {
 		return err
 	}
@@ -576,7 +604,14 @@ func PopupFile(title string, txt string, callback func(string, []byte)) error {
 			Alert(err.Error())
 			return
 		}
-		nameSplit := strings.Split(elInp.AttributeGet("value"), "\\")
+
+		name := elInp.AttributeGet("value")
+		if name == "" {
+			Alert("no file selected")
+			return
+		}
+
+		nameSplit := strings.Split(name, "\\")
 
 		elPop, err := DOM.GetElement("popup")
 		if err != nil {

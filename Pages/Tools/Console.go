@@ -21,7 +21,7 @@ var (
 func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
-		JS.Alert(errIn.Error())
+		JS.PopupAlert("Error", errIn.Error(), func() {})
 		return
 	}
 	elIn.Enable()
@@ -29,7 +29,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elArrow, errArrow := DOM.GetElement("console_arrow")
 	if errArrow != nil {
-		JS.Alert(errArrow.Error())
+		JS.PopupAlert("Error", errArrow.Error(), func() {})
 		return
 	}
 	elArrow.StyleSet("color", "#5F5")
@@ -45,7 +45,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elOut, errOut := DOM.GetElement("console_out")
 	if errOut != nil {
-		JS.Alert(errOut.Error())
+		JS.PopupAlert("Error", errOut.Error(), func() {})
 		return
 	}
 
@@ -66,12 +66,12 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 func commandEdited(el js.Value, evs []js.Value) {
 	elIn, err := DOM.GetElement("console_in")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if len(evs) < 1 {
-		JS.Alert("evs was not parsed")
+		JS.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	key := evs[0].Get("key").String()
@@ -113,7 +113,7 @@ func commandEdited(el js.Value, evs []js.Value) {
 
 	elArrow, err := DOM.GetElement("console_arrow")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elArrow.StyleSet("color", "#F55")
@@ -169,7 +169,7 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + consoleDiv)
@@ -208,7 +208,7 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	el, err := DOM.GetElement("console_in")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("keyup", commandEdited)
