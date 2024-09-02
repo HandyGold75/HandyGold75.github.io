@@ -33,7 +33,7 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &HTTP.Autocompletes)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 }
@@ -43,25 +43,25 @@ func isAuthenticatedCallback(authErr error) {
 		errSplit := strings.Split(authErr.Error(), ":")
 		retryAfter, err := strconv.Atoi(errSplit[len(errSplit)-1])
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			retryAfter = 60
 		}
 
-		JS.Alert("You've got timed out for " + strconv.Itoa(retryAfter) + "!")
+		JS.PopupAlert("Error", "You've got timed out for "+strconv.Itoa(retryAfter)+"!", func() {})
 		JS.AfterDelay(retryAfter*1000, func() { HTTP.IsAuthenticated(isAuthenticatedCallback) })
 		return
 	}
 	if authErr != nil || !HTTP.Config.RememberSignIn {
 		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		els.Enables()
 
 		elSub, err := DOM.GetElement("login_submit")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elSub.Enable()
@@ -71,7 +71,7 @@ func isAuthenticatedCallback(authErr error) {
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
@@ -101,28 +101,28 @@ func authenticateCallback(authErr error) {
 	if authErr != nil {
 		els, err := DOM.GetElements("login_inputs")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		els.Enables()
 
 		elSub, err := DOM.GetElement("login_submit")
 		if err != nil {
-			JS.Alert(err.Error())
+			JS.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elSub.Enable()
 		elSub.StyleSet("border", "2px solid #F55")
 		JS.AfterDelay(3000, func() { elSub.StyleSet("border", "2px solid #55F") })
 
-		JS.Alert(authErr.Error())
+		JS.PopupAlert("Error", authErr.Error(), func() {})
 
 		return
 	}
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.StyleSet("border", "2px solid #5F5")
@@ -150,13 +150,13 @@ func authenticateCallback(authErr error) {
 func toggleRemember(el js.Value, evs []js.Value) {
 	err := HTTP.Config.Set("RememberSignIn", strconv.FormatBool(!HTTP.Config.RememberSignIn))
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -215,7 +215,7 @@ func toggleDocker(show bool) error {
 
 func submitLogin(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		JS.Alert("evs was not parsed")
+		JS.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
@@ -224,42 +224,42 @@ func submitLogin(el js.Value, evs []js.Value) {
 
 	els, err := DOM.GetElements("login_inputs")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Disables()
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.Disable()
 
 	elSrv, err := DOM.GetElement("login_server")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	server := elSrv.AttributeGet("value")
 
 	elUsr, err := DOM.GetElement("login_username")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	username := elUsr.AttributeGet("value")
 
 	elPsw, err := DOM.GetElement("login_password")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	password := elPsw.AttributeGet("value")
 
 	err = HTTP.Config.Set("Server", server)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -326,14 +326,14 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + server + username + password + buttons)
 
 	els, err := DOM.GetElements("login_inputs")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Disables()
@@ -341,7 +341,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	elSub, err := DOM.GetElement("login_submit")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.Disable()
@@ -349,7 +349,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	elRem, err := DOM.GetElement("login_remember")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elRem.EventAdd("click", toggleRemember)

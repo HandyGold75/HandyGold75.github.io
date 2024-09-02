@@ -89,12 +89,12 @@ func accessCallbackSonos(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
 	} else if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.Alert("unauthorized")
+		JS.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -259,7 +259,7 @@ func updateTimeline() error {
 
 	dur, err := time.Parse(time.TimeOnly, syncInfo.Track.Duration)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return err
 	}
 	hd, md, sd := dur.Clock()
@@ -724,25 +724,25 @@ func updatedSelectedQueTrack(oldTrackPos string, newTrackPos string) error {
 func showSonos() {
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(getYTPlayer() + getTimeline() + getControls() + getVolume() + getQue())
 
 	if err := setEventsYTPlayer(); err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	if err := setEventsTimeline(); err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	if err := setEventsControls(); err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	if err := setEventsVolume(); err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -759,7 +759,7 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 			JS.AfterDelay(5000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
 			return
 		}
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
@@ -767,7 +767,7 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &syncInfo)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -800,13 +800,13 @@ func ytqueryCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	err := json.Unmarshal(resBytes, &ytInfo)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -820,13 +820,13 @@ func queCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
 		return
 	} else if resErr != nil {
-		JS.Alert(resErr.Error())
+		JS.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	err := json.Unmarshal(resBytes, &queInfo)
 	if err != nil {
-		JS.Alert(err.Error())
+		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
