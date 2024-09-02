@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall/js"
+	"time"
 )
 
 type (
@@ -241,13 +242,12 @@ func drawSvg(lines []string) {
 		JS.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-
-	// elCols, err := DOM.GetElement("tapo_history_out_cols")
-	// if err != nil {
-	// 	JS.OnResizeDelete("Tapo")
-	// JS.PopupAlert("Error", err.Error(), func(){})
-	// 	return
-	// }
+	elCols, err := DOM.GetElement("tapo_history_out_cols")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		JS.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
 
 	c_width := float64(elSvg.El.Get("clientWidth").Int())
 	c_height := float64(elSvg.El.Get("clientHeight").Int())
@@ -255,8 +255,9 @@ func drawSvg(lines []string) {
 	// minTime := time.Now()
 	// maxTime := time.Now()
 
-	maxValue := float64(0)
-
+	maxValue := 0.0
+	maxValueEnergy := 0.0
+	maxValueRuntime := 0.0
 	linesLen := 0.0
 	for _, line := range lines {
 		l := strings.Split(line, "<SEP>")
@@ -272,13 +273,25 @@ func drawSvg(lines []string) {
 		// 	continue
 		// }
 
-		todayRuntime, err := strconv.ParseFloat(l[2], 64)
-		if err != nil {
-			continue
+		if todayRuntime, err := strconv.ParseFloat(l[2], 64); err == nil {
+			if todayRuntime > maxValue {
+				maxValue = todayRuntime
+			}
+			if todayRuntime > maxValueRuntime {
+				maxValueRuntime = todayRuntime
+			}
+
 		}
-		todayEnergy, err := strconv.ParseFloat(l[3], 64)
-		if err != nil {
-			continue
+
+		if todayEnergy, err := strconv.ParseFloat(l[3], 64); err == nil {
+			if todayEnergy > maxValue {
+				maxValue = todayEnergy
+			}
+
+			if todayEnergy > maxValueEnergy {
+				maxValueEnergy = todayEnergy
+			}
+
 		}
 
 		// if localTime < minTime {
@@ -288,40 +301,71 @@ func drawSvg(lines []string) {
 		// 	maxTime = localTime
 		// }
 
-		if todayEnergy > maxValue {
-			maxValue = todayEnergy
-		}
-		if todayRuntime > maxValue {
-			maxValue = todayRuntime
-		}
 		linesLen++
 	}
 
+	fmt.Println(maxValue)
+	fmt.Println(maxValueRuntime)
+	fmt.Println(maxValueEnergy)
 	rows := ""
 	for i := 10.0; i > 0; i-- {
-		rows += HTML.HTML{Tag: "p",
-			Styles: map[string]string{"height": "10%"},
-			Inner:  WattToString(maxValue / i),
+		rows += HTML.HTML{Tag: "p", Inner: SectoString(int((i / 10) * maxValue)),
+			Styles: map[string]string{
+				"height":        "5%",
+				"margin-bottom": "-2px",
+				"border-bottom": "2px dotted #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+		rows += HTML.HTML{Tag: "p", Inner: WattToString((i / 10) * maxValue),
+			Styles: map[string]string{
+				"height":        "5%",
+				"margin-bottom": "-2px",
+				"border-bottom": "2px solid #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
 		}.String()
 	}
-	rows += HTML.HTML{Tag: "p",
-		Styles: map[string]string{"height": "10%"},
-		Inner:  WattToString(0),
-	}.String()
+
+	// rows += HTML.HTML{Tag: "p", Inner: SectoString(0),
+	// 	Styles: map[string]string{
+	// 		"height":        "5%",
+	// 		"margin-bottom": "-2px",
+	// 		"border-bottom": "2px dotted #111",
+	// 		"border-radius": "0px",
+	// 		"white-space":   "nowrap",
+	// 	},
+	// }.String()
+	// rows += HTML.HTML{Tag: "p", Inner: WattToString(0.0),
+	// 	Styles: map[string]string{
+	// 		"height":      "5%",
+	// 		"white-space": "nowrap",
+	// 	},
+	// }.String()
+
 	elRows.InnerSet(rows)
 
-	// cols := ""
-	// for i := 0; i < 10; i++ {
-	// 	cols += HTML.HTML{Tag: "p",
-	// 		Styles: map[string]string{"": ""},
-	// 		Inner:  strconv.Itoa(i),
-	// 	}.String()
-	// }
-	// elCols.InnerSet(cols)
+	cols := HTML.HTML{Tag: "p", Inner: "0",
+		Styles: map[string]string{"width": "10%", "white-space": "nowrap"},
+	}.String()
+	for i := 1; i < 10; i++ {
+		cols += HTML.HTML{Tag: "p", Inner: strconv.Itoa(i),
+			Styles: map[string]string{
+				"width":         "10%",
+				"margin-left":   "-2px",
+				"border-left":   "2px solid #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+	}
+	elCols.InnerSet(cols)
 
 	svgHtml := ""
-	cordsRuntimeStr := []string{}
-	cordsEnergyStr := []string{}
+	allCordsRuntime := []string{}
+	allCordsEnergy := []string{}
 
 	i := 0
 	for _, line := range lines {
@@ -333,6 +377,10 @@ func drawSvg(lines []string) {
 			continue
 		}
 
+		localTime, err := time.Parse(time.RFC3339Nano, l[0])
+		if err != nil {
+			continue
+		}
 		todayRuntime, err := strconv.ParseFloat(l[2], 64)
 		if err != nil {
 			continue
@@ -353,32 +401,37 @@ func drawSvg(lines []string) {
 
 		cordX := (float64(i) / (linesLen - 1)) * c_width
 
-		runtimeCords := []float64{min(c_width, max(0, cordX)), min(c_height, max(0, runtimeY))}
-		energyCords := []float64{min(c_width, max(0, cordX)), min(c_height, max(0, energyY))}
+		cordsRuntime := []string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, runtimeY)), 'f', -1, 64)}
+		cordsEnergy := []string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, energyY)), 'f', -1, 64)}
 
-		runtimeCordsStr := []string{strconv.FormatFloat(runtimeCords[0], 'f', -1, 64), strconv.FormatFloat(runtimeCords[1], 'f', -1, 64)}
-		energyCordsStr := []string{strconv.FormatFloat(energyCords[0], 'f', -1, 64), strconv.FormatFloat(energyCords[1], 'f', -1, 64)}
-
-		cordsRuntimeStr = append(cordsRuntimeStr, runtimeCordsStr[0]+","+runtimeCordsStr[1])
-		cordsEnergyStr = append(cordsEnergyStr, energyCordsStr[0]+","+energyCordsStr[1])
+		allCordsRuntime = append(allCordsRuntime, cordsRuntime[0]+","+cordsRuntime[1])
+		allCordsEnergy = append(allCordsEnergy, cordsEnergy[0]+","+cordsEnergy[1])
 
 		svgHtml += HTML.HTML{Tag: "circle",
-			Attributes: map[string]string{"r": "10", "cx": runtimeCordsStr[0], "cy": runtimeCordsStr[1], "fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5"},
+			Attributes: map[string]string{"r": "10", "cx": cordsRuntime[0], "cy": cordsRuntime[1],
+				"fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5",
+				"title": "Today Runtime: " + SectoString(int(todayRuntime)) + "\n" +
+					"Local Time: " + localTime.Format(time.DateTime),
+			},
 		}.String()
 		svgHtml += HTML.HTML{Tag: "circle",
-			Attributes: map[string]string{"r": "10", "cx": energyCordsStr[0], "cy": energyCordsStr[1], "fill": "#FFAA55", "stroke": "#2A2A2A", "stroke-width": "5"},
+			Attributes: map[string]string{"r": "10", "cx": cordsEnergy[0], "cy": cordsEnergy[1],
+				"fill": "#FFAA55", "stroke": "#2A2A2A", "stroke-width": "5",
+				"title": "Today Energy: " + WattToString(todayEnergy) + "\n" +
+					"Local Time: " + localTime.Format(time.DateTime),
+			},
 		}.String()
 
 		i++
 	}
 
 	runtimeLine := HTML.HTML{Tag: "polyline",
-		Attributes: map[string]string{"points": strings.Join(cordsRuntimeStr, " ")},
+		Attributes: map[string]string{"points": strings.Join(allCordsRuntime, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#55F", "stroke-width": "10"},
 	}.String()
 
 	energyLine := HTML.HTML{Tag: "polyline",
-		Attributes: map[string]string{"points": strings.Join(cordsEnergyStr, " ")},
+		Attributes: map[string]string{"points": strings.Join(allCordsEnergy, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#FFAA55", "stroke-width": "5"},
 	}.String()
 
@@ -653,7 +706,7 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 	rows := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "tapo_history_out_rows"},
 		Styles: map[string]string{
-			"width":         "46px",
+			"width":         "71px",
 			"height":        "700px",
 			"margin":        "0px",
 			"padding":       "0px",
@@ -665,10 +718,12 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 		Attributes: map[string]string{"id": "tapo_history_out_cor"},
 		Styles: map[string]string{
 			"display":       "flex",
-			"width":         "50px",
-			"height":        "50px",
+			"width":         "71px",
+			"height":        "46px",
 			"margin":        "0px",
 			"padding":       "0px",
+			"border-top":    "4px solid #111",
+			"border-right":  "4px solid #111",
 			"border-radius": "0px",
 		},
 	}.String()
@@ -698,10 +753,10 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 		Styles: map[string]string{
 			"display":               "grid",
 			"justify-content":       "space-evenly",
-			"grid-template-columns": "50px calc(100% - 50px)",
+			"grid-template-columns": "75px calc(100% - 75px)",
 			"width":                 "95%",
 			"max-height":            "0px",
-			"paddinf":               "0px",
+			"padding":               "0px",
 			"margin":                "10px auto",
 			"background":            "#2A2A2A",
 			"border":                "4px solid #f7e163",
