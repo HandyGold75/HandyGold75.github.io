@@ -48,7 +48,6 @@ func (html HTML) String() string {
 	finalStr += ">" + html.Inner + "</" + strings.ToLower(html.Tag) + ">" + html.Surfix
 
 	return finalStr
-
 }
 
 func (html HTML) LinkWrap(href string) HTML {
