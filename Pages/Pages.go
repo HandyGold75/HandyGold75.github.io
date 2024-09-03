@@ -14,6 +14,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/json"
 	"errors"
 	"slices"
@@ -89,7 +90,7 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &HTTP.Autocompletes)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 }
@@ -410,13 +411,13 @@ func SetOnLoginSuccess(f func()) {
 func ForcePage(page string) {
 	pageEntry, ok := PagesToEntry[page]
 	if !ok {
-		JS.PopupAlert("Error", "Page \""+page+"\" not found!", func() {})
+		Widget.PopupAlert("Error", "Page \""+page+"\" not found!", func() {})
 		pageEntry = PagesToEntry[PagesOrdered[0]]
 	}
 
 	err := Init(func() { pageEntry(ForcePage, SetOnLoginSuccess) })
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 

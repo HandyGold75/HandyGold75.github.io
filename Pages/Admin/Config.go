@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"syscall/js"
 )
 
@@ -15,7 +16,7 @@ func exitCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 }
@@ -25,7 +26,7 @@ func restartCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 }
@@ -35,12 +36,12 @@ func showConfig(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Config") }) })
 		return
 	} else if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.PopupAlert("Error", "unauthorized", func() {})
+		Widget.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -76,14 +77,14 @@ func showConfig(hasAccess bool, err error) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + body)
 
 	el, err := DOM.GetElement("config_actions_exit")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
@@ -92,7 +93,7 @@ func showConfig(hasAccess bool, err error) {
 
 	el, err = DOM.GetElement("config_actions_restart")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {

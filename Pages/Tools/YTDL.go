@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/base64"
 	"strconv"
 	"strings"
@@ -27,12 +28,12 @@ func accessCallbackYTDL(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:YTDL") }) })
 		return
 	} else if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.PopupAlert("Error", "unauthorized", func() {})
+		Widget.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -41,7 +42,7 @@ func accessCallbackYTDL(hasAccess bool, err error) {
 
 func submitURL(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		JS.PopupAlert("Error", "evs was not parsed", func() {})
+		Widget.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
@@ -50,14 +51,14 @@ func submitURL(el js.Value, evs []js.Value) {
 
 	elCon, err := DOM.GetElement("ytdl_confirm")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elCon.Disable()
 
 	elInp, err := DOM.GetElement("ytdl_input")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elInp.Disable()
@@ -130,7 +131,7 @@ func submitURL(el js.Value, evs []js.Value) {
 
 	elOut, err := DOM.GetElement("ytdl_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elOut.InnerAddPrefix(out)
@@ -164,7 +165,7 @@ func submitURLCallback(res string, resBytes []byte, resErr error) {
 
 	if resErr != nil {
 		setState(url, "Failed", "#F55")
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
@@ -187,11 +188,11 @@ func submitURLCallback(res string, resBytes []byte, resErr error) {
 
 		JS.Async(func() {
 			resSplit := strings.Split(res, ".")
-			JS.Download(res, "video/"+resSplit[len(resSplit)-1]+";base64", resBase, func(err error) {
+			Widget.Download(res, "video/"+resSplit[len(resSplit)-1]+";base64", resBase, func(err error) {
 				if err != nil {
 					setState(url, "Failed", "#F55")
 					if size > 32 {
-						JS.PopupAlert("Warning", "Size greater then 32 MB!\n"+
+						Widget.PopupAlert("Warning", "Size greater then 32 MB!\n"+
 							"\n"+
 							"Firefox has a size limit of 32 MB\n"+
 							"Chromium has a size limit of 512 MB\n"+
@@ -201,7 +202,7 @@ func submitURLCallback(res string, resBytes []byte, resErr error) {
 							func() {},
 						)
 					} else {
-						JS.PopupAlert("Error", err.Error(), func() {})
+						Widget.PopupAlert("Error", err.Error(), func() {})
 					}
 					return
 				}
@@ -215,7 +216,7 @@ func toggleAudioOnly(el js.Value, evs []js.Value) {
 	audioOnly = !audioOnly
 	elOpt, err := DOM.GetElement("ytdl_option_audio_only")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 	}
 
 	if audioOnly {
@@ -229,7 +230,7 @@ func toggleLowQuality(el js.Value, evs []js.Value) {
 	lowQuality = !lowQuality
 	elOpt, err := DOM.GetElement("ytdl_option_low_quality")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 	}
 
 	if lowQuality {
@@ -243,7 +244,7 @@ func toggleForceMP4(el js.Value, evs []js.Value) {
 	forceMP4 = !forceMP4
 	elOpt, err := DOM.GetElement("ytdl_option_force_mp4")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 	}
 
 	if forceMP4 {
@@ -320,42 +321,42 @@ func showYTDL() {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + selectDiv + optionsDiv + outDiv)
 
 	el, err := DOM.GetElement("ytdl_confirm")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", submitURL)
 
 	el, err = DOM.GetElement("ytdl_input")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("keyup", submitURL)
 
 	el, err = DOM.GetElement("ytdl_option_audio_only")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", toggleAudioOnly)
 
 	el, err = DOM.GetElement("ytdl_option_low_quality")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", toggleLowQuality)
 
 	el, err = DOM.GetElement("ytdl_option_force_mp4")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", toggleForceMP4)

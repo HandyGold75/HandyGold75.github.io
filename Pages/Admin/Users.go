@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/json"
 	"strings"
 	"syscall/js"
@@ -39,35 +40,35 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	username := elUsername.AttributeGet("value")
 
 	elPassword, err := DOM.GetElement("users_password")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	password := elPassword.AttributeGet("value")
 
 	els, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.Enables()
 
 	elSub, err := DOM.GetElement("users_submitnew")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.Enable()
 
 	JS.AfterDelay(3000, func() { elSub.StyleSet("border", "2px solid #55F") })
 	if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		elSub.StyleSet("border", "2px solid #F55")
 		return
 	} else {
@@ -76,7 +77,7 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elList, err := DOM.GetElement("users_list")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -90,14 +91,14 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	elBtn, err := DOM.GetElement("users_list_buttons_" + userHash)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	elBtn.EventAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 
@@ -116,49 +117,49 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 func createUser(el js.Value, els []js.Value) {
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elsInp.Disables()
 
 	elSub, err := DOM.GetElement("users_submitnew")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elSub.Disable()
 
 	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	username := elUsername.AttributeGet("value")
 
 	elPassword, err := DOM.GetElement("users_password")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	password := elPassword.AttributeGet("value")
 
 	elAuthlevel, err := DOM.GetElement("users_authlevel")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	authlevel := elAuthlevel.AttributeGet("value")
 
 	elRoles, err := DOM.GetElement("users_roles")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	roles := elRoles.AttributeGet("value")
 
 	elBtn, err := DOM.GetElement("users_enabled_img")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	state := "1"
@@ -177,21 +178,21 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elsInp.Enables()
 
 	elsSub, err := DOM.GetElements("users_submits")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elsSub.Enables()
 
 	JS.AfterDelay(3000, func() { elsSub.StylesSet("border", "2px solid #55F") })
 	if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		elsSub.StylesSet("border", "2px solid #F55")
 		return
 	} else {
@@ -201,7 +202,7 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 	user := User{}
 	err = json.Unmarshal(resBytes, &user)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -210,14 +211,14 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_header")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet(HTTP.Sha1(selectedUser.Username + selectedUser.Password))
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -230,7 +231,7 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 
 func modifyUser(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
-		JS.PopupAlert("Error", "evs was not parsed", func() {})
+		Widget.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	if evs[0].Get("type").String() != "click" && evs[0].Get("key").String() != "Enter" {
@@ -239,14 +240,14 @@ func modifyUser(el js.Value, evs []js.Value) {
 
 	elSub, err := DOM.GetElement(strings.Join(strings.Split(el.Get("id").String(), "_")[0:2], "_") + "_submit")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	key := strings.Split(el.Get("id").String(), "_")[1]
 	elInp, err := DOM.GetElement(strings.Join(strings.Split(el.Get("id").String(), "_")[0:2], "_"))
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	value := elInp.AttributeGet("value")
@@ -274,7 +275,7 @@ func modifyUser(el js.Value, evs []js.Value) {
 		}
 
 	default:
-		JS.PopupAlert("Error", "invalid key \""+key+"\"", func() {})
+		Widget.PopupAlert("Error", "invalid key \""+key+"\"", func() {})
 		return
 	}
 
@@ -289,32 +290,32 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 
 		elsInp, err := DOM.GetElements("users_inputs")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elsInp.Enables()
 
 		elsSub, err := DOM.GetElements("users_submits")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elsSub.Enables()
 
 		elDel, err := DOM.GetElement("users_delete")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elDel.Enable()
 
 		elDea, err := DOM.GetElement("users_deauth")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		elDea.Enable()
@@ -326,7 +327,7 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -338,7 +339,7 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet("")
@@ -354,28 +355,28 @@ func deleteUser(el js.Value, els []js.Value) {
 
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elsInp.Disables()
 
 	elsSub, err := DOM.GetElements("users_submits")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elsSub.Disables()
 
 	elDel, err := DOM.GetElement("users_delete")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDel.Disable()
 
 	elDea, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDea.Disable()
@@ -388,19 +389,19 @@ func toggleEnabledCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 	}
 }
 
 func toggleEnabled(el js.Value, els []js.Value) {
 	elBtn, err := DOM.GetElement("users_enabled")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elBtnImg, err := DOM.GetElement("users_enabled_img")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -430,12 +431,12 @@ func deauthUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		el.StyleSet("border", "2px solid #F55")
 	} else {
 		el.StyleSet("border", "2px solid #5F5")
@@ -448,7 +449,7 @@ func deauthUserCallback(res string, resBytes []byte, resErr error) {
 func deauthUser(el js.Value, els []js.Value) {
 	elDea, err := DOM.GetElement("users_deauth")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDea.Disable()
@@ -461,12 +462,12 @@ func showUsers(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.PopupAlert("Error", "unauthorized", func() {})
+		Widget.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -500,7 +501,7 @@ func showUsers(hasAccess bool, err error) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
@@ -513,14 +514,14 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	users := []string{}
 	err := json.Unmarshal(resBytes, &users)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -535,7 +536,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_list")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet(usersList + HTML.HTML{Tag: "button",
@@ -546,14 +547,14 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("users_list_buttons")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 
@@ -570,13 +571,13 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err = DOM.GetElement("users_newuser")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
 		elOut, err := DOM.GetElement("users_out")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 
@@ -597,14 +598,14 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	user := User{}
 	err := json.Unmarshal(resBytes, &user)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -675,7 +676,7 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
@@ -684,14 +685,14 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 	for _, key := range []string{"username", "password", "authlevel", "roles"} {
 		el, err = DOM.GetElement("users_" + key)
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		el.EventAdd("keyup", modifyUser)
 
 		el, err = DOM.GetElement("users_" + key + "_submit")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 		el.EventAdd("click", modifyUser)
@@ -699,21 +700,21 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 
 	el, err = DOM.GetElement("users_enabled")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_delete")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", deleteUser)
 
 	el, err = DOM.GetElement("users_deauth")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", deauthUser)
@@ -776,7 +777,7 @@ func newUserForm() {
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
@@ -784,14 +785,14 @@ func newUserForm() {
 
 	el, err = DOM.GetElement("users_enabled")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", toggleEnabled)
 
 	el, err = DOM.GetElement("users_submitnew")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("click", createUser)
