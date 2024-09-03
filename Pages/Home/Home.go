@@ -5,7 +5,7 @@ package Home
 import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
-	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 )
 
 func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
@@ -23,7 +23,7 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + txt)

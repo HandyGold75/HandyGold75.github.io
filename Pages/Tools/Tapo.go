@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -40,12 +41,12 @@ func accessCallbackTapo(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Tapo") }) })
 		return
 	} else if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.PopupAlert("Error", "unauthorized", func() {})
+		Widget.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -61,7 +62,7 @@ func togglePower(el js.Value, evs []js.Value) {
 
 	elBtn, err := DOM.GetElement(el.Get("id").String())
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	value := !strings.Contains(elBtn.AttributeGet("className"), "imgBtnBorder")
@@ -72,7 +73,7 @@ func togglePower(el js.Value, evs []js.Value) {
 		return
 	}
 
-	JS.PopupConfirm("Tapo", "Power off <b>"+name+"<\\b>?", "No", "Yes", func(accepted bool) {
+	Widget.PopupConfirm("Tapo", "Power off <b>"+name+"<\\b>?", "No", "Yes", func(accepted bool) {
 		if accepted {
 			selectedDevice = name
 			HTTP.Send(togglePowerCallback, "tapo", "off", name)
@@ -88,7 +89,7 @@ func togglePowerCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("tapo_devices_" + selectedDevice + "_power")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	skipBtnUpdateCount = 5
@@ -118,14 +119,14 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 
 	els, err := DOM.GetElements("tapo_devices_infos")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.AttributesSet("className", "imgBtn imgBtnMedium tapo_devices_infos")
 
 	el, err := DOM.GetElement("tapo_devices_" + selectedDevice + "_info")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.AttributeSet("className", "imgBtn imgBtnMedium imgBtnBorder tapo_devices_infos")
@@ -133,19 +134,19 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 	availableHists = map[string][]string{}
 	err = json.Unmarshal(resBytes, &availableHists)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	hists, ok := availableHists[selectedDevice]
 	if !ok {
-		JS.PopupAlert("Error", "history \""+selectedDevice+"\" not available!", func() {})
+		Widget.PopupAlert("Error", "history \""+selectedDevice+"\" not available!", func() {})
 		return
 	}
 
 	elDates, err := DOM.GetElement("tapo_history_dates")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -165,7 +166,7 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 func showInfoDates(selected string) {
 	hists, ok := availableHists[selected]
 	if !ok {
-		JS.PopupAlert("Error", "history \""+selected+"\" not available!", func() {})
+		Widget.PopupAlert("Error", "history \""+selected+"\" not available!", func() {})
 		return
 	}
 
@@ -180,7 +181,7 @@ func showInfoDates(selected string) {
 
 	elDates, err := DOM.GetElement("tapo_history_dates")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDates.InnerSet(histDates)
@@ -188,7 +189,7 @@ func showInfoDates(selected string) {
 
 	els, err := DOM.GetElements("tapo_history_dates_btns")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableHists)))+"%")
@@ -202,20 +203,20 @@ func showInfoCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	hist := []string{}
 	err := json.Unmarshal(resBytes, &hist)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	elDates, err := DOM.GetElement("tapo_history_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDates.StyleSet("max-height", "750px")
@@ -233,19 +234,19 @@ func drawSvg(lines []string) {
 	elSvg, err := DOM.GetElement("tapo_history_out_svg")
 	if err != nil {
 		JS.OnResizeDelete("Tapo")
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elRows, err := DOM.GetElement("tapo_history_out_rows")
 	if err != nil {
 		JS.OnResizeDelete("Tapo")
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elCols, err := DOM.GetElement("tapo_history_out_cols")
 	if err != nil {
 		JS.OnResizeDelete("Tapo")
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -621,13 +622,13 @@ func syncCallbackTapo(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Tapo") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	resp := map[string]DeviceEnergy{}
 	if err := json.Unmarshal(resBytes, &resp); err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -772,7 +773,7 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + monitors + hists)

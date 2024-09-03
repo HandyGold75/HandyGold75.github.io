@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/json"
 	"slices"
 	"strconv"
@@ -25,12 +26,12 @@ func showLogs(hasAccess bool, err error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if !hasAccess {
-		JS.PopupAlert("Error", "unauthorized", func() {})
+		Widget.PopupAlert("Error", "unauthorized", func() {})
 		return
 	}
 
@@ -74,7 +75,7 @@ func showLogs(hasAccess bool, err error) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + types + dates + out)
@@ -87,14 +88,14 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	availableLogs = map[string][]string{}
 	err := json.Unmarshal(resBytes, &availableLogs)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -113,21 +114,21 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 
 	el, err := DOM.GetElement("logs_types")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet(logTypes)
 
 	els, err := DOM.GetElements("logs_types_buttons")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(availableLogs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
 		elDates, err := DOM.GetElement("logs_dates")
 		if err != nil {
-			JS.PopupAlert("Error", err.Error(), func() {})
+			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
 
@@ -147,7 +148,7 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 func showLogDates(selected string) {
 	log, ok := availableLogs[selected]
 	if !ok {
-		JS.PopupAlert("Error", "log \""+selected+"\" not available!", func() {})
+		Widget.PopupAlert("Error", "log \""+selected+"\" not available!", func() {})
 		return
 	}
 
@@ -162,7 +163,7 @@ func showLogDates(selected string) {
 
 	elDates, err := DOM.GetElement("logs_dates")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elDates.InnerSet(logDates)
@@ -170,7 +171,7 @@ func showLogDates(selected string) {
 
 	els, err := DOM.GetElements("logs_types_dates")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableLogs)))+"%")
@@ -184,14 +185,14 @@ func getLogCallback(res string, resBytes []byte, resErr error) {
 		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
 		return
 	} else if resErr != nil {
-		JS.PopupAlert("Error", resErr.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
 	log := []string{}
 	err := json.Unmarshal(resBytes, &log)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -209,7 +210,7 @@ func showLogContent(lines []string) {
 
 	el, err := DOM.GetElement("logs_out")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.InnerSet("")

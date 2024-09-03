@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"encoding/json"
 	"slices"
 )
@@ -54,7 +55,7 @@ func headerCallback(res string, resBytes []byte, resErr error) {
 
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -70,33 +71,33 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	remoteContacts := [][]string{}
 	err := json.Unmarshal(resBytes, &remoteContacts)
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	for i, record := range remoteContacts {
 		if len(record)-1 < slices.Index(headers, "Active") {
-			JS.PopupAlert("Error", "invalid index for Active", func() {})
+			Widget.PopupAlert("Error", "invalid index for Active", func() {})
 			continue
 		}
 		if record[slices.Index(headers, "Active")] != "true" {
-			JS.PopupAlert("Error", "record not active", func() {})
+			Widget.PopupAlert("Error", "record not active", func() {})
 			continue
 		}
 
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
-			JS.PopupAlert("Error", "invalid index for Img", func() {})
+			Widget.PopupAlert("Error", "invalid index for Img", func() {})
 			continue
 		}
 		textIndex := slices.Index(headers, "Text")
 		if len(record)-1 < textIndex {
-			JS.PopupAlert("Error", "invalid index for Text", func() {})
+			Widget.PopupAlert("Error", "invalid index for Text", func() {})
 			continue
 		}
 		urlIndex := slices.Index(headers, "Url")
 		if len(record)-1 < urlIndex {
-			JS.PopupAlert("Error", "invalid index for Url", func() {})
+			Widget.PopupAlert("Error", "invalid index for Url", func() {})
 			continue
 		}
 
@@ -156,14 +157,14 @@ func showContacts() {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + contactDivs)
 
 	els, err := DOM.GetElements("contact_divs")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -177,7 +178,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_txtInsides")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {
@@ -187,7 +188,7 @@ func showContacts() {
 
 	els, err = DOM.GetElements("contact_imgInsides")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	for i := 0; i < els.Els.Length(); i++ {

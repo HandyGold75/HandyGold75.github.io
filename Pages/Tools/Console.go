@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"strconv"
 	"strings"
 	"syscall/js"
@@ -21,7 +22,7 @@ var (
 func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 	elIn, errIn := DOM.GetElement("console_in")
 	if errIn != nil {
-		JS.PopupAlert("Error", errIn.Error(), func() {})
+		Widget.PopupAlert("Error", errIn.Error(), func() {})
 		return
 	}
 	elIn.Enable()
@@ -29,7 +30,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elArrow, errArrow := DOM.GetElement("console_arrow")
 	if errArrow != nil {
-		JS.PopupAlert("Error", errArrow.Error(), func() {})
+		Widget.PopupAlert("Error", errArrow.Error(), func() {})
 		return
 	}
 	elArrow.StyleSet("color", "#5F5")
@@ -45,7 +46,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 
 	elOut, errOut := DOM.GetElement("console_out")
 	if errOut != nil {
-		JS.PopupAlert("Error", errOut.Error(), func() {})
+		Widget.PopupAlert("Error", errOut.Error(), func() {})
 		return
 	}
 
@@ -66,12 +67,12 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 func commandEdited(el js.Value, evs []js.Value) {
 	elIn, err := DOM.GetElement("console_in")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
 	if len(evs) < 1 {
-		JS.PopupAlert("Error", "evs was not parsed", func() {})
+		Widget.PopupAlert("Error", "evs was not parsed", func() {})
 		return
 	}
 	key := evs[0].Get("key").String()
@@ -113,7 +114,7 @@ func commandEdited(el js.Value, evs []js.Value) {
 
 	elArrow, err := DOM.GetElement("console_arrow")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	elArrow.StyleSet("color", "#F55")
@@ -169,7 +170,7 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	mp.InnerSet(header + consoleDiv)
@@ -208,7 +209,7 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 
 	el, err := DOM.GetElement("console_in")
 	if err != nil {
-		JS.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	el.EventAdd("keyup", commandEdited)
