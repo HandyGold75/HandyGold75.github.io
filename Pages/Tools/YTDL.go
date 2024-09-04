@@ -282,17 +282,17 @@ func showYTDL() {
 	}.String()
 
 	btnAudio := HTML.HTML{Tag: "button", Inner: "Audio Only",
-		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark small", "title": "Only include audio, will not include video."},
+		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
 	btnLow := HTML.HTML{Tag: "button", Inner: "Low Quality",
-		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark small", "title": "Get the lowest possible quality, otherswide get the highest available quality."},
+		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
 	btnMP4 := HTML.HTML{Tag: "button", Inner: "Force MP4",
-		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark small", "title": "Force the MP4 file format, this might result in a lower then the highest available quality."},
+		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
@@ -346,6 +346,7 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleAudioOnly)
+	Widget.Tooltip("ytdl_option_audio_only", "Option", "Only include audio.<br>Will not include video.", 2000)
 
 	el, err = DOM.GetElement("ytdl_option_low_quality")
 	if err != nil {
@@ -353,6 +354,7 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleLowQuality)
+	Widget.Tooltip("ytdl_option_low_quality", "Option", "Get the lowest possible quality.<br>Otherswide get the highest available quality.", 2000)
 
 	el, err = DOM.GetElement("ytdl_option_force_mp4")
 	if err != nil {
@@ -360,6 +362,8 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleForceMP4)
+	Widget.Tooltip("ytdl_option_force_mp4", "Option", "Force the MP4 file format.<br>This might result in a lower then the highest available quality.", 2000)
+
 }
 
 func PageYTDL(forcePage func(string), setLoginSuccessCallback func(func())) {
