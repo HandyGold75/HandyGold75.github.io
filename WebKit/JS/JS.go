@@ -30,6 +30,10 @@ func GetVP() [2]int {
 	return [2]int{js.Global().Get("window").Get("innerHeight").Int(), js.Global().Get("window").Get("innerWidth").Int()}
 }
 
+func GetScroll() [2]float64 {
+	return [2]float64{js.Global().Get("window").Get("scrollY").Float(), js.Global().Get("window").Get("scrollX").Float()}
+}
+
 func New(global string, args ...any) js.Value {
 	item := js.Global()
 	for _, part := range strings.Split(global, ".") {
