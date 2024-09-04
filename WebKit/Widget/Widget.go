@@ -7,18 +7,13 @@ import (
 	"HandyGold75/WebKit/HTML"
 	"HandyGold75/WebKit/JS"
 	"errors"
+	"strconv"
 	"strings"
 	"syscall/js"
 )
 
-type (
-	DB struct {
-		db js.Value
-	}
-)
-
 var (
-	onResizeMapping = map[string]func(){}
+	tooltipIsHover = map[string]bool{}
 )
 
 func ensurePopupDiv(title string, txt string, buttons string) error {
@@ -49,7 +44,7 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 		Attributes: map[string]string{"id": "popup"},
 		Styles: map[string]string{
 			"z-index":    "10000",
-			"position":   "absolute",
+			"position":   "fixed",
 			"top":        "0px",
 			"left":       "0px",
 			"width":      "100vw",
@@ -437,4 +432,116 @@ func Download(fileName string, dataType string, data []byte, onComplete func(err
 		onComplete(err)
 		return err.Error()
 	}))
+}
+
+func ensureTooltipDiv(title string, txt string) error {
+	if _, err := DOM.GetElement("tooltip"); err == nil {
+		return errors.New("tooltip already active")
+	}
+
+	header := HTML.HTML{Tag: "h2", Inner: title}.String()
+	text := HTML.HTML{Tag: "p", Inner: txt}.String()
+	div := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "tooltip"},
+		Styles: map[string]string{
+			"z-index":    "10000",
+			"position":   "absolute",
+			"top":        "0px",
+			"left":       "0px",
+			"margin":     "0px",
+			"padding":    "4px 10px",
+			"border":     "2px solid #55F",
+			"opacity":    "0",
+			"transition": "opacity 0.25s",
+		},
+		Inner: header + text,
+	}.String()
+
+	el, err := DOM.GetElement("body")
+	if err != nil {
+		return err
+	}
+	el.InnerAddSurfix(div)
+
+	JS.AfterDelay(10, func() {
+		el, err := DOM.GetElement("tooltip")
+		if err != nil {
+			return
+		}
+		el.StyleSet("opacity", "0.90")
+	})
+
+	return nil
+}
+
+func Tooltip(id string, title string, txt string, hoverDelay int) error {
+	for elId := range tooltipIsHover {
+		if _, err := DOM.GetElement(elId); err != nil {
+			delete(tooltipIsHover, elId)
+		}
+	}
+
+	el, err := DOM.GetElement(id)
+	if err != nil {
+		return err
+	}
+
+	el.EventAdd("mouseover", func(el js.Value, evs []js.Value) {
+		tooltipIsHover[id] = true
+
+		JS.AfterDelay(hoverDelay, func() {
+			if !tooltipIsHover[id] {
+				return
+			}
+
+			if err := ensureTooltipDiv(title, txt); err != nil {
+				return
+			}
+
+			el, err := DOM.GetElement(id)
+			if err != nil {
+				delete(tooltipIsHover, id)
+				return
+			}
+
+			rect := el.El.Call("getBoundingClientRect")
+			scroll := JS.GetScroll()
+			vp := JS.GetVP()
+
+			el, err = DOM.GetElement("tooltip")
+			if err != nil {
+				delete(tooltipIsHover, id)
+				return
+			}
+
+			top := rect.Get("top").Float()
+			if top > float64(vp[0])/2 {
+				top -= float64(el.El.Get("offsetHeight").Int()) + 25
+			}
+
+			left := rect.Get("left").Float()
+			if left > float64(vp[1])/2 {
+				left -= float64(el.El.Get("offsetWidth").Int()) + 25
+			}
+
+			el.StyleSet("top", strconv.FormatFloat(top+scroll[0]+25, 'f', -1, 64)+"px")
+			el.StyleSet("left", strconv.FormatFloat(left+scroll[1]+25, 'f', -1, 64)+"px")
+		})
+	})
+
+	el.EventAdd("mouseout", func(el js.Value, evs []js.Value) {
+		tooltipIsHover[id] = false
+
+		elTt, err := DOM.GetElement("tooltip")
+		if err != nil {
+			return
+		}
+		elTt.StyleSet("opacity", "0")
+
+		JS.AfterDelay(250, func() {
+			elTt.Remove()
+		})
+	})
+
+	return nil
 }
