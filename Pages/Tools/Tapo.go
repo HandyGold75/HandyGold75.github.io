@@ -9,6 +9,7 @@ import (
 	"HandyGold75/WebKit/JS"
 	"HandyGold75/WebKit/Widget"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -243,6 +244,12 @@ func drawSvg(lines []string) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
+	elCor, err := DOM.GetElement("tapo_history_out_cor")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
 	elCols, err := DOM.GetElement("tapo_history_out_cols")
 	if err != nil {
 		JS.OnResizeDelete("Tapo")
@@ -250,64 +257,50 @@ func drawSvg(lines []string) {
 		return
 	}
 
+	parseLine := func(line string) (time.Time, float64, float64, error) {
+		l := strings.Split(line, "<SEP>")
+		if len(l) != 4 {
+			return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid size")
+		}
+		localTime, err := time.Parse(time.RFC3339Nano, l[0])
+		if err != nil {
+			return time.Time{}, 0.0, 0.0, errors.New("unable to parse local time")
+		}
+		if l[1] != "info" {
+			return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid state")
+		}
+		todayRuntime, err := strconv.ParseFloat(l[2], 64)
+		if err != nil {
+			return time.Time{}, 0.0, 0.0, errors.New("unable to parse today runtime")
+		}
+		todayEnergy, err := strconv.ParseFloat(l[3], 64)
+		if err != nil {
+			return time.Time{}, 0.0, 0.0, errors.New("unable to parse today energy")
+		}
+		return localTime, todayRuntime, todayEnergy, nil
+	}
+
 	c_width := float64(elSvg.El.Get("clientWidth").Int())
 	c_height := float64(elSvg.El.Get("clientHeight").Int())
 
-	// minTime := time.Now()
-	// maxTime := time.Now()
-
 	maxValue := 0.0
-	maxValueEnergy := 0.0
-	maxValueRuntime := 0.0
 	linesLen := 0.0
 	for _, line := range lines {
-		l := strings.Split(line, "<SEP>")
-		if len(l) != 4 {
-			continue
-		}
-		if l[1] != "info" {
+		_, todayRuntime, todayEnergy, err := parseLine(line)
+		if err != nil {
 			continue
 		}
 
-		// localTime, err := time.Parse(time.RFC3339Nano, l[0])
-		// if err != nil {
-		// 	continue
-		// }
-
-		if todayRuntime, err := strconv.ParseFloat(l[2], 64); err == nil {
-			if todayRuntime > maxValue {
-				maxValue = todayRuntime
-			}
-			if todayRuntime > maxValueRuntime {
-				maxValueRuntime = todayRuntime
-			}
-
+		if todayRuntime > maxValue {
+			maxValue = todayRuntime
 		}
-
-		if todayEnergy, err := strconv.ParseFloat(l[3], 64); err == nil {
-			if todayEnergy > maxValue {
-				maxValue = todayEnergy
-			}
-
-			if todayEnergy > maxValueEnergy {
-				maxValueEnergy = todayEnergy
-			}
-
+		if todayEnergy > maxValue {
+			maxValue = todayEnergy
 		}
-
-		// if localTime < minTime {
-		// 	maxTime = localTime
-		// }
-		// if localTime > maxTime {
-		// 	maxTime = localTime
-		// }
 
 		linesLen++
 	}
 
-	// fmt.Println(maxValue)
-	// fmt.Println(maxValueRuntime)
-	// fmt.Println(maxValueEnergy)
 	rows := ""
 	for i := 10.0; i > 0; i-- {
 		rows += HTML.HTML{Tag: "p", Inner: SectoString(int((i / 10) * maxValue)),
@@ -329,30 +322,13 @@ func drawSvg(lines []string) {
 			},
 		}.String()
 	}
-
-	// rows += HTML.HTML{Tag: "p", Inner: SectoString(0),
-	// 	Styles: map[string]string{
-	// 		"height":        "5%",
-	// 		"margin-bottom": "-2px",
-	// 		"border-bottom": "2px dotted #111",
-	// 		"border-radius": "0px",
-	// 		"white-space":   "nowrap",
-	// 	},
-	// }.String()
-	// rows += HTML.HTML{Tag: "p", Inner: WattToString(0.0),
-	// 	Styles: map[string]string{
-	// 		"height":      "5%",
-	// 		"white-space": "nowrap",
-	// 	},
-	// }.String()
-
 	elRows.InnerSet(rows)
 
-	cols := HTML.HTML{Tag: "p", Inner: "0",
-		Styles: map[string]string{"width": "10%", "white-space": "nowrap"},
-	}.String()
-	for i := 1; i < 10; i++ {
-		cols += HTML.HTML{Tag: "p", Inner: strconv.Itoa(i),
+	elCor.InnerSet(HTML.HTML{Tag: "p", Inner: "0", Styles: map[string]string{"height": "100%", "white-space": "nowrap"}}.String())
+
+	cols := ""
+	for _, month := range []string{"January", "Febuary", "March", "April", "May", "June", "Juli", "August", "September", "October", "November", "December"} {
+		cols += HTML.HTML{Tag: "p", Inner: month,
 			Styles: map[string]string{
 				"width":         "10%",
 				"margin-left":   "-2px",
@@ -371,23 +347,7 @@ func drawSvg(lines []string) {
 
 	i := 0
 	for _, line := range lines {
-		l := strings.Split(line, "<SEP>")
-		if len(l) != 4 {
-			continue
-		}
-		if l[1] != "info" {
-			continue
-		}
-
-		localTime, err := time.Parse(time.RFC3339Nano, l[0])
-		if err != nil {
-			continue
-		}
-		todayRuntime, err := strconv.ParseFloat(l[2], 64)
-		if err != nil {
-			continue
-		}
-		todayEnergy, err := strconv.ParseFloat(l[3], 64)
+		localTime, todayRuntime, todayEnergy, err := parseLine(line)
 		if err != nil {
 			continue
 		}
@@ -401,6 +361,20 @@ func drawSvg(lines []string) {
 			energyY = c_height - ((todayEnergy / maxValue) * c_height)
 		}
 
+		// fmt.Println("---")
+		// fmt.Println(localTime.Format(time.DateTime))
+		// fmt.Println(float64(localTime.Month() - 1))
+		// fmt.Println((float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0))
+		// fmt.Println(c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0))
+		// fmt.Println(float64(localTime.AddDate(0, 1, -localTime.Day()).Day()))
+		// fmt.Println((((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
+		// fmt.Println(c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
+
+		// cordX := c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0)
+		// cordX += c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0)
+
+		// cordX := (c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0)) + (c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
+
 		cordX := (float64(i) / (linesLen - 1)) * c_width
 
 		cordsRuntime := [2]string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, runtimeY)), 'f', -1, 64)}
@@ -409,17 +383,8 @@ func drawSvg(lines []string) {
 		allCordsRuntime = append(allCordsRuntime, cordsRuntime[0]+","+cordsRuntime[1])
 		allCordsEnergy = append(allCordsEnergy, cordsEnergy[0]+","+cordsEnergy[1])
 
-		tooltips["tapo_history_out_svg_"+cordsRuntime[0]+"_"+cordsRuntime[1]] = [2]string{
-			"Runtime",
-			"Today Runtime: " + SectoString(int(todayRuntime)) + "<br>" +
-				"Local Time: " + localTime.Format(time.DateTime),
-		}
-
-		tooltips["tapo_history_out_svg_"+cordsEnergy[0]+"_"+cordsEnergy[1]] = [2]string{
-			"Energy",
-			"Today Energy: " + WattToString(todayEnergy) + "<br>" +
-				"Local Time: " + localTime.Format(time.DateTime),
-		}
+		tooltips["tapo_history_out_svg_"+cordsRuntime[0]+"_"+cordsRuntime[1]] = [2]string{"Runtime", SectoString(int(todayRuntime)) + "<br>" + localTime.Format(time.DateTime)}
+		tooltips["tapo_history_out_svg_"+cordsEnergy[0]+"_"+cordsEnergy[1]] = [2]string{"Energy", WattToString(todayEnergy) + "<br>" + localTime.Format(time.DateTime)}
 
 		svgHtml += HTML.HTML{Tag: "circle",
 			Attributes: map[string]string{
@@ -452,7 +417,7 @@ func drawSvg(lines []string) {
 	elSvg.InnerSet(runtimeLine + energyLine + svgHtml)
 
 	for id, txt := range tooltips {
-		Widget.Tooltip(id, txt[0], txt[1], 1000)
+		Widget.Tooltip(id, txt[0], txt[1], 250)
 	}
 
 }
@@ -605,7 +570,7 @@ func updateDevice(name string, specs DeviceEnergy) error {
 	if err != nil {
 		return err
 	}
-	el.InnerSet(WattToString(float64(specs.CurrentPower) / 250))
+	el.InnerSet(WattToString(float64(specs.CurrentPower) / 1000))
 
 	el, err = DOM.GetElement("tapo_devices_" + name + "_today_power")
 	if err != nil {
@@ -735,12 +700,11 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 	cor := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "tapo_history_out_cor"},
 		Styles: map[string]string{
-			"display":       "flex",
 			"width":         "71px",
-			"height":        "46px",
+			"height":        "48px",
 			"margin":        "0px",
 			"padding":       "0px",
-			"border-top":    "4px solid #111",
+			"border-top":    "2px solid #111",
 			"border-right":  "4px solid #111",
 			"border-radius": "0px",
 		},
