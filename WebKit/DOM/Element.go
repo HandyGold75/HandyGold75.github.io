@@ -51,6 +51,13 @@ func (obj Element) InnerAddSurfix(html string) {
 	obj.El.Call("append", Els...)
 }
 
+func (obj Element) InnerAddPrefixRaw(html string) {
+	obj.El.Set("innerHTML", html+obj.El.Get("innerHTML").String())
+}
+func (obj Element) InnerAddSurfixRaw(html string) {
+	obj.El.Set("innerHTML", obj.El.Get("innerHTML").String()+html)
+}
+
 func (obj Element) InnerClear() {
 	obj.El.Set("innerHTML", "")
 }

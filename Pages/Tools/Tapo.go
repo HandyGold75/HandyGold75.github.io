@@ -34,6 +34,7 @@ var (
 	availableHists = map[string][]string{}
 
 	selectedDevice     = ""
+	selectedYear       = ""
 	skipBtnUpdateCount = 0
 )
 
@@ -109,6 +110,7 @@ func showInfoList(el js.Value, evs []js.Value) {
 
 	selectedDevice = strings.Split(el.Get("id").String(), "_")[2]
 
+	selectedYear = ""
 	HTTP.Send(showInfoListCallback, "tapo", "histlist")
 }
 
@@ -160,6 +162,7 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 	selected := selectedDevice
 	JS.AfterDelay(delay, func() {
 		showInfoDates(selected)
+		selectedYear = strings.Split(hists[len(hists)-1], ".")[0]
 		HTTP.Send(showInfoCallback, "tapo", "histget", selected, hists[len(hists)-1])
 	})
 }
@@ -195,6 +198,7 @@ func showInfoDates(selected string) {
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(5, 100/len(availableHists)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
+		selectedYear = strings.Split(el.Get("innerHTML").String(), ".")[0]
 		HTTP.Send(showInfoCallback, "tapo", "histget", selected, el.Get("innerHTML").String())
 	})
 }
@@ -225,129 +229,50 @@ func showInfoCallback(res string, resBytes []byte, resErr error) {
 	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
 	slices.Reverse(lines)
 
-	JS.AfterDelay(300, func() {
+	JS.AfterDelay(250, func() {
 		JS.OnResizeDelete("Tapo")
-		JS.OnResizeAdd("Tapo", func() { drawSvg(lines) })
+		JS.OnResizeAdd("Tapo", func() { showGraph(lines) })
 	})
 }
 
-func drawSvg(lines []string) {
+func parseHistLine(line string) (time.Time, float64, float64, error) {
+	l := strings.Split(line, "<SEP>")
+	if len(l) != 4 {
+		return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid size")
+	}
+	localTime, err := time.Parse(time.RFC3339Nano, l[0])
+	if err != nil {
+		return time.Time{}, 0.0, 0.0, errors.New("unable to parse local time")
+	}
+	if l[1] != "info" {
+		return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid state")
+	}
+	todayRuntime, err := strconv.ParseFloat(l[2], 64)
+	if err != nil {
+		return time.Time{}, 0.0, 0.0, errors.New("unable to parse today runtime")
+	}
+	todayEnergy, err := strconv.ParseFloat(l[3], 64)
+	if err != nil {
+		return time.Time{}, 0.0, 0.0, errors.New("unable to parse today energy")
+	}
+	return localTime, todayRuntime, todayEnergy, nil
+}
+
+func drawSvg(lines []string, maxValue float64) error {
 	elSvg, err := DOM.GetElement("tapo_history_out_svg")
 	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	elRows, err := DOM.GetElement("tapo_history_out_rows")
-	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	elCor, err := DOM.GetElement("tapo_history_out_cor")
-	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	elCols, err := DOM.GetElement("tapo_history_out_cols")
-	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	parseLine := func(line string) (time.Time, float64, float64, error) {
-		l := strings.Split(line, "<SEP>")
-		if len(l) != 4 {
-			return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid size")
-		}
-		localTime, err := time.Parse(time.RFC3339Nano, l[0])
-		if err != nil {
-			return time.Time{}, 0.0, 0.0, errors.New("unable to parse local time")
-		}
-		if l[1] != "info" {
-			return time.Time{}, 0.0, 0.0, errors.New("unable to parse, line has invalid state")
-		}
-		todayRuntime, err := strconv.ParseFloat(l[2], 64)
-		if err != nil {
-			return time.Time{}, 0.0, 0.0, errors.New("unable to parse today runtime")
-		}
-		todayEnergy, err := strconv.ParseFloat(l[3], 64)
-		if err != nil {
-			return time.Time{}, 0.0, 0.0, errors.New("unable to parse today energy")
-		}
-		return localTime, todayRuntime, todayEnergy, nil
+		return err
 	}
 
 	c_width := float64(elSvg.El.Get("clientWidth").Int())
 	c_height := float64(elSvg.El.Get("clientHeight").Int())
 
-	maxValue := 0.0
-	linesLen := 0.0
-	for _, line := range lines {
-		_, todayRuntime, todayEnergy, err := parseLine(line)
-		if err != nil {
-			continue
-		}
-
-		if todayRuntime > maxValue {
-			maxValue = todayRuntime
-		}
-		if todayEnergy > maxValue {
-			maxValue = todayEnergy
-		}
-
-		linesLen++
-	}
-
-	rows := ""
-	for i := 10.0; i > 0; i-- {
-		rows += HTML.HTML{Tag: "p", Inner: SectoString(int((i / 10) * maxValue)),
-			Styles: map[string]string{
-				"height":        "5%",
-				"margin-bottom": "-2px",
-				"border-bottom": "2px dotted #111",
-				"border-radius": "0px",
-				"white-space":   "nowrap",
-			},
-		}.String()
-		rows += HTML.HTML{Tag: "p", Inner: WattToString((i / 10) * maxValue),
-			Styles: map[string]string{
-				"height":        "5%",
-				"margin-bottom": "-2px",
-				"border-bottom": "2px solid #111",
-				"border-radius": "0px",
-				"white-space":   "nowrap",
-			},
-		}.String()
-	}
-	elRows.InnerSet(rows)
-
-	elCor.InnerSet(HTML.HTML{Tag: "p", Inner: "0", Styles: map[string]string{"height": "100%", "white-space": "nowrap"}}.String())
-
-	cols := ""
-	for _, month := range []string{"January", "Febuary", "March", "April", "May", "June", "Juli", "August", "September", "October", "November", "December"} {
-		cols += HTML.HTML{Tag: "p", Inner: month,
-			Styles: map[string]string{
-				"width":         "10%",
-				"margin-left":   "-2px",
-				"border-left":   "2px solid #111",
-				"border-radius": "0px",
-				"white-space":   "nowrap",
-			},
-		}.String()
-	}
-	elCols.InnerSet(cols)
-
-	svgHtml := ""
+	svg := ""
 	allCordsRuntime := []string{}
 	allCordsEnergy := []string{}
 	tooltips := map[string][2]string{}
-
-	i := 0
 	for _, line := range lines {
-		localTime, todayRuntime, todayEnergy, err := parseLine(line)
+		localTime, todayRuntime, todayEnergy, err := parseHistLine(line)
 		if err != nil {
 			continue
 		}
@@ -361,21 +286,10 @@ func drawSvg(lines []string) {
 			energyY = c_height - ((todayEnergy / maxValue) * c_height)
 		}
 
-		// fmt.Println("---")
-		// fmt.Println(localTime.Format(time.DateTime))
-		// fmt.Println(float64(localTime.Month() - 1))
-		// fmt.Println((float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0))
-		// fmt.Println(c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0))
-		// fmt.Println(float64(localTime.AddDate(0, 1, -localTime.Day()).Day()))
-		// fmt.Println((((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
-		// fmt.Println(c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
-
-		// cordX := c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0)
-		// cordX += c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0)
-
-		// cordX := (c_width * (float64(localTime.Month()-1) * (100.0 / 12.0) / 100.0)) + (c_width * (((100.0 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / (100.0 / 12.0)) / 100.0))
-
-		cordX := (float64(i) / (linesLen - 1)) * c_width
+		yearWeigth := (100.0 / 12.0) / 100.0
+		monthWeigth := (100 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / 100
+		cordX := c_width * float64(localTime.Month()-1) * yearWeigth
+		cordX += c_width * float64(localTime.Day()-1) * monthWeigth * yearWeigth
 
 		cordsRuntime := [2]string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, runtimeY)), 'f', -1, 64)}
 		cordsEnergy := [2]string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, energyY)), 'f', -1, 64)}
@@ -386,40 +300,357 @@ func drawSvg(lines []string) {
 		tooltips["tapo_history_out_svg_"+cordsRuntime[0]+"_"+cordsRuntime[1]] = [2]string{"Runtime", SectoString(int(todayRuntime)) + "<br>" + localTime.Format(time.DateTime)}
 		tooltips["tapo_history_out_svg_"+cordsEnergy[0]+"_"+cordsEnergy[1]] = [2]string{"Energy", WattToString(todayEnergy) + "<br>" + localTime.Format(time.DateTime)}
 
-		svgHtml += HTML.HTML{Tag: "circle",
+		svg += HTML.HTML{Tag: "circle",
 			Attributes: map[string]string{
 				"id": "tapo_history_out_svg_" + cordsRuntime[0] + "_" + cordsRuntime[1],
 				"r":  "10", "cx": cordsRuntime[0], "cy": cordsRuntime[1],
 				"fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5",
 			},
 		}.String()
-		svgHtml += HTML.HTML{Tag: "circle",
+		svg += HTML.HTML{Tag: "circle",
 			Attributes: map[string]string{
 				"id": "tapo_history_out_svg_" + cordsEnergy[0] + "_" + cordsEnergy[1],
 				"r":  "10", "cx": cordsEnergy[0], "cy": cordsEnergy[1],
 				"fill": "#FFAA55", "stroke": "#2A2A2A", "stroke-width": "5",
 			},
 		}.String()
-
-		i++
 	}
 
 	runtimeLine := HTML.HTML{Tag: "polyline",
 		Attributes: map[string]string{"points": strings.Join(allCordsRuntime, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#55F", "stroke-width": "10"},
 	}.String()
-
 	energyLine := HTML.HTML{Tag: "polyline",
 		Attributes: map[string]string{"points": strings.Join(allCordsEnergy, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#FFAA55", "stroke-width": "5"},
 	}.String()
 
-	elSvg.InnerSet(runtimeLine + energyLine + svgHtml)
+	elSvg.InnerAddPrefixRaw(runtimeLine + energyLine + svg)
 
 	for id, txt := range tooltips {
 		Widget.Tooltip(id, txt[0], txt[1], 250)
 	}
 
+	return nil
+}
+
+func drawSvgMonth(lines []string, maxValue float64) error {
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		return err
+	}
+
+	c_width := float64(elSvg.El.Get("clientWidth").Int())
+	c_height := float64(elSvg.El.Get("clientHeight").Int())
+
+	svg := ""
+	allCordsRuntime := []string{}
+	allCordsEnergy := []string{}
+	tooltips := map[string][2]string{}
+	for _, line := range lines {
+		localTime, todayRuntime, todayEnergy, err := parseHistLine(line)
+		if err != nil {
+			continue
+		}
+
+		runtimeY := 0.0
+		if todayRuntime != 0 {
+			runtimeY = c_height - ((todayRuntime / maxValue) * c_height)
+		}
+		energyY := 0.0
+		if todayEnergy != 0 {
+			energyY = c_height - ((todayEnergy / maxValue) * c_height)
+		}
+
+		monthWeigth := (100 / float64(localTime.AddDate(0, 1, -localTime.Day()).Day())) / 100
+		cordX := c_width * float64(localTime.Day()-1) * monthWeigth
+
+		cordsRuntime := [2]string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, runtimeY)), 'f', -1, 64)}
+		cordsEnergy := [2]string{strconv.FormatFloat(min(c_width, max(0, cordX)), 'f', -1, 64), strconv.FormatFloat(min(c_height, max(0, energyY)), 'f', -1, 64)}
+
+		allCordsRuntime = append(allCordsRuntime, cordsRuntime[0]+","+cordsRuntime[1])
+		allCordsEnergy = append(allCordsEnergy, cordsEnergy[0]+","+cordsEnergy[1])
+
+		tooltips["tapo_history_out_svg_"+cordsRuntime[0]+"_"+cordsRuntime[1]] = [2]string{"Runtime", SectoString(int(todayRuntime)) + "<br>" + localTime.Format(time.DateTime)}
+		tooltips["tapo_history_out_svg_"+cordsEnergy[0]+"_"+cordsEnergy[1]] = [2]string{"Energy", WattToString(todayEnergy) + "<br>" + localTime.Format(time.DateTime)}
+
+		svg += HTML.HTML{Tag: "circle",
+			Attributes: map[string]string{
+				"id": "tapo_history_out_svg_" + cordsRuntime[0] + "_" + cordsRuntime[1],
+				"r":  "10", "cx": cordsRuntime[0], "cy": cordsRuntime[1],
+				"fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5",
+			},
+		}.String()
+		svg += HTML.HTML{Tag: "circle",
+			Attributes: map[string]string{
+				"id": "tapo_history_out_svg_" + cordsEnergy[0] + "_" + cordsEnergy[1],
+				"r":  "10", "cx": cordsEnergy[0], "cy": cordsEnergy[1],
+				"fill": "#FFAA55", "stroke": "#2A2A2A", "stroke-width": "5",
+			},
+		}.String()
+	}
+
+	runtimeLine := HTML.HTML{Tag: "polyline",
+		Attributes: map[string]string{"points": strings.Join(allCordsRuntime, " ")},
+		Styles:     map[string]string{"fill": "none", "stroke": "#55F", "stroke-width": "10"},
+	}.String()
+	energyLine := HTML.HTML{Tag: "polyline",
+		Attributes: map[string]string{"points": strings.Join(allCordsEnergy, " ")},
+		Styles:     map[string]string{"fill": "none", "stroke": "#FFAA55", "stroke-width": "5"},
+	}.String()
+
+	elSvg.InnerAddPrefixRaw(runtimeLine + energyLine + svg)
+
+	for id, txt := range tooltips {
+		Widget.Tooltip(id, txt[0], txt[1], 250)
+	}
+
+	return nil
+}
+
+func drawRows(maxValue float64) error {
+	elRows, err := DOM.GetElement("tapo_history_out_rows")
+	if err != nil {
+		return err
+	}
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		return err
+	}
+
+	c_width := float64(elSvg.El.Get("clientWidth").Int())
+	c_height := float64(elSvg.El.Get("clientHeight").Int())
+
+	rows := ""
+	svg := ""
+	for i := 10.0; i > 0; i-- {
+		rows += HTML.HTML{Tag: "p", Inner: SectoString(int((i / 10) * maxValue)),
+			Styles: map[string]string{
+				"height":        "5%",
+				"margin-top":    "-2px",
+				"border-top":    "2px solid #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+		rows += HTML.HTML{Tag: "p", Inner: WattToString((i / 10) * maxValue),
+			Styles: map[string]string{
+				"height":        "5%",
+				"margin-top":    "-2px",
+				"border-top":    "2px dotted #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+
+		y := strconv.FormatFloat(c_height-((i/10.0)*c_height), 'f', -1, 64)
+		svg += HTML.HTML{Tag: "line",
+			Attributes: map[string]string{"x1": "0", "y1": y, "x2": strconv.FormatFloat(c_width, 'f', -1, 64), "y2": y},
+			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
+		}.String()
+	}
+	elRows.InnerSet(rows)
+	elSvg.InnerAddPrefix(svg)
+
+	elCor, err := DOM.GetElement("tapo_history_out_cor")
+	if err != nil {
+		return err
+	}
+	elCor.InnerSet(HTML.HTML{Tag: "p", Inner: "0", Styles: map[string]string{"height": "100%", "white-space": "nowrap"}}.String())
+
+	return nil
+}
+
+func drawCols(lines []string) error {
+	elCols, err := DOM.GetElement("tapo_history_out_cols")
+	if err != nil {
+		return err
+	}
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		return err
+	}
+
+	c_width := float64(elSvg.El.Get("clientWidth").Int())
+	c_height := float64(elSvg.El.Get("clientHeight").Int())
+
+	months := []string{"January", "Febuary", "March", "April", "May", "June", "Juli", "August", "September", "October", "November", "December"}
+
+	cols := ""
+	svg := ""
+	for i, month := range months {
+		cols += HTML.HTML{Tag: "p", Inner: month,
+			Attributes: map[string]string{"id": "tapo_history_out_cols_month_" + strconv.Itoa(i)},
+			Styles: map[string]string{
+				"width":         "10%",
+				"margin-left":   "-2px",
+				"border-left":   "2px solid #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+
+		x := strconv.FormatFloat((float64(i)/float64(len(months)))*c_width, 'f', -1, 64)
+		svg += HTML.HTML{Tag: "line",
+			Attributes: map[string]string{"x1": x, "y1": "0", "x2": x, "y2": strconv.FormatFloat(c_height, 'f', -1, 64)},
+			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
+		}.String()
+	}
+	elCols.InnerSet(cols)
+	elSvg.InnerAddPrefix(svg)
+
+	for i := range months {
+		el, err := DOM.GetElement("tapo_history_out_cols_month_" + strconv.Itoa(i))
+		if err != nil {
+			return err
+		}
+		el.EventAdd("dblclick", func(el js.Value, els []js.Value) {
+			idSplit := strings.Split(el.Get("id").String(), "_")
+			m, err := strconv.Atoi(idSplit[len(idSplit)-1])
+			if err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+				return
+			}
+
+			date, err := time.Parse(time.DateOnly, selectedYear+"-"+fmt.Sprintf("%02d", m)+"-01")
+			if err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+				return
+			}
+
+			JS.OnResizeDelete("Tapo")
+			JS.OnResizeAdd("Tapo", func() { showGraphMonth(lines, date) })
+		})
+	}
+
+	return nil
+}
+
+func drawColsMonth(maxDays int) error {
+	elCols, err := DOM.GetElement("tapo_history_out_cols")
+	if err != nil {
+		return err
+	}
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		return err
+	}
+
+	c_width := float64(elSvg.El.Get("clientWidth").Int())
+	c_height := float64(elSvg.El.Get("clientHeight").Int())
+
+	cols := ""
+	svg := ""
+	for i := 1; i <= maxDays; i++ {
+		cols += HTML.HTML{Tag: "p", Inner: strconv.Itoa(i),
+			Styles: map[string]string{
+				"width":         strconv.FormatFloat(100.0/float64(maxDays), 'f', -1, 64) + "%",
+				"margin-left":   "-2px",
+				"border-left":   "2px solid #111",
+				"border-radius": "0px",
+				"white-space":   "nowrap",
+			},
+		}.String()
+
+		x := strconv.FormatFloat((float64(i)/float64(maxDays))*c_width, 'f', -1, 64)
+		svg += HTML.HTML{Tag: "line",
+			Attributes: map[string]string{"x1": x, "y1": "0", "x2": x, "y2": strconv.FormatFloat(c_height, 'f', -1, 64)},
+			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
+		}.String()
+	}
+	elCols.InnerSet(cols)
+	elSvg.InnerAddPrefix(svg)
+
+	return nil
+}
+
+func showGraph(lines []string) {
+	maxValue := 0.0
+	for _, line := range lines {
+		_, todayRuntime, todayEnergy, err := parseHistLine(line)
+		if err != nil {
+			continue
+		}
+
+		if todayRuntime > maxValue {
+			maxValue = todayRuntime
+		}
+		if todayEnergy > maxValue {
+			maxValue = todayEnergy
+		}
+	}
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	elSvg.InnerSet("")
+
+	if err := drawRows(maxValue); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	if err := drawCols(lines); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	if err := drawSvg(lines, maxValue); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+}
+
+func showGraphMonth(lines []string, selectedMonth time.Time) {
+	lines = slices.DeleteFunc(lines, func(l string) bool {
+		localTime, _, _, err := parseHistLine(l)
+		if err != nil {
+			return true
+		}
+		return localTime.Month() != selectedMonth.Month()
+	})
+
+	maxValue := 0.0
+	for _, line := range lines {
+		_, todayRuntime, todayEnergy, err := parseHistLine(line)
+		if err != nil {
+			continue
+		}
+
+		if todayRuntime > maxValue {
+			maxValue = todayRuntime
+		}
+		if todayEnergy > maxValue {
+			maxValue = todayEnergy
+		}
+	}
+	elSvg, err := DOM.GetElement("tapo_history_out_svg")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	elSvg.InnerSet("")
+
+	if err := drawRows(maxValue); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+
+	if err := drawColsMonth(selectedMonth.AddDate(0, 1, -selectedMonth.Day()).Day()); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	if err := drawSvgMonth(lines, maxValue); err != nil {
+		JS.OnResizeDelete("Tapo")
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
 }
 
 func addDevice(name string) error {
