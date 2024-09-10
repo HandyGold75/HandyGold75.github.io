@@ -22,13 +22,13 @@ type (
 
 var (
 	Contacts = map[int]contact{
-		0: {Img: "./docs/assets/Contact/Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
-		1: {Img: "./docs/assets/Contact/Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
-		2: {Img: "./docs/assets/Contact/YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
-		3: {Img: "./docs/assets/Contact/Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
-		4: {Img: "./docs/assets/Contact/Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
-		5: {Img: "./docs/assets/Contact/Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
-		6: {Img: "./docs/assets/Contact/Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
+		0: {Img: "Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
+		1: {Img: "Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
+		2: {Img: "YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
+		3: {Img: "Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
+		4: {Img: "Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
+		5: {Img: "Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
+		6: {Img: "Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
 	}
 
 	headers = []string{}
@@ -76,15 +76,6 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	for i, record := range remoteContacts {
-		if len(record)-1 < slices.Index(headers, "Active") {
-			Widget.PopupAlert("Error", "invalid index for Active", func() {})
-			continue
-		}
-		if record[slices.Index(headers, "Active")] != "true" {
-			Widget.PopupAlert("Error", "record not active", func() {})
-			continue
-		}
-
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
 			Widget.PopupAlert("Error", "invalid index for Img", func() {})
@@ -137,7 +128,7 @@ func showContacts() {
 			Attributes: map[string]string{"class": classImg, "href": Contacts[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"width": "10vh", "height": "10vh", "margin": marginImg, "transition": "margin 1s"},
 			Inner: HTML.HTML{Tag: "img",
-				Attributes: map[string]string{"src": Contacts[k].Img, "alt": Contacts[k].Text},
+				Attributes: map[string]string{"src": "./docs/assets/Contact/" + Contacts[k].Img, "alt": Contacts[k].Text},
 				Styles:     map[string]string{"width": "10vh", "height": "10vh"},
 			}.String(),
 		}.String()
