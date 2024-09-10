@@ -335,7 +335,7 @@ func addRow(record []string, recordIndex int, delay int) {
 
 	JS.AfterDelay(delay, func() {
 		el.InnerAddSurfix(row)
-		for i, _ := range record {
+		for i := range record {
 			colHeader, ok := headers[selectedSheet]
 			if !ok || i > len(colHeader)-1 {
 				Widget.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
@@ -584,7 +584,7 @@ func actionImport(el js.Value, evs []js.Value) {
 			return
 		}
 
-		if len(toImport[0]) != len(headers) {
+		if len(toImport[0]) != len(headers[selectedSheet]) {
 			Widget.PopupAlert("Error", "Invalid record: ["+strings.Join(toImport[0], ", ")+"]", func() {})
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)
@@ -617,7 +617,7 @@ func toImportCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	if len(toImport) > 0 {
-		if len(toImport[0]) != len(headers) {
+		if len(toImport[0]) != len(headers[selectedSheet]) {
 			Widget.PopupAlert("Error", "Invalid record: ["+strings.Join(toImport[0], ", ")+"]", func() {})
 			toImport = toImport[1:]
 			toImportCallback("", []byte{}, nil)

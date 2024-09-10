@@ -57,10 +57,10 @@ var (
 	}
 
 	PagesToRequiredComs = map[string][]string{
-		"Console":         {"help"},
 		"Admin:Users":     {"users"},
 		"Admin:Config":    {"exit", "restart"},
 		"Admin:Logs":      {"logs"},
+		"Tools:Console":   {"help"},
 		"Tools:Sonos":     {"sonos"},
 		"Tools:Tapo":      {"tapo"},
 		"Tools:YTDL":      {"ytdl"},
