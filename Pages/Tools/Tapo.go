@@ -152,10 +152,19 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
+	elOut, err := DOM.GetElement("tapo_history_out")
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
 
 	delay := 0
 	if elDates.StyleGet("max-height") != "0px" {
 		elDates.StyleSet("max-height", "0px")
+		delay = 250
+	}
+	if elOut.StyleGet("max-height") != "0px" {
+		elOut.StyleSet("max-height", "0px")
 		delay = 250
 	}
 
@@ -219,12 +228,14 @@ func showInfoCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	elDates, err := DOM.GetElement("tapo_history_out")
+	elOut, err := DOM.GetElement("tapo_history_out")
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	elDates.StyleSet("max-height", "750px")
+	if elOut.StyleGet("max-height") != "0px" {
+		elOut.StyleSet("max-height", "0px")
+	}
 
 	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
 	slices.Reverse(lines)
@@ -401,7 +412,7 @@ func drawCols(lines []string) error {
 		cols += HTML.HTML{Tag: "p", Inner: month,
 			Attributes: map[string]string{"id": "tapo_history_out_cols_month_" + strconv.Itoa(i)},
 			Styles: map[string]string{
-				"width":         "10%",
+				"width":         strconv.FormatFloat(100.0/float64(len(months)), 'f', -1, 64) + "%",
 				"margin-left":   "-2px",
 				"border-left":   "2px solid #111",
 				"border-radius": "0px",
@@ -484,6 +495,13 @@ func drawColsMonth(maxDays int) error {
 }
 
 func showGraph(lines []string) {
+	elOut, err := DOM.GetElement("tapo_history_out")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		return
+	}
+	elOut.StyleSet("max-height", "750px")
+
 	maxValue := 0.0
 	for _, line := range lines {
 		_, todayRuntime, todayEnergy, err := parseHistLine(line)
@@ -542,6 +560,13 @@ func showGraph(lines []string) {
 }
 
 func showGraphMonth(lines []string, selectedMonth time.Time) {
+	elOut, err := DOM.GetElement("tapo_history_out")
+	if err != nil {
+		JS.OnResizeDelete("Tapo")
+		return
+	}
+	elOut.StyleSet("max-height", "750px")
+
 	lines = slices.DeleteFunc(lines, func(l string) bool {
 		localTime, _, _, err := parseHistLine(l)
 		if err != nil {
@@ -632,13 +657,14 @@ func addDevice(name string) error {
 
 	out := HTML.HTML{Tag: "p",
 		Attributes: map[string]string{"id": "tapo_devices_" + name + "_current_power"},
-		Styles:     map[string]string{"margin": "-10px 5px 0px 5px", "white-space": "nowrap"},
+		Styles:     map[string]string{"margin": "-15px 5px 0px 5px", "white-space": "nowrap"},
 	}.String()
 
 	current := HTML.HTML{Tag: "div", Inner: power + out,
 		Styles: map[string]string{
 			"width":      "150px",
 			"margin":     "10px auto",
+			"padding":    "0px 4px",
 			"background": "#2F2F2F",
 			"border":     "2px solid #191919",
 		},
@@ -681,6 +707,7 @@ func addDevice(name string) error {
 	stats := HTML.HTML{Tag: "div", Inner: today + month,
 		Styles: map[string]string{
 			"display":    "flex",
+			"padding":    "0px 4px",
 			"background": "#2F2F2F",
 			"border":     "2px solid #191919",
 		},
@@ -738,7 +765,7 @@ func updateDevice(name string, specs DeviceEnergy) error {
 	if specs.CurrentPower == 0 {
 		el.AttributeSet("src", "./docs/assets/Tapo/Power/0.svg")
 	} else {
-		el.AttributeSet("src", "./docs/assets/Tapo/Power/"+strconv.FormatFloat(min(9, max(0, float64(specs.CurrentPower)/1000/75)), 'f', 0, 64)+".svg")
+		el.AttributeSet("src", "./docs/assets/Tapo/Power/"+strconv.FormatFloat(min(9, max(0, float64(specs.CurrentPower)/1000/50)), 'f', 0, 64)+".svg")
 	}
 
 	el, err = DOM.GetElement("tapo_devices_" + name + "_current_power")

@@ -25,21 +25,21 @@ type (
 
 var (
 	Links = map[int]link{
-		1:  {Img: "./docs/assets/Links/Outlook.png", Text: "Outlook", Url: "https://outlook.office.com/", Cat: "Microsoft/ Google"},
-		2:  {Img: "./docs/assets/Links/OutlookCalendar.png", Text: "Outlook Calendar", Url: "https://outlook.office.com/calendar/", Cat: "Microsoft/ Google"},
-		3:  {Img: "./docs/assets/Links/OneDrive.png", Text: "OneDrive", Url: "https://www.office.com/login?ru=%2Flaunch%2Fonedrive", Cat: "Microsoft/ Google"},
-		4:  {Img: "./docs/assets/Links/M365.png", Text: "Microsoft 365", Url: "https://www.microsoft365.com/", Cat: "Microsoft/ Google"},
-		5:  {Img: "./docs/assets/Links/G-Mail.png", Text: "Google Mail", Url: "https://mail.google.com/", Cat: "Microsoft/ Google"},
-		6:  {Img: "./docs/assets/Links/G-Drive.png", Text: "Google Drive", Url: "https://drive.google.com/", Cat: "Microsoft/ Google"},
-		7:  {Img: "./docs/assets/Links/G-Photos.png", Text: "Google Photos", Url: "https://photos.google.com/", Cat: "Microsoft/ Google"},
-		8:  {Img: "./docs/assets/Links/G-Calendar.png", Text: "Google Calendar", Url: "https://calendar.google.com/", Cat: "Microsoft/ Google"},
-		9:  {Img: "./docs/assets/Links/YouTube.png", Text: "YouTube", Url: "https://www.youtube.com/", Cat: "Media"},
-		10: {Img: "./docs/assets/Links/YouTubeMusic.png", Text: "YouTube Music", Url: "https://music.youtube.com/", Cat: "Media"},
-		11: {Img: "./docs/assets/Links/Spotify.png", Text: "Spotify", Url: "https://open.spotify.com/", Cat: "Media"},
-		12: {Img: "./docs/assets/Links/OneTimeSecret.png", Text: "One Time Secret", Url: "https://onetimesecret.com/", Cat: "Tools"},
-		13: {Img: "./docs/assets/Links/SpeedTest.png", Text: "SpeedTest Ookla", Url: "https://www.speedtest.net/", Cat: "Tools"},
-		14: {Img: "./docs/assets/Links/DownDetector.png", Text: "Down Detector", Url: "https://downdetector.com/", Cat: "Tools"},
-		15: {Img: "./docs/assets/Links/CloudConvert.png", Text: "Cloud Convert", Url: "https://cloudconvert.com/", Cat: "Tools"},
+		1:  {Img: "Outlook.png", Text: "Outlook", Url: "https://outlook.office.com/", Cat: "Microsoft/ Google"},
+		2:  {Img: "OutlookCalendar.png", Text: "Outlook Calendar", Url: "https://outlook.office.com/calendar/", Cat: "Microsoft/ Google"},
+		3:  {Img: "OneDrive.png", Text: "OneDrive", Url: "https://www.office.com/login?ru=%2Flaunch%2Fonedrive", Cat: "Microsoft/ Google"},
+		4:  {Img: "M365.png", Text: "Microsoft 365", Url: "https://www.microsoft365.com/", Cat: "Microsoft/ Google"},
+		5:  {Img: "G-Mail.png", Text: "Google Mail", Url: "https://mail.google.com/", Cat: "Microsoft/ Google"},
+		6:  {Img: "G-Drive.png", Text: "Google Drive", Url: "https://drive.google.com/", Cat: "Microsoft/ Google"},
+		7:  {Img: "G-Photos.png", Text: "Google Photos", Url: "https://photos.google.com/", Cat: "Microsoft/ Google"},
+		8:  {Img: "G-Calendar.png", Text: "Google Calendar", Url: "https://calendar.google.com/", Cat: "Microsoft/ Google"},
+		9:  {Img: "YouTube.png", Text: "YouTube", Url: "https://www.youtube.com/", Cat: "Media"},
+		10: {Img: "YouTubeMusic.png", Text: "YouTube Music", Url: "https://music.youtube.com/", Cat: "Media"},
+		11: {Img: "Spotify.png", Text: "Spotify", Url: "https://open.spotify.com/", Cat: "Media"},
+		12: {Img: "OneTimeSecret.png", Text: "One Time Secret", Url: "https://onetimesecret.com/", Cat: "Tools"},
+		13: {Img: "SpeedTest.png", Text: "SpeedTest Ookla", Url: "https://www.speedtest.net/", Cat: "Tools"},
+		14: {Img: "DownDetector.png", Text: "Down Detector", Url: "https://downdetector.com/", Cat: "Tools"},
+		15: {Img: "CloudConvert.png", Text: "Cloud Convert", Url: "https://cloudconvert.com/", Cat: "Tools"},
 	}
 
 	colCount = 5
@@ -89,15 +89,6 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	for i, record := range remoteLinks {
-		if len(record)-1 < slices.Index(headers, "Active") {
-			Widget.PopupAlert("Error", "invalid index for Active", func() {})
-			continue
-		}
-		if record[slices.Index(headers, "Active")] != "true" {
-			Widget.PopupAlert("Error", "record not active", func() {})
-			continue
-		}
-
 		imgIndex := slices.Index(headers, "Img")
 		if len(record)-1 < imgIndex {
 			Widget.PopupAlert("Error", "invalid index for Img", func() {})
@@ -184,7 +175,7 @@ func showLinks() {
 		linkDivs := ""
 		for i, l := range links {
 			img := HTML.HTML{Tag: "img",
-				Attributes: map[string]string{"src": l.Img, "alt": l.Text},
+				Attributes: map[string]string{"src": "./docs/assets/Links/" + l.Img, "alt": l.Text},
 				Styles:     map[string]string{"width": "100%"},
 			}.LinkWrap(l.Url).String()
 

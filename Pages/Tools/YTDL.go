@@ -255,9 +255,7 @@ func toggleForceMP4(el js.Value, evs []js.Value) {
 }
 
 func showYTDL() {
-	header := HTML.HTML{Tag: "h1", Inner: "YTDL",
-		Styles: map[string]string{"max-width": "min(100%, 1250px)"},
-	}.String()
+	header := HTML.HTML{Tag: "h1", Inner: "YTDL"}.String()
 
 	spacer := HTML.HTML{Tag: "div", Styles: map[string]string{"background": "#2A2A2A"}}.String()
 
@@ -346,7 +344,7 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleAudioOnly)
-	Widget.Tooltip("ytdl_option_audio_only", "Option", "Only include audio.<br>Will not include video.", 2000)
+	Widget.Tooltip("ytdl_option_audio_only", "Option", "Only include audio.<br>Will not include video.", 1000)
 
 	el, err = DOM.GetElement("ytdl_option_low_quality")
 	if err != nil {
@@ -354,7 +352,7 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleLowQuality)
-	Widget.Tooltip("ytdl_option_low_quality", "Option", "Get the lowest possible quality.<br>Otherswide get the highest available quality.", 2000)
+	Widget.Tooltip("ytdl_option_low_quality", "Option", "Get the lowest possible quality.<br>Otherswide get the highest available quality.", 1000)
 
 	el, err = DOM.GetElement("ytdl_option_force_mp4")
 	if err != nil {
@@ -362,7 +360,7 @@ func showYTDL() {
 		return
 	}
 	el.EventAdd("click", toggleForceMP4)
-	Widget.Tooltip("ytdl_option_force_mp4", "Option", "Force the MP4 file format.<br>This might result in a lower then the highest available quality.", 2000)
+	Widget.Tooltip("ytdl_option_force_mp4", "Option", "Force the MP4 file format.<br>This might result in a lower then the highest available quality.", 1000)
 
 }
 
