@@ -27,6 +27,7 @@ var (
 	SubPagesOrderd = []string{
 		"Admin:Users",
 		"Admin:Config",
+		"Admin:Monitor",
 		"Admin:Logs",
 		"Tools:Console",
 		"Tools:Sonos",
@@ -44,6 +45,7 @@ var (
 		"Contact":         Contact.Page,
 		"Admin:Users":     Admin.PageUsers,
 		"Admin:Config":    Admin.PageConfig,
+		"Admin:Monitor":   Admin.PageMonitor,
 		"Admin:Logs":      Admin.PageLogs,
 		"Tools:Console":   Tools.PageConsole,
 		"Tools:Sonos":     Tools.PageSonos,
@@ -59,6 +61,7 @@ var (
 	PagesToRequiredComs = map[string][]string{
 		"Admin:Users":     {"users"},
 		"Admin:Config":    {"exit", "restart"},
+		"Admin:Monitor":   {"debug"},
 		"Admin:Logs":      {"logs"},
 		"Tools:Console":   {"help"},
 		"Tools:Sonos":     {"sonos"},
