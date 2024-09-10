@@ -13,16 +13,6 @@ import (
 	"syscall/js"
 )
 
-type (
-	User struct {
-		Username  string   `json:"Username"`
-		Password  string   `json:"Password"`
-		AuthLevel int      `json:"AuthLevel"`
-		Roles     []string `json:"Roles"`
-		Enabled   bool     `json:"Enabled"`
-	}
-)
-
 var (
 	authMap         = map[string]int{"guest": 0, "user": 1, "admin": 2, "owner": 3}
 	authMapReversed = map[int]string{0: "guest", 1: "user", 2: "admin", 3: "owner"}
