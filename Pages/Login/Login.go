@@ -14,21 +14,9 @@ import (
 	"syscall/js"
 )
 
-var (
-	OnLoginSuccessCallback = (func())(nil)
-	ForcePage              = func(string) {}
-)
-
 func autocompleteCallback(res string, resBytes []byte, resErr error) {
-	defer func() {
-		if OnLoginSuccessCallback == nil {
-			JS.Async(func() { ForcePage("Home") })
-			return
-		}
-		OnLoginSuccessCallback()
-		OnLoginSuccessCallback = nil
-	}()
 	if resErr != nil {
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
@@ -37,6 +25,8 @@ func autocompleteCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
+
+	HTTP.AuthorizedCallback()
 }
 
 func isAuthenticatedCallback(authErr error) {
@@ -81,8 +71,7 @@ func isAuthenticatedCallback(authErr error) {
 		el.AttributeSet("innerHTML", "Logout")
 	}
 
-	err = toggleDocker(false)
-	if err != nil {
+	if toggleDocker(false) != nil {
 		if el, err := DOM.GetElement("docker"); err == nil {
 			el.Remove()
 		}
@@ -136,7 +125,6 @@ func authenticateCallback(authErr error) {
 		if el, err := DOM.GetElement("docker"); err == nil {
 			el.Remove()
 		}
-		HTTP.Send(autocompleteCallback, "autocomplete")
 		return
 	}
 
@@ -144,7 +132,6 @@ func authenticateCallback(authErr error) {
 		if el, err := DOM.GetElement("docker"); err == nil {
 			el.Remove()
 		}
-		HTTP.Send(autocompleteCallback, "autocomplete")
 	})
 }
 
@@ -267,9 +254,7 @@ func submitLogin(el js.Value, evs []js.Value) {
 	HTTP.Authenticate(authenticateCallback, username, password)
 }
 
-func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-
+func showLogin() {
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
 
 	server := HTML.HTML{Tag: "div",
@@ -358,6 +343,9 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 	if HTTP.Config.RememberSignIn {
 		elRem.AttributeSet("className", "imgBtn imgBtnSmall imgBtnBorder")
 	}
+}
 
+func Page() {
+	showLogin()
 	HTTP.IsAuthenticated(isAuthenticatedCallback)
 }

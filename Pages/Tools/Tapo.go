@@ -38,23 +38,6 @@ var (
 	skipBtnUpdateCount = 0
 )
 
-func accessCallbackTapo(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Tapo") }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	HTTP.Send(syncCallbackTapo, "tapo", "sync")
-}
-
 func togglePower(el js.Value, evs []js.Value) {
 	if selectedDevice != "" {
 		return
@@ -213,10 +196,7 @@ func showInfoDates(selected string) {
 }
 
 func showInfoCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -802,10 +782,7 @@ func updateDevice(name string, specs DeviceEnergy) error {
 }
 
 func syncCallbackTapo(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Tapo") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -858,16 +835,7 @@ func SectoString(m int) string {
 	return strconv.Itoa(m) + " m"
 }
 
-func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-
-	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Tapo") }) })
-		JS.Async(func() { ForcePage("Login") })
-		return
-	}
-
+func showTapo() {
 	header := HTML.HTML{Tag: "h1", Inner: "Tapo"}.String()
 
 	monitors := HTML.HTML{Tag: "div",
@@ -961,5 +929,21 @@ func PageTapo(forcePage func(string), setLoginSuccessCallback func(func())) {
 	}
 	mp.InnerSet(header + monitors + hists)
 
-	HTTP.HasAccessTo(accessCallbackTapo, "tapo")
+	HTTP.Send(syncCallbackTapo, "tapo", "sync")
+}
+
+func PageTapo() {
+	if !HTTP.IsMaybeAuthenticated() {
+		HTTP.UnauthorizedCallback()
+		return
+	}
+	HTTP.HasAccessTo("tapo", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showTapo()
+		}
+	})
 }
