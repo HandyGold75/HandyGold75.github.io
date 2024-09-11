@@ -34,19 +34,6 @@ var (
 	headers = []string{}
 )
 
-func accessCallback(hasAccess bool, err error) {
-	if err != nil {
-		showContacts()
-		return
-	}
-
-	if len(headers) == 0 {
-		HTTP.Send(headerCallback, "db-query", "header", "Contact")
-		return
-	}
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Contact")
-}
-
 func headerCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
 		showContacts()
@@ -188,11 +175,18 @@ func showContacts() {
 	}
 }
 
-func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+func Page() {
 	if !HTTP.IsMaybeAuthenticated() {
 		showContacts()
 		return
 	}
-
-	HTTP.HasAccessTo(accessCallback, "db-query")
+	HTTP.HasAccessTo("db-query", func(hasAccess bool, err error) {
+		if err != nil || !hasAccess {
+			showContacts()
+		} else if len(headers) == 0 {
+			HTTP.Send(headerCallback, "db-query", "header", "Contact")
+		} else {
+			HTTP.Send(dbqueryCallback, "db-query", "read", "Contact")
+		}
+	})
 }

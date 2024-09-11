@@ -23,23 +23,6 @@ var (
 	requestedID = ""
 )
 
-func accessCallbackYTDL(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:YTDL") }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	showYTDL()
-}
-
 func submitURL(el js.Value, evs []js.Value) {
 	if len(evs) < 1 {
 		Widget.PopupAlert("Error", "evs was not parsed", func() {})
@@ -141,8 +124,8 @@ func submitURL(el js.Value, evs []js.Value) {
 }
 
 func submitURLCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
+	if resErr != nil {
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
@@ -361,18 +344,20 @@ func showYTDL() {
 	}
 	el.EventAdd("click", toggleForceMP4)
 	Widget.Tooltip("ytdl_option_force_mp4", "Option", "Force the MP4 file format.<br>This might result in a lower then the highest available quality.", 1000)
-
 }
 
-func PageYTDL(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-
+func PageYTDL() {
 	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:YTDL") }) })
-		JS.Async(func() { ForcePage("Login") })
+		HTTP.UnauthorizedCallback()
 		return
 	}
-
-	HTTP.HasAccessTo(accessCallbackYTDL, "ytdl")
+	HTTP.HasAccessTo("ytdl", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showYTDL()
+		}
+	})
 }

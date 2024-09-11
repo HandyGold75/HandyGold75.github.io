@@ -39,7 +39,7 @@ var (
 		"Sheets:Tests",
 	}
 
-	PagesToEntry = map[string]func(func(string), func(func())){
+	PagesToEntry = map[string]func(){
 		"Home":            Home.Page,
 		"Links":           Links.Page,
 		"Contact":         Contact.Page,
@@ -407,24 +407,24 @@ func Init(onDeloadedCallback func()) error {
 	return nil
 }
 
-func SetOnLoginSuccess(f func()) {
-	Login.OnLoginSuccessCallback = f
-}
-
 func ForcePage(page string) {
 	pageEntry, ok := PagesToEntry[page]
 	if !ok {
 		Widget.PopupAlert("Error", "Page \""+page+"\" not found!", func() {})
-		pageEntry = PagesToEntry[PagesOrdered[0]]
+		page = PagesOrdered[0]
+		pageEntry = PagesToEntry[page]
 	}
 
-	err := Init(func() { pageEntry(ForcePage, SetOnLoginSuccess) })
+	if page != "Login" {
+		HTTP.AuthorizedCallback = func() { ForcePage(page) }
+	}
+	JS.CacheSet("page", page)
+
+	err := Init(func() { pageEntry() })
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-
-	JS.CacheSet("page", page)
 }
 
 func Open(page string) {

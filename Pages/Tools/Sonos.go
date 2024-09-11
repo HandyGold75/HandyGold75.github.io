@@ -85,23 +85,6 @@ var (
 	toAddImgs    = [][]string{}
 )
 
-func accessCallbackSonos(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	showSonos()
-}
-
 func getYTPlayer() string {
 	ifr := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "sonos_player_ifr", "frameborder": "0"},
@@ -752,10 +735,7 @@ func showSonos() {
 }
 
 func syncCallbackSonos(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		if strings.HasPrefix(resErr.Error(), "429: ") {
 			JS.AfterDelay(5000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
 			return
@@ -797,10 +777,7 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 }
 
 func ytqueryCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -817,10 +794,7 @@ func ytqueryCallback(res string, resBytes []byte, resErr error) {
 }
 
 func queCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -842,11 +816,7 @@ func queCallback(res string, resBytes []byte, resErr error) {
 }
 
 func addImgCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		return
-
-	} else if len(toAddImgs) <= 0 {
+	if len(toAddImgs) <= 0 {
 		return
 
 	} else if resErr != nil {
@@ -887,15 +857,18 @@ func addImgCallback(res string, resBytes []byte, resErr error) {
 	}
 }
 
-func PageSonos(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-
+func PageSonos() {
 	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Sonos") }) })
-		JS.Async(func() { ForcePage("Login") })
+		HTTP.UnauthorizedCallback()
 		return
 	}
-
-	HTTP.HasAccessTo(accessCallbackSonos, "sonos")
+	HTTP.HasAccessTo("sonos", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showSonos()
+		}
+	})
 }

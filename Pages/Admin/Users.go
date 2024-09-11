@@ -14,20 +14,10 @@ import (
 )
 
 var (
-	authMap         = map[string]int{"guest": 0, "user": 1, "admin": 2, "owner": 3}
-	authMapReversed = map[int]string{0: "guest", 1: "user", 2: "admin", 3: "owner"}
-
-	allRoles = []string{"CLI", "Home"}
-
 	selectedUser = User{}
 )
 
 func createUserCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	}
-
 	elUsername, err := DOM.GetElement("users_username")
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
@@ -161,11 +151,6 @@ func createUser(el js.Value, els []js.Value) {
 }
 
 func modifyUserCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	}
-
 	elsInp, err := DOM.GetElements("users_inputs")
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
@@ -276,10 +261,7 @@ func modifyUser(el js.Value, evs []js.Value) {
 }
 
 func deletedUserCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 
 		elsInp, err := DOM.GetElements("users_inputs")
@@ -375,10 +357,7 @@ func deleteUser(el js.Value, els []js.Value) {
 }
 
 func toggleEnabledCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 	}
 }
@@ -414,11 +393,6 @@ func toggleEnabled(el js.Value, els []js.Value) {
 }
 
 func deauthUserCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	}
-
 	el, err := DOM.GetElement("users_deauth")
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
@@ -447,63 +421,8 @@ func deauthUser(el js.Value, els []js.Value) {
 	HTTP.Send(deauthUserCallback, "users", "deauth", "user", HTTP.Sha1(selectedUser.Username+selectedUser.Password))
 }
 
-func showUsers(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	header := HTML.HTML{Tag: "h1", Inner: "Users"}.String()
-
-	types := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "users_list"},
-		Styles: map[string]string{
-			"display":       "grid",
-			"height":        "100%",
-			"width":         "25%",
-			"margin":        "0px 15px 0px auto",
-			"background":    "#2A2A2A",
-			"border":        "2px solid #111",
-			"border-radius": "10px"},
-	}.String()
-
-	out := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "users_out"},
-		Styles: map[string]string{
-			"width":       "75%",
-			"max-height":  "0px",
-			"margin":      "0px auto",
-			"background":  "#2A2A2A",
-			"border":      "2px solid #111",
-			"transition":  "max-height 0.25s",
-			"white-space": "pre",
-			"font-family": "Hack",
-		},
-	}.String()
-
-	mp, err := DOM.GetElement("mainpage")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
-
-	HTTP.Send(userListCallback, "users", "list")
-}
-
 func userListCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -584,10 +503,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 }
 
 func getUserCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -788,14 +704,57 @@ func newUserForm() {
 	el.EventAdd("click", createUser)
 }
 
-func PageUsers(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
+func showUsers() {
+	header := HTML.HTML{Tag: "h1", Inner: "Users"}.String()
 
-	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Users") }) })
-		JS.Async(func() { ForcePage("Login") })
+	types := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "users_list"},
+		Styles: map[string]string{
+			"display":       "grid",
+			"height":        "100%",
+			"width":         "25%",
+			"margin":        "0px 15px 0px auto",
+			"background":    "#2A2A2A",
+			"border":        "2px solid #111",
+			"border-radius": "10px"},
+	}.String()
+
+	out := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "users_out"},
+		Styles: map[string]string{
+			"width":       "75%",
+			"max-height":  "0px",
+			"margin":      "0px auto",
+			"background":  "#2A2A2A",
+			"border":      "2px solid #111",
+			"transition":  "max-height 0.25s",
+			"white-space": "pre",
+			"font-family": "Hack",
+		},
+	}.String()
+
+	mp, err := DOM.GetElement("mainpage")
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	HTTP.HasAccessTo(showUsers, "users")
+	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
+
+	HTTP.Send(userListCallback, "users", "list")
+}
+
+func PageUsers() {
+	if !HTTP.IsMaybeAuthenticated() {
+		HTTP.UnauthorizedCallback()
+		return
+	}
+	HTTP.HasAccessTo("users", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showUsers()
+		}
+	})
 }

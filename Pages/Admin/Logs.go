@@ -21,73 +21,8 @@ var (
 	isBusy        = false
 )
 
-func showLogs(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	header := HTML.HTML{Tag: "h1", Inner: "Logs"}.String()
-
-	types := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_types"},
-		Styles: map[string]string{"display": "flex",
-			"width":         "90%",
-			"background":    "#202020",
-			"border-left":   "2px solid #111",
-			"border-right":  "2px solid #111",
-			"border-top":    "2px solid #111",
-			"border-radius": "10px 10px 0px 0px",
-		},
-	}.String()
-
-	dates := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_dates"},
-		Styles: map[string]string{"display": "flex",
-			"width":         "90%",
-			"max-height":    "0px",
-			"background":    "#202020",
-			"border-left":   "2px solid #111",
-			"border-right":  "2px solid #111",
-			"border-bottom": "2px solid #111",
-			"border-radius": "0px 0px 10px 10px",
-			"transition":    "max-height 0.25s",
-		},
-	}.String()
-
-	out := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "logs_out"},
-		Styles: map[string]string{
-			"width":       "95%",
-			"margin":      "15px auto",
-			"white-space": "pre",
-			"font-family": "Hack",
-		},
-	}.String()
-
-	mp, err := DOM.GetElement("mainpage")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	mp.InnerSet(header + types + dates + out)
-
-	HTTP.Send(LogListCallback, "logs", "list")
-}
-
 func LogListCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -181,10 +116,7 @@ func showLogDates(selected string) {
 }
 
 func getLogCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -215,9 +147,9 @@ func showLogContent(lines []string) {
 	}
 	el.InnerSet("")
 
-	for i, line := range lines {
+	JS.ForEach(lines, 5, func(line string, last bool) bool {
 		if len(line) <= 0 {
-			continue
+			return true
 		}
 
 		cols := ""
@@ -269,23 +201,81 @@ func showLogContent(lines []string) {
 			Inner: cols,
 		}.String()
 
-		JS.AfterDelay(i*5, func() {
-			el.InnerAddSurfix(row)
-		})
-	}
+		el, err := DOM.GetElement("logs_out")
+		if err != nil {
+			isBusy = false
+			return false
+		}
+		el.InnerAddSurfix(row)
 
-	JS.AfterDelay((len(lines)-1)*5, func() { isBusy = false })
+		if last {
+			isBusy = false
+		}
+		return true
+	})
 }
 
-func PageLogs(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
+func showLogs() {
+	header := HTML.HTML{Tag: "h1", Inner: "Logs"}.String()
 
-	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Admin:Logs") }) })
-		JS.Async(func() { ForcePage("Login") })
+	types := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_types"},
+		Styles: map[string]string{"display": "flex",
+			"width":         "90%",
+			"background":    "#202020",
+			"border-left":   "2px solid #111",
+			"border-right":  "2px solid #111",
+			"border-top":    "2px solid #111",
+			"border-radius": "10px 10px 0px 0px",
+		},
+	}.String()
+
+	dates := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_dates"},
+		Styles: map[string]string{"display": "flex",
+			"width":         "90%",
+			"max-height":    "0px",
+			"background":    "#202020",
+			"border-left":   "2px solid #111",
+			"border-right":  "2px solid #111",
+			"border-bottom": "2px solid #111",
+			"border-radius": "0px 0px 10px 10px",
+			"transition":    "max-height 0.25s",
+		},
+	}.String()
+
+	out := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "logs_out"},
+		Styles: map[string]string{
+			"width":       "95%",
+			"margin":      "15px auto",
+			"white-space": "pre",
+			"font-family": "Hack",
+		},
+	}.String()
+
+	mp, err := DOM.GetElement("mainpage")
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
+	mp.InnerSet(header + types + dates + out)
 
-	HTTP.HasAccessTo(showLogs, "logs")
+	HTTP.Send(LogListCallback, "logs", "list")
+}
+
+func PageLogs() {
+	if !HTTP.IsMaybeAuthenticated() {
+		HTTP.UnauthorizedCallback()
+		return
+	}
+	HTTP.HasAccessTo("logs", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showLogs()
+		}
+	})
 }

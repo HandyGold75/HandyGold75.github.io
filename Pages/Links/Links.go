@@ -47,19 +47,6 @@ var (
 	headers = []string{}
 )
 
-func accessCallback(hasAccess bool, err error) {
-	if err != nil || !hasAccess {
-		updateCols()
-		return
-	}
-
-	if len(headers) == 0 {
-		HTTP.Send(headerCallback, "db-query", "header", "Links")
-		return
-	}
-	HTTP.Send(dbqueryCallback, "db-query", "read", "Links")
-}
-
 func headerCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
 		updateCols()
@@ -221,11 +208,18 @@ func showLinks() {
 	mp.InnerSet(header + catDivs)
 }
 
-func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+func Page() {
 	if !HTTP.IsMaybeAuthenticated() {
 		updateCols()
 		return
 	}
-
-	HTTP.HasAccessTo(accessCallback, "db-query")
+	HTTP.HasAccessTo("db-query", func(hasAccess bool, err error) {
+		if err != nil || !hasAccess {
+			updateCols()
+		} else if len(headers) == 0 {
+			HTTP.Send(headerCallback, "db-query", "header", "Links")
+		} else {
+			HTTP.Send(dbqueryCallback, "db-query", "read", "Links")
+		}
+	})
 }

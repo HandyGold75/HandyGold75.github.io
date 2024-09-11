@@ -9,6 +9,7 @@ import (
 	"HandyGold75/WebKit/JS"
 	"HandyGold75/WebKit/Widget"
 	"encoding/json"
+	"errors"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,8 +17,7 @@ import (
 )
 
 var (
-	ForcePage               = func(string) {}
-	SetLoginSuccessCallback = func(func()) {}
+	ForcePage = func(string) {}
 
 	isBusy = false
 
@@ -35,32 +35,13 @@ var (
 
 // TODO: Drag n Drop
 
-func accessCallback(hasAccess bool, err error) {
-	if HTTP.IsAuthError(err) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	if !hasAccess {
-		Widget.PopupAlert("Error", "unauthorized", func() {})
-		return
-	}
-
-	HTTP.Send(dbHeadersCallback, dbName, "header")
-}
-
 func dbHeadersCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 
+	headers = map[string][]string{}
 	err := json.Unmarshal(resBytes, &headers)
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
@@ -250,10 +231,7 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 	}
 	isBusy = true
 
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -265,10 +243,18 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	for i, record := range sheetData {
-		addRow(record, i, i*5)
-	}
-	JS.AfterDelay((len(sheetData)-1)*5, func() { isBusy = false })
+	JS.ForEachCount(sheetData, 0, 5, func(count int, record []string, last bool) bool {
+		err := addRow(record, count)
+		if err != nil {
+			isBusy = false
+			return false
+		}
+
+		if last {
+			isBusy = false
+		}
+		return true
+	})
 
 	els, err := DOM.GetElements("sheets_action_buttons")
 	if err != nil {
@@ -278,13 +264,7 @@ func dbReadCallback(res string, resBytes []byte, resErr error) {
 	els.Enables()
 }
 
-func addRow(record []string, recordIndex int, delay int) {
-	el, err := DOM.GetElement("sheets_out")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
+func addRow(record []string, recordIndex int) error {
 	cols := ""
 	for i, col := range record {
 		borderRight := "2px dashed #151515"
@@ -294,8 +274,7 @@ func addRow(record []string, recordIndex int, delay int) {
 
 		colHeader, ok := headers[selectedSheet]
 		if !ok || i > len(colHeader)-1 {
-			Widget.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
-			break
+			return errors.New("missing header for " + selectedSheet)
 		}
 
 		cols += HTML.HTML{Tag: "input",
@@ -333,25 +312,26 @@ func addRow(record []string, recordIndex int, delay int) {
 		Inner: cols,
 	}.String()
 
-	JS.AfterDelay(delay, func() {
-		el.InnerAddSurfix(row)
-		for i := range record {
-			colHeader, ok := headers[selectedSheet]
-			if !ok || i > len(colHeader)-1 {
-				Widget.PopupAlert("Error", "missing header for "+selectedSheet, func() {})
-				break
-			}
+	el, err := DOM.GetElement("sheets_out")
+	if err != nil {
+		return err
+	}
+	el.InnerAddSurfix(row)
 
-			el, err := DOM.GetElement("sheets_inputs_edit_" + strconv.Itoa(recordIndex) + "_" + colHeader[i])
-			if err != nil {
-				Widget.PopupAlert("Error", err.Error(), func() {})
-				break
-			}
-
-			el.EventAdd("focusout", submitEditRecord)
+	for i := range record {
+		colHeader, ok := headers[selectedSheet]
+		if !ok || i > len(colHeader)-1 {
+			return errors.New("missing header for " + selectedSheet)
 		}
-	})
-	return
+
+		el, err := DOM.GetElement("sheets_inputs_edit_" + strconv.Itoa(recordIndex) + "_" + colHeader[i])
+		if err != nil {
+			return err
+		}
+		el.EventAdd("focusout", submitEditRecord)
+	}
+
+	return nil
 }
 
 func submitNewRecord(el js.Value, evs []js.Value) {
@@ -375,10 +355,7 @@ func submitNewRecord(el js.Value, evs []js.Value) {
 }
 
 func submitNewRecordCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
@@ -390,7 +367,11 @@ func submitNewRecordCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	addRow(sheetData[len(sheetData)-1], len(sheetData)-1, 0)
+	err = addRow(sheetData[len(sheetData)-1], len(sheetData)-1)
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
 }
 
 func submitEditRecord(el js.Value, evs []js.Value) {
@@ -431,11 +412,13 @@ func submitEditRecord(el js.Value, evs []js.Value) {
 }
 
 func submitEditRecordCallback(res string, resBytes []byte, resErr error) {
-	defer enableEditingCol(resErr == nil, false)
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
+	if resErr != nil {
+		enableEditingCol(false, false)
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
+
+	enableEditingCol(true, false)
 
 	recordData := []string{}
 	err := json.Unmarshal(resBytes, &recordData)
@@ -530,10 +513,7 @@ func actionDeleteEmpty(el js.Value, evs []js.Value) {
 }
 
 func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		els, err := DOM.GetElements("sheets_rows")
 		if err != nil {
 			Widget.PopupAlert("Error", err.Error(), func() {})
@@ -599,10 +579,7 @@ func actionImport(el js.Value, evs []js.Value) {
 }
 
 func toImportCallback(res string, resBytes []byte, resErr error) {
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		els, err := DOM.GetElements("sheets_rows")
 		if err != nil {
 			Widget.PopupAlert("Error", err.Error(), func() {})
@@ -638,18 +615,18 @@ func toImportCallback(res string, resBytes []byte, resErr error) {
 	JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
 }
 
-func ShowSheet(pagename string, dbname string) {
-	pageName = pagename
-	dbName = dbname
-
+func ShowSheet() {
 	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Sheets:" + pageName) }) })
-		JS.Async(func() { ForcePage("Login") })
+		HTTP.UnauthorizedCallback()
 		return
 	}
-
-	headers = map[string][]string{}
-	selectedSheet = ""
-
-	HTTP.HasAccessTo(accessCallback, dbName)
+	HTTP.HasAccessTo(dbName, func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			HTTP.Send(dbHeadersCallback, dbName, "header")
+		}
+	})
 }

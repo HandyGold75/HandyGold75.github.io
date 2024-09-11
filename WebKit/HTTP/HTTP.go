@@ -28,6 +28,7 @@ type config struct {
 
 var (
 	UnauthorizedCallback = func() {}
+	AuthorizedCallback   = func() {}
 
 	transportRules = func() *http.Transport {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
@@ -166,7 +167,26 @@ func authenticate(callback func(error), username string, password string) {
 	token := res.Header.Get("token")
 	if token != "" {
 		Config.Set("token", token)
-		callback(nil)
+
+		go send(func(res string, resBytes []byte, resErr error) {
+			if IsAuthError(resErr) {
+				UnauthorizedCallback()
+			} else if resErr != nil {
+				callback(err)
+				return
+			}
+
+			err := json.Unmarshal(resBytes, &Autocompletes)
+			if err != nil {
+				callback(err)
+				return
+			}
+
+			callback(nil)
+			AuthorizedCallback()
+
+		}, "autocomplete")
+
 		return
 	}
 
@@ -179,6 +199,7 @@ func Authenticate(callback func(error), username string, password string) {
 
 func deauthenticate(callback func(error), username string, password string) {
 	Config.Set("token", "")
+	Autocompletes = []string{}
 
 	callback(WebKit.ErrWebKit.HTTPUnexpectedResponse)
 }
@@ -190,10 +211,14 @@ func IsAuthError(err error) bool {
 	return err == WebKit.ErrWebKit.HTTPUnauthorized || err == WebKit.ErrWebKit.HTTPNoServerSpecified || strings.HasPrefix(err.Error(), "401:")
 }
 
-func HasAccessTo(callback func(bool, error), com string) {
+func HasAccessTo(com string, callback func(bool, error)) {
 	if len(Autocompletes) == 0 {
 		go send(func(res string, resBytes []byte, resErr error) {
-			if resErr != nil {
+			if IsAuthError(resErr) {
+				callback(false, resErr)
+				UnauthorizedCallback()
+				return
+			} else if resErr != nil {
 				callback(false, resErr)
 				return
 			}
@@ -222,8 +247,6 @@ func HasAccessTo(callback func(bool, error), com string) {
 	callback(true, nil)
 }
 
-// Returns string in case response is type text/*
-// Returns []byte in case response is type application/json
 func send(callback func(string, []byte, error), com string, args ...string) {
 	if Config.Token == "" {
 		callback("", []byte{}, WebKit.ErrWebKit.HTTPUnauthorized)

@@ -15,7 +15,13 @@ func main() {
 	}
 
 	HTTP.Config.Load()
-	HTTP.UnauthorizedCallback = func() { JS.Async(func() { Pages.ForcePage("Login") }) }
+	HTTP.UnauthorizedCallback = func() { Pages.ForcePage("Login") }
+
+	if page == "Login" {
+		HTTP.AuthorizedCallback = func() { Pages.ForcePage("Home") }
+	} else {
+		HTTP.AuthorizedCallback = func() { Pages.ForcePage(page) }
+	}
 
 	if !HTTP.Config.RememberSignIn {
 		HTTP.Config.Set("Token", "")
