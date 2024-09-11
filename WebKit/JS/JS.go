@@ -58,6 +58,42 @@ func AtInterval(delay int, f func()) {
 	js.Global().Call("setInterval", js.FuncOf(func(el js.Value, evs []js.Value) any { f(); return nil }), delay)
 }
 
+func ForEach[V any](slice []V, delay int, handler func(item V, last bool) bool) {
+	if len(slice) == 0 {
+		return
+	}
+
+	if !handler(slice[0], len(slice) == 1) {
+		return
+	}
+
+	var fOf js.Func
+	fOf = js.FuncOf(func(el js.Value, evs []js.Value) any {
+		defer fOf.Release()
+		ForEach(slice[1:], delay, handler)
+		return nil
+	})
+	js.Global().Call("setTimeout", fOf, delay)
+}
+
+func ForEachCount[V any](slice []V, count, delay int, handler func(count int, item V, last bool) bool) {
+	if len(slice) == 0 {
+		return
+	}
+
+	if !handler(count, slice[0], len(slice) == 1) {
+		return
+	}
+
+	var fOf js.Func
+	fOf = js.FuncOf(func(el js.Value, evs []js.Value) any {
+		defer fOf.Release()
+		ForEachCount(slice[1:], count+1, delay, handler)
+		return nil
+	})
+	js.Global().Call("setTimeout", fOf, delay)
+}
+
 func Eval(com string) js.Value {
 	return js.Global().Call("eval", com)
 }

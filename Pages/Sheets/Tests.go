@@ -2,8 +2,8 @@
 
 package Sheets
 
-func PageTests(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-	ShowSheet("Tests", "db-test")
+func PageTests() {
+	pageName = "Tests"
+	dbName = "db-test"
+	ShowSheet()
 }

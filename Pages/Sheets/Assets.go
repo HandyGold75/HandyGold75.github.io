@@ -2,8 +2,8 @@
 
 package Sheets
 
-func PageAssets(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-	ShowSheet("Assets", "db-asset")
+func PageAssets() {
+	pageName = "Assets"
+	dbName = "db-asset"
+	ShowSheet()
 }

@@ -2,8 +2,8 @@
 
 package Sheets
 
-func PageQuerys(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-	ShowSheet("Querys", "db-query")
+func PageQuerys() {
+	pageName = "Querys"
+	dbName = "db-query"
+	ShowSheet()
 }

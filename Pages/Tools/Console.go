@@ -35,10 +35,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 	}
 	elArrow.StyleSet("color", "#5F5")
 
-	if HTTP.IsAuthError(resErr) {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Console") }) })
-		return
-	} else if resErr != nil {
+	if resErr != nil {
 		res = resErr.Error()
 	} else if res == "" && len(resBytes) > 0 {
 		res = string(resBytes)
@@ -132,16 +129,7 @@ func commandEdited(el js.Value, evs []js.Value) {
 	elIn.AttributeSet("value", "")
 }
 
-func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
-	ForcePage = forcePage
-	SetLoginSuccessCallback = setLoginSuccessCallback
-
-	if !HTTP.IsMaybeAuthenticated() {
-		SetLoginSuccessCallback(func() { JS.Async(func() { ForcePage("Tools:Console") }) })
-		JS.Async(func() { ForcePage("Login") })
-		return
-	}
-
+func showConsole() {
 	header := HTML.HTML{Tag: "h1", Attributes: map[string]string{"id": "console_header"}, Inner: "Console"}.String()
 
 	consoleOut := HTML.HTML{
@@ -214,4 +202,20 @@ func PageConsole(forcePage func(string), setLoginSuccessCallback func(func())) {
 	}
 	el.EventAdd("keyup", commandEdited)
 	el.El.Call("focus")
+}
+
+func PageConsole() {
+	if !HTTP.IsMaybeAuthenticated() {
+		HTTP.UnauthorizedCallback()
+		return
+	}
+	HTTP.HasAccessTo("help", func(hasAccess bool, err error) {
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else if !hasAccess {
+			Widget.PopupAlert("Error", "unauthorized", func() {})
+		} else {
+			showConsole()
+		}
+	})
 }

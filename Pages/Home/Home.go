@@ -8,7 +8,7 @@ import (
 	"HandyGold75/WebKit/Widget"
 )
 
-func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
+func showHome() {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 
 	link := HTML.HTML{Tag: "a",
@@ -27,4 +27,8 @@ func Page(forcePage func(string), setLoginSuccessCallback func(func())) {
 		return
 	}
 	mp.InnerSet(header + txt)
+}
+
+func Page() {
+	showHome()
 }
