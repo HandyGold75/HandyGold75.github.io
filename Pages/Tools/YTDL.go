@@ -124,11 +124,6 @@ func submitURL(el js.Value, evs []js.Value) {
 }
 
 func submitURLCallback(res string, resBytes []byte, resErr error) {
-	if resErr != nil {
-		Widget.PopupAlert("Error", resErr.Error(), func() {})
-		return
-	}
-
 	setState := func(url string, state string, color string) {
 		if el, err := DOM.GetElement("ytdl_out_" + url + "_state"); err == nil {
 			el.InnerSet(state)
