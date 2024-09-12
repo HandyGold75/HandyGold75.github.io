@@ -745,7 +745,7 @@ func updateDevice(name string, specs DeviceEnergy) error {
 	if specs.CurrentPower == 0 {
 		el.AttributeSet("src", "./docs/assets/Tapo/Power/0.svg")
 	} else {
-		el.AttributeSet("src", "./docs/assets/Tapo/Power/"+strconv.FormatFloat(min(9, max(0, float64(specs.CurrentPower)/1000/50)), 'f', 0, 64)+".svg")
+		el.AttributeSet("src", "./docs/assets/Tapo/Power/"+strconv.FormatFloat(min(9, max(0, float64(specs.CurrentPower)/1000/100)), 'f', 0, 64)+".svg")
 	}
 
 	el, err = DOM.GetElement("tapo_devices_" + name + "_current_power")
