@@ -42,7 +42,8 @@ var (
 		15: {Img: "CloudConvert.png", Text: "Cloud Convert", Url: "https://cloudconvert.com/", Cat: "Tools"},
 	}
 
-	colCount = 5
+	colCount  = 5
+	firstLoad = true
 
 	headers = []string{}
 )
@@ -109,9 +110,17 @@ func dbqueryCallback(res string, resBytes []byte, resErr error) {
 }
 
 func updateCols() {
-	showLinks()
+	header := HTML.HTML{Tag: "h1", Inner: "Link", Attributes: map[string]string{"id": "links_header"}}.String()
+	mp, err := DOM.GetElement("mainpage")
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	mp.InnerSet(header)
+
+	colCount = -1
 	JS.OnResizeAdd("links", func() {
-		if _, err := DOM.GetElements("cat_divs"); err != nil {
+		if _, err := DOM.GetElement("links_header"); err != nil {
 			JS.OnResizeDelete("links")
 		}
 
@@ -134,70 +143,80 @@ func updateCols() {
 }
 
 func showLinks() {
-	header := HTML.HTML{Tag: "h1", Inner: "Link"}.String()
+	header := HTML.HTML{Tag: "h1", Inner: "Link", Attributes: map[string]string{"id": "links_header"}}.String()
 
-	linkKeys := []int{}
+	linkIndexes := []int{}
 	for k := range Links {
-		linkKeys = append(linkKeys, k)
+		linkIndexes = append(linkIndexes, k)
 	}
-	slices.Sort(linkKeys)
+	slices.Sort(linkIndexes)
 
-	linkByCat := map[string][]link{}
-	for _, k := range linkKeys {
-		if _, ok := linkByCat[Links[k].Cat]; !ok {
-			linkByCat[Links[k].Cat] = []link{Links[k]}
-			continue
+	catsIndexes := []string{}
+	cats := map[string][]string{}
+
+	for _, i := range linkIndexes {
+		l := Links[i]
+
+		if !slices.Contains(catsIndexes, l.Cat) {
+			catsIndexes = append(catsIndexes, l.Cat)
+			cats[l.Cat] = []string{}
 		}
-		linkByCat[Links[k].Cat] = append(linkByCat[Links[k].Cat], Links[k])
+
+		img := HTML.HTML{Tag: "img",
+			Attributes: map[string]string{"src": "./docs/assets/Links/" + l.Img, "alt": l.Text},
+			Styles:     map[string]string{"width": "100%"},
+		}.LinkWrap(l.Url).String()
+		txt := HTML.HTML{Tag: "p",
+			Styles: map[string]string{"width": "100%"},
+			Inner: HTML.HTML{Tag: "a",
+				Attributes: map[string]string{"href": l.Url, "target": "_blank"},
+				Inner:      l.Text,
+			}.String(),
+		}.String()
+		link := HTML.HTML{Tag: "div", Inner: img + txt}.String()
+
+		cats[l.Cat] = append(cats[l.Cat], link)
 	}
 
-	catDivs := ""
-	for cat, links := range linkByCat {
-		catDivs += HTML.HTML{Tag: "h2",
-			Inner:  cat,
-			Styles: map[string]string{"margin": "0px 5%"},
-		}.String()
-
-		catDiv := ""
-		linkDivs := ""
-		for i, l := range links {
-			img := HTML.HTML{Tag: "img",
-				Attributes: map[string]string{"src": "./docs/assets/Links/" + l.Img, "alt": l.Text},
-				Styles:     map[string]string{"width": "100%"},
-			}.LinkWrap(l.Url).String()
-
-			txt := HTML.HTML{Tag: "p",
-				Styles: map[string]string{"width": "100%"},
-				Inner: HTML.HTML{Tag: "a",
-					Attributes: map[string]string{"href": l.Url, "target": "_blank"},
-					Inner:      l.Text,
-				}.String(),
-			}.String()
-
-			linkDivs += HTML.HTML{Tag: "div", Inner: img + txt}.String()
-
-			if (i+1)%colCount == 0 {
-				catDiv += HTML.HTML{Tag: "div",
-					Attributes: map[string]string{},
-					Styles:     map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount)},
-					Inner:      linkDivs,
-				}.String()
-				linkDivs = ""
+	ids := []string{}
+	divs := ""
+	for _, cat := range catsIndexes {
+		title := HTML.HTML{Tag: "h2", Inner: cat}.String()
+		rows := ""
+		links := ""
+		for i, link := range cats[cat] {
+			links += link
+			if (i+1)%colCount != 0 {
+				continue
 			}
+
+			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount)}
+			if firstLoad {
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount), "max-height": "0px"}
+			}
+
+			ids = append(ids, "cat_divs_"+cat+"_"+strconv.Itoa(i))
+			rows += HTML.HTML{Tag: "div", Inner: links,
+				Attributes: map[string]string{"id": "cat_divs_" + cat + "_" + strconv.Itoa(i)},
+				Styles:     style,
+			}.String()
+			links = ""
 		}
 
-		if linkDivs != "" {
-			catDiv += HTML.HTML{Tag: "div",
-				Attributes: map[string]string{},
-				Styles:     map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(linkDivs, "<img "))},
-				Inner:      linkDivs,
+		if links != "" {
+			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img "))}
+			if firstLoad {
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img ")), "max-height": "0px"}
+			}
+
+			ids = append(ids, "cat_divs_"+cat+"_etc")
+			rows += HTML.HTML{Tag: "div", Inner: links,
+				Attributes: map[string]string{"id": "cat_divs_" + cat + "_etc"},
+				Styles:     style,
 			}.String()
 		}
 
-		catDivs += HTML.HTML{Tag: "div",
-			Attributes: map[string]string{"class": "cat_divs"},
-			Inner:      catDiv,
-		}.String()
+		divs += HTML.HTML{Tag: "div", Inner: title + rows}.String()
 	}
 
 	mp, err := DOM.GetElement("mainpage")
@@ -205,10 +224,26 @@ func showLinks() {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	mp.InnerSet(header + catDivs)
+	mp.InnerSet(header + divs)
+
+	if !firstLoad {
+		return
+	}
+	firstLoad = false
+
+	for i, id := range ids {
+		JS.AfterDelay(i*250, func() {
+			if err := Widget.AnimateStyle(id, "max-height", "0px", "300px", 1000); err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+			}
+		})
+	}
+
 }
 
 func Page() {
+	firstLoad = true
+
 	if !HTTP.IsMaybeAuthenticated() {
 		updateCols()
 		return

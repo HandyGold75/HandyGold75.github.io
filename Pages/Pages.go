@@ -16,13 +16,40 @@ import (
 	"HandyGold75/WebKit/JS"
 	"HandyGold75/WebKit/Widget"
 	"encoding/json"
-	"errors"
 	"slices"
 	"strings"
 	"syscall/js"
 )
 
+type (
+	Page struct {
+		Name         string
+		Entry        func()
+		RequiredComs []string
+		Hidden       bool
+	}
+)
+
 var (
+	PagesTest = []Page{
+		{Name: "Home", Entry: Home.Page, RequiredComs: []string{}, Hidden: false},
+		{Name: "Links", Entry: Links.Page, RequiredComs: []string{}, Hidden: false},
+		{Name: "Contact", Entry: Contact.Page, RequiredComs: []string{}, Hidden: false},
+		{Name: "Login", Entry: Login.Page, RequiredComs: []string{}, Hidden: true},
+		{Name: "Admin:Users", Entry: Admin.PageUsers, RequiredComs: []string{}, Hidden: false},
+		{Name: "Admin:Config", Entry: Admin.PageConfig, RequiredComs: []string{}, Hidden: false},
+		{Name: "Admin:Monitor", Entry: Admin.PageMonitor, RequiredComs: []string{}, Hidden: false},
+		{Name: "Admin:Logs", Entry: Admin.PageLogs, RequiredComs: []string{}, Hidden: false},
+		{Name: "Tools:Console", Entry: Tools.PageConsole, RequiredComs: []string{}, Hidden: false},
+		{Name: "Tools:Sonos", Entry: Tools.PageSonos, RequiredComs: []string{}, Hidden: false},
+		{Name: "Tools:Tapo", Entry: Tools.PageTapo, RequiredComs: []string{}, Hidden: false},
+		{Name: "Tools:YTDL", Entry: Tools.PageYTDL, RequiredComs: []string{}, Hidden: false},
+		{Name: "Sheets:Assets", Entry: Sheets.PageAssets, RequiredComs: []string{}, Hidden: false},
+		{Name: "Sheets:Licenses", Entry: Sheets.PageLicenses, RequiredComs: []string{}, Hidden: false},
+		{Name: "Sheets:Querys", Entry: Sheets.PageQuerys, RequiredComs: []string{}, Hidden: false},
+		{Name: "Sheets:Tests", Entry: Sheets.PageTests, RequiredComs: []string{}, Hidden: false},
+	}
+
 	PagesOrdered   = []string{"Home", "Links", "Contact", "sub:Admin", "sub:Tools", "sub:Sheets"}
 	SubPagesOrderd = []string{
 		"Admin:Users",
@@ -73,19 +100,23 @@ var (
 		"Sheets:Tests":    {"db-test"},
 	}
 
-	ErrPages = struct {
-		ErrPagesClosingPage error
-	}{
-		ErrPagesClosingPage: errors.New("page closing, please skip page load"),
-	}
-
 	dockerShowing = false
-	inTransition  = false
+	inTransistion = false
 	requestedPage = ""
 )
 
+func getPage(name string) Page {
+	for _, page := range PagesTest {
+		if page.Name == name {
+			return page
+		}
+	}
+	Widget.PopupAlert("Error", "Page \""+name+"\" not found!", func() {})
+	return PagesTest[0]
+}
+
 func autocompleteCallback(res string, resBytes []byte, resErr error) {
-	defer ForcePage(requestedPage)
+	defer Open(requestedPage, true)
 	requestedPage = ""
 	if resErr != nil {
 		return
@@ -163,21 +194,7 @@ func ToggleDocker() error {
 	return nil
 }
 
-func InitMainpage() error {
-	body, err := DOM.GetElement("body")
-	if err != nil {
-		return err
-	}
-
-	body.InnerAddPrefix(HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "mainpage"},
-		Styles:     map[string]string{"min-height": "10%", "transition": "max-height 0.25s"},
-	}.String())
-
-	return nil
-}
-
-func InitDocker() error {
+func showMain() error {
 	body, err := DOM.GetElement("body")
 	if err != nil {
 		return err
@@ -249,7 +266,7 @@ func InitDocker() error {
 		}.String()
 	}
 
-	body.InnerAddPrefix(HTML.HTML{Tag: "div",
+	docker := HTML.HTML{Tag: "div",
 		Attributes: map[string]string{"id": "docker"},
 		Styles: map[string]string{
 			"position":   "fixed",
@@ -266,36 +283,12 @@ func InitDocker() error {
 			"z-index":    "9999",
 		},
 		Inner: items,
-	}.String())
+	}.String()
 
-	if el, err := DOM.GetElement("docker_showhide"); err == nil {
-		el.EventAdd("click", func(el js.Value, evs []js.Value) { ToggleDocker() })
-	}
-
-	if els, err := DOM.GetElements("docker_buttons"); err == nil {
-		els.Disables()
-		els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-			ToggleDocker()
-			Open(strings.Replace(el.Get("id").String(), "page_", "", 1))
-		})
-	}
-
-	if els, err := DOM.GetElements("docker_subs"); err == nil {
-		els.EventsAdd("mouseover", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "25em") })
-		els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
-	}
-
-	dockerShowing = false
-	JS.Async(func() { ToggleDocker() })
-
-	return nil
-}
-
-func InitFooter() error {
-	body, err := DOM.GetElement("body")
-	if err != nil {
-		return err
-	}
+	mainpage := HTML.HTML{Tag: "div",
+		Attributes: map[string]string{"id": "mainpage"},
+		Styles:     map[string]string{"max-height": "0vh"},
+	}.String()
 
 	txt := HTML.HTML{Tag: "p", Styles: map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"}, Attributes: map[string]string{"class": "light"}, Inner: "HandyGold75 - 2022 / 2024"}.String()
 
@@ -308,15 +301,37 @@ func InitFooter() error {
 	btnLogin := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_login", "class": "small light"}, Inner: loginText}.String()
 	btnClearCache := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"}, Inner: "Clear cache"}.String()
 
-	body.InnerAddSurfix(HTML.HTML{Tag: "div",
+	footer := HTML.HTML{Tag: "div", Inner: txt + btnBackToTop + btnLogin + btnClearCache,
+		Attributes: map[string]string{"id": "footer", "class": "light"},
 		Styles: map[string]string{
 			"display":    "flex",
+			"max-height": "0px",
 			"margin-top": "10px",
 			"padding":    "0px 10px",
 		},
-		Attributes: map[string]string{"id": "footer", "class": "light"},
-		Inner:      txt + btnBackToTop + btnLogin + btnClearCache,
-	}.String())
+	}.String()
+
+	body.InnerSet(docker + mainpage + footer)
+
+	if el, err := DOM.GetElement("docker_showhide"); err == nil {
+		el.EventAdd("click", func(el js.Value, evs []js.Value) { ToggleDocker() })
+	}
+
+	if els, err := DOM.GetElements("docker_buttons"); err == nil {
+		els.Disables()
+		els.EventsAdd("click", func(el js.Value, evs []js.Value) {
+			ToggleDocker()
+			Open(strings.Replace(el.Get("id").String(), "page_", "", 1), false)
+		})
+	}
+
+	if els, err := DOM.GetElements("docker_subs"); err == nil {
+		els.EventsAdd("mouseover", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "25em") })
+		els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
+	}
+
+	dockerShowing = false
+	JS.Async(func() { ToggleDocker() })
 
 	el, err := DOM.GetElement("footer_backtotop")
 	if err != nil {
@@ -343,7 +358,7 @@ func InitFooter() error {
 			HTTP.UnauthorizedCallback()
 
 		} else {
-			ForcePage("Login")
+			Open("Login", false)
 		}
 	})
 
@@ -355,93 +370,50 @@ func InitFooter() error {
 		JS.CacheClear()
 		JS.DBClear()
 		HTTP.Config.Load()
-		JS.Async(func() { ForcePage("Home") })
+		JS.Async(func() { Open("Home", true) })
 	})
 
-	return nil
-}
-
-func Init(onDeloadedCallback func()) error {
-	if _, err := DOM.GetElement("docker"); err != nil {
-		if err := InitDocker(); err != nil {
-			return err
-		}
-	}
-
-	if _, err := DOM.GetElement("mainpage"); err != nil {
-		if err := InitMainpage(); err != nil {
-			return err
-		}
-	}
-
-	if _, err := DOM.GetElement("footer"); err != nil {
-		if err := InitFooter(); err != nil {
-			return err
-		}
-	}
-
-	mp, err := DOM.GetElement("mainpage")
+	el, err = DOM.GetElement("footer")
 	if err != nil {
 		return err
 	}
 
-	if mp.InnerGet() != "" {
-		inTransition = true
-		mp.StyleSet("max-height", "100vh")
-		JS.Async(func() { mp.StyleSet("max-height", "0vh") })
-		JS.AfterDelay(250, func() {
-			mp.InnerSet("")
-			Init(onDeloadedCallback)
-		})
-		return nil
-
-	} else {
-		mp.StyleSet("max-height", "100vh")
-		JS.AfterDelay(250, func() {
-			mp.StyleSet("max-height", "")
-			inTransition = false
-		})
+	if err := Widget.AnimateStyle("footer", "max-height", "0px", "50px", 250); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 	}
 
-	onDeloadedCallback()
 	return nil
 }
 
-func ForcePage(page string) {
-	pageEntry, ok := PagesToEntry[page]
-	if !ok {
-		Widget.PopupAlert("Error", "Page \""+page+"\" not found!", func() {})
-		page = PagesOrdered[0]
-		pageEntry = PagesToEntry[page]
-	}
-
-	if page != "Login" {
-		HTTP.AuthorizedCallback = func() { ForcePage(page) }
-	}
-	JS.CacheSet("page", page)
-
-	err := Init(func() { pageEntry() })
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-}
-
-func Open(page string) {
-	if inTransition {
+func Open(page string, force bool) {
+	if (inTransistion || requestedPage != "") && !force {
 		return
 	}
 
-	if !HTTP.IsMaybeAuthenticated() {
-		ForcePage(page)
-		return
-	}
-
-	if len(HTTP.Autocompletes) == 0 {
+	if HTTP.IsMaybeAuthenticated() && len(HTTP.Autocompletes) == 0 {
 		requestedPage = page
 		HTTP.Send(autocompleteCallback, "autocomplete")
 		return
 	}
 
-	ForcePage(page)
+	for _, id := range []string{"mainpage", "docker", "footer"} {
+		if _, err := DOM.GetElement(id); err != nil {
+			if err := showMain(); err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+				return
+			}
+			break
+		}
+	}
+
+	p := getPage(page)
+	if page != "Login" {
+		HTTP.AuthorizedCallback = func() { Open(p.Name, true) }
+	}
+	JS.CacheSet("page", page)
+
+	inTransistion = true
+	if err := Widget.AnimateReplace("mainpage", "max-height", "0vh", "100vh", 250, p.Entry, func() { inTransistion = false }); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+	}
 }
