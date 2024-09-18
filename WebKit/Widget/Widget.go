@@ -545,3 +545,67 @@ func Tooltip(id string, title string, txt string, hoverDelay int) error {
 
 	return nil
 }
+
+func AnimateStyle(id string, style, start string, end string, duration int) error {
+	el, err := DOM.GetElement(id)
+	if err != nil {
+		return err
+	}
+
+	Show := func() {
+		el.StyleSet(style, start)
+		JS.Async(func() { el.StyleSet(style, end) })
+		JS.AfterDelay(duration, func() { el.StyleSet(style, "") })
+	}
+
+	elTrans := el.StyleGet("transition")
+	if elTrans == "" {
+		el.StyleSet("transition", style+" "+strconv.Itoa(duration)+"ms")
+	} else if !strings.Contains(elTrans, style+" "+strconv.Itoa(duration)+"ms") {
+		el.StyleSet("transition", elTrans+", "+style+" "+strconv.Itoa(duration)+"ms")
+	}
+
+	if el.StyleGet(style) != start {
+		el.StyleSet(style, end)
+		JS.Async(func() { el.StyleSet(style, start) })
+		JS.AfterDelay(duration, Show)
+		return nil
+	}
+
+	Show()
+
+	return nil
+}
+
+func AnimateReplace(id string, style, start string, end string, duration int, onHidden func(), onShown func()) error {
+	el, err := DOM.GetElement(id)
+	if err != nil {
+		return err
+	}
+
+	Show := func() {
+		el.InnerSet("")
+		onHidden()
+		el.StyleSet(style, start)
+		JS.Async(func() { el.StyleSet(style, end) })
+		JS.AfterDelay(duration, func() { el.StyleSet(style, ""); onShown() })
+	}
+
+	elTrans := el.StyleGet("transition")
+	if elTrans == "" {
+		el.StyleSet("transition", style+" "+strconv.Itoa(duration)+"ms")
+	} else if !strings.Contains(elTrans, style+" "+strconv.Itoa(duration)+"ms") {
+		el.StyleSet("transition", elTrans+", "+style+" "+strconv.Itoa(duration)+"ms")
+	}
+
+	if el.StyleGet(style) != start {
+		el.StyleSet(style, end)
+		JS.Async(func() { el.StyleSet(style, start) })
+		JS.AfterDelay(duration, Show)
+		return nil
+	}
+
+	Show()
+
+	return nil
+}

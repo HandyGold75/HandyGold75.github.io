@@ -15,18 +15,18 @@ func main() {
 	}
 
 	HTTP.Config.Load()
-	HTTP.UnauthorizedCallback = func() { Pages.ForcePage("Login") }
+	HTTP.UnauthorizedCallback = func() { Pages.Open("Login", true) }
 
 	if page == "Login" {
-		HTTP.AuthorizedCallback = func() { Pages.ForcePage("Home") }
+		HTTP.AuthorizedCallback = func() { Pages.Open("Home", true) }
 	} else {
-		HTTP.AuthorizedCallback = func() { Pages.ForcePage(page) }
+		HTTP.AuthorizedCallback = func() { Pages.Open(page, true) }
 	}
 
 	if !HTTP.Config.RememberSignIn {
 		HTTP.Config.Set("Token", "")
 	}
 
-	Pages.Open(page)
+	Pages.Open(page, true)
 	<-make(chan bool)
 }
