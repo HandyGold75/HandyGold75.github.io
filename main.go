@@ -4,6 +4,7 @@ package main
 
 import (
 	"HandyGold75/Pages"
+	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
 )
@@ -15,12 +16,33 @@ func main() {
 	}
 
 	HTTP.Config.Load()
-	HTTP.UnauthorizedCallback = func() { Pages.Open("Login", true) }
+	HTTP.UnauthorizedCallback = func() {
+		Pages.DockerShowing = true
+		Pages.ToggleDocker()
+		Pages.Open("Login", true)
+	}
 
+	pageOnAuth := page
 	if page == "Login" {
-		HTTP.AuthorizedCallback = func() { Pages.Open("Home", true) }
-	} else {
-		HTTP.AuthorizedCallback = func() { Pages.Open(page, true) }
+		pageOnAuth = "Home"
+	}
+
+	HTTP.AuthorizedCallback = func() {
+		Pages.DockerShowing = true
+		if err := Pages.ToggleDocker(); err != nil {
+			if el, err := DOM.GetElement("docker"); err == nil {
+				el.Remove()
+			}
+			Pages.Open(pageOnAuth, true)
+			return
+		}
+
+		JS.AfterDelay(250, func() {
+			if el, err := DOM.GetElement("docker"); err == nil {
+				el.Remove()
+			}
+			Pages.Open(pageOnAuth, true)
+		})
 	}
 
 	if !HTTP.Config.RememberSignIn {

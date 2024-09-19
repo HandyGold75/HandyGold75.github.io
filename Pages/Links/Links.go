@@ -192,7 +192,7 @@ func showLinks() {
 
 			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount)}
 			if firstLoad {
-				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount), "max-height": "0px"}
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount), "max-height": "0vh"}
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_"+strconv.Itoa(i))
@@ -206,7 +206,7 @@ func showLinks() {
 		if links != "" {
 			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img "))}
 			if firstLoad {
-				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img ")), "max-height": "0px"}
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img ")), "max-height": "0vh"}
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_etc")
@@ -233,7 +233,7 @@ func showLinks() {
 
 	for i, id := range ids {
 		JS.AfterDelay(i*250, func() {
-			if err := Widget.AnimateStyle(id, "max-height", "0px", "300px", 1000); err != nil {
+			if err := Widget.AnimateStyle(id, "max-height", "0vh", "100vh", 1000); err != nil {
 				Widget.PopupAlert("Error", err.Error(), func() {})
 			}
 		})

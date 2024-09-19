@@ -32,27 +32,23 @@ func showConfig() {
 		Styles:     map[string]string{"display": "flex", "width": "75%"},
 	}.String()
 
-	exitBtn := HTML.HTML{Tag: "button",
+	exitBtn := HTML.HTML{Tag: "button", Inner: "exit",
 		Attributes: map[string]string{"id": "config_actions_exit", "class": "dark medium"},
 		Styles:     map[string]string{"width": "100%"},
-		Inner:      "exit",
 	}.String()
 
-	restartBtn := HTML.HTML{Tag: "button",
+	restartBtn := HTML.HTML{Tag: "button", Inner: "restart",
 		Attributes: map[string]string{"id": "config_actions_restart", "class": "dark medium"},
 		Styles:     map[string]string{"width": "100%"},
-		Inner:      "restart",
 	}.String()
 
-	actions := HTML.HTML{Tag: "div",
+	actions := HTML.HTML{Tag: "div", Inner: exitBtn + restartBtn,
 		Attributes: map[string]string{"id": "config_actions"},
 		Styles:     map[string]string{"width": "25%", "padding": "8px"},
-		Inner:      exitBtn + restartBtn,
 	}.String()
 
-	body := HTML.HTML{Tag: "div",
+	body := HTML.HTML{Tag: "div", Inner: configs + actions,
 		Styles: map[string]string{"display": "flex"},
-		Inner:  configs + actions,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")

@@ -40,9 +40,8 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		logTypes += HTML.HTML{Tag: "button",
+		logTypes += HTML.HTML{Tag: "button", Inner: k,
 			Attributes: map[string]string{"class": "dark medium logs_types_buttons"},
-			Inner:      k,
 		}.String()
 	}
 	logTypes += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
@@ -61,22 +60,7 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(availableLogs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		elDates, err := DOM.GetElement("logs_dates")
-		if err != nil {
-			Widget.PopupAlert("Error", err.Error(), func() {})
-			return
-		}
-
-		delay := 0
-		if elDates.StyleGet("max-height") != "0px" {
-			elDates.StyleSet("max-height", "0px")
-			delay = 250
-		}
-
-		selectedLog := el.Get("innerHTML").String()
-		JS.AfterDelay(delay, func() {
-			showLogDates(selectedLog)
-		})
+		Widget.AnimateReplace("logs_dates", "max-height", "0px", "50px", 250, func() { showLogDates(el.Get("innerHTML").String()) }, func() {})
 	})
 }
 
@@ -89,9 +73,8 @@ func showLogDates(selected string) {
 
 	logDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for _, v := range log {
-		logDates += HTML.HTML{Tag: "button",
+		logDates += HTML.HTML{Tag: "button", Inner: v,
 			Attributes: map[string]string{"class": "dark small logs_types_dates"},
-			Inner:      v,
 		}.String()
 	}
 	logDates += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
@@ -102,7 +85,6 @@ func showLogDates(selected string) {
 		return
 	}
 	elDates.InnerSet(logDates)
-	elDates.StyleSet("max-height", "40px")
 
 	els, err := DOM.GetElements("logs_types_dates")
 	if err != nil {
@@ -163,19 +145,18 @@ func showLogContent(lines []string) {
 			}
 
 			if i == len(lineSplit)-1 {
-				cols += HTML.HTML{Tag: "p",
+				cols += HTML.HTML{Tag: "p", Inner: col,
 					Styles: map[string]string{
 						"scrollbar-width": "thin",
 						"scrollbar-color": "transparent transparent",
 						"overflow":        "scroll",
 					},
-					Inner: col,
 				}.String()
 
 				continue
 			}
 
-			cols += HTML.HTML{Tag: "p",
+			cols += HTML.HTML{Tag: "p", Inner: col,
 				Styles: map[string]string{
 					"min-width":       "10%",
 					"border-right":    "2px dashed #151515",
@@ -184,11 +165,10 @@ func showLogContent(lines []string) {
 					"scrollbar-color": "transparent transparent",
 					"overflow":        "scroll",
 				},
-				Inner: col,
 			}.String()
 		}
 
-		row := HTML.HTML{Tag: "div",
+		row := HTML.HTML{Tag: "div", Inner: cols,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -198,7 +178,6 @@ func showLogContent(lines []string) {
 				"border-radius": "0px",
 				"font-size":     "75%",
 			},
-			Inner: cols,
 		}.String()
 
 		el, err := DOM.GetElement("logs_out")
@@ -240,7 +219,6 @@ func showLogs() {
 			"border-right":  "2px solid #111",
 			"border-bottom": "2px solid #111",
 			"border-radius": "0px 0px 10px 10px",
-			"transition":    "max-height 0.25s",
 		},
 	}.String()
 

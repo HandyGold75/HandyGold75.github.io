@@ -96,9 +96,8 @@ func getYTPlayer() string {
 		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "75vh"},
 	}.String()
 
-	return HTML.HTML{Tag: "div",
+	return HTML.HTML{Tag: "div", Inner: ifr + img,
 		Styles: map[string]string{"position": "relative", "padding": "0px 0px min(75vh, 56.25%) 0px"},
-		Inner:  ifr + img,
 	}.String()
 }
 
@@ -157,10 +156,9 @@ func updateYTPlayer() error {
 }
 
 func getTimeline() string {
-	txtCur := HTML.HTML{Tag: "p",
+	txtCur := HTML.HTML{Tag: "p", Inner: "00:00",
 		Attributes: map[string]string{"id": "sonos_timeline_progress"},
 		Styles:     map[string]string{"margin": "auto 10px", "color": "#F7E163"},
-		Inner:      "00:00",
 	}.String()
 
 	btnSeekBackward := HTML.HTML{Tag: "button",
@@ -182,17 +180,15 @@ func getTimeline() string {
 		}.String(),
 	}.String()
 
-	txtMax := HTML.HTML{Tag: "p",
+	txtMax := HTML.HTML{Tag: "p", Inner: "00:00",
 		Attributes: map[string]string{"id": "sonos_timeline_duration"},
 		Styles:     map[string]string{"margin": "auto 10px", "color": "#F7E163"},
-		Inner:      "00:00",
 	}.String()
 
 	spacer := HTML.HTML{Tag: "div"}.String()
 
-	return HTML.HTML{Tag: "div",
+	return HTML.HTML{Tag: "div", Inner: spacer + txtCur + btnSeekBackward + sliderTimeline + btnSeekForward + txtMax + spacer,
 		Styles: map[string]string{"display": "flex"},
-		Inner:  spacer + txtCur + btnSeekBackward + sliderTimeline + btnSeekForward + txtMax + spacer,
 	}.String()
 }
 

@@ -23,12 +23,11 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 
 	header := HTML.HTML{Tag: "h1", Inner: "Alert - " + title}.String()
 	text := HTML.HTML{Tag: "p", Inner: txt}.String()
-	btnDiv := HTML.HTML{Tag: "div",
+	btnDiv := HTML.HTML{Tag: "div", Inner: buttons,
 		Styles: map[string]string{"display": "flex", "margin": "10px 0px 0px 0px"},
-		Inner:  buttons,
 	}.String()
 
-	div := HTML.HTML{Tag: "div",
+	div := HTML.HTML{Tag: "div", Inner: header + text + btnDiv,
 		Styles: map[string]string{
 			"width":     "50%",
 			"min-width": "500px",
@@ -37,10 +36,9 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 			"padding":   "10px",
 			"border":    "2px solid #55F",
 		},
-		Inner: header + text + btnDiv,
 	}.String()
 
-	popDiv := HTML.HTML{Tag: "div",
+	popDiv := HTML.HTML{Tag: "div", Inner: div,
 		Attributes: map[string]string{"id": "popup"},
 		Styles: map[string]string{
 			"z-index":    "10000",
@@ -55,7 +53,6 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 			"opacity":    "0",
 			"transition": "opacity 0.25s",
 		},
-		Inner: div,
 	}.String()
 
 	el, err := DOM.GetElement("body")
@@ -77,10 +74,8 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 
 func PopupAlert(title string, txt string, callback func()) error {
 	spacer := HTML.HTML{Tag: "div"}.String()
-	button := HTML.HTML{
-		Tag:        "button",
+	button := HTML.HTML{Tag: "button", Inner: "Continue",
 		Attributes: map[string]string{"id": "popup_continue", "class": "dark medium"},
-		Inner:      "Continue",
 	}.String()
 
 	if err := ensurePopupDiv(title, txt, spacer+button+spacer); err != nil {
@@ -110,17 +105,13 @@ func PopupAlert(title string, txt string, callback func()) error {
 
 func PopupConfirm(title string, txt string, falseText string, trueText string, callback func(bool)) error {
 	spacer := HTML.HTML{Tag: "div"}.String()
-	btnTrue := HTML.HTML{
-		Tag:        "button",
+	btnTrue := HTML.HTML{Tag: "button", Inner: trueText,
 		Attributes: map[string]string{"id": "popup_" + trueText, "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
-		Inner:      trueText,
 	}.String()
-	btnFalse := HTML.HTML{
-		Tag:        "button",
+	btnFalse := HTML.HTML{Tag: "button", Inner: falseText,
 		Attributes: map[string]string{"id": "popup_" + falseText, "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
-		Inner:      falseText,
 	}.String()
 
 	if err := ensurePopupDiv(title, txt, spacer+btnFalse+spacer+btnTrue+spacer); err != nil {
@@ -155,11 +146,9 @@ func PopupButtons(title string, txt string, options []string, callback func(stri
 
 	btns := []string{}
 	for _, option := range options {
-		btns = append(btns, HTML.HTML{
-			Tag:        "button",
+		btns = append(btns, HTML.HTML{Tag: "button", Inner: option,
 			Attributes: map[string]string{"id": "popup_" + option, "class": "dark medium popup_buttons"},
 			Styles:     map[string]string{"min-width": "10%"},
-			Inner:      option,
 		}.String())
 	}
 
@@ -198,11 +187,9 @@ func PopupInput(title string, txt string, callback func(string)) error {
 		Attributes: map[string]string{"type": "text", "id": "popup_input"},
 		Styles:     map[string]string{"min-width": "60%"},
 	}.String()
-	button := HTML.HTML{
-		Tag:        "button",
+	button := HTML.HTML{Tag: "button", Inner: "confirm",
 		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
-		Inner:      "confirm",
 	}.String()
 
 	if err := ensurePopupDiv(title, txt, spacer+input+spacer+button+spacer); err != nil {
@@ -267,27 +254,23 @@ func PopupFile(title string, txt string, callback func(string, []byte)) error {
 		Attributes: map[string]string{"type": "file", "id": "popup_input"},
 		Styles:     map[string]string{"display": "none"},
 	}.String()
-	file := HTML.HTML{Tag: "p",
+	file := HTML.HTML{Tag: "p", Inner: "Upload",
 		Attributes: map[string]string{"id": "popup_file"},
 		Styles:     map[string]string{"color": "#bff"},
-		Inner:      "Upload",
 	}.String()
-	label := HTML.HTML{Tag: "label",
+	label := HTML.HTML{Tag: "label", Inner: input + file,
 		Attributes: map[string]string{"class": "input"},
 		Styles:     map[string]string{"min-width": "60%"},
-		Inner:      input + file,
 	}.String()
 
-	confirm := HTML.HTML{Tag: "button",
+	confirm := HTML.HTML{Tag: "button", Inner: "confirm",
 		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
-		Inner:      "confirm",
 	}.String()
 
-	cancel := HTML.HTML{Tag: "button",
+	cancel := HTML.HTML{Tag: "button", Inner: "cancel",
 		Attributes: map[string]string{"id": "popup_cancel", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
-		Inner:      "cancel",
 	}.String()
 
 	if err := ensurePopupDiv(title, txt, spacer+label+spacer+cancel+spacer+confirm+spacer); err != nil {
@@ -441,7 +424,7 @@ func ensureTooltipDiv(title string, txt string) error {
 
 	header := HTML.HTML{Tag: "h2", Inner: title}.String()
 	text := HTML.HTML{Tag: "p", Inner: txt}.String()
-	div := HTML.HTML{Tag: "div",
+	div := HTML.HTML{Tag: "div", Inner: header + text,
 		Attributes: map[string]string{"id": "tooltip"},
 		Styles: map[string]string{
 			"z-index":    "10000",
@@ -454,7 +437,6 @@ func ensureTooltipDiv(title string, txt string) error {
 			"opacity":    "0",
 			"transition": "opacity 0.25s",
 		},
-		Inner: header + text,
 	}.String()
 
 	el, err := DOM.GetElement("body")
@@ -553,9 +535,7 @@ func AnimateStyle(id string, style, start string, end string, duration int) erro
 	}
 
 	Show := func() {
-		el.StyleSet(style, start)
-		JS.Async(func() { el.StyleSet(style, end) })
-		JS.AfterDelay(duration, func() { el.StyleSet(style, "") })
+		el.StyleSet(style, end)
 	}
 
 	elTrans := el.StyleGet("transition")
@@ -566,8 +546,7 @@ func AnimateStyle(id string, style, start string, end string, duration int) erro
 	}
 
 	if el.StyleGet(style) != start {
-		el.StyleSet(style, end)
-		JS.Async(func() { el.StyleSet(style, start) })
+		el.StyleSet(style, start)
 		JS.AfterDelay(duration, Show)
 		return nil
 	}
@@ -586,9 +565,8 @@ func AnimateReplace(id string, style, start string, end string, duration int, on
 	Show := func() {
 		el.InnerSet("")
 		onHidden()
-		el.StyleSet(style, start)
-		JS.Async(func() { el.StyleSet(style, end) })
-		JS.AfterDelay(duration, func() { el.StyleSet(style, ""); onShown() })
+		el.StyleSet(style, end)
+		JS.AfterDelay(duration, func() { onShown() })
 	}
 
 	elTrans := el.StyleGet("transition")
@@ -599,8 +577,7 @@ func AnimateReplace(id string, style, start string, end string, duration int, on
 	}
 
 	if el.StyleGet(style) != start {
-		el.StyleSet(style, end)
-		JS.Async(func() { el.StyleSet(style, start) })
+		el.StyleSet(style, start)
 		JS.AfterDelay(duration, Show)
 		return nil
 	}

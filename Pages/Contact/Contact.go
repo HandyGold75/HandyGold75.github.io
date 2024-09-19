@@ -120,16 +120,14 @@ func showContacts() {
 			}.String(),
 		}.String()
 
-		txt := HTML.HTML{Tag: "a",
+		txt := HTML.HTML{Tag: "a", Inner: Contacts[k].Text,
 			Attributes: map[string]string{"class": classTxt, "href": Contacts[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"font-size": "3vh", "margin": marginTxt, "transition": "margin 1s"},
-			Inner:      Contacts[k].Text,
 		}.String()
 
-		contactDivs += HTML.HTML{Tag: "div",
+		contactDivs += HTML.HTML{Tag: "div", Inner: img + txt,
 			Attributes: map[string]string{"class": "contact_divs"},
 			Styles:     map[string]string{"display": "flex", "width": "85%", "margin": marginDiv, "background": "#1F1F1F", "border": "4px solid #111", "transition": "margin 1s"},
-			Inner:      img + txt,
 		}.String()
 	}
 
