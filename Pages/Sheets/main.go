@@ -52,15 +52,14 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 	btnSheets := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for header := range headers {
-		btnSheets += HTML.HTML{Tag: "button",
+		btnSheets += HTML.HTML{Tag: "button", Inner: header,
 			Attributes: map[string]string{"class": "dark medium sheets_showdb_buttons"},
-			Inner:      header,
 		}.String()
 	}
 	btnSheets += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 
 	nav := HTML.HTML{Tag: "div",
-		Attributes: map[string]string{"id": "sheets_nav"},
+		Attributes: map[string]string{"id": "sheets_nav"}, Inner: btnSheets,
 		Styles: map[string]string{"display": "flex",
 			"width":         "90%",
 			"margin":        "10px auto",
@@ -68,7 +67,6 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 			"border":        "2px solid #111",
 			"border-radius": "10px",
 		},
-		Inner: btnSheets,
 	}.String()
 
 	out := HTML.HTML{Tag: "div",
@@ -82,27 +80,23 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 	}.String()
 
 	btnSheets = HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
-	btnSheets += HTML.HTML{Tag: "button",
+	btnSheets += HTML.HTML{Tag: "button", Inner: "Delete Empty",
 		Attributes: map[string]string{"id": "sheets_deleteempty", "class": "dark small sheets_action_buttons"},
-		Inner:      "Delete Empty",
 	}.String()
-	btnSheets += HTML.HTML{Tag: "button",
+	btnSheets += HTML.HTML{Tag: "button", Inner: "export",
 		Attributes: map[string]string{"id": "sheets_export", "class": "dark small sheets_action_buttons"},
-		Inner:      "export",
 	}.String()
-	btnSheets += HTML.HTML{Tag: "button",
+	btnSheets += HTML.HTML{Tag: "button", Inner: "import",
 		Attributes: map[string]string{"id": "sheets_import", "class": "dark small sheets_action_buttons"},
-		Inner:      "import",
 	}.String()
 	btnSheets += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 
-	actions := HTML.HTML{Tag: "div",
+	actions := HTML.HTML{Tag: "div", Inner: btnSheets,
 		Attributes: map[string]string{"id": "sheets_actions"},
 		Styles: map[string]string{"display": "flex",
 			"width":  "90%",
 			"margin": "10px auto",
 		},
-		Inner: btnSheets,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")
@@ -130,7 +124,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				borderRightInput = ""
 			}
 
-			cols += HTML.HTML{Tag: "p",
+			cols += HTML.HTML{Tag: "p", Inner: col,
 				Styles: map[string]string{
 					"width":           strconv.FormatFloat(100/float64(len(header)), 'f', -1, 64) + "%",
 					"border-right":    borderRight,
@@ -139,7 +133,6 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 					"scrollbar-color": "transparent transparent",
 					"overflow":        "scroll",
 				},
-				Inner: col,
 			}.String()
 
 			inps += HTML.HTML{Tag: "input",
@@ -160,7 +153,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
-		elOut.InnerSet(HTML.HTML{Tag: "div",
+		elOut.InnerSet(HTML.HTML{Tag: "div", Inner: cols,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -171,8 +164,7 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				"font-size":     "150%",
 				"font-weight":   "bold",
 			},
-			Inner: cols,
-		}.String() + HTML.HTML{Tag: "div",
+		}.String() + HTML.HTML{Tag: "div", Inner: inps,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -182,7 +174,6 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				"font-size":     "100%",
 				"font-weight":   "bold",
 			},
-			Inner: inps,
 		}.String())
 
 		els, err := DOM.GetElements("sheets_inputs_add")
@@ -298,7 +289,7 @@ func addRow(record []string, recordIndex int) error {
 		}.String()
 	}
 
-	row := HTML.HTML{Tag: "div",
+	row := HTML.HTML{Tag: "div", Inner: cols,
 		Attributes: map[string]string{"class": "sheets_rows"},
 		Styles: map[string]string{
 			"display":       "flex",
@@ -309,7 +300,6 @@ func addRow(record []string, recordIndex int) error {
 			"border-radius": "0px",
 			"font-size":     "100%",
 		},
-		Inner: cols,
 	}.String()
 
 	el, err := DOM.GetElement("sheets_out")
