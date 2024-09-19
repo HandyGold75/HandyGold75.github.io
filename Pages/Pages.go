@@ -100,7 +100,7 @@ var (
 		"Sheets:Tests":    {"db-test"},
 	}
 
-	dockerShowing = false
+	DockerShowing = false
 	inTransistion = false
 	requestedPage = ""
 )
@@ -159,8 +159,8 @@ func ToggleDocker() error {
 		return err
 	}
 
-	dockerShowing = !dockerShowing
-	if dockerShowing {
+	DockerShowing = !DockerShowing
+	if DockerShowing {
 		buttons.Enables()
 		buttons.StylesSet("opacity", "1")
 		titles.StylesSet("color", "#bff")
@@ -222,10 +222,9 @@ func showMain() error {
 				}
 
 				if strings.Replace(page, "sub:", "", 1) == strings.Split(subPage, ":")[0] {
-					subPages += HTML.HTML{Tag: "button",
+					subPages += HTML.HTML{Tag: "button", Inner: strings.Split(subPage, ":")[1],
 						Attributes: map[string]string{"id": "page_" + subPage, "class": "dark large docker_buttons"},
 						Styles:     map[string]string{"opacity": "0"},
-						Inner:      strings.Split(subPage, ":")[1],
 					}.String()
 				}
 			}
@@ -234,14 +233,13 @@ func showMain() error {
 				continue
 			}
 
-			subPages = HTML.HTML{Tag: "p",
+			subPages = HTML.HTML{Tag: "p", Inner: strings.Replace(page, "sub:", "", 1),
 				Attributes: map[string]string{"class": "docker_titles"},
 				Styles:     map[string]string{"opacity": "0", "color": "#88b", "font-size": "125%", "transition": "opacity 0.25s"},
-				Inner:      strings.Replace(page, "sub:", "", 1),
 				Surfix:     subPages,
 			}.String()
 
-			items += HTML.HTML{Tag: "div",
+			items += HTML.HTML{Tag: "div", Inner: subPages,
 				Attributes: map[string]string{"class": "docker_subs"},
 				Styles: map[string]string{
 					"display":       "grid",
@@ -253,20 +251,18 @@ func showMain() error {
 					"opacity":       "0",
 					"transition":    "max-height 0.25s, opacity 0.25s",
 				},
-				Inner: subPages,
 			}.String()
 
 			continue
 		}
 
-		items += HTML.HTML{Tag: "button",
+		items += HTML.HTML{Tag: "button", Inner: page,
 			Attributes: map[string]string{"id": "page_" + page, "class": "dark large docker_buttons"},
 			Styles:     map[string]string{"opacity": "0"},
-			Inner:      page,
 		}.String()
 	}
 
-	docker := HTML.HTML{Tag: "div",
+	docker := HTML.HTML{Tag: "div", Inner: items,
 		Attributes: map[string]string{"id": "docker"},
 		Styles: map[string]string{
 			"position":   "fixed",
@@ -282,7 +278,6 @@ func showMain() error {
 			"transition": "max-width 0.25s, max-height 0.25s, margin 0.25s, padding 0.25s",
 			"z-index":    "9999",
 		},
-		Inner: items,
 	}.String()
 
 	mainpage := HTML.HTML{Tag: "div",
@@ -290,16 +285,25 @@ func showMain() error {
 		Styles:     map[string]string{"max-height": "0vh"},
 	}.String()
 
-	txt := HTML.HTML{Tag: "p", Styles: map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"}, Attributes: map[string]string{"class": "light"}, Inner: "HandyGold75 - 2022 / 2024"}.String()
+	txt := HTML.HTML{Tag: "p", Inner: "HandyGold75 - 2022 / 2024",
+		Styles:     map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"},
+		Attributes: map[string]string{"class": "light"},
+	}.String()
 
 	loginText := "Login"
 	if HTTP.IsMaybeAuthenticated() {
 		loginText = "Logout"
 	}
 
-	btnBackToTop := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_backtotop", "class": "small light"}, Inner: "Back to top"}.String()
-	btnLogin := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_login", "class": "small light"}, Inner: loginText}.String()
-	btnClearCache := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"}, Inner: "Clear cache"}.String()
+	btnBackToTop := HTML.HTML{Tag: "button", Inner: "Back to top",
+		Attributes: map[string]string{"id": "footer_backtotop", "class": "small light"},
+	}.String()
+	btnLogin := HTML.HTML{Tag: "button", Inner: loginText,
+		Attributes: map[string]string{"id": "footer_login", "class": "small light"},
+	}.String()
+	btnClearCache := HTML.HTML{Tag: "button", Inner: "Clear cache",
+		Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"},
+	}.String()
 
 	footer := HTML.HTML{Tag: "div", Inner: txt + btnBackToTop + btnLogin + btnClearCache,
 		Attributes: map[string]string{"id": "footer", "class": "light"},
@@ -330,7 +334,7 @@ func showMain() error {
 		els.EventsAdd("mouseout", func(el js.Value, evs []js.Value) { el.Get("style").Set("max-height", "2.4em") })
 	}
 
-	dockerShowing = false
+	DockerShowing = false
 	JS.Async(func() { ToggleDocker() })
 
 	el, err := DOM.GetElement("footer_backtotop")
@@ -408,12 +412,37 @@ func Open(page string, force bool) {
 
 	p := getPage(page)
 	if page != "Login" {
-		HTTP.AuthorizedCallback = func() { Open(p.Name, true) }
+		HTTP.AuthorizedCallback = func() {
+			DockerShowing = true
+			if err := ToggleDocker(); err != nil {
+				if el, err := DOM.GetElement("docker"); err == nil {
+					el.Remove()
+				}
+				Open(p.Name, true)
+				return
+			}
+
+			JS.AfterDelay(250, func() {
+				if el, err := DOM.GetElement("docker"); err == nil {
+					el.Remove()
+				}
+				Open(p.Name, true)
+			})
+		}
 	}
 	JS.CacheSet("page", page)
 
-	inTransistion = true
-	if err := Widget.AnimateReplace("mainpage", "max-height", "0vh", "100vh", 250, p.Entry, func() { inTransistion = false }); err != nil {
+	el, err := DOM.GetElement("mainpage")
+	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
 	}
+	el.StyleSet("max-height", "100vh")
+
+	inTransistion = true
+	JS.Async(func() {
+		if err := Widget.AnimateReplace("mainpage", "max-height", "0vh", "100vh", 250, p.Entry, func() { inTransistion = false; el.StyleSet("max-height", "") }); err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		}
+	})
 }

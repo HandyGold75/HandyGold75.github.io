@@ -168,9 +168,8 @@ func showInfoDates(selected string) {
 
 	histDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for _, v := range hists {
-		histDates += HTML.HTML{Tag: "button",
+		histDates += HTML.HTML{Tag: "button", Inner: v,
 			Attributes: map[string]string{"class": "dark small tapo_history_dates_btns"},
-			Inner:      v,
 		}.String()
 	}
 	histDates += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
@@ -917,9 +916,8 @@ func showTapo() {
 		},
 	}.String()
 
-	hists := HTML.HTML{Tag: "div",
+	hists := HTML.HTML{Tag: "div", Inner: dates + out,
 		Attributes: map[string]string{"id": "tapo_history"},
-		Inner:      dates + out,
 	}.String()
 
 	mp, err := DOM.GetElement("mainpage")

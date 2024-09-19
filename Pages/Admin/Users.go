@@ -63,10 +63,9 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 
 	userHash := HTTP.Sha1(username + HTTP.Sha512(password))
 
-	elList.InnerAddPrefix(HTML.HTML{Tag: "button",
+	elList.InnerAddPrefix(HTML.HTML{Tag: "button", Inner: userHash,
 		Attributes: map[string]string{"id": "users_list_buttons_" + userHash, "class": "dark small users_list_buttons"},
 		Styles:     map[string]string{"white-space": "pre", "overflow-x": "scroll"},
-		Inner:      userHash,
 	}.String())
 
 	elBtn, err := DOM.GetElement("users_list_buttons_" + userHash)
@@ -76,21 +75,7 @@ func createUserCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	elBtn.EventAdd("click", func(el js.Value, evs []js.Value) {
-		elOut, err := DOM.GetElement("users_out")
-		if err != nil {
-			Widget.PopupAlert("Error", err.Error(), func() {})
-			return
-		}
-
-		delay := 0
-		if elOut.StyleGet("max-height") != "0px" {
-			elOut.StyleSet("max-height", "0px")
-			delay = 250
-		}
-
-		JS.AfterDelay(delay, func() {
-			HTTP.Send(getUserCallback, "users", "get", el.Get("innerHTML").String())
-		})
+		HTTP.Send(getUserCallback, "users", "get", el.Get("innerHTML").String())
 	})
 }
 
@@ -436,10 +421,9 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 
 	usersList := ""
 	for _, v := range users {
-		usersList += HTML.HTML{Tag: "button",
+		usersList += HTML.HTML{Tag: "button", Inner: v,
 			Attributes: map[string]string{"class": "dark small users_list_buttons"},
 			Styles:     map[string]string{"white-space": "pre", "overflow-x": "scroll"},
-			Inner:      v,
 		}.String()
 	}
 
@@ -448,10 +432,9 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	el.InnerSet(usersList + HTML.HTML{Tag: "button",
+	el.InnerSet(usersList + HTML.HTML{Tag: "button", Inner: "New user",
 		Attributes: map[string]string{"id": "users_newuser", "class": "dark small"},
 		Styles:     map[string]string{"white-space": "pre", "overflow-x": "scroll"},
-		Inner:      "New user",
 	}.String())
 
 	els, err := DOM.GetElements("users_list_buttons")
@@ -461,21 +444,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 	}
 
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		elOut, err := DOM.GetElement("users_out")
-		if err != nil {
-			Widget.PopupAlert("Error", err.Error(), func() {})
-			return
-		}
-
-		delay := 0
-		if elOut.StyleGet("max-height") != "0px" {
-			elOut.StyleSet("max-height", "0px")
-			delay = 250
-		}
-
-		JS.AfterDelay(delay, func() {
-			HTTP.Send(getUserCallback, "users", "get", el.Get("innerHTML").String())
-		})
+		HTTP.Send(getUserCallback, "users", "get", el.Get("innerHTML").String())
 	})
 
 	el, err = DOM.GetElement("users_newuser")
@@ -484,21 +453,7 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		elOut, err := DOM.GetElement("users_out")
-		if err != nil {
-			Widget.PopupAlert("Error", err.Error(), func() {})
-			return
-		}
-
-		delay := 0
-		if elOut.StyleGet("max-height") != "0px" {
-			elOut.StyleSet("max-height", "0px")
-			delay = 250
-		}
-
-		JS.AfterDelay(delay, func() {
-			newUserForm()
-		})
+		Widget.AnimateReplace("users_out", "max-height", "0vh", "100vh", 250, showNewUser, func() {})
 	})
 }
 
@@ -514,30 +469,40 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
+	selectedUser = user
 
+	Widget.AnimateReplace("users_out", "max-height", "0vh", "100vh", 250, showUser, func() {})
+}
+
+func showUser() {
 	getRow := func(name string, typ string, autocomplete string, value string) []string {
 		id := "users_" + strings.ToLower(name)
-
-		txt := HTML.HTML{Tag: "p", Inner: name, Styles: map[string]string{"margin": "auto 0px", "padding": "5px 0px", "background": "#222", "border": "2px solid #111"}}.String()
-		inp := HTML.HTML{Tag: "input", Attributes: map[string]string{"type": typ, "id": id, "class": "users_inputs", "autocomplete": autocomplete, "placeholder": name, "value": value}}.String()
-		btn := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": id + "_submit", "class": "dark medium users_submits"}, Inner: "Submit"}.String()
-
+		txt := HTML.HTML{Tag: "p", Inner: name,
+			Styles: map[string]string{"margin": "auto 0px", "padding": "5px 0px", "background": "#222", "border": "2px solid #111"},
+		}.String()
+		inp := HTML.HTML{Tag: "input",
+			Attributes: map[string]string{"type": typ, "id": id, "class": "users_inputs", "autocomplete": autocomplete, "placeholder": name, "value": value},
+		}.String()
+		btn := HTML.HTML{Tag: "button", Inner: "Submit",
+			Attributes: map[string]string{"id": id + "_submit", "class": "dark medium users_submits"},
+		}.String()
 		return []string{txt, inp, btn}
 	}
 
-	selectedUser = user
-
 	gridStyle := map[string]string{"display": "grid", "grid-template-columns": "20% 60% 20%", "background": "#2A2A2A"}
 
-	header := HTML.HTML{Tag: "h2",
+	header := HTML.HTML{Tag: "h2", Inner: HTTP.Sha1(selectedUser.Username + selectedUser.Password),
 		Attributes: map[string]string{"id": "users_header"},
 		Styles:     map[string]string{"user-select": "all", "overflow-x": " scroll"},
-		Inner:      HTTP.Sha1(user.Username + user.Password),
 	}.String()
 
-	username := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Username", "email", "username", user.Username), "")}.String()
+	username := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Username", "email", "username", selectedUser.Username), ""),
+		Styles: gridStyle,
+	}.String()
 
-	password := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Password", "password", "new-password", user.Password), "")}.String()
+	password := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Password", "password", "new-password", selectedUser.Password), ""),
+		Styles: gridStyle,
+	}.String()
 
 	row := getRow("authLevel", "", "", "")
 	row[1] = HTML.HTML{Tag: "select",
@@ -545,8 +510,10 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 		Inner: func() string {
 			s := ""
 			for v := range authMap {
-				if v == authMapReversed[user.AuthLevel] {
-					s += HTML.HTML{Tag: "option", Attributes: map[string]string{"selected": ""}, Inner: v}.String()
+				if v == authMapReversed[selectedUser.AuthLevel] {
+					s += HTML.HTML{Tag: "option", Inner: v,
+						Attributes: map[string]string{"selected": ""},
+					}.String()
 					continue
 				}
 				s += HTML.HTML{Tag: "option", Inner: v}.String()
@@ -554,31 +521,43 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 			return s
 		}(),
 	}.String()
-	authLevel := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(row, "")}.String()
+	authLevel := HTML.HTML{Tag: "div", Inner: strings.Join(row, ""),
+		Styles: gridStyle,
+	}.String()
 
-	roles := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Roles", "text", "", strings.Join(user.Roles, ", ")), "")}.String()
+	roles := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Roles", "text", "", strings.Join(selectedUser.Roles, ", ")), ""),
+		Styles: gridStyle,
+	}.String()
 
 	state := "Disabled"
 	btnClass := "imgBtn imgBtnMedium"
-	if user.Enabled {
+	if selectedUser.Enabled {
 		state = "Enabled"
 		btnClass = "imgBtn imgBtnMedium imgBtnBorder"
 	}
 
 	enabledBtn := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "users_enabled", "class": btnClass},
-		Inner:      HTML.HTML{Tag: "img", Attributes: map[string]string{"id": "users_enabled_img", "src": "./docs/assets/Admin/Users/" + state + ".svg", "alt": state}}.String(),
+		Inner: HTML.HTML{Tag: "img",
+			Attributes: map[string]string{"id": "users_enabled_img", "src": "./docs/assets/Admin/Users/" + state + ".svg", "alt": state},
+		}.String(),
 	}.String()
 
 	trashBtn := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "users_delete", "class": "imgBtn imgBtnMedium"},
-		Inner:      HTML.HTML{Tag: "img", Attributes: map[string]string{"id": "users_delete_img", "src": "./docs/assets/General/Trash.svg", "alt": "delete"}}.String(),
+		Inner: HTML.HTML{Tag: "img",
+			Attributes: map[string]string{"id": "users_delete_img", "src": "./docs/assets/General/Trash.svg", "alt": "delete"},
+		}.String(),
 	}.String()
 
-	deauthBtn := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "users_deauth", "class": "dark large"}, Inner: "Deauth"}.String()
+	deauthBtn := HTML.HTML{Tag: "button", Inner: "Deauth",
+		Attributes: map[string]string{"id": "users_deauth", "class": "dark large"},
+	}.String()
 
 	spacer := HTML.HTML{Tag: "div", Styles: map[string]string{"background": "#2A2A2A"}}.String()
-	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 25% 5% 30% 5%", "background": "#2A2A2A"}, Inner: spacer + enabledBtn + spacer + trashBtn + spacer + deauthBtn + spacer}.String()
+	buttons := HTML.HTML{Tag: "div", Inner: spacer + enabledBtn + spacer + trashBtn + spacer + deauthBtn + spacer,
+		Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 25% 5% 30% 5%", "background": "#2A2A2A"},
+	}.String()
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
@@ -586,7 +565,6 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
-	el.StyleSet("max-height", "100vh")
 
 	for _, key := range []string{"username", "password", "authlevel", "roles"} {
 		el, err = DOM.GetElement("users_" + key)
@@ -626,11 +604,13 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 	el.EventAdd("click", deauthUser)
 }
 
-func newUserForm() {
+func showNewUser() {
 	getRow := func(name string, typ string, autocomplete string) []string {
 		id := "users_" + strings.ToLower(name)
 
-		txt := HTML.HTML{Tag: "p", Inner: name, Styles: map[string]string{"margin": "auto 0px", "padding": "5px 0px", "background": "#222", "border": "2px solid #111"}}.String()
+		txt := HTML.HTML{Tag: "p", Inner: name,
+			Styles: map[string]string{"margin": "auto 0px", "padding": "5px 0px", "background": "#222", "border": "2px solid #111"},
+		}.String()
 		inp := HTML.HTML{Tag: "input", Attributes: map[string]string{"type": typ, "id": id, "class": "users_inputs", "autocomplete": autocomplete, "placeholder": name}}.String()
 
 		return []string{txt, inp}
@@ -640,15 +620,18 @@ func newUserForm() {
 
 	gridStyle := map[string]string{"display": "grid", "grid-template-columns": "20% 80%", "background": "#2A2A2A"}
 
-	header := HTML.HTML{Tag: "h2",
+	header := HTML.HTML{Tag: "h2", Inner: "New User",
 		Attributes: map[string]string{"id": "users_header"},
 		Styles:     map[string]string{"user-select": "all", "overflow-x": " scroll"},
-		Inner:      "New User",
 	}.String()
 
-	username := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Username", "email", "username"), "")}.String()
+	username := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Username", "email", "username"), ""),
+		Styles: gridStyle,
+	}.String()
 
-	password := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Password", "password", "new-password"), "")}.String()
+	password := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Password", "password", "new-password"), ""),
+		Styles: gridStyle,
+	}.String()
 
 	row := getRow("authLevel", "", "")
 	row[1] = HTML.HTML{Tag: "select",
@@ -657,7 +640,9 @@ func newUserForm() {
 			s := ""
 			for v := range authMap {
 				if v == "user" {
-					s += HTML.HTML{Tag: "option", Attributes: map[string]string{"selected": ""}, Inner: v}.String()
+					s += HTML.HTML{Tag: "option", Inner: v,
+						Attributes: map[string]string{"selected": ""},
+					}.String()
 					continue
 				}
 				s += HTML.HTML{Tag: "option", Inner: v}.String()
@@ -665,9 +650,13 @@ func newUserForm() {
 			return s
 		}(),
 	}.String()
-	authLevel := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(row, "")}.String()
+	authLevel := HTML.HTML{Tag: "div", Inner: strings.Join(row, ""),
+		Styles: gridStyle,
+	}.String()
 
-	roles := HTML.HTML{Tag: "div", Styles: gridStyle, Inner: strings.Join(getRow("Roles", "text", ""), "")}.String()
+	roles := HTML.HTML{Tag: "div", Inner: strings.Join(getRow("Roles", "text", ""), ""),
+		Styles: gridStyle,
+	}.String()
 
 	enabledBtn := HTML.HTML{Tag: "button",
 		Attributes: map[string]string{"id": "users_enabled", "class": "imgBtn imgBtnMedium imgBtnBorder"},
@@ -676,10 +665,14 @@ func newUserForm() {
 		}.String(),
 	}.String()
 
-	submitBtn := HTML.HTML{Tag: "button", Attributes: map[string]string{"id": "users_submitnew", "class": "dark large"}, Inner: "Confirm"}.String()
+	submitBtn := HTML.HTML{Tag: "button", Inner: "Confirm",
+		Attributes: map[string]string{"id": "users_submitnew", "class": "dark large"},
+	}.String()
 
 	spacer := HTML.HTML{Tag: "div", Styles: map[string]string{"background": "#2A2A2A"}}.String()
-	buttons := HTML.HTML{Tag: "div", Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 60% 5%", "background": "#2A2A2A"}, Inner: spacer + enabledBtn + spacer + submitBtn + spacer}.String()
+	buttons := HTML.HTML{Tag: "div", Inner: spacer + enabledBtn + spacer + submitBtn + spacer,
+		Styles: map[string]string{"display": "grid", "grid-template-columns": "5% 25% 5% 60% 5%", "background": "#2A2A2A"},
+	}.String()
 
 	el, err := DOM.GetElement("users_out")
 	if err != nil {
@@ -687,7 +680,6 @@ func newUserForm() {
 		return
 	}
 	el.InnerSet(header + username + password + authLevel + roles + buttons)
-	el.StyleSet("max-height", "100vh")
 
 	el, err = DOM.GetElement("users_enabled")
 	if err != nil {
@@ -723,11 +715,10 @@ func showUsers() {
 		Attributes: map[string]string{"id": "users_out"},
 		Styles: map[string]string{
 			"width":       "75%",
-			"max-height":  "0px",
+			"max-height":  "0vh",
 			"margin":      "0px auto",
 			"background":  "#2A2A2A",
 			"border":      "2px solid #111",
-			"transition":  "max-height 0.25s",
 			"white-space": "pre",
 			"font-family": "Hack",
 		},
@@ -738,7 +729,9 @@ func showUsers() {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	mp.InnerSet(header + HTML.HTML{Tag: "div", Styles: map[string]string{"display": "flex"}, Inner: types + out}.String())
+	mp.InnerSet(header + HTML.HTML{Tag: "div", Inner: types + out,
+		Styles: map[string]string{"display": "flex"},
+	}.String())
 
 	HTTP.Send(userListCallback, "users", "list")
 }

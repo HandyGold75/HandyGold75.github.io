@@ -12,8 +12,19 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"syscall/js"
 	"time"
 )
+
+// TODO: Add deauth function
+
+func deauthToken(el js.Value, els []js.Value) {
+	HTTP.Send(deauthTokenCallback, "users", "deauth", "token", strings.Split(el.Get("id").String(), "_")[2])
+}
+
+func deauthTokenCallback(res string, resBytes []byte, resErr error) {
+	showMonitor()
+}
 
 func debugCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
@@ -51,16 +62,16 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 	}
 	el.InnerSet("")
 
+	pWrapper := func(txt string) string { return HTML.HTML{Tag: "p", Inner: txt}.String() }
+
 	JS.ForEach(slices.Collect(maps.Keys(debug)), 0, func(token string, _ bool) bool {
 		auth := debug[token]
 
-		authToken := HTML.HTML{Tag: "div",
-			Inner:  HTML.HTML{Tag: "p", Inner: "AuthToken"}.String() + HTML.HTML{Tag: "p", Inner: token}.String(),
+		authToken := HTML.HTML{Tag: "div", Inner: pWrapper("AuthToken") + pWrapper(token),
 			Styles: authDataTextStyle,
 		}.String()
 
-		expires := HTML.HTML{Tag: "div",
-			Inner:  HTML.HTML{Tag: "p", Inner: "Expires"}.String() + HTML.HTML{Tag: "p", Inner: auth.Expires.Format(time.DateTime)}.String(),
+		expires := HTML.HTML{Tag: "div", Inner: pWrapper("Expires") + pWrapper(auth.Expires.Format(time.DateTime)),
 			Styles: authDataTextStyle,
 		}.String()
 
@@ -76,16 +87,26 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 			},
 		}.String()
 
-		userHash := HTML.HTML{Tag: "div", Inner: HTML.HTML{Tag: "p", Inner: auth.UserHash}.String(), Styles: userDataTextStyle}.String()
-		username := HTML.HTML{Tag: "div", Inner: HTML.HTML{Tag: "p", Inner: auth.UserData.Username}.String(), Styles: userDataTextStyle}.String()
-		authLevel := HTML.HTML{Tag: "div", Inner: HTML.HTML{Tag: "p", Inner: authMapReversed[auth.UserData.AuthLevel]}.String(), Styles: userDataTextStyle}.String()
-		roles := HTML.HTML{Tag: "div", Inner: HTML.HTML{Tag: "p", Inner: strings.Join(auth.UserData.Roles, ", ")}.String(), Styles: userDataTextStyle}.String()
+		userHash := HTML.HTML{Tag: "div", Inner: pWrapper(auth.UserHash),
+			Styles: userDataTextStyle,
+		}.String()
+		username := HTML.HTML{Tag: "div", Inner: pWrapper(auth.UserData.Username),
+			Styles: userDataTextStyle,
+		}.String()
+		authLevel := HTML.HTML{Tag: "div", Inner: pWrapper(authMapReversed[auth.UserData.AuthLevel]),
+			Styles: userDataTextStyle,
+		}.String()
+		roles := HTML.HTML{Tag: "div", Inner: pWrapper(strings.Join(auth.UserData.Roles, ", ")),
+			Styles: userDataTextStyle,
+		}.String()
 
 		state := "Disabled"
 		if auth.UserData.Enabled {
 			state = "Enabled"
 		}
-		enabled := HTML.HTML{Tag: "div", Inner: HTML.HTML{Tag: "p", Inner: state}.String(), Styles: userDataTextStyle}.String()
+		enabled := HTML.HTML{Tag: "div", Inner: pWrapper(state),
+			Styles: userDataTextStyle,
+		}.String()
 
 		userDataDiv := HTML.HTML{Tag: "div", Inner: userHash + username + authLevel + roles + enabled,
 			Styles: map[string]string{
@@ -111,8 +132,15 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 		}
 		el.InnerAddSurfix(div)
 
+		el, err = DOM.GetElement("monitor_users_" + token + "_deauth")
+		if err != nil {
+			return false
+		}
+		el.EventAdd("click", deauthToken)
+
 		return true
 	})
+
 }
 
 func showMonitor() {
