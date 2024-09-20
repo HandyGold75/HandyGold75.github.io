@@ -130,33 +130,12 @@ func showInfoListCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	elDates, err := DOM.GetElement("tapo_history_dates")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	elOut, err := DOM.GetElement("tapo_history_out")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-
-	delay := 0
-	if elDates.StyleGet("max-height") != "0px" {
-		elDates.StyleSet("max-height", "0px")
-		delay = 250
-	}
-	if elOut.StyleGet("max-height") != "0px" {
-		elOut.StyleSet("max-height", "0px")
-		delay = 250
-	}
-
 	selected := selectedDevice
-	JS.AfterDelay(delay, func() {
-		showInfoDates(selected)
-		selectedYear = strings.Split(hists[len(hists)-1], ".")[0]
-		HTTP.Send(showInfoCallback, "tapo", "histget", selected, hists[len(hists)-1])
-	})
+
+	Widget.AnimateFunction("tapo_history_dates", "max-height", "0px", "40px", 250, func() { showInfoDates(selected) }, func() {})
+
+	selectedYear = strings.Split(hists[len(hists)-1], ".")[0]
+	HTTP.Send(showInfoCallback, "tapo", "histget", selected, hists[len(hists)-1])
 }
 
 func showInfoDates(selected string) {
@@ -180,7 +159,6 @@ func showInfoDates(selected string) {
 		return
 	}
 	elDates.InnerSet(histDates)
-	elDates.StyleSet("max-height", "40px")
 
 	els, err := DOM.GetElements("tapo_history_dates_btns")
 	if err != nil {
@@ -207,21 +185,12 @@ func showInfoCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	elOut, err := DOM.GetElement("tapo_history_out")
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
-	}
-	if elOut.StyleGet("max-height") != "0px" {
-		elOut.StyleSet("max-height", "0px")
-	}
-
 	lines := strings.Split(strings.Join(hist, ""), "<EOR>\n")
 	slices.Reverse(lines)
 
-	JS.AfterDelay(250, func() {
-		JS.OnResizeDelete("Tapo")
-		JS.OnResizeAdd("Tapo", func() { showGraph(lines) })
+	JS.OnResizeDelete("Tapo")
+	JS.OnResizeAdd("Tapo", func() {
+		Widget.AnimateFunction("tapo_history_out", "max-height", "0px", "750px", 250, func() { showGraph(lines) }, func() {})
 	})
 }
 
@@ -474,13 +443,6 @@ func drawColsMonth(maxDays int) error {
 }
 
 func showGraph(lines []string) {
-	elOut, err := DOM.GetElement("tapo_history_out")
-	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		return
-	}
-	elOut.StyleSet("max-height", "750px")
-
 	maxValue := 0.0
 	for _, line := range lines {
 		_, todayRuntime, todayEnergy, err := parseHistLine(line)
@@ -539,13 +501,6 @@ func showGraph(lines []string) {
 }
 
 func showGraphMonth(lines []string, selectedMonth time.Time) {
-	elOut, err := DOM.GetElement("tapo_history_out")
-	if err != nil {
-		JS.OnResizeDelete("Tapo")
-		return
-	}
-	elOut.StyleSet("max-height", "750px")
-
 	lines = slices.DeleteFunc(lines, func(l string) bool {
 		localTime, _, _, err := parseHistLine(l)
 		if err != nil {
@@ -707,6 +662,8 @@ func addDevice(name string) error {
 	}
 	el.InnerAddPrefix(div)
 
+	Widget.AnimateStyle("tapo_devices_"+name, "max-height", "0px", "500px", 250)
+
 	el, err = DOM.GetElement("tapo_devices_" + name + "_power")
 	if err != nil {
 		return err
@@ -851,7 +808,6 @@ func showTapo() {
 			"margin":     "10px auto",
 			"background": "#202020",
 			"border":     "2px solid #111",
-			"transition": "max-height 0.25s",
 		},
 	}.String()
 
@@ -912,7 +868,6 @@ func showTapo() {
 			"background":            "#2A2A2A",
 			"border":                "4px solid #f7e163",
 			"border-radius":         "10px",
-			"transition":            "max-height 0.25s",
 		},
 	}.String()
 

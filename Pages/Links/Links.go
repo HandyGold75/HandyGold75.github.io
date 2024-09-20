@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"syscall/js"
 )
 
 type (
@@ -47,6 +48,41 @@ var (
 
 	headers = []string{}
 )
+
+func toggleFold(el js.Value, evs []js.Value) {
+	idSplit := strings.Split(el.Get("id").String(), "_")
+	id := idSplit[len(idSplit)-1]
+
+	elsDivs, err := DOM.GetElements("cat_divs_" + id)
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+
+	folded := strings.Split(JS.CacheGet("Page/Links"), ";")
+	if slices.Contains(folded, id) {
+		folded = slices.DeleteFunc(folded, func(item string) bool {
+			if item == id {
+				return true
+			}
+			return false
+		})
+		for _, divId := range elsDivs.AttributesGet("id") {
+			if err := Widget.AnimateStyle(divId, "max-height", "0px", "300px", 250); err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+			}
+		}
+	} else {
+		folded = append(folded, id)
+		for _, divId := range elsDivs.AttributesGet("id") {
+			if err := Widget.AnimateStyle(divId, "max-height", "300px", "0px", 250); err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+			}
+		}
+	}
+
+	JS.CacheSet("Page/Links", strings.Join(folded, ";"))
+}
 
 func headerCallback(res string, resBytes []byte, resErr error) {
 	if resErr != nil {
@@ -181,7 +217,10 @@ func showLinks() {
 	ids := []string{}
 	divs := ""
 	for _, cat := range catsIndexes {
-		title := HTML.HTML{Tag: "h2", Inner: cat}.String()
+		title := HTML.HTML{Tag: "h2", Inner: cat,
+			Attributes: map[string]string{"id": "cat_headers_" + cat},
+		}.String()
+
 		rows := ""
 		links := ""
 		for i, link := range cats[cat] {
@@ -192,12 +231,12 @@ func showLinks() {
 
 			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount)}
 			if firstLoad {
-				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount), "max-height": "0vh"}
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", colCount), "max-height": "0px"}
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_"+strconv.Itoa(i))
 			rows += HTML.HTML{Tag: "div", Inner: links,
-				Attributes: map[string]string{"id": "cat_divs_" + cat + "_" + strconv.Itoa(i)},
+				Attributes: map[string]string{"id": "cat_divs_" + cat + "_" + strconv.Itoa(i), "class": "cat_divs_" + cat},
 				Styles:     style,
 			}.String()
 			links = ""
@@ -206,12 +245,12 @@ func showLinks() {
 		if links != "" {
 			style := map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img "))}
 			if firstLoad {
-				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img ")), "max-height": "0vh"}
+				style = map[string]string{"display": "grid", "justify-content": "space-evenly", "grid-template-columns": strings.Repeat(strconv.FormatFloat((100/float64(colCount))-10, 'f', -1, 64)+"% ", strings.Count(links, "<img ")), "max-height": "0px"}
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_etc")
 			rows += HTML.HTML{Tag: "div", Inner: links,
-				Attributes: map[string]string{"id": "cat_divs_" + cat + "_etc"},
+				Attributes: map[string]string{"id": "cat_divs_" + cat + "_etc", "class": "cat_divs_" + cat},
 				Styles:     style,
 			}.String()
 		}
@@ -226,19 +265,33 @@ func showLinks() {
 	}
 	mp.InnerSet(header + divs)
 
+	for _, cat := range catsIndexes {
+		el, err := DOM.GetElement("cat_headers_" + cat)
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+			return
+		}
+		el.EventAdd("click", toggleFold)
+	}
+
 	if !firstLoad {
 		return
 	}
 	firstLoad = false
 
-	for i, id := range ids {
+	folded := strings.Split(JS.CacheGet("Page/Links"), ";")
+	i := 0
+	for _, id := range ids {
+		if slices.Contains(folded, strings.Split(id, "_")[2]) {
+			continue
+		}
 		JS.AfterDelay(i*250, func() {
-			if err := Widget.AnimateStyle(id, "max-height", "0vh", "100vh", 1000); err != nil {
+			if err := Widget.AnimateStyle(id, "max-height", "0px", "300px", 250); err != nil {
 				Widget.PopupAlert("Error", err.Error(), func() {})
 			}
 		})
+		i++
 	}
-
 }
 
 func Page() {

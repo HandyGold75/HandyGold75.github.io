@@ -453,7 +453,9 @@ func userListCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		Widget.AnimateReplace("users_out", "max-height", "0vh", "100vh", 250, showNewUser, func() {})
+		if err := Widget.AnimateFunction("users_out", "max-height", "0vh", "100vh", 250, showNewUser, func() {}); err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		}
 	})
 }
 
@@ -471,7 +473,9 @@ func getUserCallback(res string, resBytes []byte, resErr error) {
 	}
 	selectedUser = user
 
-	Widget.AnimateReplace("users_out", "max-height", "0vh", "100vh", 250, showUser, func() {})
+	if err := Widget.AnimateFunction("users_out", "max-height", "0vh", "100vh", 250, showUser, func() {}); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+	}
 }
 
 func showUser() {

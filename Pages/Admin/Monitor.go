@@ -16,14 +16,51 @@ import (
 	"time"
 )
 
-// TODO: Add deauth function
+var (
+	selectedToken = ""
+)
 
 func deauthToken(el js.Value, els []js.Value) {
-	HTTP.Send(deauthTokenCallback, "users", "deauth", "token", strings.Split(el.Get("id").String(), "_")[2])
+	if selectedToken != "" {
+		return
+	}
+
+	selectedToken = strings.Split(el.Get("id").String(), "_")[2]
+
+	elBtn, err := DOM.GetElement("monitor_users_" + selectedToken + "_deauth")
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	elBtn.Disable()
+
+	HTTP.Send(deauthTokenCallback, "users", "deauth", "token", selectedToken)
 }
 
 func deauthTokenCallback(res string, resBytes []byte, resErr error) {
-	showMonitor()
+	defer func() { selectedToken = "" }()
+	if resErr != nil {
+		elBtn, err := DOM.GetElement("monitor_users_" + selectedToken + "_deauth")
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		} else {
+			elBtn.Enable()
+		}
+
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
+		return
+	}
+
+	if err := Widget.AnimateStyle("monitor_users_"+selectedToken, "max-height", "0px", "150px", 250); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+	}
+
+	el, err := DOM.GetElement("monitor_users_" + selectedToken)
+	if err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+		return
+	}
+	JS.AfterDelay(250, func() { el.Remove() })
 }
 
 func debugCallback(res string, resBytes []byte, resErr error) {
@@ -64,7 +101,7 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 
 	pWrapper := func(txt string) string { return HTML.HTML{Tag: "p", Inner: txt}.String() }
 
-	JS.ForEach(slices.Collect(maps.Keys(debug)), 0, func(token string, _ bool) bool {
+	JS.ForEach(slices.Collect(maps.Keys(debug)), 250, func(token string, _ bool) bool {
 		auth := debug[token]
 
 		authToken := HTML.HTML{Tag: "div", Inner: pWrapper("AuthToken") + pWrapper(token),
@@ -120,6 +157,7 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 		div := HTML.HTML{Tag: "div", Inner: authDataDiv + userDataDiv,
 			Attributes: map[string]string{"id": "monitor_users_" + token},
 			Styles: map[string]string{
+				"max-height": "0px",
 				"margin":     "10px auto",
 				"background": "#2A2A2A",
 				"border":     "2px solid #111",
@@ -131,6 +169,12 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 			return false
 		}
 		el.InnerAddSurfix(div)
+
+		JS.AfterDelay(50, func() {
+			if err := Widget.AnimateStyle("monitor_users_"+token, "max-height", "0px", "150px", 250); err != nil {
+				Widget.PopupAlert("Error", err.Error(), func() {})
+			}
+		})
 
 		el, err = DOM.GetElement("monitor_users_" + token + "_deauth")
 		if err != nil {

@@ -102,10 +102,10 @@ func getYTPlayer() string {
 }
 
 func isYTPlayerActive() bool {
-	if ytPlayer.IsUndefined() {
+	if ytPlayer.IsUndefined() || ytPlayer.Get("loadVideoById").IsUndefined() {
 		return false
 	}
-	return ytPlayer.Get("s").Bool()
+	return true
 }
 
 func setEventsYTPlayer() error {

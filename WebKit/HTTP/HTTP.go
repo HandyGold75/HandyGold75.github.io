@@ -20,11 +20,13 @@ import (
 	"time"
 )
 
-type config struct {
-	Server         string
-	RememberSignIn bool
-	Token          string
-}
+type (
+	config struct {
+		Server         string
+		RememberSignIn bool
+		Token          string
+	}
+)
 
 var (
 	UnauthorizedCallback = func() {}
