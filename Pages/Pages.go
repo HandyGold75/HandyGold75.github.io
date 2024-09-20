@@ -441,7 +441,7 @@ func Open(page string, force bool) {
 
 	inTransistion = true
 	JS.Async(func() {
-		if err := Widget.AnimateReplace("mainpage", "max-height", "0vh", "100vh", 250, p.Entry, func() { inTransistion = false; el.StyleSet("max-height", "") }); err != nil {
+		if err := Widget.AnimateFunction("mainpage", "max-height", "0vh", "100vh", 250, func() { el.InnerSet(""); p.Entry() }, func() { inTransistion = false; el.StyleSet("max-height", "") }); err != nil {
 			Widget.PopupAlert("Error", err.Error(), func() {})
 		}
 	})

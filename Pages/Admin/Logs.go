@@ -60,7 +60,9 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 	}
 	els.StylesSet("min-width", strconv.Itoa(min(10, 100/len(availableLogs)))+"%")
 	els.EventsAdd("click", func(el js.Value, evs []js.Value) {
-		Widget.AnimateReplace("logs_dates", "max-height", "0px", "50px", 250, func() { showLogDates(el.Get("innerHTML").String()) }, func() {})
+		if err := Widget.AnimateFunction("logs_dates", "max-height", "0px", "50px", 250, func() { showLogDates(el.Get("innerHTML").String()) }, func() {}); err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+		}
 	})
 }
 

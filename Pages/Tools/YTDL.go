@@ -103,8 +103,10 @@ func submitURL(el js.Value, evs []js.Value) {
 	}.String()
 
 	out := HTML.HTML{Tag: "div", Inner: title + options + size + state,
+		Attributes: map[string]string{"id": "ytdl_out_" + id},
 		Styles: map[string]string{
 			"display":       "flex",
+			"max-height":    "0px",
 			"background":    "#2A2A2A",
 			"margin":        "-1px auto 0px auto",
 			"border-radius": "0px",
@@ -118,6 +120,9 @@ func submitURL(el js.Value, evs []js.Value) {
 		return
 	}
 	elOut.InnerAddPrefix(out)
+	if err := Widget.AnimateStyle("ytdl_out_"+id, "max-height", "0px", "50px", 250); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
+	}
 
 	requestedID = id
 	HTTP.Send(submitURLCallback, "ytdl", append([]string{"download", url}, args...)...)
