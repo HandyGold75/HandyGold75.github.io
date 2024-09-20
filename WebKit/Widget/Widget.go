@@ -551,19 +551,18 @@ func AnimateStyle(id string, style, start string, end string, duration int) erro
 		return nil
 	}
 
-	Show()
+	JS.Async(Show)
 
 	return nil
 }
 
-func AnimateReplace(id string, style, start string, end string, duration int, onHidden func(), onShown func()) error {
+func AnimateFunction(id string, style, start string, end string, duration int, onHidden func(), onShown func()) error {
 	el, err := DOM.GetElement(id)
 	if err != nil {
 		return err
 	}
 
 	Show := func() {
-		el.InnerSet("")
 		onHidden()
 		el.StyleSet(style, end)
 		JS.AfterDelay(duration, func() { onShown() })
@@ -582,7 +581,7 @@ func AnimateReplace(id string, style, start string, end string, duration int, on
 		return nil
 	}
 
-	Show()
+	JS.Async(Show)
 
 	return nil
 }
