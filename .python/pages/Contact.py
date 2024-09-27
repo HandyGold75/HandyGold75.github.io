@@ -47,7 +47,7 @@ class contact(Page):
 
         def finalize(self):
             msgDict = WS.dict()
-            
+
             headers = tuple(name for name, ktype in msgDict["qr"]["template"]["sheets"]["Contact"])
 
             linkDict = {}

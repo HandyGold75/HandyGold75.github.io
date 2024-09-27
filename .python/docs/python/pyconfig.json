@@ -1,39 +1,30 @@
 {
-    "packages": [
-        "rsa"
+  "packages": ["rsa"],
+  "files": {
+    "": ["main.py"],
+    "WebKit": [
+      "map.json",
+      "__init__.py",
+      "pagesConfig.json",
+      "HTML.py",
+      "CSS.py",
+      "JS.py",
+      "WS.py",
+      "Widget.py",
+      "Module.py",
+      "Pages.py"
     ],
-    "files": {
-        "": [
-            "main.py"
-        ],
-        "WebKit": [
-            "map.json",
-            "__init__.py",
-            "pagesConfig.json",
-            "HTML.py",
-            "CSS.py",
-            "JS.py",
-            "WS.py",
-            "Widget.py",
-            "Module.py",
-            "Pages.py"
-        ],
-        "pages": [
-            "__init__.py",
-            "config.json",
-            "Home.py",
-            "Links.py",
-            "Portal.py",
-            "Console.py",
-            "Contact.py",
-            "Login.py"
-        ],
-        "subsPortal": [
-            "__init__.py",
-            "Sonos.py",
-            "Tapo.py",
-            "YTDL.py",
-            "Sheets.py"
-        ]
-    }
+    "pages": [
+      "__init__.py",
+      "config.json",
+      "Home.py",
+      "Links.py",
+      "Portal.py",
+      "Console.py",
+      "Contact.py",
+      "Login.py"
+    ],
+    "subsPortal": ["__init__.py", "Sonos.py", "Tapo.py", "YTDL.py", "Sheets.py"]
+  }
 }
+
