@@ -15,4 +15,4 @@ __all__ = (
 Buttons = Module.buttons()
 WS = WS.WebSocket()
 
-from WebKit.Pages import PortalPage, Page
+from WebKit.Pages import Page, PortalPage

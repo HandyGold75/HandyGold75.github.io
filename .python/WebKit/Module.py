@@ -1,6 +1,5 @@
 from js import document, setTimeout, window  # type: ignore
 from pyodide.ffi import create_once_callable, create_proxy  # type: ignore
-
 from WebKit import CSS, HTML, JS, WS
 
 

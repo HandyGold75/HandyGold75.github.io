@@ -1,7 +1,6 @@
 from json import loads
 
 from pages import console, contact, home, links, login, portal
-
 from WebKit import CSS, HTML, JS, WS, Buttons
 
 

@@ -8,8 +8,6 @@ class home(Page):
         self.onLayout = self.doOnLayout
 
     def doOnLayout(self):
-
-
         header = HTML.genElement("h1", nest="Home", style="headerMain")
 
         link = '<a style="color: #44F;" href="../">go</a>'

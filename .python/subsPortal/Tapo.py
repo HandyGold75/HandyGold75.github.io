@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from json import dumps, loads
 
 from rsa import encrypt
-
 from WebKit import CSS, HTML, JS, WS, PortalPage, Widget
 
 
