@@ -2,7 +2,6 @@ from json import load
 from os import path as osPath
 
 from js import document  # type: ignore
-
 from WebKit import CSS
 
 
