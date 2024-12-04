@@ -330,7 +330,7 @@ func setEventsControls() error {
 		return err
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		HTTP.Send(callback, "sonos", "position", "-1")
+		HTTP.Send(callback, "sonos", "previous")
 	})
 
 	el, err = DOM.GetElement("sonos_actions_play")
@@ -350,7 +350,7 @@ func setEventsControls() error {
 		return err
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
-		HTTP.Send(callback, "sonos", "position", "+1")
+		HTTP.Send(callback, "sonos", "next")
 	})
 
 	el, err = DOM.GetElement("sonos_actions_repeat")
@@ -513,6 +513,15 @@ func updateQue() error {
 		return err
 	}
 
+	el, err := DOM.GetElement("sonos_que")
+	if err != nil {
+		return err
+	}
+	if quePos == -1 {
+		el.StyleSet("display", "none")
+		return nil
+	}
+
 	tracks := ""
 	for i, track := range queInfo.Tracks {
 		imgMargin := "-4px 5px -4px 0px"
@@ -585,10 +594,7 @@ func updateQue() error {
 		}.String()
 	}
 
-	el, err := DOM.GetElement("sonos_que")
-	if err != nil {
-		return err
-	}
+	el.StyleSet("display", "flex")
 	el.InnerSet(tracks)
 
 	els, err := DOM.GetElements("sonos_que_tracks")
@@ -631,8 +637,6 @@ func updateQue() error {
 }
 
 func updatedSelectedQueTrack(oldTrackPos string, newTrackPos string) error {
-	fmt.Println("Pos index: " + oldTrackPos + " -> " + newTrackPos)
-
 	el, err := DOM.GetElement("sonos_que_track_" + oldTrackPos + "_img")
 	if err != nil {
 		return err
@@ -696,8 +700,6 @@ func updatedSelectedQueTrack(oldTrackPos string, newTrackPos string) error {
 	el.StyleSet("background", "#333")
 	el.El.Call("scrollIntoView", map[string]any{"inline": "start"})
 
-	fmt.Println("done")
-
 	return nil
 }
 
@@ -741,19 +743,19 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 	}
 
 	oldSyncInfo := syncInfo
-
 	err := json.Unmarshal(resBytes, &syncInfo)
 	if err != nil {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
-	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount || syncInfo.Shuffle != oldSyncInfo.Shuffle {
+	if syncInfo.Track.Title != oldSyncInfo.Track.Title || syncInfo.Track.Creator != oldSyncInfo.Track.Creator {
 		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
-		HTTP.Send(queCallback, "sonos", "que")
+	}
 
+	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount || syncInfo.Shuffle != oldSyncInfo.Shuffle {
+		HTTP.Send(queCallback, "sonos", "que")
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
-		HTTP.Send(ytqueryCallback, "sonos", "yt", syncInfo.Track.Title+" - "+syncInfo.Track.Creator)
 		if err := updatedSelectedQueTrack(oldSyncInfo.Track.QuePosition, syncInfo.Track.QuePosition); err != nil {
 			return
 		}
