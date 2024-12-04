@@ -63,7 +63,7 @@ var (
 				"  position [0:X|+X|-X]\r\n    Control que position.\r\n" +
 				"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
 				"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
-				"  que\r\n    Get current que.\r\n" +
+				"  que\r\n    Get current que.\r\n" + // TODO: Warn or fix when using Spotify room connect
 				"  add [track]\r\n    Add track to que.\r\n" + // TODO: Broken
 				"  remove [index]\r\n    Remove track from que.\r\n" +
 				"  clear\r\n    Clear que.\r\n" +
@@ -602,7 +602,7 @@ func next() (out []byte, contentType string, errCode int, err error) {
 }
 
 func previous() (out []byte, contentType string, errCode int, err error) {
-	if err := zp.Next(); err != nil {
+	if err := zp.Previous(); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 

@@ -369,9 +369,19 @@ func setEventsControls() error {
 }
 
 func updateControls() error {
+	quePos, err := strconv.Atoi(syncInfo.Track.QuePosition)
+	if err != nil {
+		return err
+	}
+
 	el, err := DOM.GetElement("sonos_actions_shuffle")
 	if err != nil {
 		return err
+	}
+	if quePos < 0 {
+		el.StyleSet("display", "none")
+	} else {
+		el.StyleSet("display", "")
 	}
 
 	if syncInfo.Shuffle {
@@ -403,6 +413,11 @@ func updateControls() error {
 	el, err = DOM.GetElement("sonos_actions_repeat")
 	if err != nil {
 		return err
+	}
+	if quePos < 0 {
+		el.StyleSet("display", "none")
+	} else {
+		el.StyleSet("display", "")
 	}
 
 	if syncInfo.Repeat {
@@ -517,7 +532,7 @@ func updateQue() error {
 	if err != nil {
 		return err
 	}
-	if quePos == -1 {
+	if quePos < 0 {
 		el.StyleSet("display", "none")
 		return nil
 	}
