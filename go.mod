@@ -1,3 +1,3 @@
 module HandyGold75
 
-go 1.23.1
+go 1.23.3
