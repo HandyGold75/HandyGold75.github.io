@@ -54,13 +54,15 @@ var (
 			RequiredAuthLevel: Auth.AuthMap["user"],
 			RequiredRoles:     []string{"Home"},
 			Description:       "Sonos interface.",
-			DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|play|mute|volume|seek|position|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
+			DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
 				"  track\r\n    Get current track.\r\n" +
 				"  play [0|1]\r\n    Play or pause track.\r\n" +
 				"  mute [0|1]\r\n    Mute or unmute media.\r\n" +
 				"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
 				"  seek [0:X|+X|-X]\r\n    Control track progress.\r\n" +
 				"  position [0:X|+X|-X]\r\n    Control que position.\r\n" +
+				"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
+				"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
 				"  que\r\n    Get current que.\r\n" +
 				"  add [track]\r\n    Add track to que.\r\n" + // TODO: Broken
 				"  remove [index]\r\n    Remove track from que.\r\n" +
@@ -70,9 +72,9 @@ var (
 				"  loudness [0|1|get]\r\n    Get or set loudness.\r\n" +
 				"  led [0|1|get]\r\n    Get or set speaker led.\r\n" +
 				"  playername [name]?\r\n    Get or set speaker led.\r\n" +
-				"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" +
-				"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" +
-				"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" +
+				"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" + // TODO: Warn or fix when using Spotify room connect
+				"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" + // TODO: Warn or fix when using Spotify room connect
+				"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" + // TODO: Warn or fix when using Spotify room connect
 				"  favorites\r\n    Get current favorites.\r\n" +
 				"  radioshows\r\n    Get current radioshows.\r\n" +
 				"  radiostations\r\n    Get current radiostations.\r\n" +
@@ -80,7 +82,7 @@ var (
 				"  yt [query]\r\n    Get query from yt.\r\n" +
 				"  uri [uri]\r\n    Get base64 from album art uri.\r\n",
 			ExampleDescription: "play",
-			AutoComplete:       []string{"track", "play", "mute", "volume", "seek", "position", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
+			AutoComplete:       []string{"track", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
 			ArgsLen:            [2]int{1, 5},
 			Function:           SonosInterface,
 		},
@@ -182,6 +184,20 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		}
 
 		return position(args[1])
+
+	case "next":
+		if len(args) != 1 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos next requires 0 argument")
+		}
+
+		return next()
+
+	case "previous":
+		if len(args) != 1 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos previous requires 0 argument")
+		}
+
+		return previous()
 
 	case "add":
 		return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken")
@@ -422,7 +438,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 	default:
 	}
 
-	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, play, mute, volume, seek, position, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
+	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
 }
 
 func play(state bool) (out []byte, contentType string, errCode int, err error) {
@@ -562,6 +578,32 @@ func position(index string) (out []byte, contentType string, errCode int, err er
 		if err := zp.PlayFromQue(newIndex); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
+	}
+
+	trackInfo, err := zp.GetTrackInfo()
+	if err != nil {
+		return []byte{}, "", http.StatusBadRequest, err
+	}
+
+	return []byte(trackInfo.QuePosition), "text/plain", http.StatusOK, nil
+}
+
+func next() (out []byte, contentType string, errCode int, err error) {
+	if err := zp.Next(); err != nil {
+		return []byte{}, "", http.StatusBadRequest, err
+	}
+
+	trackInfo, err := zp.GetTrackInfo()
+	if err != nil {
+		return []byte{}, "", http.StatusBadRequest, err
+	}
+
+	return []byte(trackInfo.QuePosition), "text/plain", http.StatusOK, nil
+}
+
+func previous() (out []byte, contentType string, errCode int, err error) {
+	if err := zp.Next(); err != nil {
+		return []byte{}, "", http.StatusBadRequest, err
 	}
 
 	trackInfo, err := zp.GetTrackInfo()
