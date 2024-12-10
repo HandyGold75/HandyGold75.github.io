@@ -378,7 +378,7 @@ func updateControls() error {
 	if err != nil {
 		return err
 	}
-	if quePos < 0 {
+	if quePos < 1 {
 		el.StyleSet("display", "none")
 	} else {
 		el.StyleSet("display", "")
@@ -414,7 +414,7 @@ func updateControls() error {
 	if err != nil {
 		return err
 	}
-	if quePos < 0 {
+	if quePos < 1 {
 		el.StyleSet("display", "none")
 	} else {
 		el.StyleSet("display", "")
@@ -532,7 +532,7 @@ func updateQue() error {
 	if err != nil {
 		return err
 	}
-	if quePos < 0 {
+	if quePos < 1 {
 		el.StyleSet("display", "none")
 		return nil
 	}
@@ -543,12 +543,13 @@ func updateQue() error {
 		if i == 0 {
 			imgMargin = "-4px 5px -4px -4px"
 		}
+		pos := strconv.Itoa(i + 1)
 
 		imgBorder := "4px solid #111"
 		imgBorderRadius := "10px"
 		textColor := "#55F"
 		divBackground := "#202020"
-		if i == quePos {
+		if i+1 == quePos {
 			imgBorder = "4px solid #f7e163"
 			imgBorderRadius = "0px"
 			textColor = "#f7e163"
@@ -556,7 +557,7 @@ func updateQue() error {
 		}
 
 		img := HTML.HTML{Tag: "img",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_img", "src": "./docs/assets/General/Load.svg"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_img", "src": "./docs/assets/General/Load.svg"},
 			Styles: map[string]string{
 				"width":         "3.5em",
 				"height":        "3.5em",
@@ -567,7 +568,7 @@ func updateQue() error {
 		}.String()
 
 		title := HTML.HTML{Tag: "p",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_title"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_title"},
 			Styles: map[string]string{
 				"color":         textColor,
 				"text-overflow": "ellipsis",
@@ -576,7 +577,7 @@ func updateQue() error {
 			Inner: track.Title,
 		}.String()
 		creator := HTML.HTML{Tag: "p",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_creator"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_creator"},
 			Styles: map[string]string{
 				"color":         textColor,
 				"text-overflow": "ellipsis",
@@ -585,7 +586,7 @@ func updateQue() error {
 			},
 			Inner: track.Creator}.String()
 		div := HTML.HTML{Tag: "div",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i) + "_div"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_div"},
 			Styles: map[string]string{
 				"margin":     "auto 5px auto auto",
 				"padding":    "0px",
@@ -595,7 +596,7 @@ func updateQue() error {
 		}.String()
 
 		tracks += HTML.HTML{Tag: "div",
-			Attributes: map[string]string{"id": "sonos_que_track_" + strconv.Itoa(i), "class": "sonos_que_tracks"},
+			Attributes: map[string]string{"id": "sonos_que_track_" + pos, "class": "sonos_que_tracks"},
 			Styles: map[string]string{
 				"display":       "flex",
 				"max-width":     "20%",
@@ -623,7 +624,7 @@ func updateQue() error {
 
 	toAddImgs = [][]string{}
 	for i, track := range queInfo.Tracks {
-		toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i) + "_img", track.AlbumArtURI})
+		toAddImgs = append(toAddImgs, []string{"sonos_que_track_" + strconv.Itoa(i+1) + "_img", track.AlbumArtURI})
 	}
 
 	if len(toAddImgs) > 0 {
@@ -777,12 +778,15 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 	}
 
 	if err := updateTimeline(); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	if err := updateControls(); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 	if err := updateVolume(); err != nil {
+		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
 
@@ -807,15 +811,14 @@ func ytqueryCallback(res string, resBytes []byte, resErr error) {
 }
 
 func queCallback(res string, resBytes []byte, resErr error) {
-	if resErr != nil {
-		Widget.PopupAlert("Error", resErr.Error(), func() {})
-		return
-	}
-
-	err := json.Unmarshal(resBytes, &queInfo)
-	if err != nil {
-		Widget.PopupAlert("Error", err.Error(), func() {})
-		return
+	if resErr != nil { // Assume no que; for cases when 3th party apps have control of que
+		queInfo = QueInfo{Count: "0", TotalCount: "0", Tracks: []QueTrack{}}
+	} else {
+		err := json.Unmarshal(resBytes, &queInfo)
+		if err != nil {
+			Widget.PopupAlert("Error", err.Error(), func() {})
+			return
+		}
 	}
 
 	JS.DBNew(func(db JS.DB, dbErr error) {
