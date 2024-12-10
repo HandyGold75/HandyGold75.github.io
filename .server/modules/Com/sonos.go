@@ -1,7 +1,6 @@
 package Com
 
 import (
-	"HG75/lib/Gonos"
 	"HG75/modules/Auth"
 	"encoding/base64"
 	"encoding/json"
@@ -60,10 +59,10 @@ var (
 				"  mute [0|1]\r\n    Mute or unmute media.\r\n" +
 				"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
 				"  seek [0:X|+X|-X]\r\n    Control track progress.\r\n" +
-				"  position [0:X|+X|-X]\r\n    Control que position.\r\n" +
+				"  position [1:X|+X|-X]\r\n    Control que position.\r\n" +
 				"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
 				"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
-				"  que\r\n    Get current que.\r\n" + // TODO: Warn or fix when using Spotify room connect
+				"  que\r\n    Get current que.\r\n" +
 				"  add [track]\r\n    Add track to que.\r\n" + // TODO: Broken
 				"  remove [index]\r\n    Remove track from que.\r\n" +
 				"  clear\r\n    Clear que.\r\n" +
@@ -72,9 +71,9 @@ var (
 				"  loudness [0|1|get]\r\n    Get or set loudness.\r\n" +
 				"  led [0|1|get]\r\n    Get or set speaker led.\r\n" +
 				"  playername [name]?\r\n    Get or set speaker led.\r\n" +
-				"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" + // TODO: Warn or fix when using Spotify room connect
-				"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" + // TODO: Warn or fix when using Spotify room connect
-				"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" + // TODO: Warn or fix when using Spotify room connect
+				"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" +
+				"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" +
+				"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" +
 				"  favorites\r\n    Get current favorites.\r\n" +
 				"  radioshows\r\n    Get current radioshows.\r\n" +
 				"  radiostations\r\n    Get current radiostations.\r\n" +
@@ -819,12 +818,8 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
-	quePos, err := strconv.Atoi(trackInfoRaw.Track)
-	if err != nil {
-		return []byte{}, "", http.StatusBadRequest, err
-	}
 	trackInfo := TrackInfoMinimal{
-		QuePosition: strconv.Itoa(quePos - 1),
+		QuePosition: trackInfoRaw.Track,
 		Duration:    trackInfoRaw.TrackDuration,
 		Progress:    trackInfoRaw.RelTime,
 		Title:       trackMetaDataItem.Title,
@@ -833,8 +828,8 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 	}
 
 	queInfoRaw, err := zp.GetQueInfoRaw(0, 0)
-	if err != nil {
-		return []byte{}, "", http.StatusBadRequest, err
+	if err != nil { // Assume no que; for cases when 3th party apps have control of que
+		queInfoRaw.NumberReturned, queInfoRaw.TotalMatches = "0", "0"
 	}
 	queInfo := QueInfoMinimal{
 		Count:      queInfoRaw.NumberReturned,
@@ -846,13 +841,9 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	mode, err := zp.GetPlayMode()
+	shuffle, repeat, _, err := zp.GetPlayMode()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
-	}
-	modeBools, ok := Gonos.PLAYMODES[mode]
-	if !ok {
-		return []byte{}, "", http.StatusBadRequest, Gonos.ErrSonos.ErrUnexpectedResponse
 	}
 
 	curVol, err := zp.GetVolume()
@@ -864,8 +855,8 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 		Track:   trackInfo,
 		Que:     queInfo,
 		Playing: playing,
-		Shuffle: modeBools[0],
-		Repeat:  modeBools[1],
+		Shuffle: shuffle,
+		Repeat:  repeat,
 		Volume:  curVol,
 	})
 	if err != nil {
