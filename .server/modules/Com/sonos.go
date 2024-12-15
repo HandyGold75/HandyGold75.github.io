@@ -53,19 +53,17 @@ var (
 			RequiredAuthLevel: Auth.AuthMap["user"],
 			RequiredRoles:     []string{"Home"},
 			Description:       "Sonos interface.",
-			DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
+			DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|state|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
 				"  track\r\n    Get current track.\r\n" +
-				"  play [0|1]\r\n    Play or pause track.\r\n" +
-				"  mute [0|1]\r\n    Mute or unmute media.\r\n" +
+				"  state [get|stop]?\r\n    Get or stop state.\r\n" +
+				"  play [0|1|get]\r\n    Get or set play state.\r\n" +
+				"  mute [0|1|get]\r\n    Get or set mute state.\r\n" +
 				"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
 				"  seek [0:X|+X|-X]\r\n    Control track progress.\r\n" +
 				"  position [1:X|+X|-X]\r\n    Control que position.\r\n" +
 				"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
 				"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
-				"  que\r\n    Get current que.\r\n" +
-				"  add [track]\r\n    Add track to que.\r\n" + // TODO: Broken
-				"  remove [index]\r\n    Remove track from que.\r\n" +
-				"  clear\r\n    Clear que.\r\n" +
+				"  que [get|add|remove|clear] [track|index]?\r\n    Get, set, remove or clear que.\r\n" +
 				"  bass [0:10|+X|-X|get]\r\n    Get, set or change bass.\r\n" +
 				"  treble [0:10|+X|-X|get]\r\n    Get, set or change treble.\r\n" +
 				"  loudness [0|1|get]\r\n    Get or set loudness.\r\n" +
@@ -81,7 +79,7 @@ var (
 				"  yt [query]\r\n    Get query from yt.\r\n" +
 				"  uri [uri]\r\n    Get base64 from album art uri.\r\n",
 			ExampleDescription: "play",
-			AutoComplete:       []string{"track", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
+			AutoComplete:       []string{"track", "state", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
 			ArgsLen:            [2]int{1, 5},
 			Function:           SonosInterface,
 		},
@@ -111,6 +109,23 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 
 		return jsonBytes, "application/json", http.StatusOK, nil
 
+	case "state":
+		if len(args) != 2 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos state requires 1 argument")
+		}
+
+		if args[1] == "get" {
+			return state()
+		} else if args[1] == "stop" {
+			err := zp.Stop()
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+			return state()
+		}
+
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos state state should be get or stop")
+
 	case "play":
 		if len(args) != 2 {
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos play requires 1 argument")
@@ -120,9 +135,15 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return play(false)
 		} else if args[1] == "1" {
 			return play(true)
+		} else if args[1] == "get" {
+			curState, err := zp.GetPlay()
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos play state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos play state should be 0, 1 or get")
 
 	case "mute":
 		if len(args) != 2 {
@@ -133,9 +154,16 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return mute(false)
 		} else if args[1] == "1" {
 			return mute(true)
+		} else if args[1] == "get" {
+			curState, err := zp.GetMute()
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+
+			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos mute state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos mute state should be 0, 1 or get")
 
 	case "volume":
 		if len(args) != 2 {
@@ -161,21 +189,46 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		return seek(args[1])
 
 	case "que":
-		if len(args) != 1 {
-			return []byte{}, "", http.StatusBadRequest, errors.New("sonos que requires 0 argument")
+		if len(args) != 2 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos que requires 1 argument")
 		}
 
-		queInfo, err := zp.GetQueInfo()
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
+		if args[1] == "get" {
+			queInfo, err := zp.GetQueInfo()
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+
+			jsonBytes, err := json.Marshal(queInfo)
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+
+			return jsonBytes, "application/json", http.StatusOK, nil
+
+		} else if args[1] == "add" {
+			if len(args) != 3 {
+				return []byte{}, "", http.StatusBadRequest, errors.New("sonos que requires 1 argument")
+			}
+
+			return add(args[2])
+
+		} else if args[1] == "remove" {
+			if len(args) != 3 {
+				return []byte{}, "", http.StatusBadRequest, errors.New("sonos remove requires 1 argument")
+			}
+
+			return remove(args[2])
+
+		} else if args[1] == "clear" {
+			if len(args) != 1 {
+				return []byte{}, "", http.StatusBadRequest, errors.New("sonos clear requires 0 argument")
+			}
+
+			return clearq()
 		}
 
-		jsonBytes, err := json.Marshal(queInfo)
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
-
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos play state should be get, add, remove or clear")
 
 	case "position":
 		if len(args) != 2 {
@@ -197,29 +250,6 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		}
 
 		return previous()
-
-	case "add":
-		return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken")
-
-		// if len(args) != 2 {
-		// 	return []byte{}, "", http.StatusBadRequest, errors.New("sonos remove requires 1 argument")
-		// }
-
-		// return add(args[1])
-
-	case "remove":
-		if len(args) != 2 {
-			return []byte{}, "", http.StatusBadRequest, errors.New("sonos remove requires 1 argument")
-		}
-
-		return remove(args[1])
-
-	case "clear":
-		if len(args) != 1 {
-			return []byte{}, "", http.StatusBadRequest, errors.New("sonos clear requires 0 argument")
-		}
-
-		return clear()
 
 	case "bass":
 		if len(args) != 2 {
@@ -258,6 +288,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos loudness requires 1 argument")
 		}
 
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos play state should be 0, 1 or get")
 		if args[1] == "0" {
 			return loudness(false)
 		} else if args[1] == "1" {
@@ -271,7 +302,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos loudness state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos loudness state should be 0, 1 or get")
 
 	case "led":
 		if len(args) != 2 {
@@ -291,7 +322,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos led state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos led state should be 0, 1 or get")
 
 	case "playername":
 		if len(args) == 1 {
@@ -320,7 +351,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos shuffle state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos shuffle state should be 0, 1 or get")
 
 	case "repeat":
 		if len(args) != 2 {
@@ -340,7 +371,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos repeat state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos repeat state should be 0, 1 or get")
 
 	case "repeatone":
 		if len(args) != 2 {
@@ -360,7 +391,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos repeatone state should be 0 or 1")
+		return []byte{}, "", http.StatusBadRequest, errors.New("sonos repeatone state should be 0, 1 or get")
 
 	case "favorites":
 		if len(args) != 1 {
@@ -437,7 +468,16 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 	default:
 	}
 
-	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
+	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, state, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
+}
+
+func state() (out []byte, contentType string, errCode int, err error) {
+	curState, err := zp.GetState()
+	if err != nil {
+		return []byte{}, "", http.StatusBadRequest, err
+	}
+
+	return []byte(curState), "text/plain", http.StatusOK, nil
 }
 
 func play(state bool) (out []byte, contentType string, errCode int, err error) {
@@ -451,20 +491,19 @@ func play(state bool) (out []byte, contentType string, errCode int, err error) {
 		}
 	}
 
-	curState := false
 	for i := 0; i < 10; i++ {
-		curState, err = zp.GetState()
+		curState, err := zp.GetState()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		if curState {
-			break
+		if curState == "TRANSITIONING" {
+			time.Sleep(time.Millisecond * time.Duration(max(50, 600-(i*200))))
+			continue
 		}
-
-		time.Sleep(time.Millisecond * time.Duration(100))
+		return []byte(strconv.FormatBool(curState == "PLAYING")), "text/plain", http.StatusOK, nil
 	}
 
-	return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
+	return []byte("false"), "text/plain", http.StatusOK, nil
 }
 
 func mute(state bool) (out []byte, contentType string, errCode int, err error) {
@@ -614,6 +653,8 @@ func previous() (out []byte, contentType string, errCode int, err error) {
 }
 
 func add(uri string) (out []byte, contentType string, errCode int, err error) {
+	return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken")
+
 	if strings.HasPrefix(uri, "https://open.spotify.com/") {
 		uri_args := strings.Replace(uri, "https://open.spotify.com/", "", 1)
 		id_type := strings.Split(uri_args, "/")[0]
@@ -657,7 +698,7 @@ func remove(index string) (out []byte, contentType string, errCode int, err erro
 	return []byte(queInfo.TotalCount), "text/plain", http.StatusOK, nil
 }
 
-func clear() (out []byte, contentType string, errCode int, err error) {
+func clearq() (out []byte, contentType string, errCode int, err error) {
 	if err := zp.ClearQue(); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
@@ -836,7 +877,7 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 		TotalCount: queInfoRaw.TotalMatches,
 	}
 
-	playing, err := zp.GetState()
+	playing, err := zp.GetPlay()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}

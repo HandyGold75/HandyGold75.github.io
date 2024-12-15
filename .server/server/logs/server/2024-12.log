@@ -1,0 +1,424 @@
+2024-12-15T16:09:04.616990966+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:09:04.61721403+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:09:04.617248161+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:09:04.617310095+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:09:04.617330922+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:09:04.617384773+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:09:04.617404874+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:09:04.617461283+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:09:04.61748619+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:09:13.349878542+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos requires at least 1 argument<EOR>
+2024-12-15T16:09:16.234636829+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos play requires 1 argument<EOR>
+2024-12-15T16:09:18.043940689+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>Post "http://:1400/MediaRenderer/AVTransport/Control": dial tcp :1400: connect: connection refused<EOR>
+2024-12-15T16:09:31.404936869+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:09:33.406574246+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:10:11.152296584+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:10:11.152447536+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:10:11.152494646+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:10:11.152557743+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:10:11.152585628+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:10:11.152645433+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:10:11.152667831+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:10:11.152716517+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:10:11.152742801+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:10:15.126027876+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:10:31.367208495+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:10:34.418326653+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:10:58.076015998+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:13:58.38953547+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:14:00.391582804+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:14:13.488063125+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:14:13.488212758+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:14:13.488259437+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:14:13.488329229+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:14:13.488354169+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:14:13.4884046+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:14:13.488430968+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:14:13.488497095+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:14:13.488518392+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:14:16.713487115+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:14:26.507011824+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:14:28.509152971+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:15:12.139017484+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:15:12.139213771+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:12.139246396+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:15:12.139306256+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:12.139337257+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:15:12.139391476+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:12.13941217+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:15:12.139463544+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:12.139492687+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:15:14.697427097+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:15:16.69914707+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:15:18.082410997+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:15:18.082583447+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:18.082623939+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:15:18.082699857+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:18.082720977+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:15:18.082782574+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:18.082803241+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:15:18.082857353+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:18.082877776+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:15:20.872140302+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:15:22.873716768+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:15:24.310395798+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:15:24.310618188+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:24.310664718+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:15:24.310774511+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:24.31080382+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:15:24.310883099+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:24.310909188+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:15:24.310989482+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:15:24.311017734+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:15:27.441140037+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:16:54.263241903+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:16:56.265126695+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:16:57.653144425+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:16:57.653366158+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:16:57.653413139+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:16:57.653513552+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:16:57.65355212+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:16:57.653639644+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:16:57.653669114+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:16:57.653748635+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:16:57.653781434+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:18:44.303028696+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:18:46.304398159+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:18:51.94613594+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:18:51.946292783+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:18:51.946341892+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:18:51.946408977+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:18:51.94643129+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:18:51.946491311+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:18:51.946516394+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:18:51.946572929+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:18:51.946591848+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:18:53.465031583+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:18:55.466715514+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:19:07.375924555+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:19:07.376072373+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:19:07.37610961+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:19:07.376179474+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:19:07.376215296+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:19:07.376291559+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:19:07.376322455+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:19:07.376406198+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:19:07.376442116+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:19:24.198983948+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:22:17.372782797+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos operation should be track, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri<EOR>
+2024-12-15T16:22:21.436831866+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T16:37:44.236323473+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:37:46.23842523+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:37:54.776706471+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:37:54.776943108+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:37:54.777005033+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:37:54.777102825+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:37:54.77713223+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:37:54.777207207+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:37:54.777239147+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:37:54.777316476+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:37:54.777344122+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:37:57.208755698+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos operation should be track, state, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri<EOR>
+2024-12-15T16:39:15.188647485+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:39:17.189545247+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:39:17.815027891+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:39:17.815184857+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:39:17.815221436+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:39:17.815285206+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:39:17.8153038+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:39:17.815370112+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:39:17.81539907+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:39:17.81548221+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:39:17.815511213+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:39:31.814599521+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos operation should be track, state, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri<EOR>
+2024-12-15T16:54:10.597079243+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:54:12.59842509+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:55:12.834947932+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:55:12.835204248+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:12.83525077+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:55:12.83534007+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:12.835367806+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:55:12.835451689+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:12.835483568+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:55:12.83556239+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:12.835589931+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:55:21.194904582+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:55:23.19619587+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:55:25.943639267+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:55:25.943802161+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:25.943845983+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:55:25.9439151+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:25.943935357+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:55:25.943990847+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:25.944015267+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:55:25.944070084+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:55:25.944090323+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:58:16.210541655+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:58:18.212603289+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:58:25.048537612+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:58:25.048701223+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:25.04873391+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:58:25.048793258+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:25.048902216+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:58:25.048992265+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:25.049018261+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:58:25.049071885+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:25.049098015+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:58:39.30717254+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:58:41.309386678+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:58:49.008486049+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:58:49.008713818+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:49.008768328+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:58:49.00885444+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:49.008884584+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:58:49.008967195+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:49.009000701+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:58:49.009079588+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:58:49.009107153+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T16:59:44.75523005+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T16:59:46.756666501+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T16:59:47.677323553+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T16:59:47.677499292+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:59:47.677527237+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T16:59:47.677573649+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:59:47.677600478+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T16:59:47.677643402+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:59:47.677658863+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T16:59:47.677706498+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T16:59:47.677726513+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:00:28.563887535+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:00:30.565236168+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:00:32.03917366+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:00:32.039387035+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:00:32.039443558+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:00:32.03954223+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:00:32.039571455+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:00:32.039648313+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:00:32.039681406+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:00:32.039761678+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:00:32.03978953+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:01:12.905821861+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:01:14.907703108+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:01:20.550570366+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:01:20.550762528+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:01:20.550804387+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:01:20.550893767+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:01:20.550932095+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:01:20.551011064+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:01:20.551042467+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:01:20.551121901+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:01:20.551154195+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:02:15.024104769+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:02:17.025740947+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:02:18.368582844+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:02:18.368746009+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:02:18.36879849+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:02:18.368874233+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:02:18.368892134+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:02:18.368944861+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:02:18.368965896+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:02:18.369013724+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:02:18.36903069+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:03:08.054730684+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:03:10.056184258+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:03:11.628172266+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:03:11.62833892+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:03:11.628379245+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:03:11.628455627+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:03:11.628492027+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:03:11.628552663+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:03:11.628574317+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:03:11.628634762+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:03:11.628659695+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:04:00.657684209+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:04:02.657981844+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:04:05.048721296+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:04:05.048884037+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:04:05.048930128+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:04:05.048999418+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:04:05.049059683+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:04:05.049150063+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:04:05.049179139+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:04:05.04923063+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:04:05.049248014+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:05:37.305122871+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:05:39.306455463+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:05:41.900421858+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:05:41.90060734+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:05:41.900640415+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:05:41.90072296+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:05:41.900745117+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:05:41.900798366+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:05:41.900818551+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:05:41.900876234+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:05:41.900897489+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:06:20.045025113+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:06:22.046551608+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:06:23.001231525+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:06:23.001387641+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:06:23.00142633+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:06:23.00151484+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:06:23.001538678+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:06:23.001594884+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:06:23.001612791+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:06:23.001665397+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:06:23.001682115+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:07:15.271199418+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:07:17.273120687+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:07:18.563108226+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:07:18.563259315+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:07:18.563300736+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:07:18.56338518+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:07:18.563408299+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:07:18.563463251+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:07:18.563488118+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:07:18.56355543+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:07:18.563576765+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:08:36.17307688+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:08:38.174781565+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:08:40.980776742+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:08:40.98096498+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:08:40.981003128+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:08:40.981091889+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:08:40.981122524+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:08:40.981209123+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:08:40.981239595+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:08:40.981317283+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:08:40.981346564+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:09:37.575008242+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:09:39.576963855+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:09:42.446454372+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:09:42.446620183+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:42.446660263+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:09:42.446735528+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:42.446755855+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:09:42.446810306+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:42.446830286+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:09:42.446886593+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:42.446906022+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:09:50.71714267+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:09:52.719120548+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:09:53.998913547+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:09:53.999055845+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:53.999090153+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:09:53.999147473+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:53.999174189+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:09:53.99924815+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:53.999277414+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:09:53.999354963+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:09:53.999387292+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:09:55.976329042+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:09:57.978497331+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:10:00.125779151+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:10:00.125983052+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:10:00.126041792+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:10:00.126128779+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:10:00.126157238+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:10:00.126230305+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:10:00.126262807+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:10:00.126346195+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:10:00.126374969+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:11:32.686289646+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:11:34.687601901+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:11:36.954324439+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:11:36.954491905+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:11:36.954523103+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:11:36.954577982+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:11:36.95460763+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:11:36.954654178+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:11:36.954670809+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:11:36.95471841+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:11:36.954739653+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:12:12.029047081+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:12:14.030816021+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:12:20.877082032+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:12:20.877266521+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:12:20.877319306+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:12:20.877392353+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:12:20.877411184+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:12:20.877454587+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:12:20.877490738+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:12:20.877550529+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:12:20.877571619+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:13:41.697322629+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:13:43.699410875+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:13:57.46486876+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:13:57.465024386+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:13:57.465065756+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:13:57.465141646+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:13:57.465185842+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:13:57.465240448+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:13:57.465261141+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:13:57.465318484+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:13:57.465343064+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:15:10.611973427+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:15:12.613256171+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:15:13.927581565+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:15:13.927742995+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:15:13.927790178+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:15:13.927854659+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:15:13.927879361+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:15:13.927937903+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:15:13.927963635+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:15:13.928018304+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:15:13.928038954+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:15:56.050872619+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:15:58.052538558+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:16:08.158888466+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:16:08.159038057+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:16:08.159077755+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:16:08.159145922+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:16:08.159183841+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:16:08.159238405+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:16:08.159259526+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:16:08.159313957+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:16:08.159338708+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:17:19.195790802+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:17:21.197230028+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:17:29.545736612+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:17:29.545937981+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:17:29.545990103+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:17:29.546061374+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:17:29.546084081+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:17:29.546138066+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:17:29.546164071+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:17:29.546219371+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:17:29.546240158+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:18:43.66061595+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>sonos play state should be 0, 1 or get<EOR>
+2024-12-15T17:22:07.763177077+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:22:09.76449043+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:22:12.28062485+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:22:12.280794993+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:22:12.280844349+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:22:12.280922873+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:22:12.280942416+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:22:12.280987308+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:22:12.281010238+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:22:12.281057633+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:22:12.281075137+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:22:13.339536391+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T17:26:15.491816292+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:26:17.493768523+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:26:25.464154957+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:26:25.464357158+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:26:25.464386784+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:26:25.464438784+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:26:25.464475492+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:26:25.464541903+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:26:25.464563791+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:26:25.464616172+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:26:25.464641328+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T17:26:29.195517506+01:00<SEP>warning<SEP>CLI<SEP>Failed<SEP>unexpected response<EOR>
+2024-12-15T17:52:51.25673465+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T17:52:53.258269842+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>
+2024-12-15T17:52:58.306277064+01:00<SEP>info<SEP>Server<SEP>Starting<SEP><EOR>
+2024-12-15T17:52:58.306426352+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:52:58.306482388+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 1<EOR>
+2024-12-15T17:52:58.306550111+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:52:58.30664521+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 2<EOR>
+2024-12-15T17:52:58.306757575+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:52:58.306782427+01:00<SEP>warning<SEP>HTTPS<SEP>Restarting<SEP>Attempt 3<EOR>
+2024-12-15T17:52:58.306835726+01:00<SEP>error<SEP>HTTPS<SEP>Failed<SEP>/etc/letsencrypt/live/https.handygold75.com/fullchain.pem was not found or is a directory<EOR>
+2024-12-15T17:52:58.306853375+01:00<SEP>info<SEP>HTTPS<SEP>Abort Restart<SEP>Restarted 3 time within a minute!<EOR>
+2024-12-15T18:02:30.276778544+01:00<SEP>high<SEP>Owner<SEP>Executing<SEP>exit []<EOR>
+2024-12-15T18:02:32.27849757+01:00<SEP>info<SEP>Server<SEP>Stopping<SEP><EOR>

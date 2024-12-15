@@ -15,6 +15,7 @@ type (
 
 	errSonos struct {
 		ErrUnexpectedResponse error
+		ErrInvalidEndpoint    error
 		ErrInvalidPlayMode    error
 	}
 
@@ -25,12 +26,20 @@ type (
 
 var ErrSonos = errSonos{
 	ErrUnexpectedResponse: errors.New("unexpected response"),
+	ErrInvalidEndpoint:    errors.New("invalid endpoint"),
 	ErrInvalidPlayMode:    errors.New("invalid play mode"),
 }
 
 // Endpoints
 
-const EP_Transport = `/MediaRenderer/AVTransport/Control`
+var Endpoints = map[string]string{
+	"AVTransport":      `/MediaRenderer/AVTransport/Control`,
+	"RenderingControl": `/MediaRenderer/RenderingControl/Control`,
+	"DeviceProperties": `/DeviceProperties/Control`,
+	"ContentDirectory": `/MediaServer/ContentDirectory/Control`,
+}
+
+// const EP_Transport = `/MediaRenderer/AVTransport/Control`
 const EP_Rendering = `/MediaRenderer/RenderingControl/Control`
 const EP_Device = `/DeviceProperties/Control`
 const EP_Content = `/MediaServer/ContentDirectory/Control`
@@ -54,62 +63,80 @@ var PlaymodesReversed = func() map[[3]bool]string {
 	return PMS
 }()
 
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 // Create new ZonePlayer for controling a Sonos speaker.
 func NewZonePlayer(ipAddress string) *ZonePlayer {
 	return &ZonePlayer{IpAddress: ipAddress}
 }
 
 // Get current transport state.
-func (zp *ZonePlayer) GetState() (bool, error) {
-	state, err := zp.GetStateRaw()
-	return state == "PLAYING", err
+func (zp *ZonePlayer) GetState() (string, error) {
+	return zp.sendCommand("AVTransport", "GetTransportInfo", "", false, "CurrentTransportState") // TODO: Verify response
 }
 
-// Same as GetState but doesn't convert the state to bool.
-func (zp *ZonePlayer) GetStateRaw() (string, error) {
-	return zp.sendCommand(command{Endpoint: EP_Transport, Action: GET_CUR_TRANSPORT_ACTION, Body: GET_CUR_TRANSPORT_BODY, TargetTag: "CurrentTransportState"})
+// Same as GetState but converts to bool based on current state
+func (zp *ZonePlayer) GetPlay() (bool, error) {
+	state, err := zp.GetState()
+	return state == "PLAYING", err
 }
 
 // Start track.
 func (zp *ZonePlayer) Play() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PLAY_ACTION, Body: PLAY_BODY, ExpectedResponse: PLAY_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Play", "<Speed>1</Speed>", true, "")
 	return err
+}
+
+// Same as GetState but converts to bool based on current state
+func (zp *ZonePlayer) GetPause() (bool, error) {
+	state, err := zp.GetState()
+	return state == "PAUSED_PLAYBACK", err
 }
 
 // Pause track.
 func (zp *ZonePlayer) Pause() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PAUSE_ACTION, Body: PAUSE_BODY, ExpectedResponse: PAUSE_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Pause", "<Speed>1</Speed>", true, "")
 	return err
+}
+
+// Same as GetState but converts to bool based on current state
+func (zp *ZonePlayer) GetStop() (bool, error) {
+	state, err := zp.GetState()
+	return state == "STOPPED", err
 }
 
 // Reset track progress and pause.
 func (zp *ZonePlayer) Stop() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: STOP_ACTION, Body: STOP_BODY, ExpectedResponse: STOP_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Stop", "<Speed>1</Speed>", true, "")
 	return err
 }
 
 // Next track.
 func (zp *ZonePlayer) Next() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: NEXT_ACTION, Body: NEXT_BODY, ExpectedResponse: NEXT_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Next", "<Speed>1</Speed>", true, "")
 	return err
 }
 
 // Previous track.
 func (zp *ZonePlayer) Previous() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PREV_ACTION, Body: PREV_BODY, ExpectedResponse: PREV_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Previous", "<Speed>1</Speed>", true, "")
 	return err
 }
 
 // Set progress.
 func (zp *ZonePlayer) Seek(hours int, minutes int, seconds int) error {
-	res, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: SEEK_ACTION, Body: strings.Replace(SEEK_BODY_TEMPLATE, "{timestamp}", fmt.Sprintf("%v:%v:%v", hours, minutes, seconds), 1), ExpectedResponse: SEEK_RESPONSE})
-	fmt.Println(res)
+	_, err := zp.sendCommand("AVTransport", "Seek", "<Unit>REL_TIME</Unit><Target>"+fmt.Sprintf("%v:%v:%v", hours, minutes, seconds)+"</Target>", true, "")
 	return err
 }
 
 // Get current volume.
 func (zp *ZonePlayer) GetVolume() (int, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: GET_VOLUME_ACTION, Body: GET_VOLUME_BODY, TargetTag: "CurrentVolume"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: GET_VOLUME_ACTION, Body: GET_VOLUME_BODY, TargetTag: "CurrentVolume"})
 	if err != nil {
 		return 0, err
 	}
@@ -118,13 +145,13 @@ func (zp *ZonePlayer) GetVolume() (int, error) {
 
 // Set volume.
 func (zp *ZonePlayer) SetVolume(level int) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: SET_VOLUME_ACTION, Body: strings.Replace(SET_VOLUME_BODY_TEMPLATE, "{volume}", strconv.Itoa(max(0, min(100, level))), 1), ExpectedResponse: SET_VOLUME_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: SET_VOLUME_ACTION, Body: strings.Replace(SET_VOLUME_BODY_TEMPLATE, "{volume}", strconv.Itoa(max(0, min(100, level))), 1), ExpectedResponse: SET_VOLUME_RESPONSE})
 	return err
 }
 
 // Get current mute state.
 func (zp *ZonePlayer) GetMute() (bool, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: GET_MUTE_ACTION, Body: GET_MUTE_BODY, TargetTag: "CurrentMute"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: GET_MUTE_ACTION, Body: GET_MUTE_BODY, TargetTag: "CurrentMute"})
 	return res == "1", err
 }
 
@@ -136,13 +163,13 @@ func (zp *ZonePlayer) SetMute(state bool) error {
 	} else {
 		body = strings.Replace(SET_MUTE_BODY_TEMPLATE, "{mute}", "0", 1)
 	}
-	_, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: SET_MUTE_ACTION, Body: body, ExpectedResponse: SET_MUTE_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: SET_MUTE_ACTION, Body: body, ExpectedResponse: SET_MUTE_RESPONSE})
 	return err
 }
 
 // Get current bass.
 func (zp *ZonePlayer) GetBass() (int, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: GET_BASS_ACTION, Body: GET_BASS_BODY, TargetTag: "CurrentBass"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: GET_BASS_ACTION, Body: GET_BASS_BODY, TargetTag: "CurrentBass"})
 	if err != nil {
 		return 0, err
 	}
@@ -151,13 +178,13 @@ func (zp *ZonePlayer) GetBass() (int, error) {
 
 // Set bass.
 func (zp *ZonePlayer) SetBass(level int) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: SET_BASS_ACTION, Body: strings.Replace(SET_BASS_BODY_TEMPLATE, "{bass}", strconv.Itoa(max(-10, min(10, level))), 1), ExpectedResponse: SET_BASS_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: SET_BASS_ACTION, Body: strings.Replace(SET_BASS_BODY_TEMPLATE, "{bass}", strconv.Itoa(max(-10, min(10, level))), 1), ExpectedResponse: SET_BASS_RESPONSE})
 	return err
 }
 
 // Get current treble.
 func (zp *ZonePlayer) GetTreble() (int, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: GET_TREBLE_ACTION, Body: GET_TREBLE_BODY, TargetTag: "CurrentTreble"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: GET_TREBLE_ACTION, Body: GET_TREBLE_BODY, TargetTag: "CurrentTreble"})
 	if err != nil {
 		return 0, err
 	}
@@ -166,13 +193,13 @@ func (zp *ZonePlayer) GetTreble() (int, error) {
 
 // Set treble.
 func (zp *ZonePlayer) SetTreble(level int) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: SET_TREBLE_ACTION, Body: strings.Replace(SET_TREBLE_BODY_TEMPLATE, "{treble}", strconv.Itoa(max(-10, min(10, level))), 1), ExpectedResponse: SET_TREBLE_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: SET_TREBLE_ACTION, Body: strings.Replace(SET_TREBLE_BODY_TEMPLATE, "{treble}", strconv.Itoa(max(-10, min(10, level))), 1), ExpectedResponse: SET_TREBLE_RESPONSE})
 	return err
 }
 
 // Get current loudness state.
 func (zp *ZonePlayer) GetLoudness() (bool, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: GET_LOUDNESS_ACTION, Body: GET_LOUDNESS_BODY, TargetTag: "CurrentLoudness"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: GET_LOUDNESS_ACTION, Body: GET_LOUDNESS_BODY, TargetTag: "CurrentLoudness"})
 	return res == "1", err
 }
 
@@ -184,13 +211,13 @@ func (zp *ZonePlayer) SetLoudness(state bool) error {
 	} else {
 		body = strings.Replace(SET_LOUDNESS_BODY_TEMPLATE, "{loudness}", "0", 1)
 	}
-	_, err := zp.sendCommand(command{Endpoint: EP_Rendering, Action: SET_LOUDNESS_ACTION, Body: body, ExpectedResponse: SET_LOUDNESS_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Rendering, Action: SET_LOUDNESS_ACTION, Body: body, ExpectedResponse: SET_LOUDNESS_RESPONSE})
 	return err
 }
 
 // Get current led state.
 func (zp *ZonePlayer) GetLedState() (bool, error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Device, Action: GET_LEDSTATE_ACTION, Body: GET_LEDSTATE_BODY, TargetTag: "CurrentLEDState"})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Device, Action: GET_LEDSTATE_ACTION, Body: GET_LEDSTATE_BODY, TargetTag: "CurrentLEDState"})
 	return res == "On", err
 }
 
@@ -202,36 +229,36 @@ func (zp *ZonePlayer) SetLedState(state bool) error {
 	} else {
 		body = strings.Replace(SET_LEDSTATE_BODY_TEMPLATE, "{ledstate}", "Off", 1)
 	}
-	_, err := zp.sendCommand(command{Endpoint: EP_Device, Action: SET_LEDSTATE_ACTION, Body: body, ExpectedResponse: SET_LEDSTATE_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Device, Action: SET_LEDSTATE_ACTION, Body: body, ExpectedResponse: SET_LEDSTATE_RESPONSE})
 	return err
 }
 
 // Get player name.
 func (zp *ZonePlayer) GetPlayerName() (string, error) {
-	return zp.sendCommand(command{Endpoint: EP_Device, Action: GET_PLAYER_NAME_ACTION, Body: GET_PLAYER_NAME_BODY, TargetTag: "CurrentZoneName"})
+	return zp.sendCommandOld(command{Endpoint: EP_Device, Action: GET_PLAYER_NAME_ACTION, Body: GET_PLAYER_NAME_BODY, TargetTag: "CurrentZoneName"})
 }
 
 // Set player name.
 func (zp *ZonePlayer) SetPlayerName(name string) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Device, Action: SET_PLAYER_NAME_ACTION, Body: strings.Replace(SET_PLAYER_NAME_BODY_TEMPLATE, "{playername}", name, 1), ExpectedResponse: SET_PLAYER_NAME_RESPONSE})
+	_, err := zp.sendCommandOld(command{Endpoint: EP_Device, Action: SET_PLAYER_NAME_ACTION, Body: strings.Replace(SET_PLAYER_NAME_BODY_TEMPLATE, "{playername}", name, 1), ExpectedResponse: SET_PLAYER_NAME_RESPONSE})
 	return err
 }
 
 // Join player to master. (TODO: Untested)
 func (zp *ZonePlayer) JoinPlayer(master_uid string) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: JOIN_ACTION, Body: strings.Replace(JOIN_BODY_TEMPLATE, "{master_uid}", master_uid, 1), ExpectedResponse: JOIN_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "SetAVTransportURI", "<CurrentURI>x-rincon:"+master_uid+"</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>", true, "")
 	return err
 }
 
 // Unjoin player. (TODO: Untested)
 func (zp *ZonePlayer) UnjoinPlayer() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: UNJOIN_ACTION, Body: UNJOIN_BODY, ExpectedResponse: UNJOIN_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "BecomeCoordinatorOfStandaloneGroup", "<Speed>1</Speed>", true, "")
 	return err
 }
 
 // Get player mode.
 func (zp *ZonePlayer) GetPlayMode() (shuffle bool, repeat bool, repeat_one bool, err error) {
-	res, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: GET_PLAYMODE_ACTION, Body: GET_PLAYMODE_BODY, TargetTag: "PlayMode"})
+	res, err := zp.sendCommand("AVTransport", "GetTransportSettings", "", false, "PlayMode") // TODO: Verify response
 	if err != nil {
 		return false, false, false, err
 	}
@@ -248,7 +275,7 @@ func (zp *ZonePlayer) SetPlayMode(shuffle bool, repeat bool, repeat_one bool) er
 	if !ok {
 		return ErrSonos.ErrInvalidPlayMode
 	}
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: SET_PLAYMODE_ACTION, Body: strings.Replace(SET_PLAYMODE_BODY_TEMPLATE, "{playmode}", mode, 1), ExpectedResponse: SET_PLAYMODE_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "SetPlayMode", "<NewPlayMode>"+mode+"</NewPlayMode>", true, "")
 	return err
 }
 
@@ -299,7 +326,7 @@ func (zp *ZonePlayer) SetRepeatOne(state bool) error {
 
 // Set line in. (TODO: Untested)
 func (zp *ZonePlayer) SetLineIn(speaker_uid string) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: SET_LINEIN_ACTION, Body: strings.Replace(SET_LINEIN_BODY_TEMPLATE, "{speaker_uid}", speaker_uid, 1), ExpectedResponse: SET_LINEIN_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "SetAVTransportURI", "<CurrentURI>x-rincon-stream:"+speaker_uid+"</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>", true, "")
 	return err
 }
 
@@ -329,26 +356,26 @@ func (zp *ZonePlayer) GetTrackInfo() (*TrackInfo, error) {
 
 // Same as GetTrackInfo but won't parse the information as much.
 func (zp *ZonePlayer) GetTrackInfoRaw() (TrackInfoRaw, error) {
-	type (
-		xmlBody struct {
-			XMLName                 xml.Name     `xml:"Body"`
-			GetPositionInfoResponse TrackInfoRaw `xml:"GetPositionInfoResponse"`
-		}
-		xmlEnvelope struct {
-			XMLName xml.Name `xml:"Envelope"`
-			Body    xmlBody  `xml:"Body"`
-		}
-	)
+	// type (
+	// 	xmlBody struct {
+	// 		XMLName                 xml.Name     `xml:"Body"`
+	// 		GetPositionInfoResponse TrackInfoRaw `xml:"GetPositionInfoResponse"`
+	// 	}
+	// 	xmlEnvelope struct {
+	// 		XMLName xml.Name `xml:"Envelope"`
+	// 		Body    xmlBody  `xml:"Body"`
+	// 	}
+	// )
 
-	res, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: GET_CUR_TRACK_ACTION, Body: GET_CUR_TRACK_BODY})
+	res, err := zp.sendCommand("AVTransport", "GetPositionInfo", "<Channel>Master</Channel>", false, "s:Body")
 	if err != nil {
 		return TrackInfoRaw{}, err
 	}
-	envelope := xmlEnvelope{}
-	if err := xml.Unmarshal([]byte(res), &envelope); err != nil {
+	trackInfo := TrackInfoRaw{}
+	if err := xml.Unmarshal([]byte(res), &trackInfo); err != nil {
 		return TrackInfoRaw{}, err
 	}
-	return envelope.Body.GetPositionInfoResponse, nil
+	return trackInfo, nil
 }
 
 // Get information about the que.
@@ -393,7 +420,7 @@ func (zp *ZonePlayer) GetQueInfoRaw(start int, count int) (QueInfoRaw, error) {
 		}
 	)
 
-	res, err := zp.sendCommand(command{Endpoint: EP_Content, Action: GET_QUEUE_ACTION, Body: strings.Replace(strings.Replace(GET_QUEUE_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Content, Action: GET_QUEUE_ACTION, Body: strings.Replace(strings.Replace(GET_QUEUE_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
 	if err != nil {
 		return QueInfoRaw{}, err
 	}
@@ -446,7 +473,7 @@ func (zp *ZonePlayer) GetFavoritesInfoRaw(start int, count int) (FavoritesInfoRa
 		}
 	)
 
-	res, err := zp.sendCommand(command{Endpoint: EP_Content, Action: GET_FAVORITES_SONOS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_SONOS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Content, Action: GET_FAVORITES_SONOS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_SONOS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
 	if err != nil {
 		return FavoritesInfoRaw{}, err
 	}
@@ -499,7 +526,7 @@ func (zp *ZonePlayer) GetFavoritesRadioStationsInfoRaw(start int, count int) (Fa
 		}
 	)
 
-	res, err := zp.sendCommand(command{Endpoint: EP_Content, Action: GET_FAVORITES_RADIO_STATIONS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_RADIO_STATIONS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Content, Action: GET_FAVORITES_RADIO_STATIONS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_RADIO_STATIONS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
 	if err != nil {
 		return FavoritesInfoRaw{}, err
 	}
@@ -552,7 +579,7 @@ func (zp *ZonePlayer) GetFavoritesRadioShowsInfoRaw(start int, count int) (Favor
 		}
 	)
 
-	res, err := zp.sendCommand(command{Endpoint: EP_Content, Action: GET_FAVORITES_RADIO_SHOWS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_RADIO_SHOWS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
+	res, err := zp.sendCommandOld(command{Endpoint: EP_Content, Action: GET_FAVORITES_RADIO_SHOWS_ACTION, Body: strings.Replace(strings.Replace(GET_FAVORITES_RADIO_SHOWS_BODY_TEMPLATE, "{start}", strconv.Itoa(start), 1), "{count}", strconv.Itoa(count), 1)})
 	if err != nil {
 		return FavoritesInfoRaw{}, err
 	}
@@ -565,76 +592,32 @@ func (zp *ZonePlayer) GetFavoritesRadioShowsInfoRaw(start int, count int) (Favor
 
 // Play from que.
 func (zp *ZonePlayer) PlayFromQue(track int) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PLAY_FROM_QUEUE_ACTION, Body: strings.Replace(PLAY_FROM_QUEUE_BODY_TEMPLATE, "{track}", strconv.Itoa(max(1, track)), 1), ExpectedResponse: PLAY_FROM_QUEUE_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "Seek", "<Unit>TRACK_NR</Unit><Target>"+strconv.Itoa(max(1, track))+"</Target>", true, "")
 	return err
 }
 
 // Remove from que.
 func (zp *ZonePlayer) RemoveFromQue(track int) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: REMOVE_FROM_QUEUE_ACTION, Body: strings.Replace(REMOVE_FROM_QUEUE_BODY_TEMPLATE, "{track}", strconv.Itoa(max(1, track)), 1), ExpectedResponse: REMOVE_FROM_QUEUE_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "RemoveTrackFromQueue", "<ObjectID>Q:0/"+strconv.Itoa(max(1, track))+"</ObjectID><UpdateID>0</UpdateID>", true, "")
 	return err
 }
 
 // Add URI to que. (TODO: Untested)
 func (zp *ZonePlayer) AddToQue(uri string, index string, next bool) error {
-	var body string
-	if next {
-		body = strings.Replace(strings.Replace(strings.Replace(ADD_TO_QUEUE_BODY_TEMPLATE, "{uri}", uri, 1), "{index}", index, 1), "{as_next}", "1", 1)
-	} else {
-		body = strings.Replace(strings.Replace(strings.Replace(ADD_TO_QUEUE_BODY_TEMPLATE, "{uri}", uri, 1), "{index}", index, 1), "{as_next}", "0", 1)
-	}
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: ADD_TO_QUEUE_ACTION, Body: body, ExpectedResponse: ADD_TO_QUEUE_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "AddURIToQueue", "<EnqueuedURI>"+uri+"</EnqueuedURI><EnqueuedURIMetaData></EnqueuedURIMetaData><DesiredFirstTrackNumberEnqueued>"+index+"</DesiredFirstTrackNumberEnqueued><EnqueueAsNext>"+strconv.Itoa(boolToInt(next))+"</EnqueueAsNext>", false, "") // TODO: Verify response
 	return err
 }
 
 // Clear que.
 func (zp *ZonePlayer) ClearQue() error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: CLEAR_QUEUE_ACTION, Body: CLEAR_QUEUE_BODY, ExpectedResponse: CLEAR_QUEUE_RESPONSE})
-	return err
-}
-
-// Set que. (TODO: Untested)
-func (zp *ZonePlayer) SetQue(uri string) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PLAY_URI_ACTION, Body: strings.Replace(PLAY_URI_BODY_TEMPLATE, "{uri}", uri, 1), ExpectedResponse: PLAY_URI_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "RemoveAllTracksFromQueue", "", true, "")
 	return err
 }
 
 // Set URI. (TODO: Untested)
 func (zp *ZonePlayer) PlayUri(uri string, meta string) error {
-	_, err := zp.sendCommand(command{Endpoint: EP_Transport, Action: PLAY_URI_ACTION, Body: strings.Replace(PLAY_URI_BODY_TEMPLATE, "{uri}", uri, 1), ExpectedResponse: PLAY_URI_RESPONSE})
+	_, err := zp.sendCommand("AVTransport", "SetAVTransportURI", "<CurrentURI>"+uri+"</CurrentURI><CurrentURIMetaData>"+meta+"</CurrentURIMetaData>", true, "")
 	return err
-}
-
-func (zp *ZonePlayer) sendCommand(c command) (string, error) {
-	req, err := http.NewRequest("POST", "http://"+zp.IpAddress+":1400"+c.Endpoint, strings.NewReader(strings.Replace(SOAP_TEMPLATE, "{body}", c.Body, 1)))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Add("Content-Type", "text/xml")
-	req.Header.Add("SOAPACTION", c.Action)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	result, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	resultStr := string(result[:])
-
-	if c.ExpectedResponse != "" && resultStr != c.ExpectedResponse {
-		return resultStr, ErrSonos.ErrUnexpectedResponse
-	}
-	if c.TargetTag != "" {
-		start, end := strings.Index(resultStr, "<"+c.TargetTag+">"), strings.Index(resultStr, "</"+c.TargetTag+">")
-		if start == -1 || end == -1 {
-			return "", ErrSonos.ErrUnexpectedResponse
-		}
-		return resultStr[start+len(c.TargetTag)+2 : end], nil
-	}
-	return resultStr, nil
 }
 
 type (
@@ -799,4 +782,81 @@ func (favorites FavoritesInfoRaw) ParseMetaData() ([]FavoritesMetaData, error) {
 	}
 
 	return didl.Item, nil
+}
+
+// TODO: delme
+func (zp *ZonePlayer) sendCommandOld(c command) (string, error) {
+	req, err := http.NewRequest("POST", "http://"+zp.IpAddress+":1400"+c.Endpoint, strings.NewReader(strings.Replace(SOAP_TEMPLATE, "{body}", c.Body, 1)))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Content-Type", "text/xml")
+	req.Header.Add("SOAPACTION", c.Action)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	resultStr := string(result[:])
+
+	if c.ExpectedResponse != "" && resultStr != c.ExpectedResponse {
+		return resultStr, ErrSonos.ErrUnexpectedResponse
+	}
+	if c.TargetTag != "" {
+		start, end := strings.Index(resultStr, "<"+c.TargetTag+">"), strings.Index(resultStr, "</"+c.TargetTag+">")
+		if start == -1 || end == -1 {
+			return "", ErrSonos.ErrUnexpectedResponse
+		}
+		return resultStr[start+len(c.TargetTag)+2 : end], nil
+	}
+	return resultStr, nil
+}
+
+func (zp *ZonePlayer) sendCommand(endpoint string, action string, body string, verifyResponse bool, targetTag string) (string, error) {
+	endpointUri, ok := Endpoints[endpoint]
+	if !ok {
+		return "", ErrSonos.ErrInvalidEndpoint
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		"http://"+zp.IpAddress+":1400"+endpointUri,
+		strings.NewReader(strings.Replace(SOAP_TEMPLATE, "{body}", `<u:`+action+` xmlns:u="urn:schemas-upnp-org:service:`+endpoint+`:1"><InstanceID>0</InstanceID>`+body+`</u:`+action+`>`, 1)),
+	)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Content-Type", "text/xml")
+	req.Header.Add("SOAPACTION", "urn:schemas-upnp-org:service:"+endpoint+":1#"+action)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	resultStr := string(result[:])
+
+	if verifyResponse && resultStr != `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:`+action+`Response xmlns:u="urn:schemas-upnp-org:service:`+endpoint+`:1"></u:`+action+`Response></s:Body></s:Envelope>` {
+		fmt.Print("\r\n" + resultStr)
+		fmt.Print("\r\n" + `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:` + action + `Response xmlns:u="urn:schemas-upnp-org:service:` + endpoint + `:1"></u:` + action + `Response></s:Body></s:Envelope>`)
+		fmt.Print("\r\n")
+		fmt.Print("\r\n")
+		return resultStr, ErrSonos.ErrUnexpectedResponse
+	} else if targetTag != "" {
+		start, end := strings.Index(resultStr, "<"+targetTag+">"), strings.Index(resultStr, "</"+targetTag+">")
+		if start == -1 || end == -1 {
+			return resultStr, ErrSonos.ErrUnexpectedResponse
+		}
+		return resultStr[start+len(targetTag)+2 : end], nil
+	}
+	return resultStr, nil
 }
