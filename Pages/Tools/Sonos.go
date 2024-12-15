@@ -770,7 +770,7 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 	}
 
 	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount || syncInfo.Shuffle != oldSyncInfo.Shuffle {
-		HTTP.Send(queCallback, "sonos", "que")
+		HTTP.Send(queCallback, "sonos", "que", "get")
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
 		if err := updatedSelectedQueTrack(oldSyncInfo.Track.QuePosition, syncInfo.Track.QuePosition); err != nil {
 			return
