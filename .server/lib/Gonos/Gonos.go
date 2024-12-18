@@ -9,19 +9,20 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type (
 	command    struct{ Endpoint, Action, Body, ExpectedResponse, TargetTag string }
-	errSonos   struct{ ErrUnexpectedResponse, ErrDiscoverZonePlayer, ErrTimeout, ErrInvalidEndpoint, ErrInvalidPlayMode error }
-	ZonePlayer struct{ IpAddress string }
+	errSonos   struct{ ErrUnexpectedResponse, ErrInvalidIPAdress, ErrNoZonePlayerFound, ErrInvalidEndpoint, ErrInvalidPlayMode error }
+	ZonePlayer struct{ IpAddress net.IP }
 )
 
 var ErrSonos = errSonos{
 	ErrUnexpectedResponse: errors.New("unexpected response"),
-	ErrDiscoverZonePlayer: errors.New("unable to discover zone player"),
-	ErrTimeout:            errors.New("timeout"),
+	ErrInvalidIPAdress:    errors.New("unable to discover zone player"),
+	ErrNoZonePlayerFound:  errors.New("unable to find zone player"),
 	ErrInvalidEndpoint:    errors.New("invalid endpoint"),
 	ErrInvalidPlayMode:    errors.New("invalid play mode"),
 }
@@ -70,56 +71,96 @@ func boolToOnOff(b bool) string {
 }
 
 // Create new ZonePlayer for controling a Sonos speaker.
-func NewZonePlayer(ipAddress string) *ZonePlayer {
-	return &ZonePlayer{IpAddress: ipAddress}
+func NewZonePlayer(ipAddress string) (*ZonePlayer, error) {
+	ip := net.ParseIP(ipAddress)
+	if ip == nil {
+		return &ZonePlayer{}, ErrSonos.ErrInvalidIPAdress
+	}
+	return &ZonePlayer{IpAddress: ip}, nil
 }
 
-// Create new ZonePlayer using discovery controling a Sonos speaker. (TODO: Broken)
+// Create new ZonePlayer using discovery controling a Sonos speaker. (TODO: Broken?)
 func DiscoverZonePlayer() (*ZonePlayer, error) {
-	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{IP: net.IPv4(239, 255, 255, 250), Port: 1900})
+	conn, err := net.DialUDP("udp", &net.UDPAddr{Port: 1900}, &net.UDPAddr{IP: net.IPv4(239, 255, 255, 250), Port: 1900})
 	if err != nil {
 		return &ZonePlayer{}, err
 	}
 	defer conn.Close()
 
-	c := make(chan string)
+	chOut := make(chan string)
 	go func() {
 		buf := make([]byte, 1024)
 		n, addr, err := conn.ReadFrom(buf)
 		if err != nil {
-			c <- ""
+			chOut <- ""
 			return
 		}
-		fmt.Println(addr)
 		fmt.Println("---")
-		fmt.Println(string(buf[:n]))
-		c <- addr.String()
+		fmt.Println(addr)
+		fmt.Println(buf[:n])
+		chOut <- strings.Split(addr.String(), ":")[0]
 	}()
 
-	_, err = conn.Write([]byte("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 5\r\nST: urn:schemas-upnp-org:device:ZonePlayer:1\r\n\r\n"))
-	if err != nil {
-		return &ZonePlayer{}, err
+	for i := 0; i < 3; i++ {
+		_, _ = conn.Write([]byte("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: urn:schemas-upnp-org:device:ZonePlayer:1\r\n\r\n"))
 	}
 
 	select {
-	case addr := <-c:
+	case addr := <-chOut:
 		if addr == "" {
-			return &ZonePlayer{}, ErrSonos.ErrDiscoverZonePlayer
+			return &ZonePlayer{}, ErrSonos.ErrNoZonePlayerFound
 		}
-		return &ZonePlayer{IpAddress: addr}, nil
-
-	case <-time.After(time.Second * 5):
-		return &ZonePlayer{}, ErrSonos.ErrTimeout
+		return NewZonePlayer(addr)
+	case <-time.After(time.Second):
+		return &ZonePlayer{}, ErrSonos.ErrNoZonePlayerFound
 	}
 }
 
-// func main() {
-// 	_, err := DiscoverZonePlayer()
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	// fmt.Println(out)
-// }
+// Create new ZonePlayer using network scanning controling a Sonos speaker.
+func ScanZonePlayer(cidr string) ([]*ZonePlayer, error) {
+	var incIP = func(ip net.IP) {
+		for j := len(ip) - 1; j >= 0; j-- {
+			ip[j]++
+			if ip[j] > 0 {
+				break
+			}
+		}
+	}
+
+	ip, ipNet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return []*ZonePlayer{}, err
+	}
+
+	wg, zps := sync.WaitGroup{}, []*ZonePlayer{}
+	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); incIP(ip) {
+		wg.Add(1)
+		go func(ip string) {
+			defer wg.Done()
+
+			conn, err := net.DialTimeout("tcp", ip+":"+"1400", time.Second)
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+
+			zp, err := NewZonePlayer(ip)
+			if err != nil {
+				return
+			}
+			if _, err = zp.GetState(); err == nil {
+				zps = append(zps, zp)
+			}
+		}(ip.String())
+	}
+	wg.Wait()
+
+	if len(zps) <= 0 {
+		return zps, ErrSonos.ErrNoZonePlayerFound
+	}
+
+	return zps, nil
+}
 
 // Get current transport state.
 func (zp *ZonePlayer) GetState() (string, error) {
@@ -386,7 +427,7 @@ func (zp *ZonePlayer) GetTrackInfo() (*TrackInfo, error) {
 		Duration:    trackInfo.TrackDuration,
 		URI:         trackInfo.TrackURI,
 		Progress:    trackInfo.RelTime,
-		AlbumArtURI: "http://" + zp.IpAddress + ":1400" + trackMetaDataItem.AlbumArtUri,
+		AlbumArtURI: "http://" + zp.IpAddress.String() + ":1400" + trackMetaDataItem.AlbumArtUri,
 		Title:       trackMetaDataItem.Title,
 		Class:       trackMetaDataItem.Class,
 		Creator:     trackMetaDataItem.Creator,
@@ -421,7 +462,7 @@ func (zp *ZonePlayer) GetQueInfo() (*QueInfo, error) {
 	tracks := []QueTrack{}
 	for _, track := range queMetaDataItem {
 		tracks = append(tracks, QueTrack{
-			AlbumArtURI: "http://" + zp.IpAddress + ":1400" + track.AlbumArtUri,
+			AlbumArtURI: "http://" + zp.IpAddress.String() + ":1400" + track.AlbumArtUri,
 			Title:       track.Title,
 			Class:       track.Class,
 			Creator:     track.Creator,
@@ -463,7 +504,7 @@ func (zp *ZonePlayer) GetFavoritesInfo() (*FavoritesInfo, error) {
 	favorites := []FavoritesItem{}
 	for _, favorite := range favoritesMetaDataItem {
 		favorites = append(favorites, FavoritesItem{
-			AlbumArtURI: "http://" + zp.IpAddress + ":1400" + favorite.AlbumArtUri,
+			AlbumArtURI: "http://" + zp.IpAddress.String() + ":1400" + favorite.AlbumArtUri,
 			Title:       favorite.Title,
 			Description: favorite.Description,
 			Class:       favorite.Class,
@@ -505,7 +546,7 @@ func (zp *ZonePlayer) GetFavoritesRadioStationsInfo() (*FavoritesInfo, error) {
 	favorites := []FavoritesItem{}
 	for _, favorite := range favoritesMetaDataItem {
 		favorites = append(favorites, FavoritesItem{
-			AlbumArtURI: "http://" + zp.IpAddress + ":1400" + favorite.AlbumArtUri,
+			AlbumArtURI: "http://" + zp.IpAddress.String() + ":1400" + favorite.AlbumArtUri,
 			Title:       favorite.Title,
 			Description: favorite.Description,
 			Class:       favorite.Class,
@@ -547,7 +588,7 @@ func (zp *ZonePlayer) GetFavoritesRadioShowsInfo() (*FavoritesInfo, error) {
 	favorites := []FavoritesItem{}
 	for _, favorite := range favoritesMetaDataItem {
 		favorites = append(favorites, FavoritesItem{
-			AlbumArtURI: "http://" + zp.IpAddress + ":1400" + favorite.AlbumArtUri,
+			AlbumArtURI: "http://" + zp.IpAddress.String() + ":1400" + favorite.AlbumArtUri,
 			Title:       favorite.Title,
 			Description: favorite.Description,
 			Class:       favorite.Class,
@@ -792,7 +833,7 @@ func (zp *ZonePlayer) sendCommand(endpoint string, action string, body string, t
 
 	req, err := http.NewRequest(
 		"POST",
-		"http://"+zp.IpAddress+":1400"+endpointUri,
+		"http://"+zp.IpAddress.String()+":1400"+endpointUri,
 		strings.NewReader(`<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:`+action+` xmlns:u="urn:schemas-upnp-org:service:`+endpoint+`:1">`+endpointBodyPrefix+body+`</u:`+action+`></s:Body></s:Envelope>`),
 	)
 	if err != nil {

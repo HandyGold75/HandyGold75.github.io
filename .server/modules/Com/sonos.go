@@ -288,7 +288,6 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos loudness requires 1 argument")
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos play state should be 0, 1 or get")
 		if args[1] == "0" {
 			return loudness(false)
 		} else if args[1] == "1" {
