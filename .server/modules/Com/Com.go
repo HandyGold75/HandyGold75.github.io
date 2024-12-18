@@ -36,7 +36,7 @@ type (
 	Commands map[string]Command
 
 	Config struct {
-		SonosIPS     []string
+		SonosIP      string
 		TapoPlugIPS  []string
 		TapoUsername string
 		TapoPassword string
@@ -182,8 +182,14 @@ func Init(f Files, log *logger.Logger, cfg Config) {
 	lgr = log
 	config = cfg
 
-	if len(config.SonosIPS) > 0 {
-		zp = Gonos.NewZonePlayer(config.SonosIPS[0])
+	if config.SonosIP != "" {
+		if zpTmp, err := Gonos.NewZonePlayer(config.SonosIP); err == nil {
+			zp = zpTmp
+		} else if zpTmp, err := Gonos.DiscoverZonePlayer(); err == nil {
+			zp = zpTmp
+		} else if zpsTmp, err := Gonos.ScanZonePlayer(config.SonosIP); err == nil {
+			zp = zpsTmp[0]
+		}
 	}
 
 	OutCh = make(chan string)

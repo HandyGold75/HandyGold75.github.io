@@ -44,7 +44,7 @@ type (
 		Port                      uint16   `json:"Port"`
 		Domain                    string   `json:"Domain"`
 		SubDomainHTTPS            string   `json:"SubDomainHTTPS"`
-		SonosIPS                  []string `json:"SonosIps"`
+		SonosIP                   string   `json:"SonosIP"`
 		TapoPlugIPS               []string `json:"TapoPlugIps"`
 		TapoUsername              string   `json:"TapoUsername"`
 		TapoPassword              string   `json:"TapoPassword"`
@@ -107,7 +107,7 @@ var (
 		Port:                      17500,
 		Domain:                    "HandyGold75.com",
 		SubDomainHTTPS:            "https",
-		SonosIPS:                  []string{},
+		SonosIP:                   "",
 		TapoPlugIPS:               []string{},
 		TapoUsername:              "",
 		TapoPassword:              "",
@@ -490,7 +490,7 @@ func initModules() {
 		},
 		comLogger,
 		Com.Config{
-			SonosIPS:     config.SonosIPS,
+			SonosIP:      config.SonosIP,
 			TapoPlugIPS:  config.TapoPlugIPS,
 			TapoUsername: config.TapoUsername,
 			TapoPassword: config.TapoPassword,
