@@ -1,9 +1,9 @@
 #!/bin/bash
 
 update(){
-    go mod edit -go "$(go version | { read -r _ _ v _; echo "${v#go}"; })" || { echo -e "\033[31mFailed: $1.*\033[0m" ; return 1; }
+    go get go@latest
     go mod tidy || { echo -e "\033[31mFailed: $1.*\033[0m" ; return 1; }
-    go get -u ./ || { echo -e "\033[31mFailed: $1.*\033[0m" ; return 1; }
+    go get -u || { echo -e "\033[31mFailed: $1.*\033[0m" ; return 1; }
 }
 
 buildwasm(){
