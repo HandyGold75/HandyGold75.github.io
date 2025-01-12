@@ -51,7 +51,6 @@ type (
 		LogLevel                  int      `json:"LogLevel"`
 		LogToFileLevel            int      `json:"LogToFileLevel"`
 		ModuleMaxRestartPerMinute int      `json:"ModuleMaxRestartPerMinute"`
-		Modified                  int      `json:"Modified"`
 	}
 
 	Service struct {
@@ -405,7 +404,8 @@ func watchDog() {
 				Port:           config.Port,
 				Domain:         config.Domain,
 				SubDomainHTTPS: config.SubDomainHTTPS,
-			}},
+			},
+		},
 		Start: HTTPS.Start,
 		Stop:  HTTPS.Stop,
 	}
