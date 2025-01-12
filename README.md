@@ -52,20 +52,19 @@ You can also host you're own backend, this can be done running `python3 Server.p
 After running the server for the first time `./server/` will be generated relative to the executable location.
 In here this directory the file `config.json` can be used to configure the server.
 
-````jsonc
+```jsonc
 {
   "IP": "127.0.0.1", //  Local IP to bind the server to.
   "PORT": 17510, //  Local Port to bind the server to.
   "Domain": "HandyGold75.com", // Domain the server is accessible from.
-  "SonosSubnet": [],// List of ips where Sonos speakers reside for intergartion with Sonos..
-  "TapoPlugIps": [],// List of ips where tapo power plugs reside for intergartion with Tapo.
+  "SonosSubnet": [], // List of ips where Sonos speakers reside for intergartion with Sonos..
+  "TapoPlugIps": [], // List of ips where tapo power plugs reside for intergartion with Tapo.
   "TapoUsername": "", // Tapo login username.
   "TapoPassword": "", // Tapo login password; Encrypted during first time setup, do not manualy modify.
   "LogLevel": 3, // Maximum (inclusive) log level to log; `warning: 0`, `error: 0`, `info: 1`, `high: 2`, `medium: 3`, `low: 4`, `debug: 5`.
   "Debug": false, // Print debug statements (requires `LogLevel >= 5`).
-  "Modified": 0 // Last modified.
+  "Modified": 0, // Last modified.
 }
 ```
-````
 
 The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl` or `/etc/letsencrypt/live/wss.{domain}`
