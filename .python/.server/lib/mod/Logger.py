@@ -115,8 +115,12 @@ class logger:
         self._verifyStatus(status)
         now = datetime.now()
 
-        with open(f"{self.workFolder}/config.json", "r", encoding="UTF-8") as fileR:
-            fileData = load(fileR)
+        try:
+            with open(f"{self.workFolder}/config.json", "r", encoding="UTF-8") as fileR:
+                fileData = load(fileR)
+        except FileNotFoundError:
+            fileData = {"Debug": False, "LogLevel": 3}
+
         if criticality == "debug" and not fileData["Debug"]:
             return None
 

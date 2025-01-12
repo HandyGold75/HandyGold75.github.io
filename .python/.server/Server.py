@@ -78,7 +78,7 @@ class server:
                     exit()
 
                 self.log(criticality="info", msg=f"Generating keys, this will take some time.")
-                pub, pvk = newkeys(16384, poolsize=8)
+                pub, pvk = newkeys(4096, poolsize=8)
                 with open(f"{self.workFolder}/ssl/pub.pem", "w", encoding="UTF-8") as fileW:
                     fileW.write(pub.save_pkcs1().decode())
                 with open(f"{self.workFolder}/ssl/pvk.pem", "w", encoding="UTF-8") as fileW:
