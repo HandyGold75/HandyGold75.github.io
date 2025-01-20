@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from json import dumps, loads
 
 from rsa import encrypt
+
 from WebKit import CSS, HTML, JS, WS, Buttons, Page, Widget
 
 
@@ -14,7 +15,7 @@ class login(Page):
         self.indexRedirect = None
 
         if JS.cache("configWS") is None:
-            JS.cache("configWS", dumps({"server": "WSS://wss.HandyGold75.com:17510", "autoSignIn": False, "token": ""}))
+            JS.cache("configWS", dumps({"server": "WSS://py.HandyGold75.com", "autoSignIn": False, "token": ""}))
 
         self.config = lambda: loads(JS.cache("configWS"))
         self.lastLogin = 0
@@ -160,12 +161,15 @@ class login(Page):
                 Widget.popup("warning", "Server\nLog in failed!")
 
         server = self.config()["server"]
-        if server == "" or not "://" in server or not server.count(":") == 2:
+        if server == "" or not "://" in server or server.count(":") == 0 or server.count(":") > 2:
             raise ValueError(f"Invalid server: {server}\nFormat: [WS, WSS]://[Server]:[1-65535]")
 
         proto = server.split("://")[0]
         ip = server.split("://")[-1].split(":")[0]
-        port = int(server.split("://")[-1].split(":")[-1])
+        if server.count(":") == 1:
+            port = 443
+        else:
+            port = int(server.split("://")[-1].split(":")[-1])
         if not proto.lower() in ["ws", "wss"] or port < 1 or port > 65535:
             raise ValueError(f"Invalid protocol or port: {proto}, {port}\nFormat: [WS, WSS]://[Server]:[1-65535]")
 

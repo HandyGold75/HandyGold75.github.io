@@ -34,12 +34,12 @@ var (
 
 	transportRules = func() *http.Transport {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
-		transport.TLSClientConfig = &tls.Config{ServerName: "wss.handygold75.com"}
+		transport.TLSClientConfig = &tls.Config{ServerName: "go.handygold75.com"}
 		return transport
 	}()
 
 	defaultConfig = config{
-		Server:         "https.HandyGold75.com:17500",
+		Server:         "go.HandyGold75.com",
 		RememberSignIn: true,
 		Token:          "",
 	}
@@ -186,7 +186,6 @@ func authenticate(callback func(error), username string, password string) {
 
 			callback(nil)
 			AuthorizedCallback()
-
 		}, "autocomplete")
 
 		return
@@ -236,7 +235,6 @@ func HasAccessTo(com string, callback func(bool, error)) {
 				return
 			}
 			callback(true, nil)
-
 		}, "autocomplete")
 
 		return

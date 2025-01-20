@@ -201,7 +201,7 @@ class ytdl:
 
             with open(osPath.split(__file__)[0].replace("\\", "/").replace("/lib/srvcoms", "") + "/server/config.json", "r", encoding="UTF-8") as fileR:
                 fileData = load(fileR)
-            ytdl.updateState(clT, index, link=f'https://doc.{fileData["Domain"]}:{fileData["PORT"] + 1}/YTDL/{sub("[^A-Za-z0-9.]", "!", fileAudio.split("/")[-1].replace(".video.tmp", ""))}', state="Done")
+            ytdl.updateState(clT, index, link=f'https://pydoc.{fileData["Domain"]}/YTDL/{sub("[^A-Za-z0-9.]", "!", fileAudio.split("/")[-1].replace(".video.tmp", ""))}', state="Done")
 
             return f'{clT.ytdl.mediaPath}/{sub("[^A-Za-z0-9.]", "!", fileAudio.split("/")[-1].replace(".audio.tmp", ""))}', None
 
@@ -234,7 +234,7 @@ class ytdl:
     def merge(clT, index, fileAudio, fileVideo):
         with open(osPath.split(__file__)[0].replace("\\", "/").replace("/lib/srvcoms", "") + "/server/config.json", "r", encoding="UTF-8") as fileR:
             fileData = load(fileR)
-        ytdl.updateState(clT, index, link=f'https://doc.{fileData["Domain"]}:{fileData["PORT"] + 1}/YTDL/{sub("[^A-Za-z0-9.]", "!", fileVideo.split("/")[-1].replace(".video.tmp", ""))}', state="Merging")
+        ytdl.updateState(clT, index, link=f'https://pydoc.{fileData["Domain"]}/YTDL/{sub("[^A-Za-z0-9.]", "!", fileVideo.split("/")[-1].replace(".video.tmp", ""))}', state="Merging")
 
         try:
             stdout, stderr = (

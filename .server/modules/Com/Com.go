@@ -189,6 +189,8 @@ func Init(f Files, log *logger.Logger, cfg Config) {
 			zp = zpTmp
 		} else if zpsTmp, err := Gonos.ScanZonePlayer(config.SonosIP); err == nil {
 			zp = zpsTmp[0]
+		} else {
+			lgr.Log("error", "Com", "Failed", fmt.Sprintf("Connecting to Sonos speaker: %v", config.SonosIP))
 		}
 	}
 
