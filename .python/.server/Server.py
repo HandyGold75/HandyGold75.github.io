@@ -23,7 +23,7 @@ for mod in list(modules):
 class server:
     requiredFiles = {
         "/config.json": {
-            "IP": "127.0.0.1",
+            "IP": "0.0.0.0",
             "PORT": 17510,
             "Domain": "HandyGold75.com",
             "SonosSubnet": [],

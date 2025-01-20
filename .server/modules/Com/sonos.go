@@ -47,44 +47,42 @@ type (
 	}
 )
 
-var (
-	SonosComs = Commands{
-		"sonos": Command{
-			RequiredAuthLevel: Auth.AuthMap["user"],
-			RequiredRoles:     []string{"Home"},
-			Description:       "Sonos interface.",
-			DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|state|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
-				"  track\r\n    Get current track.\r\n" +
-				"  state [get|stop]?\r\n    Get or stop state.\r\n" +
-				"  play [0|1|get]\r\n    Get or set play state.\r\n" +
-				"  mute [0|1|get]\r\n    Get or set mute state.\r\n" +
-				"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
-				"  seek [0:X|+X|-X]\r\n    Control track progress.\r\n" +
-				"  position [1:X|+X|-X]\r\n    Control que position.\r\n" +
-				"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
-				"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
-				"  que [get|add|remove|clear] [track|index]?\r\n    Get, set, remove or clear que.\r\n" +
-				"  bass [0:10|+X|-X|get]\r\n    Get, set or change bass.\r\n" +
-				"  treble [0:10|+X|-X|get]\r\n    Get, set or change treble.\r\n" +
-				"  loudness [0|1|get]\r\n    Get or set loudness.\r\n" +
-				"  led [0|1|get]\r\n    Get or set speaker led.\r\n" +
-				"  playername [name]?\r\n    Get or set speaker led.\r\n" +
-				"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" +
-				"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" +
-				"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" +
-				"  favorites\r\n    Get current favorites.\r\n" +
-				"  radioshows\r\n    Get current radioshows.\r\n" +
-				"  radiostations\r\n    Get current radiostations.\r\n" +
-				"  sync\r\n    Get current track (minimal) + que (minimal) + diverce device states.\r\n" +
-				"  yt [query]\r\n    Get query from yt.\r\n" +
-				"  uri [uri]\r\n    Get base64 from album art uri.\r\n",
-			ExampleDescription: "play",
-			AutoComplete:       []string{"track", "state", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
-			ArgsLen:            [2]int{1, 5},
-			Function:           SonosInterface,
-		},
-	}
-)
+var SonosComs = Commands{
+	"sonos": Command{
+		RequiredAuthLevel: Auth.AuthMap["user"],
+		RequiredRoles:     []string{"Home"},
+		Description:       "Sonos interface.",
+		DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|state|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
+			"  track\r\n    Get current track.\r\n" +
+			"  state [get|stop]?\r\n    Get or stop state.\r\n" +
+			"  play [0|1|get]\r\n    Get or set play state.\r\n" +
+			"  mute [0|1|get]\r\n    Get or set mute state.\r\n" +
+			"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
+			"  seek [0:X|+X|-X]\r\n    Control track progress.\r\n" +
+			"  position [1:X|+X|-X]\r\n    Control que position.\r\n" +
+			"  next [0:X|+X|-X]\r\n    Next que position.\r\n" +
+			"  previous [0:X|+X|-X]\r\n    Previous que position.\r\n" +
+			"  que [get|add|remove|clear] [track|index]?\r\n    Get, set, remove or clear que.\r\n" +
+			"  bass [0:10|+X|-X|get]\r\n    Get, set or change bass.\r\n" +
+			"  treble [0:10|+X|-X|get]\r\n    Get, set or change treble.\r\n" +
+			"  loudness [0|1|get]\r\n    Get or set loudness.\r\n" +
+			"  led [0|1|get]\r\n    Get or set speaker led.\r\n" +
+			"  playername [name]?\r\n    Get or set speaker led.\r\n" +
+			"  shuffle [0|1|get]\r\n    Get or set shuffle.\r\n" +
+			"  repeat [0|1|get]\r\n    Get or set repeat.\r\n" +
+			"  repeatone [0|1|get]\r\n    Get or set repeatone.\r\n" +
+			"  favorites\r\n    Get current favorites.\r\n" +
+			"  radioshows\r\n    Get current radioshows.\r\n" +
+			"  radiostations\r\n    Get current radiostations.\r\n" +
+			"  sync\r\n    Get current track (minimal) + que (minimal) + diverce device states.\r\n" +
+			"  yt [query]\r\n    Get query from yt.\r\n" +
+			"  uri [uri]\r\n    Get base64 from album art uri.\r\n",
+		ExampleDescription: "play",
+		AutoComplete:       []string{"track", "state", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
+		ArgsLen:            [2]int{1, 5},
+		Function:           SonosInterface,
+	},
+}
 
 func SonosInterface(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
 	if len(args) < 1 {

@@ -43,7 +43,7 @@ type (
 		IP                        string   `json:"IP"`
 		Port                      uint16   `json:"Port"`
 		Domain                    string   `json:"Domain"`
-		SubDomainHTTPS            string   `json:"SubDomainHTTPS"`
+		SubDomain                 string   `json:"SubDomain"`
 		SonosIP                   string   `json:"SonosIP"`
 		TapoPlugIPS               []string `json:"TapoPlugIps"`
 		TapoUsername              string   `json:"TapoUsername"`
@@ -102,10 +102,10 @@ var (
 		LogLevel:                  1,
 		LogToFileLevel:            3,
 		ModuleMaxRestartPerMinute: 3,
-		IP:                        "127.0.0.1",
+		IP:                        "0.0.0.0",
 		Port:                      17500,
 		Domain:                    "HandyGold75.com",
-		SubDomainHTTPS:            "https",
+		SubDomain:                 "go",
 		SonosIP:                   "",
 		TapoPlugIPS:               []string{},
 		TapoUsername:              "",
@@ -400,10 +400,10 @@ func watchDog() {
 			"TopDir": files.TopDir,
 			"SSLDir": files.SSLDir,
 			"config": &HTTPS.Config{
-				IP:             config.IP,
-				Port:           config.Port,
-				Domain:         config.Domain,
-				SubDomainHTTPS: config.SubDomainHTTPS,
+				IP:        config.IP,
+				Port:      config.Port,
+				Domain:    config.Domain,
+				SubDomain: config.SubDomain,
 			},
 		},
 		Start: HTTPS.Start,

@@ -28,10 +28,10 @@ type (
 	}
 
 	Config struct {
-		IP             string `json:"IP"`
-		Port           uint16 `json:"Port"`
-		Domain         string `json:"Domain"`
-		SubDomainHTTPS string `json:"SubDomainHTTPS"`
+		IP        string `json:"IP"`
+		Port      uint16 `json:"Port"`
+		Domain    string `json:"Domain"`
+		SubDomain string `json:"SubDomain"`
 	}
 )
 
@@ -210,6 +210,7 @@ func handleComHTTP(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(errCode)
 		w.Write(out)
+		return
 	}
 
 	w.WriteHeader(errCode)
@@ -293,11 +294,14 @@ func Debug() map[string]map[string][]time.Time {
 }
 
 func loop(out chan string) error {
+	doSSL := true
 	cert, err := getSSLCert(files.SSLDir)
 	if err != nil {
-		cert, err = getSSLCert("/etc/letsencrypt/live/" + strings.ToLower(config.SubDomainHTTPS) + "." + strings.ToLower(config.Domain))
+		cert, err = getSSLCert("/etc/letsencrypt/live/" + strings.ToLower(config.SubDomain) + "." + strings.ToLower(config.Domain))
 		if err != nil {
-			return err
+			doSSL = false
+			lgr.Log("error", "HTTPS", "Missing SSL Certificates", "Valid locations: \""+files.SSLDir+"\", \""+"/etc/letsencrypt/live/"+strings.ToLower(config.SubDomain)+"."+strings.ToLower(config.Domain)+"\"")
+			lgr.Log("warning", "HTTPS", "Downgrading", "Falling back to http!")
 		}
 	}
 
@@ -310,8 +314,13 @@ func loop(out chan string) error {
 	go func() {
 		defer OnExit()
 
-		lgr.Log("info", "HTTPS", "Listening", "https://"+config.IP+":"+strconv.Itoa(int(config.Port)))
-		errCh <- HTTPServer.ListenAndServeTLS(cert.Cert, cert.Key)
+		if doSSL {
+			lgr.Log("info", "HTTPS", "Listening", "https://"+config.IP+":"+strconv.Itoa(int(config.Port)))
+			errCh <- HTTPServer.ListenAndServeTLS(cert.Cert, cert.Key)
+		} else {
+			lgr.Log("info", "HTTPS", "Listening", "http://"+config.IP+":"+strconv.Itoa(int(config.Port)))
+			errCh <- HTTPServer.ListenAndServe()
+		}
 
 		close(errCh)
 	}()

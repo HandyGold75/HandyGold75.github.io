@@ -10,7 +10,7 @@ The frontend is accessible via [HandyGold75.com](https://HandyGold75.com)
 ### Backend
 
 The backend files can be found in `./.server/`.
-The backend is accessible via [https.HandyGold75.com:17500](https://https.HandyGold75.com:17500)
+The backend is accessible via [go.HandyGold75.com](https://go.HandyGold75.com)
 
 You can also host you're own backend, this can either be done by building the server or using the release files.
 To build the server you can use `cd ./.server && ./build.sh`.
@@ -21,10 +21,10 @@ In here this directory the file `config.json` can be used to configure the serve
 
 ```jsonc
 {
-  "IP": "127.0.0.1", // Local IP to bind the server to.
+  "IP": "0.0.0.0", // Local IP to bind the server to.
   "Port": 17500, // Local Port to bind the server to.
   "Domain": "HandyGold75.com", // Domain the server is accessible from.
-  "SubDomainHTTPS": "https", // Sub domain the server is accessible from.
+  "SubDomain": "go", // Sub domain the server is accessible from.
   "SonosIP": "", // CIDR ip network where a Sonos speaker may reside for intergartion with Sonos.
   "TapoPlugIps": [], // List of ips where tapo power plugs reside for intergartion with Tapo.
   "TapoUsername": "", // Tapo login username.
@@ -36,6 +36,7 @@ In here this directory the file `config.json` can be used to configure the serve
 ```
 
 The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl` or `/etc/letsencrypt/live/{sub}.{domain}`
+The server will fall back to an insecure connection in case a certificate is not found or valid.
 
 ### Frontend (Python Legacy)
 
@@ -45,7 +46,7 @@ The frontend is accessible via [HandyGold75.com/.python](https://HandyGold75.com
 ### Backend (Python Legacy)
 
 The backend files can be found in `./.python/.server/`.
-The backend is accessible via [wss.HandyGold75.com:17510](WSS://wss.HandyGold75.com:17510)
+The backend is accessible via [py.HandyGold75.com](WSS://py.HandyGold75.com) and [pydoc.HandyGold75.com](WSS://pydoc.HandyGold75.com)
 
 You can also host you're own backend, this can be done running `python3 Server.py`.
 
@@ -54,7 +55,7 @@ In here this directory the file `config.json` can be used to configure the serve
 
 ```jsonc
 {
-  "IP": "127.0.0.1", //  Local IP to bind the server to.
+  "IP": "0.0.0.0", //  Local IP to bind the server to.
   "PORT": 17510, //  Local Port to bind the server to.
   "Domain": "HandyGold75.com", // Domain the server is accessible from.
   "SonosSubnet": [], // List of ips where Sonos speakers reside for intergartion with Sonos..
@@ -67,4 +68,6 @@ In here this directory the file `config.json` can be used to configure the serve
 }
 ```
 
-The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl` or `/etc/letsencrypt/live/wss.{domain}`
+The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl/py` or `/etc/letsencrypt/live/py.{domain}`
+The server also expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl/pydoc` or `/etc/letsencrypt/live/pydoc.{domain}`
+The server will fall back to an insecure connection in case a certificate is not found or valid.

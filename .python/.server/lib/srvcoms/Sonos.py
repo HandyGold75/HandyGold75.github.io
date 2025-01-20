@@ -104,7 +104,10 @@ class sonos:
                 sonos.cacheImg(srcPair, dstPair)
 
     async def getTrackPosition(clT):
-        return {"position": sonos.sanetize(clT.sonos.speaker.get_current_track_info(), ["metadata"])["position"]}
+        pos = sonos.sanetize(clT.sonos.speaker.get_current_track_info(), ["metadata"])["position"]
+        if pos == "NOT_IMPLEMENTED":
+            pos = "00:00:00"
+        return {"position": pos}
 
     async def getDevice(clT):
         return {
@@ -121,6 +124,9 @@ class sonos:
         title = sub("[^A-Za-z0-9]", "!", trackinfo["title"])
         artist = sub("[^A-Za-z0-9]", "!", trackinfo["artist"])
 
+        if trackinfo["duration"] == "NOT_IMPLEMENTED":
+            trackinfo["duration"] = "00:00:00"
+
         if not osPath.exists(f"{clT.sonos.mediaPath}/{title}"):
             makedirs(f"{clT.sonos.mediaPath}/{title}")
 
@@ -129,7 +135,7 @@ class sonos:
 
         with open(osPath.split(__file__)[0].replace("\\", "/").replace("/lib/srvcoms", "") + "/server/config.json", "r", encoding="UTF-8") as fileR:
             fileData = load(fileR)
-        trackinfo["album_art"] = f'https://doc.{fileData["Domain"]}:{fileData["PORT"] + 1}/Sonos/{artist}/{title}'
+        trackinfo["album_art"] = f'https://pydoc.{fileData["Domain"]}/Sonos/{artist}/{title}'
 
         return {"track": sonos.sanetize(trackinfo, ["metadata", "position"])}
 
@@ -150,11 +156,10 @@ class sonos:
 
             with open(osPath.split(__file__)[0].replace("\\", "/").replace("/lib/srvcoms", "") + "/server/config.json", "r", encoding="UTF-8") as fileR:
                 fileData = load(fileR)
-            trackDict["album_art_uri"] = f'https://doc.{fileData["Domain"]}:{fileData["PORT"] + 1}/Sonos/{creator}/{title}'
+            trackDict["album_art_uri"] = f'https://pydoc.{fileData["Domain"]}/Sonos/{creator}/{title}'
 
             tracks[f"{i + start}"] = trackDict
             tracks[f"{i + start}"]["duration"] = tracks[f"{i + start}"]["resources"][0]["duration"]
-
 
         return {"que": {"size": clT.sonos.speaker.queue_size, "position": int(clT.sonos.speaker.get_current_track_info()["playlist_position"]) - 1, "tracks": sonos.sanetize(tracks, ["parent_id", "item_id", "restricted", "resources", "desc"])}}
 
@@ -162,8 +167,14 @@ class sonos:
         trackInfo = clT.sonos.speaker.get_current_track_info()
         search = YoutubeSearch(f'{trackInfo["title"]} - {trackInfo["artist"]}', max_results=5).to_dict()
 
+        if trackInfo["duration"] == "NOT_IMPLEMENTED":
+            trackInfo["duration"] = "00:00:00"
+
         trackDur = datetime.strptime(trackInfo["duration"], "%H:%M:%S")
         trackDur = (trackDur.hour * 3600) + (trackDur.minute * 60) + trackDur.second
+
+        if len(search) == 0:
+            return {"ytinfo": {}}
 
         exactMatch, strictMatch, modestMatch, looseMatch = (None, None, None, None)
         for songData in search:

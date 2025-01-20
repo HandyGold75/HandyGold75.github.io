@@ -24,7 +24,7 @@ class clientHandler:
         self.stop = False
 
         self.workFolder = f'{osPath.split(__file__)[0].replace(chr(92), "/").replace("/lib/sub", "")}'
-        self.sslCertPaths = (f"/etc/letsencrypt/live/wss.handygold75.com", f"{self.workFolder}/server/ssl/wss")
+        self.sslCertPaths = (f"/etc/letsencrypt/live/py.handygold75.com", f"{self.workFolder}/server/ssl/py")
 
         self.requiredFiles = {}
         self.configStyleFiles = ["/config.json"]
@@ -109,7 +109,7 @@ class clientHandler:
                 self.sslCert.load_cert_chain(certfile=f"{path}/fullchain.pem", keyfile=f"{path}/privkey.pem")
                 break
         if self.sslCert is None:
-            self.log(criticality="warning", msg=f'Missing wss certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
+            self.log(criticality="warning", msg=f'Missing py certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
 
     def loadFiles(self):
         from Server import server as rootServer
