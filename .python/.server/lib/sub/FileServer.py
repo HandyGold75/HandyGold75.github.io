@@ -14,7 +14,7 @@ from ..mod import logger
 class fileServer:
     def __init__(self):
         self.workFolder = osPath.split(__file__)[0].replace("\\", "/").replace("/lib/sub", "/public")
-        self.sslCertPaths = (f"/etc/letsencrypt/live/doc.handygold75.com", f'{osPath.split(__file__)[0].replace("/lib/sub", "")}/server/ssl/doc')
+        self.sslCertPaths = (f"/etc/letsencrypt/live/pydoc.handygold75.com", f'{osPath.split(__file__)[0].replace("/lib/sub", "")}/server/ssl/pydoc')
 
         self.httpd = None
 
@@ -166,7 +166,7 @@ class fileServer:
                 self.log(criticality="info", msg=f"Started HTTPS service on {ip}:{port}")
                 break
         else:
-            self.log(criticality="warning", msg=f'Missing doc certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
+            self.log(criticality="warning", msg=f'Missing pydoc certificates! Valid locations: \n    {chr(10) + "    ".join(self.sslCertPaths)}')
             self.log(criticality="info", msg=f"Started HTTP service on {ip}:{port}")
 
         self.httpd.serve_forever()

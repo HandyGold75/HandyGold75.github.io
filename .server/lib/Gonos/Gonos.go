@@ -33,6 +33,7 @@ var Endpoints = map[string]string{
 	"DeviceProperties": "/DeviceProperties/Control",
 	"ContentDirectory": "/MediaServer/ContentDirectory/Control",
 }
+
 var EndpointsBodyPrefix = map[string]string{
 	"AVTransport":      "<InstanceID>0</InstanceID>",
 	"RenderingControl": "<InstanceID>0</InstanceID><Channel>Master</Channel>",
@@ -49,6 +50,7 @@ var Playmodes = map[string][3]bool{
 	"SHUFFLE_REPEAT_ONE": {true, false, true},
 	"REPEAT_ONE":         {false, false, true},
 }
+
 var PlaymodesReversed = func() map[[3]bool]string {
 	PMS := map[[3]bool]string{}
 	for k, v := range Playmodes {
@@ -63,6 +65,7 @@ func boolTo10(b bool) string {
 	}
 	return "0"
 }
+
 func boolToOnOff(b bool) string {
 	if b {
 		return "On"
@@ -118,7 +121,7 @@ func DiscoverZonePlayer() (*ZonePlayer, error) {
 
 // Create new ZonePlayer using network scanning controling a Sonos speaker.
 func ScanZonePlayer(cidr string) ([]*ZonePlayer, error) {
-	var incIP = func(ip net.IP) {
+	incIP := func(ip net.IP) {
 		for j := len(ip) - 1; j >= 0; j-- {
 			ip[j]++
 			if ip[j] > 0 {
