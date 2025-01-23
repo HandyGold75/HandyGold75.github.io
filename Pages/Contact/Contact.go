@@ -22,13 +22,14 @@ type (
 
 var (
 	Contacts = map[int]contact{
-		0: {Img: "Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
-		1: {Img: "Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
-		2: {Img: "YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
-		3: {Img: "Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
-		4: {Img: "Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
-		5: {Img: "Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
-		6: {Img: "Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
+		0: {Img: "GitHub.png", Text: "HandyGold75", Url: "https://github.com/HandyGold75/"},
+		1: {Img: "Discord.png", Text: "HandyGold75", Url: "https:discordapp.com/users/296000826588004352"},
+		2: {Img: "Steam.png", Text: "HandyGold75", Url: "https:steamcommunity.com/id/HandyGold75"},
+		3: {Img: "YouTube.png", Text: "HandyGold75", Url: "https:youtube.com/@HandyGold75"},
+		4: {Img: "Twitch.png", Text: "HandyGold75", Url: "https:www.twitch.tv/handygold75"},
+		5: {Img: "Snapchat.png", Text: "HandyGold75", Url: "https:www.snapchat.com/add/handygold75"},
+		6: {Img: "Spotify.png", Text: "HandyGold75", Url: "https:open.spotify.com/user/11153222914"},
+		7: {Img: "Exchange.png", Text: "IZO@HandyGold75.com", Url: "mailto:IZO@HandyGold75.com"},
 	}
 
 	headers = []string{}
@@ -111,21 +112,25 @@ func showContacts() {
 			marginTxt = "auto 100% auto 10px"
 		}
 
-		img := HTML.HTML{Tag: "a",
+		img := HTML.HTML{
+			Tag:        "a",
 			Attributes: map[string]string{"class": classImg, "href": Contacts[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"width": "10vh", "height": "10vh", "margin": marginImg, "transition": "margin 1s"},
-			Inner: HTML.HTML{Tag: "img",
+			Inner: HTML.HTML{
+				Tag:        "img",
 				Attributes: map[string]string{"src": "./docs/assets/Contact/" + Contacts[k].Img, "alt": Contacts[k].Text},
 				Styles:     map[string]string{"width": "10vh", "height": "10vh"},
 			}.String(),
 		}.String()
 
-		txt := HTML.HTML{Tag: "a", Inner: Contacts[k].Text,
+		txt := HTML.HTML{
+			Tag: "a", Inner: Contacts[k].Text,
 			Attributes: map[string]string{"class": classTxt, "href": Contacts[k].Url, "target": "_blank"},
 			Styles:     map[string]string{"font-size": "3vh", "margin": marginTxt, "transition": "margin 1s"},
 		}.String()
 
-		contactDivs += HTML.HTML{Tag: "div", Inner: img + txt,
+		contactDivs += HTML.HTML{
+			Tag: "div", Inner: img + txt,
 			Attributes: map[string]string{"class": "contact_divs"},
 			Styles:     map[string]string{"display": "flex", "width": "85%", "margin": marginDiv, "background": "#1F1F1F", "border": "4px solid #111", "transition": "margin 1s"},
 		}.String()
