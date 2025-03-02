@@ -11,7 +11,8 @@ import (
 func showHome() {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 
-	link := HTML.HTML{Tag: "a", Inner: ".python",
+	link := HTML.HTML{
+		Tag: "a", Inner: ".python",
 		Attributes: map[string]string{"href": "./.python/"},
 	}.String()
 

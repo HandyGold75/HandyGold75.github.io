@@ -40,7 +40,8 @@ func LogListCallback(res string, resBytes []byte, resErr error) {
 			continue
 		}
 
-		logTypes += HTML.HTML{Tag: "button", Inner: k,
+		logTypes += HTML.HTML{
+			Tag: "button", Inner: k,
 			Attributes: map[string]string{"class": "dark medium logs_types_buttons"},
 		}.String()
 	}
@@ -75,7 +76,8 @@ func showLogDates(selected string) {
 
 	logDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for _, v := range log {
-		logDates += HTML.HTML{Tag: "button", Inner: v,
+		logDates += HTML.HTML{
+			Tag: "button", Inner: v,
 			Attributes: map[string]string{"class": "dark small logs_types_dates"},
 		}.String()
 	}
@@ -147,7 +149,8 @@ func showLogContent(lines []string) {
 			}
 
 			if i == len(lineSplit)-1 {
-				cols += HTML.HTML{Tag: "p", Inner: col,
+				cols += HTML.HTML{
+					Tag: "p", Inner: col,
 					Styles: map[string]string{
 						"scrollbar-width": "thin",
 						"scrollbar-color": "transparent transparent",
@@ -158,7 +161,8 @@ func showLogContent(lines []string) {
 				continue
 			}
 
-			cols += HTML.HTML{Tag: "p", Inner: col,
+			cols += HTML.HTML{
+				Tag: "p", Inner: col,
 				Styles: map[string]string{
 					"min-width":       "10%",
 					"border-right":    "2px dashed #151515",
@@ -170,7 +174,8 @@ func showLogContent(lines []string) {
 			}.String()
 		}
 
-		row := HTML.HTML{Tag: "div", Inner: cols,
+		row := HTML.HTML{
+			Tag: "div", Inner: cols,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -199,9 +204,11 @@ func showLogContent(lines []string) {
 func showLogs() {
 	header := HTML.HTML{Tag: "h1", Inner: "Logs"}.String()
 
-	types := HTML.HTML{Tag: "div",
+	types := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "logs_types"},
-		Styles: map[string]string{"display": "flex",
+		Styles: map[string]string{
+			"display":       "flex",
 			"width":         "90%",
 			"background":    "#202020",
 			"border-left":   "2px solid #111",
@@ -211,9 +218,11 @@ func showLogs() {
 		},
 	}.String()
 
-	dates := HTML.HTML{Tag: "div",
+	dates := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "logs_dates"},
-		Styles: map[string]string{"display": "flex",
+		Styles: map[string]string{
+			"display":       "flex",
 			"width":         "90%",
 			"max-height":    "0px",
 			"background":    "#202020",
@@ -224,7 +233,8 @@ func showLogs() {
 		},
 	}.String()
 
-	out := HTML.HTML{Tag: "div",
+	out := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "logs_out"},
 		Styles: map[string]string{
 			"width":       "95%",

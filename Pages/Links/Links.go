@@ -198,13 +198,16 @@ func showLinks() {
 			cats[l.Cat] = []string{}
 		}
 
-		img := HTML.HTML{Tag: "img",
+		img := HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Links/" + l.Img, "alt": l.Text},
 			Styles:     map[string]string{"width": "100%"},
 		}.LinkWrap(l.Url).String()
-		txt := HTML.HTML{Tag: "p",
+		txt := HTML.HTML{
+			Tag:    "p",
 			Styles: map[string]string{"width": "100%"},
-			Inner: HTML.HTML{Tag: "a",
+			Inner: HTML.HTML{
+				Tag:        "a",
 				Attributes: map[string]string{"href": l.Url, "target": "_blank"},
 				Inner:      l.Text,
 			}.String(),
@@ -217,7 +220,8 @@ func showLinks() {
 	ids := []string{}
 	divs := ""
 	for _, cat := range catsIndexes {
-		title := HTML.HTML{Tag: "h2", Inner: cat,
+		title := HTML.HTML{
+			Tag: "h2", Inner: cat,
 			Attributes: map[string]string{"id": "cat_headers_" + cat},
 		}.String()
 
@@ -235,7 +239,8 @@ func showLinks() {
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_"+strconv.Itoa(i))
-			rows += HTML.HTML{Tag: "div", Inner: links,
+			rows += HTML.HTML{
+				Tag: "div", Inner: links,
 				Attributes: map[string]string{"id": "cat_divs_" + cat + "_" + strconv.Itoa(i), "class": "cat_divs_" + cat},
 				Styles:     style,
 			}.String()
@@ -249,7 +254,8 @@ func showLinks() {
 			}
 
 			ids = append(ids, "cat_divs_"+cat+"_etc")
-			rows += HTML.HTML{Tag: "div", Inner: links,
+			rows += HTML.HTML{
+				Tag: "div", Inner: links,
 				Attributes: map[string]string{"id": "cat_divs_" + cat + "_etc", "class": "cat_divs_" + cat},
 				Styles:     style,
 			}.String()

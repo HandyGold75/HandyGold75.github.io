@@ -40,14 +40,12 @@ type (
 	}
 )
 
-var (
-	ErrDB = errDB{
-		ErrSheetNotFound:      errors.New("sheet not found"),
-		ErrIndexNotFound:      errors.New("index not found"),
-		ErrInvalidDataLenght:  errors.New("invalid data lenght"),
-		ErrInvalidDataContent: errors.New("invalid data content"),
-	}
-)
+var ErrDB = errDB{
+	ErrSheetNotFound:      errors.New("sheet not found"),
+	ErrIndexNotFound:      errors.New("index not found"),
+	ErrInvalidDataLenght:  errors.New("invalid data lenght"),
+	ErrInvalidDataContent: errors.New("invalid data content"),
+}
 
 // Get db name.
 func (db *DataBase) GetName() string {
