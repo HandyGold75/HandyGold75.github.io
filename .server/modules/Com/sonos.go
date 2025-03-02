@@ -25,7 +25,7 @@ type (
 	}
 
 	TrackInfoMinimal struct {
-		QuePosition string
+		QuePosition int
 		Duration    string
 		Progress    string
 		Title       string
@@ -34,8 +34,8 @@ type (
 	}
 
 	QueInfoMinimal struct {
-		Count      string
-		TotalCount string
+		Count      int
+		TotalCount int
 	}
 
 	YTInfoMinimal struct {
@@ -52,9 +52,10 @@ var SonosComs = Commands{
 		RequiredAuthLevel: Auth.AuthMap["user"],
 		RequiredRoles:     []string{"Home"},
 		Description:       "Sonos interface.",
-		DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|state|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
+		DetailedDescription: "Interact sonos music boxes. Usage: sonos [track|state|stop|play|mute|volume|seek|position|next|previous|que|add|remove|clear|bass|treble|loudness|led|playername|shuffle|repeat|repeatone|favorites|radioshows|radiostations|sync|yt|uri] [args?]...\r\n" +
 			"  track\r\n    Get current track.\r\n" +
-			"  state [get|stop]?\r\n    Get or stop state.\r\n" +
+			"  state\r\n    Get state.\r\n" +
+			"  stop\r\n    Stop play state.\r\n" +
 			"  play [0|1|get]\r\n    Get or set play state.\r\n" +
 			"  mute [0|1|get]\r\n    Get or set mute state.\r\n" +
 			"  volume [0:100|+X|-X|get]\r\n    Control media volume.\r\n" +
@@ -78,7 +79,7 @@ var SonosComs = Commands{
 			"  yt [query]\r\n    Get query from yt.\r\n" +
 			"  uri [uri]\r\n    Get base64 from album art uri.\r\n",
 		ExampleDescription: "play",
-		AutoComplete:       []string{"track", "state", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
+		AutoComplete:       []string{"track", "state", "stop", "play", "mute", "volume", "seek", "position", "next", "previous", "que", "add", "remove", "clear", "bass", "treble", "loudness", "led", "playername", "shuffle", "repeat", "repeatone", "favorites", "radioshows", "radiostations", "sync", "yt", "uri"},
 		ArgsLen:            [2]int{1, 5},
 		Function:           SonosInterface,
 	},
@@ -108,21 +109,22 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		return jsonBytes, "application/json", http.StatusOK, nil
 
 	case "state":
-		if len(args) != 2 {
-			return []byte{}, "", http.StatusBadRequest, errors.New("sonos state requires 1 argument")
+		if len(args) != 1 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos state requires 0 argument")
 		}
 
-		if args[1] == "get" {
-			return state()
-		} else if args[1] == "stop" {
-			err := zp.Stop()
-			if err != nil {
-				return []byte{}, "", http.StatusBadRequest, err
-			}
-			return state()
+		return state()
+
+	case "stop":
+		if len(args) != 1 {
+			return []byte{}, "", http.StatusBadRequest, errors.New("sonos stop requires 0 argument")
 		}
 
-		return []byte{}, "", http.StatusBadRequest, errors.New("sonos state state should be get or stop")
+		err := zp.Stop()
+		if err != nil {
+			return []byte{}, "", http.StatusBadRequest, err
+		}
+		return state()
 
 	case "play":
 		if len(args) != 2 {
@@ -192,7 +194,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		}
 
 		if args[1] == "get" {
-			queInfo, err := zp.GetQueInfo()
+			queInfo, err := zp.GetQue()
 			if err != nil {
 				return []byte{}, "", http.StatusBadRequest, err
 			}
@@ -311,7 +313,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 		} else if args[1] == "1" {
 			return led(true)
 		} else if args[1] == "get" {
-			curState, err := zp.GetLedState()
+			curState, err := zp.GetLED()
 			if err != nil {
 				return []byte{}, "", http.StatusBadRequest, err
 			}
@@ -395,7 +397,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos favorites requires 0 argument")
 		}
 
-		favInfo, err := zp.GetFavoritesInfo()
+		favInfo, err := zp.GetSonosFavorites()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
@@ -412,7 +414,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos radioshows requires 0 argument")
 		}
 
-		radInfo, err := zp.GetFavoritesRadioShowsInfo()
+		radInfo, err := zp.GetRadioShows()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
@@ -429,7 +431,7 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 			return []byte{}, "", http.StatusBadRequest, errors.New("sonos radiostations requires 0 argument")
 		}
 
-		radInfo, err := zp.GetFavoritesRadioStationsInfo()
+		radInfo, err := zp.GetRadioStations()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
@@ -465,11 +467,11 @@ func SonosInterface(user Auth.User, args ...string) (out []byte, contentType str
 	default:
 	}
 
-	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, state, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
+	return []byte{}, "", http.StatusBadRequest, errors.New("sonos operation should be track, state, stop, play, mute, volume, seek, position, next, previous, que, add, remove, clear, bass, treble, loudness, led, playername, shuffle, repeat, repeatone, favorites, radioshows, radiostations, sync, yt or uri")
 }
 
 func state() (out []byte, contentType string, errCode int, err error) {
-	curState, err := zp.GetState()
+	curState, err := zp.GetCurrentTransportState()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
@@ -489,15 +491,20 @@ func play(state bool) (out []byte, contentType string, errCode int, err error) {
 	}
 
 	for i := 0; i < 10; i++ {
-		curState, err := zp.GetState()
+		curState, err := zp.GetTransitioning()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		if curState == "TRANSITIONING" {
+		if curState {
 			time.Sleep(time.Millisecond * time.Duration(max(50, 600-(i*200))))
 			continue
 		}
-		return []byte(strconv.FormatBool(curState == "PLAYING")), "text/plain", http.StatusOK, nil
+
+		curState, err = zp.GetPlay()
+		if err != nil {
+			return []byte{}, "", http.StatusBadRequest, err
+		}
+		return []byte(strconv.FormatBool(curState)), "text/plain", http.StatusOK, nil
 	}
 
 	return []byte("false"), "text/plain", http.StatusOK, nil
@@ -553,29 +560,11 @@ func seek(index string) (out []byte, contentType string, errCode int, err error)
 	}
 
 	if strings.HasPrefix(index, "+") || strings.HasPrefix(index, "-") {
-		trackInfo, err := zp.GetTrackInfo()
-		if err != nil {
+		if err := zp.SeekTimeDelta(newIndex); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-
-		oldTime, err := time.Parse(time.TimeOnly, trackInfo.Progress)
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
-		oldTime = oldTime.Add(time.Second * time.Duration(newIndex))
-
-		if err := zp.Seek(oldTime.Clock()); err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
-
 	} else {
-		newTime, err := time.Parse(time.TimeOnly, "00:00:00")
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
-		newTime = newTime.Add(time.Second * time.Duration(newIndex))
-
-		if err := zp.Seek(newTime.Clock()); err != nil {
+		if err := zp.SeekTime(newIndex); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
 	}
@@ -599,18 +588,12 @@ func position(index string) (out []byte, contentType string, errCode int, err er
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-
-		oldIndex, err := strconv.Atoi(trackInfo.QuePosition)
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
-
-		if err := zp.PlayFromQue(oldIndex + newIndex); err != nil {
+		if err := zp.SeekTrack(trackInfo.QuePosition + newIndex); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
 
 	} else {
-		if err := zp.PlayFromQue(newIndex); err != nil {
+		if err := zp.SeekTrack(newIndex); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
 	}
@@ -620,7 +603,7 @@ func position(index string) (out []byte, contentType string, errCode int, err er
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(trackInfo.QuePosition), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
 }
 
 func next() (out []byte, contentType string, errCode int, err error) {
@@ -633,7 +616,7 @@ func next() (out []byte, contentType string, errCode int, err error) {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(trackInfo.QuePosition), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
 }
 
 func previous() (out []byte, contentType string, errCode int, err error) {
@@ -646,7 +629,7 @@ func previous() (out []byte, contentType string, errCode int, err error) {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(trackInfo.QuePosition), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
 }
 
 func add(uri string) (out []byte, contentType string, errCode int, err error) {
@@ -665,16 +648,16 @@ func add(uri string) (out []byte, contentType string, errCode int, err error) {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	if err := zp.AddToQue(uri, trackInfo.QuePosition, true); err != nil {
+	if err := zp.QueAdd(uri, trackInfo.QuePosition, true); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	queInfo, err := zp.GetQueInfo()
+	queInfo, err := zp.GetQue()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(queInfo.TotalCount), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
 }
 
 func remove(index string) (out []byte, contentType string, errCode int, err error) {
@@ -683,29 +666,29 @@ func remove(index string) (out []byte, contentType string, errCode int, err erro
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	if err := zp.RemoveFromQue(newIndex); err != nil {
+	if err := zp.QueRemove(newIndex); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	queInfo, err := zp.GetQueInfo()
+	queInfo, err := zp.GetQue()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(queInfo.TotalCount), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
 }
 
 func clearq() (out []byte, contentType string, errCode int, err error) {
-	if err := zp.ClearQue(); err != nil {
+	if err := zp.QueClear(); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	queInfo, err := zp.GetQueInfo()
+	queInfo, err := zp.GetQue()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	return []byte(queInfo.TotalCount), "text/plain", http.StatusOK, nil
+	return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
 }
 
 func bass(volume string) (out []byte, contentType string, errCode int, err error) {
@@ -782,11 +765,11 @@ func loudness(state bool) (out []byte, contentType string, errCode int, err erro
 }
 
 func led(state bool) (out []byte, contentType string, errCode int, err error) {
-	if err := zp.SetLedState(state); err != nil {
+	if err := zp.SetLED(state); err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
 
-	curState, err := zp.GetLedState()
+	curState, err := zp.GetLED()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
@@ -796,11 +779,11 @@ func led(state bool) (out []byte, contentType string, errCode int, err error) {
 
 func playername(name string) (out []byte, contentType string, errCode int, err error) {
 	if name != "" {
-		if err := zp.SetPlayerName(name); err != nil {
+		if err := zp.SetZoneName(name); err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
 	}
-	curName, err := zp.GetPlayerName()
+	curName, err := zp.GetZoneName()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
@@ -848,30 +831,26 @@ func repeatone(state bool) (out []byte, contentType string, errCode int, err err
 }
 
 func sync() (out []byte, contentType string, errCode int, err error) {
-	trackInfoRaw, err := zp.GetTrackInfoRaw()
+	trackInfo, err := zp.GetTrackInfo()
 	if err != nil {
 		return []byte{}, "", http.StatusBadRequest, err
 	}
-	trackMetaDataItem, err := trackInfoRaw.ParseMetaData()
-	if err != nil {
-		return []byte{}, "", http.StatusBadRequest, err
-	}
-	trackInfo := TrackInfoMinimal{
-		QuePosition: trackInfoRaw.Track,
-		Duration:    trackInfoRaw.TrackDuration,
-		Progress:    trackInfoRaw.RelTime,
-		Title:       trackMetaDataItem.Title,
-		Creator:     trackMetaDataItem.Creator,
-		Album:       trackMetaDataItem.Album,
+	trackInfoMinimal := TrackInfoMinimal{
+		QuePosition: trackInfo.QuePosition,
+		Duration:    trackInfo.Duration,
+		Progress:    trackInfo.Progress,
+		Title:       trackInfo.Title,
+		Creator:     trackInfo.Creator,
+		Album:       trackInfo.Album,
 	}
 
-	queInfoRaw, err := zp.GetQueInfoRaw(0, 0)
+	queInfo, err := zp.GetQue()
 	if err != nil { // Assume no que; for cases when 3th party apps have control of que
-		queInfoRaw.NumberReturned, queInfoRaw.TotalMatches = "0", "0"
+		queInfo.Count, queInfo.TotalCount = 0, 0
 	}
-	queInfo := QueInfoMinimal{
-		Count:      queInfoRaw.NumberReturned,
-		TotalCount: queInfoRaw.TotalMatches,
+	queInfoMinimal := QueInfoMinimal{
+		Count:      queInfo.Count,
+		TotalCount: queInfo.TotalCount,
 	}
 
 	playing, err := zp.GetPlay()
@@ -890,8 +869,8 @@ func sync() (out []byte, contentType string, errCode int, err error) {
 	}
 
 	jsonBytes, err := json.Marshal(SyncInfo{
-		Track:   trackInfo,
-		Que:     queInfo,
+		Track:   trackInfoMinimal,
+		Que:     queInfoMinimal,
 		Playing: playing,
 		Shuffle: shuffle,
 		Repeat:  repeat,

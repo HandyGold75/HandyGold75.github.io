@@ -20,7 +20,7 @@ import (
 type (
 	SyncInfo struct {
 		Track struct {
-			QuePosition string
+			QuePosition int
 			Duration    string
 			Progress    string
 			Title       string
@@ -28,8 +28,8 @@ type (
 			Album       string
 		}
 		Que struct {
-			Count      string
-			TotalCount string
+			Count      int
+			TotalCount int
 		}
 		Playing bool
 		Shuffle bool
@@ -86,17 +86,20 @@ var (
 )
 
 func getYTPlayer() string {
-	ifr := HTML.HTML{Tag: "div",
+	ifr := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "sonos_player_ifr", "frameborder": "0"},
 		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "75vh"},
 	}.String()
 
-	img := HTML.HTML{Tag: "img",
+	img := HTML.HTML{
+		Tag:        "img",
 		Attributes: map[string]string{"src": "docs/assets/General/Transparent.svg"},
 		Styles:     map[string]string{"position": "absolute", "width": "100%", "height": "100%", "max-height": "75vh"},
 	}.String()
 
-	return HTML.HTML{Tag: "div", Inner: ifr + img,
+	return HTML.HTML{
+		Tag: "div", Inner: ifr + img,
 		Styles: map[string]string{"position": "relative", "padding": "0px 0px min(75vh, 56.25%) 0px"},
 	}.String()
 }
@@ -156,38 +159,46 @@ func updateYTPlayer() error {
 }
 
 func getTimeline() string {
-	txtCur := HTML.HTML{Tag: "p", Inner: "00:00",
+	txtCur := HTML.HTML{
+		Tag: "p", Inner: "00:00",
 		Attributes: map[string]string{"id": "sonos_timeline_progress"},
 		Styles:     map[string]string{"margin": "auto 10px", "color": "#F7E163"},
 	}.String()
 
-	btnSeekBackward := HTML.HTML{Tag: "button",
+	btnSeekBackward := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "sonos_actions_seek_backward", "class": "imgBtn imgBtnSmall"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Sonos/SeekBackward.svg", "alt": "seek_backward"},
 		}.String(),
 	}.String()
 
-	sliderTimeline := HTML.HTML{Tag: "input",
+	sliderTimeline := HTML.HTML{
+		Tag:        "input",
 		Attributes: map[string]string{"id": "sonos_timeline_slider", "type": "range", "min": "0", "max": "0"},
 		Styles:     map[string]string{"width": "75%", "accent-color": "#F7E163"},
 	}.String()
 
-	btnSeekForward := HTML.HTML{Tag: "button",
+	btnSeekForward := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "sonos_actions_seek_forward", "class": "imgBtn imgBtnSmall"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Sonos/SeekForward.svg", "alt": "seek_forward"},
 		}.String(),
 	}.String()
 
-	txtMax := HTML.HTML{Tag: "p", Inner: "00:00",
+	txtMax := HTML.HTML{
+		Tag: "p", Inner: "00:00",
 		Attributes: map[string]string{"id": "sonos_timeline_duration"},
 		Styles:     map[string]string{"margin": "auto 10px", "color": "#F7E163"},
 	}.String()
 
 	spacer := HTML.HTML{Tag: "div"}.String()
 
-	return HTML.HTML{Tag: "div", Inner: spacer + txtCur + btnSeekBackward + sliderTimeline + btnSeekForward + txtMax + spacer,
+	return HTML.HTML{
+		Tag: "div", Inner: spacer + txtCur + btnSeekBackward + sliderTimeline + btnSeekForward + txtMax + spacer,
 		Styles: map[string]string{"display": "flex"},
 	}.String()
 }
@@ -294,9 +305,11 @@ func getControls() string {
 
 	buttons := ""
 	for _, keys := range buttonKeys {
-		buttons += HTML.HTML{Tag: "button",
+		buttons += HTML.HTML{
+			Tag:        "button",
 			Attributes: map[string]string{"id": "sonos_actions_" + keys[0], "class": "imgBtn " + keys[2]},
-			Inner: HTML.HTML{Tag: "img",
+			Inner: HTML.HTML{
+				Tag:        "img",
 				Attributes: map[string]string{"id": "sonos_actions_" + keys[0] + "_img", "src": "./docs/assets/Sonos/" + keys[1], "alt": keys[0]},
 			}.String(),
 		}.String()
@@ -304,7 +317,8 @@ func getControls() string {
 
 	spacer := HTML.HTML{Tag: "div"}.String()
 
-	return HTML.HTML{Tag: "div",
+	return HTML.HTML{
+		Tag:    "div",
 		Styles: map[string]string{"display": "flex", "margin": "0px auto -25px auto"},
 		Inner:  spacer + buttons + spacer,
 	}.String()
@@ -369,16 +383,11 @@ func setEventsControls() error {
 }
 
 func updateControls() error {
-	quePos, err := strconv.Atoi(syncInfo.Track.QuePosition)
-	if err != nil {
-		return err
-	}
-
 	el, err := DOM.GetElement("sonos_actions_shuffle")
 	if err != nil {
 		return err
 	}
-	if quePos < 1 {
+	if syncInfo.Track.QuePosition < 1 {
 		el.StyleSet("display", "none")
 	} else {
 		el.StyleSet("display", "")
@@ -414,7 +423,7 @@ func updateControls() error {
 	if err != nil {
 		return err
 	}
-	if quePos < 1 {
+	if syncInfo.Track.QuePosition < 1 {
 		el.StyleSet("display", "none")
 	} else {
 		el.StyleSet("display", "")
@@ -434,33 +443,40 @@ func getVolume() string {
 	for i := 0; i <= 10; i++ {
 		datalistItems += HTML.HTML{Tag: "option", Attributes: map[string]string{"value": strconv.Itoa(i * 10)}}.String()
 	}
-	datalist := HTML.HTML{Tag: "datalist",
+	datalist := HTML.HTML{
+		Tag:        "datalist",
 		Attributes: map[string]string{"id": "sonos_actions_volume_slider_datalist"},
 		Inner:      datalistItems,
 	}.String()
 
-	btnVolumeDown := HTML.HTML{Tag: "button",
+	btnVolumeDown := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "sonos_actions_volume_down", "class": "imgBtn imgBtnSmall"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Sonos/VolumeDown.svg", "alt": "volume_down"},
 		}.String(),
 	}.String()
 
-	sliderVolume := HTML.HTML{Tag: "input",
+	sliderVolume := HTML.HTML{
+		Tag:        "input",
 		Attributes: map[string]string{"id": "sonos_actions_volume_slider", "type": "range", "min": "0", "max": "100", "list": "sonos_actions_volume_slider_datalist"},
 		Styles:     map[string]string{"width": "30%", "margin": "10px", "padding": "0px", "accent-color": "#F7E163"},
 	}.String()
 
-	btnVolumeUp := HTML.HTML{Tag: "button",
+	btnVolumeUp := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "sonos_actions_volume_up", "class": "imgBtn imgBtnSmall"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Sonos/VolumeUp.svg", "alt": "volume_up"},
 		}.String(),
 	}.String()
 
 	spacer := HTML.HTML{Tag: "div"}.String()
 
-	return HTML.HTML{Tag: "div",
+	return HTML.HTML{
+		Tag:    "div",
 		Styles: map[string]string{"display": "flex"},
 		Inner:  datalist + spacer + btnVolumeDown + sliderVolume + btnVolumeUp + spacer,
 	}.String()
@@ -510,7 +526,8 @@ func updateVolume() error {
 }
 
 func getQue() string {
-	return HTML.HTML{Tag: "div",
+	return HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "sonos_que"},
 		Styles: map[string]string{
 			"display":    "flex",
@@ -523,16 +540,11 @@ func getQue() string {
 }
 
 func updateQue() error {
-	quePos, err := strconv.Atoi(syncInfo.Track.QuePosition)
-	if err != nil {
-		return err
-	}
-
 	el, err := DOM.GetElement("sonos_que")
 	if err != nil {
 		return err
 	}
-	if quePos < 1 {
+	if syncInfo.Track.QuePosition < 1 {
 		el.StyleSet("display", "none")
 		return nil
 	}
@@ -549,14 +561,15 @@ func updateQue() error {
 		imgBorderRadius := "10px"
 		textColor := "#55F"
 		divBackground := "#202020"
-		if i+1 == quePos {
+		if i+1 == syncInfo.Track.QuePosition {
 			imgBorder = "4px solid #f7e163"
 			imgBorderRadius = "0px"
 			textColor = "#f7e163"
 			divBackground = "#333"
 		}
 
-		img := HTML.HTML{Tag: "img",
+		img := HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_img", "src": "./docs/assets/General/Load.svg"},
 			Styles: map[string]string{
 				"width":         "3.5em",
@@ -567,7 +580,8 @@ func updateQue() error {
 			},
 		}.String()
 
-		title := HTML.HTML{Tag: "p",
+		title := HTML.HTML{
+			Tag:        "p",
 			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_title"},
 			Styles: map[string]string{
 				"color":         textColor,
@@ -576,7 +590,8 @@ func updateQue() error {
 			},
 			Inner: track.Title,
 		}.String()
-		creator := HTML.HTML{Tag: "p",
+		creator := HTML.HTML{
+			Tag:        "p",
 			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_creator"},
 			Styles: map[string]string{
 				"color":         textColor,
@@ -584,8 +599,10 @@ func updateQue() error {
 				"overflow":      "hidden",
 				"font-size":     "75%",
 			},
-			Inner: track.Creator}.String()
-		div := HTML.HTML{Tag: "div",
+			Inner: track.Creator,
+		}.String()
+		div := HTML.HTML{
+			Tag:        "div",
 			Attributes: map[string]string{"id": "sonos_que_track_" + pos + "_div"},
 			Styles: map[string]string{
 				"margin":     "auto 5px auto auto",
@@ -595,7 +612,8 @@ func updateQue() error {
 			Inner: title + creator,
 		}.String()
 
-		tracks += HTML.HTML{Tag: "div",
+		tracks += HTML.HTML{
+			Tag:        "div",
 			Attributes: map[string]string{"id": "sonos_que_track_" + pos, "class": "sonos_que_tracks"},
 			Styles: map[string]string{
 				"display":       "flex",
@@ -641,7 +659,7 @@ func updateQue() error {
 
 	}
 	JS.OnResizeAdd("Sonos", func() {
-		el, err = DOM.GetElement("sonos_que_track_" + syncInfo.Track.QuePosition)
+		el, err = DOM.GetElement("sonos_que_track_" + strconv.Itoa(syncInfo.Track.QuePosition))
 		if err != nil {
 			JS.OnResizeDelete("Sonos")
 			return
@@ -772,7 +790,7 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 	if syncInfo.Que.TotalCount != oldSyncInfo.Que.TotalCount || syncInfo.Shuffle != oldSyncInfo.Shuffle {
 		HTTP.Send(queCallback, "sonos", "que", "get")
 	} else if syncInfo.Track.QuePosition != oldSyncInfo.Track.QuePosition {
-		if err := updatedSelectedQueTrack(oldSyncInfo.Track.QuePosition, syncInfo.Track.QuePosition); err != nil {
+		if err := updatedSelectedQueTrack(strconv.Itoa(oldSyncInfo.Track.QuePosition), strconv.Itoa(syncInfo.Track.QuePosition)); err != nil {
 			return
 		}
 	}
@@ -834,7 +852,6 @@ func queCallback(res string, resBytes []byte, resErr error) {
 func addImgCallback(res string, resBytes []byte, resErr error) {
 	if len(toAddImgs) <= 0 {
 		return
-
 	} else if resErr != nil {
 		if strings.HasPrefix(resErr.Error(), "429: ") {
 			JS.AfterDelay(5000, func() { HTTP.Send(addImgCallback, "sonos", "uri", toAddImgs[0][1]) })
