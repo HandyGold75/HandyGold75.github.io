@@ -147,7 +147,8 @@ func showInfoDates(selected string) {
 
 	histDates := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for _, v := range hists {
-		histDates += HTML.HTML{Tag: "button", Inner: v,
+		histDates += HTML.HTML{
+			Tag: "button", Inner: v,
 			Attributes: map[string]string{"class": "dark small tapo_history_dates_btns"},
 		}.String()
 	}
@@ -260,14 +261,16 @@ func drawSvg(lines []string, maxValue float64, xFunc func(time.Time) float64, ci
 		tooltips["tapo_history_out_svg_runtime_"+cordsRuntime[0]+"_"+cordsRuntime[1]] = [2]string{"Runtime", SectoString(int(todayRuntime)) + "<br>" + localTime.Format(time.DateTime)}
 		tooltips["tapo_history_out_svg_energy_"+cordsEnergy[0]+"_"+cordsEnergy[1]] = [2]string{"Energy", WattToString(todayEnergy) + "<br>" + localTime.Format(time.DateTime)}
 
-		svg += HTML.HTML{Tag: "circle",
+		svg += HTML.HTML{
+			Tag: "circle",
 			Attributes: map[string]string{
 				"id": "tapo_history_out_svg_runtime_" + cordsRuntime[0] + "_" + cordsRuntime[1],
 				"r":  "10", "cx": cordsRuntime[0], "cy": cordsRuntime[1],
 				"fill": "#55F", "stroke": "#2A2A2A", "stroke-width": "5",
 			},
 		}.String()
-		svg += HTML.HTML{Tag: "circle",
+		svg += HTML.HTML{
+			Tag: "circle",
 			Attributes: map[string]string{
 				"id": "tapo_history_out_svg_energy_" + cordsEnergy[0] + "_" + cordsEnergy[1],
 				"r":  "10", "cx": cordsEnergy[0], "cy": cordsEnergy[1],
@@ -276,11 +279,13 @@ func drawSvg(lines []string, maxValue float64, xFunc func(time.Time) float64, ci
 		}.String()
 	}
 
-	runtimeLine := HTML.HTML{Tag: "polyline",
+	runtimeLine := HTML.HTML{
+		Tag:        "polyline",
 		Attributes: map[string]string{"points": strings.Join(allCordsRuntime, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#55F", "stroke-width": "10"},
 	}.String()
-	energyLine := HTML.HTML{Tag: "polyline",
+	energyLine := HTML.HTML{
+		Tag:        "polyline",
 		Attributes: map[string]string{"points": strings.Join(allCordsEnergy, " ")},
 		Styles:     map[string]string{"fill": "none", "stroke": "#FFAA55", "stroke-width": "5"},
 	}.String()
@@ -310,7 +315,8 @@ func drawRows(maxValue float64) error {
 	rows := ""
 	svg := ""
 	for i := 10.0; i > 0; i-- {
-		rows += HTML.HTML{Tag: "p", Inner: WattToString((i / 10) * maxValue),
+		rows += HTML.HTML{
+			Tag: "p", Inner: WattToString((i / 10) * maxValue),
 			Styles: map[string]string{
 				"height":        "10%",
 				"margin-top":    "-2px",
@@ -321,7 +327,8 @@ func drawRows(maxValue float64) error {
 		}.String()
 
 		y := strconv.FormatFloat(c_height-((i/10.0)*c_height), 'f', -1, 64)
-		svg += HTML.HTML{Tag: "line",
+		svg += HTML.HTML{
+			Tag:        "line",
 			Attributes: map[string]string{"x1": "0", "y1": y, "x2": strconv.FormatFloat(c_width, 'f', -1, 64), "y2": y},
 			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
 		}.String()
@@ -357,7 +364,8 @@ func drawCols(lines []string) error {
 	cols := ""
 	svg := ""
 	for i, month := range months {
-		cols += HTML.HTML{Tag: "p", Inner: month,
+		cols += HTML.HTML{
+			Tag: "p", Inner: month,
 			Attributes: map[string]string{"id": "tapo_history_out_cols_month_" + strconv.Itoa(i)},
 			Styles: map[string]string{
 				"width":         strconv.FormatFloat(100.0/float64(len(months)), 'f', -1, 64) + "%",
@@ -369,7 +377,8 @@ func drawCols(lines []string) error {
 		}.String()
 
 		x := strconv.FormatFloat((float64(i)/float64(len(months)))*c_width, 'f', -1, 64)
-		svg += HTML.HTML{Tag: "line",
+		svg += HTML.HTML{
+			Tag:        "line",
 			Attributes: map[string]string{"x1": x, "y1": "0", "x2": x, "y2": strconv.FormatFloat(c_height, 'f', -1, 64)},
 			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
 		}.String()
@@ -420,7 +429,8 @@ func drawColsMonth(maxDays int) error {
 	cols := ""
 	svg := ""
 	for i := 1; i <= maxDays; i++ {
-		cols += HTML.HTML{Tag: "p", Inner: strconv.Itoa(i),
+		cols += HTML.HTML{
+			Tag: "p", Inner: strconv.Itoa(i),
 			Styles: map[string]string{
 				"width":         strconv.FormatFloat(100.0/float64(maxDays), 'f', -1, 64) + "%",
 				"margin-left":   "-2px",
@@ -431,7 +441,8 @@ func drawColsMonth(maxDays int) error {
 		}.String()
 
 		x := strconv.FormatFloat((float64(i)/float64(maxDays))*c_width, 'f', -1, 64)
-		svg += HTML.HTML{Tag: "line",
+		svg += HTML.HTML{
+			Tag:        "line",
 			Attributes: map[string]string{"x1": x, "y1": "0", "x2": x, "y2": strconv.FormatFloat(c_height, 'f', -1, 64)},
 			Styles:     map[string]string{"stroke": "#222", "stroke-width": "2"},
 		}.String()
@@ -562,39 +573,48 @@ func addDevice(name string) error {
 	outStyle := map[string]string{"margin": "0px 5px", "white-space": "nowrap"}
 	divStyle := map[string]string{"display": "flex", "padding": "0px", "background": "#2F2F2F"}
 
-	btnPower := HTML.HTML{Tag: "button",
+	btnPower := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "tapo_devices_" + name + "_power", "class": "imgBtn imgBtnMedium"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Tapo/Power.svg", "alt": "power"},
 		}.String(),
 	}.String()
 
-	txt := HTML.HTML{Tag: "h2", Inner: name,
+	txt := HTML.HTML{
+		Tag: "h2", Inner: name,
 		Styles: map[string]string{"margin": "auto 10px", "padding": "0px 10px", "white-space": "nowrap"},
 	}.String()
 
-	btnInfo := HTML.HTML{Tag: "button",
+	btnInfo := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "tapo_devices_" + name + "_info", "class": "imgBtn imgBtnMedium tapo_devices_infos"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"src": "./docs/assets/Tapo/Info.svg", "alt": "info"},
 		}.String(),
 	}.String()
 
-	header := HTML.HTML{Tag: "div", Inner: btnPower + txt + btnInfo,
+	header := HTML.HTML{
+		Tag: "div", Inner: btnPower + txt + btnInfo,
 		Styles: map[string]string{"display": "flex"},
 	}.String()
 
-	power := HTML.HTML{Tag: "img",
+	power := HTML.HTML{
+		Tag:        "img",
 		Styles:     map[string]string{"width": "100%"},
 		Attributes: map[string]string{"id": "tapo_devices_" + name + "_current_power_img", "src": "./docs/assets/Tapo/Power/0.svg", "alt": "info"},
 	}.String()
 
-	out := HTML.HTML{Tag: "p",
+	out := HTML.HTML{
+		Tag:        "p",
 		Attributes: map[string]string{"id": "tapo_devices_" + name + "_current_power"},
 		Styles:     map[string]string{"margin": "-15px 5px 0px 5px", "white-space": "nowrap"},
 	}.String()
 
-	current := HTML.HTML{Tag: "div", Inner: power + out,
+	current := HTML.HTML{
+		Tag: "div", Inner: power + out,
 		Styles: map[string]string{
 			"width":      "150px",
 			"margin":     "10px auto",
@@ -614,7 +634,8 @@ func addDevice(name string) error {
 	out = HTML.HTML{Tag: "p", Attributes: map[string]string{"id": "tapo_devices_" + name + "_today_runtime"}, Styles: outStyle}.String()
 	runtime := HTML.HTML{Tag: "div", Inner: txt + out, Styles: divStyle}.String()
 
-	today := HTML.HTML{Tag: "div", Inner: head + power + runtime,
+	today := HTML.HTML{
+		Tag: "div", Inner: head + power + runtime,
 		Styles: map[string]string{
 			"width":      "50%",
 			"background": "#2F2F2F",
@@ -631,14 +652,16 @@ func addDevice(name string) error {
 	out = HTML.HTML{Tag: "p", Attributes: map[string]string{"id": "tapo_devices_" + name + "_month_runtime"}, Styles: outStyle}.String()
 	runtime = HTML.HTML{Tag: "div", Inner: txt + out, Styles: divStyle}.String()
 
-	month := HTML.HTML{Tag: "div", Inner: head + power + runtime,
+	month := HTML.HTML{
+		Tag: "div", Inner: head + power + runtime,
 		Styles: map[string]string{
 			"width":      "50%",
 			"background": "#2F2F2F",
 		},
 	}.String()
 
-	stats := HTML.HTML{Tag: "div", Inner: today + month,
+	stats := HTML.HTML{
+		Tag: "div", Inner: today + month,
 		Styles: map[string]string{
 			"display":    "flex",
 			"padding":    "0px 4px",
@@ -647,7 +670,8 @@ func addDevice(name string) error {
 		},
 	}.String()
 
-	div := HTML.HTML{Tag: "div", Inner: header + current + stats,
+	div := HTML.HTML{
+		Tag: "div", Inner: header + current + stats,
 		Attributes: map[string]string{"id": "tapo_devices_" + name},
 		Styles: map[string]string{
 			"min-width":  "max-content",
@@ -794,12 +818,14 @@ func SectoString(m int) string {
 func showTapo() {
 	header := HTML.HTML{Tag: "h1", Inner: "Tapo"}.String()
 
-	monitors := HTML.HTML{Tag: "div",
+	monitors := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "tapo_monitors"},
 		Styles:     map[string]string{"display": "flex", "overflow-x": "scroll"},
 	}.String()
 
-	dates := HTML.HTML{Tag: "div",
+	dates := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "tapo_history_dates"},
 		Styles: map[string]string{
 			"display":    "flex",
@@ -811,7 +837,8 @@ func showTapo() {
 		},
 	}.String()
 
-	rows := HTML.HTML{Tag: "div",
+	rows := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "tapo_history_out_rows"},
 		Styles: map[string]string{
 			"width":         "71px",
@@ -822,7 +849,8 @@ func showTapo() {
 			"border-radius": "0px",
 		},
 	}.String()
-	cor := HTML.HTML{Tag: "div",
+	cor := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "tapo_history_out_cor"},
 		Styles: map[string]string{
 			"width":         "71px",
@@ -834,7 +862,8 @@ func showTapo() {
 			"border-radius": "0px",
 		},
 	}.String()
-	cols := HTML.HTML{Tag: "div",
+	cols := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "tapo_history_out_cols"},
 		Styles: map[string]string{
 			"display":       "flex",
@@ -847,7 +876,8 @@ func showTapo() {
 		},
 	}.String()
 
-	svg := HTML.HTML{Tag: "svg",
+	svg := HTML.HTML{
+		Tag:        "svg",
 		Attributes: map[string]string{"id": "tapo_history_out_svg", "xmlns": "http://www.w3.org/2000/svg"},
 		Styles: map[string]string{
 			"width":  "100%",
@@ -855,7 +885,8 @@ func showTapo() {
 		},
 	}.String()
 
-	out := HTML.HTML{Tag: "div", Inner: rows + svg + cor + cols,
+	out := HTML.HTML{
+		Tag: "div", Inner: rows + svg + cor + cols,
 		Attributes: map[string]string{"id": "tapo_history_out"},
 		Styles: map[string]string{
 			"display":               "grid",
@@ -871,7 +902,8 @@ func showTapo() {
 		},
 	}.String()
 
-	hists := HTML.HTML{Tag: "div", Inner: dates + out,
+	hists := HTML.HTML{
+		Tag: "div", Inner: dates + out,
 		Attributes: map[string]string{"id": "tapo_history"},
 	}.String()
 

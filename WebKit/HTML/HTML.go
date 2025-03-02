@@ -51,7 +51,8 @@ func (html HTML) String() string {
 }
 
 func (html HTML) LinkWrap(href string) HTML {
-	return HTML{Tag: "a",
+	return HTML{
+		Tag:        "a",
 		Attributes: map[string]string{"href": href, "target": "_blank"},
 		Inner:      html.String(),
 	}

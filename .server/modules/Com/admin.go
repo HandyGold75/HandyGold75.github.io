@@ -15,99 +15,97 @@ import (
 	"unicode"
 )
 
-var (
-	AdminComs = Commands{
-		"exit": Command{
-			RequiredAuthLevel:   Auth.AuthMap["admin"],
-			RequiredRoles:       []string{"CLI"},
-			Description:         "Stop the server.",
-			DetailedDescription: "Informs all routines to stop and then quit, the process exits when all routines have stopped.",
-			ExampleDescription:  "",
-			AutoComplete:        []string{},
-			ArgsLen:             [2]int{0, 0},
-			Function: func(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-				OutCh <- "exit"
-				return []byte{}, "", http.StatusAccepted, nil
-			},
+var AdminComs = Commands{
+	"exit": Command{
+		RequiredAuthLevel:   Auth.AuthMap["admin"],
+		RequiredRoles:       []string{"CLI"},
+		Description:         "Stop the server.",
+		DetailedDescription: "Informs all routines to stop and then quit, the process exits when all routines have stopped.",
+		ExampleDescription:  "",
+		AutoComplete:        []string{},
+		ArgsLen:             [2]int{0, 0},
+		Function: func(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+			OutCh <- "exit"
+			return []byte{}, "", http.StatusAccepted, nil
 		},
-		"restart": Command{
-			RequiredAuthLevel:   Auth.AuthMap["admin"],
-			RequiredRoles:       []string{"CLI"},
-			Description:         "Restart the server.",
-			DetailedDescription: "Informs all routines to stop, the routines will be started again when all routines have stopped.",
-			ExampleDescription:  "",
-			AutoComplete:        []string{},
-			ArgsLen:             [2]int{0, 0},
-			Function: func(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-				OutCh <- "restart"
-				return []byte{}, "", http.StatusAccepted, nil
-			},
+	},
+	"restart": Command{
+		RequiredAuthLevel:   Auth.AuthMap["admin"],
+		RequiredRoles:       []string{"CLI"},
+		Description:         "Restart the server.",
+		DetailedDescription: "Informs all routines to stop, the routines will be started again when all routines have stopped.",
+		ExampleDescription:  "",
+		AutoComplete:        []string{},
+		ArgsLen:             [2]int{0, 0},
+		Function: func(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+			OutCh <- "restart"
+			return []byte{}, "", http.StatusAccepted, nil
 		},
-		"users": Command{
-			RequiredAuthLevel: Auth.AuthMap["admin"],
-			RequiredRoles:     []string{"CLI"},
-			Description:       "Interface for user managment.",
-			DetailedDescription: "Interact with user data. Usage: users [list|get|create|modify|delete|deauth] [args?]...\r\n" +
-				"  list\r\n    List user hashes.\r\n" +
-				"  get [userHash]\r\n    Get user.\r\n" +
-				"  create [username] [password] [guest|user|admin] [roles,...] [enabled]\r\n    Create user.\r\n" +
-				"  modify [userHash] [username|password|authlevel|roles|enabled] [value]\r\n    Modify user.\r\n" +
-				"  delete [userHash]\r\n    Delete user.\r\n" +
-				"  deauth [user|token] [userHash|token]\r\n    Deauthorize user or token.",
-			ExampleDescription: "get barry",
-			AutoComplete:       []string{"list", "get", "create", "modify", "delete", "deauth"},
-			ArgsLen:            [2]int{0, 5},
-			Function:           UserInterface,
-		},
-		"tools": Command{
-			RequiredAuthLevel: Auth.AuthMap["admin"],
-			RequiredRoles:     []string{"CLI"},
-			Description:       "Generic tools.",
-			DetailedDescription: "Generic tools. Usage: tools [tool] [args?]...\r\n" +
-				"  sha1 [arg]\r\n    Get sha1 of a string.\r\n" +
-				"  sha512 [args]\r\n    Get sha512 of a string.",
-			ExampleDescription: "sha1 sometext",
-			AutoComplete:       []string{"sha1", "sha512"},
-			ArgsLen:            [2]int{2, 2},
-			Function:           ToolInterface,
-		},
-		"logs": Command{
-			RequiredAuthLevel: Auth.AuthMap["admin"],
-			RequiredRoles:     []string{"CLI"},
-			Description:       "Print logs",
-			DetailedDescription: "Print logs of a specific day or print an list of available logs. Usage: logs [list|get|listh|geth] [args?]...\r\n" +
-				"  list\r\n    List available logs.\r\n" +
-				"  get [module] [log]\r\n    Get log.\r\n" +
-				"  listh\r\n    Same as list but human readable.\r\n" +
-				"  geth [module] [log]\r\n    Same as get but human readable.\r\n",
-			ExampleDescription: "server " + time.Now().Format("2006-01") + ".log",
-			AutoComplete: func() []string {
-				completes := []string{"list", "get", "listh", "geth"}
-				fs.WalkDir(os.DirFS(files.LogDir), ".", func(path string, dir fs.DirEntry, err error) error {
-					if err != nil || path == "." {
-						return err
-					}
-					completes = append(completes, "get "+strings.ReplaceAll(path, "/", " "))
-					completes = append(completes, "geth "+strings.ReplaceAll(path, "/", " "))
-					return nil
-				})
-				return completes
-			}(),
-			ArgsLen:  [2]int{0, 2},
-			Function: PrintLogs,
-		},
-		"debug": Command{
-			RequiredAuthLevel:   Auth.AuthMap["admin"],
-			RequiredRoles:       []string{"CLI"},
-			Description:         "Enable/ disable debugging or print debug values.",
-			DetailedDescription: "Enabled or disabled debugging or print debug values. Usage: debug [0|1|server|auth|https]\r\n  Restarting the server will reset the debug state to the orginial value.",
-			ExampleDescription:  "1",
-			AutoComplete:        []string{},
-			ArgsLen:             [2]int{1, 1},
-			Function:            setDebug,
-		},
-	}
-)
+	},
+	"users": Command{
+		RequiredAuthLevel: Auth.AuthMap["admin"],
+		RequiredRoles:     []string{"CLI"},
+		Description:       "Interface for user managment.",
+		DetailedDescription: "Interact with user data. Usage: users [list|get|create|modify|delete|deauth] [args?]...\r\n" +
+			"  list\r\n    List user hashes.\r\n" +
+			"  get [userHash]\r\n    Get user.\r\n" +
+			"  create [username] [password] [guest|user|admin] [roles,...] [enabled]\r\n    Create user.\r\n" +
+			"  modify [userHash] [username|password|authlevel|roles|enabled] [value]\r\n    Modify user.\r\n" +
+			"  delete [userHash]\r\n    Delete user.\r\n" +
+			"  deauth [user|token] [userHash|token]\r\n    Deauthorize user or token.",
+		ExampleDescription: "get barry",
+		AutoComplete:       []string{"list", "get", "create", "modify", "delete", "deauth"},
+		ArgsLen:            [2]int{0, 5},
+		Function:           UserInterface,
+	},
+	"tools": Command{
+		RequiredAuthLevel: Auth.AuthMap["admin"],
+		RequiredRoles:     []string{"CLI"},
+		Description:       "Generic tools.",
+		DetailedDescription: "Generic tools. Usage: tools [tool] [args?]...\r\n" +
+			"  sha1 [arg]\r\n    Get sha1 of a string.\r\n" +
+			"  sha512 [args]\r\n    Get sha512 of a string.",
+		ExampleDescription: "sha1 sometext",
+		AutoComplete:       []string{"sha1", "sha512"},
+		ArgsLen:            [2]int{2, 2},
+		Function:           ToolInterface,
+	},
+	"logs": Command{
+		RequiredAuthLevel: Auth.AuthMap["admin"],
+		RequiredRoles:     []string{"CLI"},
+		Description:       "Print logs",
+		DetailedDescription: "Print logs of a specific day or print an list of available logs. Usage: logs [list|get|listh|geth] [args?]...\r\n" +
+			"  list\r\n    List available logs.\r\n" +
+			"  get [module] [log]\r\n    Get log.\r\n" +
+			"  listh\r\n    Same as list but human readable.\r\n" +
+			"  geth [module] [log]\r\n    Same as get but human readable.\r\n",
+		ExampleDescription: "server " + time.Now().Format("2006-01") + ".log",
+		AutoComplete: func() []string {
+			completes := []string{"list", "get", "listh", "geth"}
+			fs.WalkDir(os.DirFS(files.LogDir), ".", func(path string, dir fs.DirEntry, err error) error {
+				if err != nil || path == "." {
+					return err
+				}
+				completes = append(completes, "get "+strings.ReplaceAll(path, "/", " "))
+				completes = append(completes, "geth "+strings.ReplaceAll(path, "/", " "))
+				return nil
+			})
+			return completes
+		}(),
+		ArgsLen:  [2]int{0, 2},
+		Function: PrintLogs,
+	},
+	"debug": Command{
+		RequiredAuthLevel:   Auth.AuthMap["admin"],
+		RequiredRoles:       []string{"CLI"},
+		Description:         "Enable/ disable debugging or print debug values.",
+		DetailedDescription: "Enabled or disabled debugging or print debug values. Usage: debug [0|1|server|auth|https]\r\n  Restarting the server will reset the debug state to the orginial value.",
+		ExampleDescription:  "1",
+		AutoComplete:        []string{},
+		ArgsLen:             [2]int{1, 1},
+		Function:            setDebug,
+	},
+}
 
 func UserInterface(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
 	if len(args) < 1 {

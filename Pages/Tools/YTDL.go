@@ -60,7 +60,8 @@ func submitURL(el js.Value, evs []js.Value) {
 
 	id := time.Now().Format(time.DateTime)
 
-	titleTxt := HTML.HTML{Tag: "p", Inner: url,
+	titleTxt := HTML.HTML{
+		Tag: "p", Inner: url,
 		Attributes: map[string]string{"id": "ytdl_out_" + id + "_title"},
 		Styles: map[string]string{
 			"background":  "#2A2A2A",
@@ -68,14 +69,16 @@ func submitURL(el js.Value, evs []js.Value) {
 		},
 	}.String()
 
-	title := HTML.HTML{Tag: "a", Inner: titleTxt,
+	title := HTML.HTML{
+		Tag: "a", Inner: titleTxt,
 		Attributes: map[string]string{"href": url, "target": "_blank"},
 		Styles: map[string]string{
 			"width": "65%",
 		},
 	}.String()
 
-	options := HTML.HTML{Tag: "p", Inner: strings.Join(args, ", "),
+	options := HTML.HTML{
+		Tag: "p", Inner: strings.Join(args, ", "),
 		Styles: map[string]string{
 			"width":       "15%",
 			"background":  "#2A2A2A",
@@ -83,7 +86,8 @@ func submitURL(el js.Value, evs []js.Value) {
 		},
 	}.String()
 
-	size := HTML.HTML{Tag: "p",
+	size := HTML.HTML{
+		Tag:        "p",
 		Attributes: map[string]string{"id": "ytdl_out_" + id + "_size"},
 		Styles: map[string]string{
 			"width":       "10%",
@@ -92,7 +96,8 @@ func submitURL(el js.Value, evs []js.Value) {
 		},
 	}.String()
 
-	state := HTML.HTML{Tag: "p", Inner: "Fetch",
+	state := HTML.HTML{
+		Tag: "p", Inner: "Fetch",
 		Attributes: map[string]string{"id": "ytdl_out_" + id + "_state"},
 		Styles: map[string]string{
 			"width":       "10%",
@@ -102,7 +107,8 @@ func submitURL(el js.Value, evs []js.Value) {
 		},
 	}.String()
 
-	out := HTML.HTML{Tag: "div", Inner: title + options + size + state,
+	out := HTML.HTML{
+		Tag: "div", Inner: title + options + size + state,
 		Attributes: map[string]string{"id": "ytdl_out_" + id},
 		Styles: map[string]string{
 			"display":       "flex",
@@ -242,16 +248,19 @@ func showYTDL() {
 
 	spacer := HTML.HTML{Tag: "div", Styles: map[string]string{"background": "#2A2A2A"}}.String()
 
-	inp := HTML.HTML{Tag: "input",
+	inp := HTML.HTML{
+		Tag:        "input",
 		Attributes: map[string]string{"type": "url", "id": "ytdl_input", "autocomplete": "url", "placeholder": "URL"},
 		Styles:     map[string]string{"width": "55%"},
 	}.String()
 
-	btnConfirm := HTML.HTML{Tag: "button", Inner: "Download",
+	btnConfirm := HTML.HTML{
+		Tag: "button", Inner: "Download",
 		Attributes: map[string]string{"id": "ytdl_confirm", "class": "dark medium"},
 	}.String()
 
-	selectDiv := HTML.HTML{Tag: "div", Inner: spacer + inp + btnConfirm + spacer,
+	selectDiv := HTML.HTML{
+		Tag: "div", Inner: spacer + inp + btnConfirm + spacer,
 		Styles: map[string]string{
 			"display":    "flex",
 			"max-width":  "min(75%, 1000px)",
@@ -262,22 +271,26 @@ func showYTDL() {
 		},
 	}.String()
 
-	btnAudio := HTML.HTML{Tag: "button", Inner: "Audio Only",
+	btnAudio := HTML.HTML{
+		Tag: "button", Inner: "Audio Only",
 		Attributes: map[string]string{"id": "ytdl_option_audio_only", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
-	btnLow := HTML.HTML{Tag: "button", Inner: "Low Quality",
+	btnLow := HTML.HTML{
+		Tag: "button", Inner: "Low Quality",
 		Attributes: map[string]string{"id": "ytdl_option_low_quality", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
-	btnMP4 := HTML.HTML{Tag: "button", Inner: "Force MP4",
+	btnMP4 := HTML.HTML{
+		Tag: "button", Inner: "Force MP4",
 		Attributes: map[string]string{"id": "ytdl_option_force_mp4", "class": "dark small"},
 		Styles:     map[string]string{"margin": "auto 2px", "white-space": "nowrap"},
 	}.String()
 
-	optionsDiv := HTML.HTML{Tag: "div", Inner: spacer + btnAudio + btnLow + btnMP4 + spacer,
+	optionsDiv := HTML.HTML{
+		Tag: "div", Inner: spacer + btnAudio + btnLow + btnMP4 + spacer,
 		Styles: map[string]string{
 			"display":    "flex",
 			"max-width":  "min(75%, 1000px)",
@@ -288,7 +301,8 @@ func showYTDL() {
 		},
 	}.String()
 
-	outDiv := HTML.HTML{Tag: "div",
+	outDiv := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "ytdl_out"},
 		Styles: map[string]string{
 			"max-width":  "min(75%, 1000px)",

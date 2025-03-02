@@ -185,38 +185,47 @@ func submitLogin(el js.Value, evs []js.Value) {
 func showLogin() {
 	header := HTML.HTML{Tag: "h1", Inner: "Login"}.String()
 
-	server := HTML.HTML{Tag: "div",
+	server := HTML.HTML{
+		Tag:    "div",
 		Styles: map[string]string{"display": "flex"},
-		Inner: HTML.HTML{Tag: "p",
+		Inner: HTML.HTML{
+			Tag:    "p",
 			Inner:  "Server",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
-		}.String() + HTML.HTML{Tag: "input",
+		}.String() + HTML.HTML{
+			Tag:        "input",
 			Attributes: map[string]string{"type": "url", "id": "login_server", "class": "login_inputs", "autocomplete": "url", "placeholder": "Server", "value": HTTP.Config.Server},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
-		}.String()}.String()
+		}.String(),
+	}.String()
 
 	username := HTML.HTML{
 		Tag:    "div",
 		Styles: map[string]string{"display": "flex"},
-		Inner: HTML.HTML{Tag: "p",
+		Inner: HTML.HTML{
+			Tag:    "p",
 			Inner:  "Username",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
 		}.String() + HTML.HTML{
 			Tag:        "input",
 			Attributes: map[string]string{"type": "email", "id": "login_username", "class": "login_inputs", "autocomplete": "username", "placeholder": "Username"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
-		}.String()}.String()
+		}.String(),
+	}.String()
 
 	password := HTML.HTML{
 		Tag:    "div",
 		Styles: map[string]string{"display": "flex"},
-		Inner: HTML.HTML{Tag: "p",
+		Inner: HTML.HTML{
+			Tag:    "p",
 			Inner:  "Password",
 			Styles: map[string]string{"width": "20%", "margin": "auto 0px auto auto", "background": "#1f1f1f", "border": "2px solid #111"},
-		}.String() + HTML.HTML{Tag: "input",
+		}.String() + HTML.HTML{
+			Tag:        "input",
 			Attributes: map[string]string{"type": "password", "id": "login_password", "class": "login_inputs", "autocomplete": "current-password", "placeholder": "Password"},
 			Styles:     map[string]string{"width": "60%", "margin-right": "auto"},
-		}.String()}.String()
+		}.String(),
+	}.String()
 
 	pinBtn := HTML.HTML{
 		Tag:        "button",
@@ -225,7 +234,8 @@ func showLogin() {
 		Inner: HTML.HTML{
 			Tag:        "img",
 			Attributes: map[string]string{"id": "login_remember_img", "src": "./docs/assets/Login/Pin.svg", "alt": "remember"},
-		}.String()}.String()
+		}.String(),
+	}.String()
 
 	spacer := HTML.HTML{Tag: "div"}.String()
 	buttons := HTML.HTML{
