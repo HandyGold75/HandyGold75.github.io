@@ -15,30 +15,28 @@ import (
 	"time"
 )
 
-var (
-	TapoComs = Commands{
-		"tapo": Command{
-			RequiredAuthLevel: Auth.AuthMap["user"],
-			RequiredRoles:     []string{"Home"},
-			Description:       "Tapo interface.",
-			DetailedDescription: "Interact with tapo plugs. Usage: tapo [list|on|off|get|info|histlist|histget|histlisth|histgeth|sync] [args?]...\r\n" +
-				"  list\r\n    List available plugs.\r\n" +
-				"  on [plug]\r\n    Turn plug on.\r\n" +
-				"  off [plug]\r\n    Turn plug off.\r\n" +
-				"  get [plug]\r\n    Get plug energy usage.\r\n" +
-				"  info [plug]\r\n    Get plug information.\r\n" +
-				"  histlist\r\n    List available plugs and historys.\r\n" +
-				"  histget [plug] [history]\r\n    Get plug energy usage history.\r\n" +
-				"  histlisth\r\n    Same as histlist but human readable.\r\n" +
-				"  histgeth [module] [log]\r\n    Same as histget but human readable.\r\n" +
-				"  sync\r\n    Get all plug energy usage.\r\n",
-			ExampleDescription: "list",
-			AutoComplete:       []string{"list", "on", "off", "get", "info", "histlist", "histget", "histlisth", "histgeth", "sync"},
-			ArgsLen:            [2]int{1, 5},
-			Function:           TapoInterface,
-		},
-	}
-)
+var TapoComs = Commands{
+	"tapo": Command{
+		RequiredAuthLevel: Auth.AuthMap["user"],
+		RequiredRoles:     []string{"Home"},
+		Description:       "Tapo interface.",
+		DetailedDescription: "Interact with tapo plugs. Usage: tapo [list|on|off|get|info|histlist|histget|histlisth|histgeth|sync] [args?]...\r\n" +
+			"  list\r\n    List available plugs.\r\n" +
+			"  on [plug]\r\n    Turn plug on.\r\n" +
+			"  off [plug]\r\n    Turn plug off.\r\n" +
+			"  get [plug]\r\n    Get plug energy usage.\r\n" +
+			"  info [plug]\r\n    Get plug information.\r\n" +
+			"  histlist\r\n    List available plugs and historys.\r\n" +
+			"  histget [plug] [history]\r\n    Get plug energy usage history.\r\n" +
+			"  histlisth\r\n    Same as histlist but human readable.\r\n" +
+			"  histgeth [module] [log]\r\n    Same as histget but human readable.\r\n" +
+			"  sync\r\n    Get all plug energy usage.\r\n",
+		ExampleDescription: "list",
+		AutoComplete:       []string{"list", "on", "off", "get", "info", "histlist", "histget", "histlisth", "histgeth", "sync"},
+		ArgsLen:            [2]int{1, 5},
+		Function:           TapoInterface,
+	},
+}
 
 func TapoInterface(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
 	if len(args) < 1 {

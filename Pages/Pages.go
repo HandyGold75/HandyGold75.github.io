@@ -200,10 +200,12 @@ func showMain() error {
 		return err
 	}
 
-	items := HTML.HTML{Tag: "button",
+	items := HTML.HTML{
+		Tag:        "button",
 		Attributes: map[string]string{"id": "docker_showhide", "class": "imgBtn imgBtnSmall"},
 		Styles:     map[string]string{"max-width": "250px"},
-		Inner: HTML.HTML{Tag: "img",
+		Inner: HTML.HTML{
+			Tag:        "img",
 			Attributes: map[string]string{"id": "docker_showhide_img", "src": "./docs/assets/General/Show-H.svg", "alt": "ShowHide"},
 			Styles:     map[string]string{"max-width": "250px"},
 		}.String(),
@@ -222,7 +224,8 @@ func showMain() error {
 				}
 
 				if strings.Replace(page, "sub:", "", 1) == strings.Split(subPage, ":")[0] {
-					subPages += HTML.HTML{Tag: "button", Inner: strings.Split(subPage, ":")[1],
+					subPages += HTML.HTML{
+						Tag: "button", Inner: strings.Split(subPage, ":")[1],
 						Attributes: map[string]string{"id": "page_" + subPage, "class": "dark large docker_buttons"},
 						Styles:     map[string]string{"opacity": "0"},
 					}.String()
@@ -233,13 +236,15 @@ func showMain() error {
 				continue
 			}
 
-			subPages = HTML.HTML{Tag: "p", Inner: strings.Replace(page, "sub:", "", 1),
+			subPages = HTML.HTML{
+				Tag: "p", Inner: strings.Replace(page, "sub:", "", 1),
 				Attributes: map[string]string{"class": "docker_titles"},
 				Styles:     map[string]string{"opacity": "0", "color": "#88b", "font-size": "125%", "transition": "opacity 0.25s"},
 				Surfix:     subPages,
 			}.String()
 
-			items += HTML.HTML{Tag: "div", Inner: subPages,
+			items += HTML.HTML{
+				Tag: "div", Inner: subPages,
 				Attributes: map[string]string{"class": "docker_subs"},
 				Styles: map[string]string{
 					"display":       "grid",
@@ -256,13 +261,15 @@ func showMain() error {
 			continue
 		}
 
-		items += HTML.HTML{Tag: "button", Inner: page,
+		items += HTML.HTML{
+			Tag: "button", Inner: page,
 			Attributes: map[string]string{"id": "page_" + page, "class": "dark large docker_buttons"},
 			Styles:     map[string]string{"opacity": "0"},
 		}.String()
 	}
 
-	docker := HTML.HTML{Tag: "div", Inner: items,
+	docker := HTML.HTML{
+		Tag: "div", Inner: items,
 		Attributes: map[string]string{"id": "docker"},
 		Styles: map[string]string{
 			"position":   "fixed",
@@ -280,12 +287,14 @@ func showMain() error {
 		},
 	}.String()
 
-	mainpage := HTML.HTML{Tag: "div",
+	mainpage := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "mainpage"},
 		Styles:     map[string]string{"max-height": "0vh"},
 	}.String()
 
-	txt := HTML.HTML{Tag: "p", Inner: "HandyGold75 - 2022 / 2024",
+	txt := HTML.HTML{
+		Tag: "p", Inner: "HandyGold75 - 2022 / 2024",
 		Styles:     map[string]string{"font-weight": "bold", "margin": "auto auto auto 0px"},
 		Attributes: map[string]string{"class": "light"},
 	}.String()
@@ -295,17 +304,21 @@ func showMain() error {
 		loginText = "Logout"
 	}
 
-	btnBackToTop := HTML.HTML{Tag: "button", Inner: "Back to top",
+	btnBackToTop := HTML.HTML{
+		Tag: "button", Inner: "Back to top",
 		Attributes: map[string]string{"id": "footer_backtotop", "class": "small light"},
 	}.String()
-	btnLogin := HTML.HTML{Tag: "button", Inner: loginText,
+	btnLogin := HTML.HTML{
+		Tag: "button", Inner: loginText,
 		Attributes: map[string]string{"id": "footer_login", "class": "small light"},
 	}.String()
-	btnClearCache := HTML.HTML{Tag: "button", Inner: "Clear cache",
+	btnClearCache := HTML.HTML{
+		Tag: "button", Inner: "Clear cache",
 		Attributes: map[string]string{"id": "footer_clearcache", "class": "small light"},
 	}.String()
 
-	footer := HTML.HTML{Tag: "div", Inner: txt + btnBackToTop + btnLogin + btnClearCache,
+	footer := HTML.HTML{
+		Tag: "div", Inner: txt + btnBackToTop + btnLogin + btnClearCache,
 		Attributes: map[string]string{"id": "footer", "class": "light"},
 		Styles: map[string]string{
 			"display":    "flex",

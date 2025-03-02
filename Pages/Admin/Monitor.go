@@ -16,9 +16,7 @@ import (
 	"time"
 )
 
-var (
-	selectedToken = ""
-)
+var selectedToken = ""
 
 func deauthToken(el js.Value, els []js.Value) {
 	if selectedToken != "" {
@@ -104,36 +102,44 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 	JS.ForEach(slices.Collect(maps.Keys(debug)), 250, func(token string, _ bool) bool {
 		auth := debug[token]
 
-		authToken := HTML.HTML{Tag: "div", Inner: pWrapper("AuthToken") + pWrapper(token),
+		authToken := HTML.HTML{
+			Tag: "div", Inner: pWrapper("AuthToken") + pWrapper(token),
 			Styles: authDataTextStyle,
 		}.String()
 
-		expires := HTML.HTML{Tag: "div", Inner: pWrapper("Expires") + pWrapper(auth.Expires.Format(time.DateTime)),
+		expires := HTML.HTML{
+			Tag: "div", Inner: pWrapper("Expires") + pWrapper(auth.Expires.Format(time.DateTime)),
 			Styles: authDataTextStyle,
 		}.String()
 
-		deauthBtn := HTML.HTML{Tag: "button", Inner: "Deauth",
+		deauthBtn := HTML.HTML{
+			Tag: "button", Inner: "Deauth",
 			Attributes: map[string]string{"id": "monitor_users_" + token + "_deauth", "class": "dark large"},
 			Styles:     map[string]string{"white-space": "nowrap"},
 		}.String()
 
-		authDataDiv := HTML.HTML{Tag: "div", Inner: authToken + expires + deauthBtn,
+		authDataDiv := HTML.HTML{
+			Tag: "div", Inner: authToken + expires + deauthBtn,
 			Styles: map[string]string{
 				"display":    "flex",
 				"background": "#2A2A2A",
 			},
 		}.String()
 
-		userHash := HTML.HTML{Tag: "div", Inner: pWrapper(auth.UserHash),
+		userHash := HTML.HTML{
+			Tag: "div", Inner: pWrapper(auth.UserHash),
 			Styles: userDataTextStyle,
 		}.String()
-		username := HTML.HTML{Tag: "div", Inner: pWrapper(auth.UserData.Username),
+		username := HTML.HTML{
+			Tag: "div", Inner: pWrapper(auth.UserData.Username),
 			Styles: userDataTextStyle,
 		}.String()
-		authLevel := HTML.HTML{Tag: "div", Inner: pWrapper(authMapReversed[auth.UserData.AuthLevel]),
+		authLevel := HTML.HTML{
+			Tag: "div", Inner: pWrapper(authMapReversed[auth.UserData.AuthLevel]),
 			Styles: userDataTextStyle,
 		}.String()
-		roles := HTML.HTML{Tag: "div", Inner: pWrapper(strings.Join(auth.UserData.Roles, ", ")),
+		roles := HTML.HTML{
+			Tag: "div", Inner: pWrapper(strings.Join(auth.UserData.Roles, ", ")),
 			Styles: userDataTextStyle,
 		}.String()
 
@@ -141,11 +147,13 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 		if auth.UserData.Enabled {
 			state = "Enabled"
 		}
-		enabled := HTML.HTML{Tag: "div", Inner: pWrapper(state),
+		enabled := HTML.HTML{
+			Tag: "div", Inner: pWrapper(state),
 			Styles: userDataTextStyle,
 		}.String()
 
-		userDataDiv := HTML.HTML{Tag: "div", Inner: userHash + username + authLevel + roles + enabled,
+		userDataDiv := HTML.HTML{
+			Tag: "div", Inner: userHash + username + authLevel + roles + enabled,
 			Styles: map[string]string{
 				"display":       "flex",
 				"background":    "#2A2A2A",
@@ -154,7 +162,8 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 			},
 		}.String()
 
-		div := HTML.HTML{Tag: "div", Inner: authDataDiv + userDataDiv,
+		div := HTML.HTML{
+			Tag: "div", Inner: authDataDiv + userDataDiv,
 			Attributes: map[string]string{"id": "monitor_users_" + token},
 			Styles: map[string]string{
 				"max-height": "0px",
@@ -184,13 +193,13 @@ func debugCallback(res string, resBytes []byte, resErr error) {
 
 		return true
 	})
-
 }
 
 func showMonitor() {
 	header := HTML.HTML{Tag: "h1", Inner: "Monitor"}.String()
 
-	body := HTML.HTML{Tag: "div",
+	body := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "monitor_users"},
 		Styles:     map[string]string{"width": "80%"},
 	}.String()

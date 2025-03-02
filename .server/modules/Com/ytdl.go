@@ -13,20 +13,19 @@ import (
 	"github.com/kkdai/youtube/v2"
 )
 
-var (
-	YTDLComs = Commands{
-		"ytdl": Command{
-			RequiredAuthLevel: Auth.AuthMap["user"],
-			RequiredRoles:     []string{},
-			Description:       "YouTube downloader.",
-			DetailedDescription: "Download a video from YouTube. Usage: ytdl [download] [args?]...\r\n" +
-				"  download [url] [mp4?] [audio?] [low?]\r\n    Can force mp4 format, audio only and low quality.",
-			ExampleDescription: "",
-			AutoComplete:       []string{},
-			ArgsLen:            [2]int{2, 5},
-			Function:           download,
-		}}
-)
+var YTDLComs = Commands{
+	"ytdl": Command{
+		RequiredAuthLevel: Auth.AuthMap["user"],
+		RequiredRoles:     []string{},
+		Description:       "YouTube downloader.",
+		DetailedDescription: "Download a video from YouTube. Usage: ytdl [download] [args?]...\r\n" +
+			"  download [url] [mp4?] [audio?] [low?]\r\n    Can force mp4 format, audio only and low quality.",
+		ExampleDescription: "",
+		AutoComplete:       []string{},
+		ArgsLen:            [2]int{2, 5},
+		Function:           download,
+	},
+}
 
 func sanatize(title string) string {
 	title = strings.Map(func(r rune) rune {

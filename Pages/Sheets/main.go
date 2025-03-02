@@ -52,15 +52,18 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 
 	btnSheets := HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 	for header := range headers {
-		btnSheets += HTML.HTML{Tag: "button", Inner: header,
+		btnSheets += HTML.HTML{
+			Tag: "button", Inner: header,
 			Attributes: map[string]string{"class": "dark medium sheets_showdb_buttons"},
 		}.String()
 	}
 	btnSheets += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 
-	nav := HTML.HTML{Tag: "div",
+	nav := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "sheets_nav"}, Inner: btnSheets,
-		Styles: map[string]string{"display": "flex",
+		Styles: map[string]string{
+			"display":       "flex",
 			"width":         "90%",
 			"margin":        "10px auto",
 			"background":    "#2A2A2A",
@@ -69,7 +72,8 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 		},
 	}.String()
 
-	out := HTML.HTML{Tag: "div",
+	out := HTML.HTML{
+		Tag:        "div",
 		Attributes: map[string]string{"id": "sheets_out"},
 		Styles: map[string]string{
 			"width":       "90%",
@@ -80,22 +84,27 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 	}.String()
 
 	btnSheets = HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
-	btnSheets += HTML.HTML{Tag: "button", Inner: "Delete Empty",
+	btnSheets += HTML.HTML{
+		Tag: "button", Inner: "Delete Empty",
 		Attributes: map[string]string{"id": "sheets_deleteempty", "class": "dark small sheets_action_buttons"},
 	}.String()
-	btnSheets += HTML.HTML{Tag: "button", Inner: "export",
+	btnSheets += HTML.HTML{
+		Tag: "button", Inner: "export",
 		Attributes: map[string]string{"id": "sheets_export", "class": "dark small sheets_action_buttons"},
 	}.String()
-	btnSheets += HTML.HTML{Tag: "button", Inner: "import",
+	btnSheets += HTML.HTML{
+		Tag: "button", Inner: "import",
 		Attributes: map[string]string{"id": "sheets_import", "class": "dark small sheets_action_buttons"},
 	}.String()
 	btnSheets += HTML.HTML{Tag: "p", Styles: map[string]string{"margin": "auto"}}.String()
 
-	actions := HTML.HTML{Tag: "div", Inner: btnSheets,
+	actions := HTML.HTML{
+		Tag: "div", Inner: btnSheets,
 		Attributes: map[string]string{"id": "sheets_actions"},
-		Styles: map[string]string{"display": "flex",
-			"width":  "90%",
-			"margin": "10px auto",
+		Styles: map[string]string{
+			"display": "flex",
+			"width":   "90%",
+			"margin":  "10px auto",
 		},
 	}.String()
 
@@ -124,7 +133,8 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				borderRightInput = ""
 			}
 
-			cols += HTML.HTML{Tag: "p", Inner: col,
+			cols += HTML.HTML{
+				Tag: "p", Inner: col,
 				Styles: map[string]string{
 					"width":           strconv.FormatFloat(100/float64(len(header)), 'f', -1, 64) + "%",
 					"border-right":    borderRight,
@@ -135,7 +145,8 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				},
 			}.String()
 
-			inps += HTML.HTML{Tag: "input",
+			inps += HTML.HTML{
+				Tag:        "input",
 				Attributes: map[string]string{"class": "sheets_inputs_add"},
 				Styles: map[string]string{
 					"width":         strconv.FormatFloat(100/float64(len(header)), 'f', -1, 64) + "%",
@@ -153,7 +164,8 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 			Widget.PopupAlert("Error", err.Error(), func() {})
 			return
 		}
-		elOut.InnerSet(HTML.HTML{Tag: "div", Inner: cols,
+		elOut.InnerSet(HTML.HTML{
+			Tag: "div", Inner: cols,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -164,7 +176,8 @@ func dbHeadersCallback(res string, resBytes []byte, resErr error) {
 				"font-size":     "150%",
 				"font-weight":   "bold",
 			},
-		}.String() + HTML.HTML{Tag: "div", Inner: inps,
+		}.String() + HTML.HTML{
+			Tag: "div", Inner: inps,
 			Styles: map[string]string{
 				"display":       "flex",
 				"padding":       "0px",
@@ -268,7 +281,8 @@ func addRow(record []string, recordIndex int) error {
 			return errors.New("missing header for " + selectedSheet)
 		}
 
-		cols += HTML.HTML{Tag: "input",
+		cols += HTML.HTML{
+			Tag:        "input",
 			Attributes: map[string]string{"id": "sheets_inputs_edit_" + strconv.Itoa(recordIndex) + "_" + colHeader[i], "value": col},
 			Styles: map[string]string{
 				"width":           strconv.FormatFloat(100/float64(len(record)), 'f', -1, 64) + "%",
@@ -289,7 +303,8 @@ func addRow(record []string, recordIndex int) error {
 		}.String()
 	}
 
-	row := HTML.HTML{Tag: "div", Inner: cols,
+	row := HTML.HTML{
+		Tag: "div", Inner: cols,
 		Attributes: map[string]string{"class": "sheets_rows"},
 		Styles: map[string]string{
 			"display":       "flex",

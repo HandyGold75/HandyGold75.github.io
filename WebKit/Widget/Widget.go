@@ -12,9 +12,7 @@ import (
 	"syscall/js"
 )
 
-var (
-	tooltipIsHover = map[string]bool{}
-)
+var tooltipIsHover = map[string]bool{}
 
 func ensurePopupDiv(title string, txt string, buttons string) error {
 	if _, err := DOM.GetElement("popup"); err == nil {
@@ -23,11 +21,13 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 
 	header := HTML.HTML{Tag: "h1", Inner: "Alert - " + title}.String()
 	text := HTML.HTML{Tag: "p", Inner: txt}.String()
-	btnDiv := HTML.HTML{Tag: "div", Inner: buttons,
+	btnDiv := HTML.HTML{
+		Tag: "div", Inner: buttons,
 		Styles: map[string]string{"display": "flex", "margin": "10px 0px 0px 0px"},
 	}.String()
 
-	div := HTML.HTML{Tag: "div", Inner: header + text + btnDiv,
+	div := HTML.HTML{
+		Tag: "div", Inner: header + text + btnDiv,
 		Styles: map[string]string{
 			"width":     "50%",
 			"min-width": "500px",
@@ -38,7 +38,8 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 		},
 	}.String()
 
-	popDiv := HTML.HTML{Tag: "div", Inner: div,
+	popDiv := HTML.HTML{
+		Tag: "div", Inner: div,
 		Attributes: map[string]string{"id": "popup"},
 		Styles: map[string]string{
 			"z-index":    "10000",
@@ -74,7 +75,8 @@ func ensurePopupDiv(title string, txt string, buttons string) error {
 
 func PopupAlert(title string, txt string, callback func()) error {
 	spacer := HTML.HTML{Tag: "div"}.String()
-	button := HTML.HTML{Tag: "button", Inner: "Continue",
+	button := HTML.HTML{
+		Tag: "button", Inner: "Continue",
 		Attributes: map[string]string{"id": "popup_continue", "class": "dark medium"},
 	}.String()
 
@@ -105,11 +107,13 @@ func PopupAlert(title string, txt string, callback func()) error {
 
 func PopupConfirm(title string, txt string, falseText string, trueText string, callback func(bool)) error {
 	spacer := HTML.HTML{Tag: "div"}.String()
-	btnTrue := HTML.HTML{Tag: "button", Inner: trueText,
+	btnTrue := HTML.HTML{
+		Tag: "button", Inner: trueText,
 		Attributes: map[string]string{"id": "popup_" + trueText, "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 	}.String()
-	btnFalse := HTML.HTML{Tag: "button", Inner: falseText,
+	btnFalse := HTML.HTML{
+		Tag: "button", Inner: falseText,
 		Attributes: map[string]string{"id": "popup_" + falseText, "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 	}.String()
@@ -146,7 +150,8 @@ func PopupButtons(title string, txt string, options []string, callback func(stri
 
 	btns := []string{}
 	for _, option := range options {
-		btns = append(btns, HTML.HTML{Tag: "button", Inner: option,
+		btns = append(btns, HTML.HTML{
+			Tag: "button", Inner: option,
 			Attributes: map[string]string{"id": "popup_" + option, "class": "dark medium popup_buttons"},
 			Styles:     map[string]string{"min-width": "10%"},
 		}.String())
@@ -187,7 +192,8 @@ func PopupInput(title string, txt string, callback func(string)) error {
 		Attributes: map[string]string{"type": "text", "id": "popup_input"},
 		Styles:     map[string]string{"min-width": "60%"},
 	}.String()
-	button := HTML.HTML{Tag: "button", Inner: "confirm",
+	button := HTML.HTML{
+		Tag: "button", Inner: "confirm",
 		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 	}.String()
@@ -250,25 +256,30 @@ func PopupInput(title string, txt string, callback func(string)) error {
 func PopupFile(title string, txt string, callback func(string, []byte)) error {
 	spacer := HTML.HTML{Tag: "div"}.String()
 
-	input := HTML.HTML{Tag: "input",
+	input := HTML.HTML{
+		Tag:        "input",
 		Attributes: map[string]string{"type": "file", "id": "popup_input"},
 		Styles:     map[string]string{"display": "none"},
 	}.String()
-	file := HTML.HTML{Tag: "p", Inner: "Upload",
+	file := HTML.HTML{
+		Tag: "p", Inner: "Upload",
 		Attributes: map[string]string{"id": "popup_file"},
 		Styles:     map[string]string{"color": "#bff"},
 	}.String()
-	label := HTML.HTML{Tag: "label", Inner: input + file,
+	label := HTML.HTML{
+		Tag: "label", Inner: input + file,
 		Attributes: map[string]string{"class": "input"},
 		Styles:     map[string]string{"min-width": "60%"},
 	}.String()
 
-	confirm := HTML.HTML{Tag: "button", Inner: "confirm",
+	confirm := HTML.HTML{
+		Tag: "button", Inner: "confirm",
 		Attributes: map[string]string{"id": "popup_confirm", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 	}.String()
 
-	cancel := HTML.HTML{Tag: "button", Inner: "cancel",
+	cancel := HTML.HTML{
+		Tag: "button", Inner: "cancel",
 		Attributes: map[string]string{"id": "popup_cancel", "class": "dark medium popup_buttons"},
 		Styles:     map[string]string{"min-width": "10%"},
 	}.String()
@@ -351,7 +362,6 @@ func PopupFile(title string, txt string, callback func(string, []byte)) error {
 
 		nameSplit := strings.Split(el.Get("value").String(), "\\")
 		elFile.InnerSet(nameSplit[len(nameSplit)-1])
-
 	})
 
 	return nil
@@ -380,7 +390,8 @@ func Download(fileName string, dataType string, data []byte, onComplete func(err
 				onComplete(err)
 				return err.Error()
 			}
-			body.InnerAddSurfix(HTML.HTML{Tag: "a",
+			body.InnerAddSurfix(HTML.HTML{
+				Tag: "a",
 				Attributes: map[string]string{
 					"id":       "download_" + fileName,
 					"type":     dataType,
@@ -424,7 +435,8 @@ func ensureTooltipDiv(title string, txt string) error {
 
 	header := HTML.HTML{Tag: "h2", Inner: title}.String()
 	text := HTML.HTML{Tag: "p", Inner: txt}.String()
-	div := HTML.HTML{Tag: "div", Inner: header + text,
+	div := HTML.HTML{
+		Tag: "div", Inner: header + text,
 		Attributes: map[string]string{"id": "tooltip"},
 		Styles: map[string]string{
 			"z-index":    "10000",

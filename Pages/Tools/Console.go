@@ -52,7 +52,8 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 			line = " "
 		}
 
-		elOut.InnerAddSurfix(HTML.HTML{Tag: "p", Inner: strings.ReplaceAll(strings.ReplaceAll(line, "<", "&lt"), ">", "&gt"),
+		elOut.InnerAddSurfix(HTML.HTML{
+			Tag: "p", Inner: strings.ReplaceAll(strings.ReplaceAll(line, "<", "&lt"), ">", "&gt"),
 			Styles: map[string]string{"text-align": "left"},
 		}.String())
 	}
@@ -141,13 +142,15 @@ func showConsole() {
 		Tag:        "input",
 		Attributes: map[string]string{"type": "text", "id": "console_in", "placeholder": "command ...args"},
 		Styles:     map[string]string{"width": "95%", "margin": "0px 0px -2px -2px", "padding": "3px 2.5%", "border-radius": "10px", "border-color": "#f7e163"},
-		Prefix: HTML.HTML{Tag: "p", Inner: ">",
+		Prefix: HTML.HTML{
+			Tag: "p", Inner: ">",
 			Attributes: map[string]string{"id": "console_arrow"},
 			Styles:     map[string]string{"position": "absolute", "padding": "5px 0px 5px 0.5em", "text-align": "left", "color": "#5F5", "font-weight": "bold"},
 		}.String(),
 	}.String()
 
-	consoleDiv := HTML.HTML{Tag: "div", Inner: consoleOut + consoleIn,
+	consoleDiv := HTML.HTML{
+		Tag: "div", Inner: consoleOut + consoleIn,
 		Attributes: map[string]string{"id": "console_div"},
 		Styles:     map[string]string{"width": "95%", "margin": "10px auto", "padding": "2px", "background": "#111", "transition": "height 1s"},
 	}.String()

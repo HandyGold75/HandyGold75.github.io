@@ -14,9 +14,7 @@ type (
 	}
 )
 
-var (
-	onResizeMapping = map[string]func(){}
-)
+var onResizeMapping = map[string]func(){}
 
 func Log(msg any) {
 	js.Global().Get("console").Call("log", msg)
