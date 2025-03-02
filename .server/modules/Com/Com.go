@@ -1,7 +1,6 @@
 package Com
 
 import (
-	"HG75/lib/Gonos"
 	"HG75/modules/Auth"
 	"encoding/base64"
 	"encoding/json"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/HandyGold75/GOLib/logger"
+	"github.com/HandyGold75/Gonos"
 	"github.com/achetronic/tapogo/pkg/tapogo"
 )
 
@@ -185,9 +185,9 @@ func Init(f Files, log *logger.Logger, cfg Config) {
 	if config.SonosIP != "" {
 		if zpTmp, err := Gonos.NewZonePlayer(config.SonosIP); err == nil {
 			zp = zpTmp
-		} else if zpTmp, err := Gonos.DiscoverZonePlayer(); err == nil {
-			zp = zpTmp
-		} else if zpsTmp, err := Gonos.ScanZonePlayer(config.SonosIP); err == nil {
+		} else if zpTmp, err := Gonos.DiscoverZonePlayer(1); err == nil {
+			zp = zpTmp[0]
+		} else if zpsTmp, err := Gonos.ScanZonePlayer(config.SonosIP, 1); err == nil {
 			zp = zpsTmp[0]
 		} else {
 			lgr.Log("error", "Com", "Failed", fmt.Sprintf("Connecting to Sonos speaker: %v", config.SonosIP))
