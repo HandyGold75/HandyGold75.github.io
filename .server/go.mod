@@ -4,8 +4,8 @@ go 1.24.2
 
 require (
 	github.com/HandyGold75/GOLib/cfg v0.0.0-20241009120328-f1577c9597cd
-	github.com/HandyGold75/GOLib/logger v0.0.0-20250407143924-5a268c0a73b3
-	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250407143924-5a268c0a73b3
+	github.com/HandyGold75/GOLib/logger v0.0.0-20250417084548-af058cab2747
+	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250417084548-af058cab2747
 	github.com/HandyGold75/Gonos v0.1.1
 	github.com/achetronic/tapogo v0.2.0
 	github.com/kkdai/youtube/v2 v2.10.3
