@@ -37,7 +37,7 @@ var (
 
 	lgr = &logger.Logger{}
 
-	scedule = scheduler.Scedule{
+	schedule = scheduler.Scedule{
 		Months:  []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 		Weeks:   []int{1, 2, 3, 4, 5},
 		Days:    []int{0, 1, 2, 3, 4, 5, 6},
@@ -68,7 +68,7 @@ func prepareFolders() error {
 func LogTapoStats() (string, error) {
 	for tcName, tc := range *TapoClients {
 		tcLgr := logger.New(files.TapoDir + "/" + tcName)
-		tcLgr.Verbosities = logger.Verbosities{"error": 2, "info": 1}
+		tcLgr.Verbosities = map[string]int{"error": 2, "info": 1}
 		tcLgr.VerboseToCLI = 9
 		tcLgr.VerboseToFile = 0
 		tcLgr.DynamicFileName = func() string { return time.Now().Format("2006") + ".log" }
@@ -103,14 +103,14 @@ func loop(out chan string) error {
 
 		for !StopService {
 			nextLogging := time.Now()
-			if err := scheduler.SetNextTime(&nextLogging, &scedule); err != nil {
+			if err := scheduler.SetNextTime(&nextLogging, &schedule); err != nil {
 				errCh <- err
 				continue
 			}
 
 			if time.Until(nextLogging) > time.Duration(0) {
 				lgr.Log("high", "Tapo", "Sceduled", nextLogging.Format(time.DateTime))
-				scheduler.SleepFor("", time.Until(nextLogging), time.Second*time.Duration(1))
+				scheduler.SleepUntil("", nextLogging, time.Second*time.Duration(1))
 			}
 
 			line, err := LogTapoStats()

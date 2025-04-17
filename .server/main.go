@@ -73,12 +73,12 @@ var (
 	HasStarted = false
 
 	RootDir = func() string {
-		filePath, err := os.Executable()
+		file, err := os.Executable()
 		if err != nil {
 			panic(err)
 		}
-		filePathSplit := strings.Split(filePath, "/")
-		return strings.Join(filePathSplit[:len(filePathSplit)-1], "/")
+		fileSplit := strings.Split(strings.ReplaceAll(file, "\\", "/"), "/")
+		return strings.Join(fileSplit[:len(fileSplit)-1], "/")
 	}()
 
 	files = Files{
@@ -257,10 +257,10 @@ func setDebug(user Auth.User, args ...string) (out []byte, contentType string, e
 }
 
 func updateLgr(log *logger.Logger) {
-	log.Verbosities = logger.Verbosities{"warning": 5, "error": 5, "info": 4, "high": 3, "medium": 2, "low": 1, "debug": 0}
+	log.Verbosities = map[string]int{"warning": 5, "error": 5, "info": 4, "high": 3, "medium": 2, "low": 1, "debug": 0}
 	log.VerboseToCLI = config.LogLevel
 	log.VerboseToFile = config.LogToFileLevel
-	log.CharCountPerMsg = 16
+	log.CharCountPerPart = 16
 	log.PrepentCLI = "\r"
 	log.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
 	log.MessageCLIHook = func(msg string) { fmt.Fprint(CLI.Terminal, "\r") }
@@ -514,8 +514,7 @@ func loadHotConfig() {
 		os.Exit(1)
 	}
 
-	cfg.FileName = strings.Replace(files.TopDir, RootDir, "", 1) + "/config.json"
-	if err := cfg.Load(&config); err != nil {
+	if err := cfg.LoadAbs(files.TopDir+"/config.json", &config); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
