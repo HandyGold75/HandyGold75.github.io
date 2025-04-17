@@ -1,9 +1,9 @@
-github.com/HandyGold75/GOLib/cfg v0.0.0-20241009120328-f1577c9597cd h1:VWndvIlL8Ro69TxnLXyGtQUg4NfsSj0k/+DRMl1kWUI=
-github.com/HandyGold75/GOLib/cfg v0.0.0-20241009120328-f1577c9597cd/go.mod h1:CP+ODY2PMzIBKDqVPBMCoCPCPJRIVDeJ0em54pYqwak=
-github.com/HandyGold75/GOLib/logger v0.0.0-20250417084548-af058cab2747 h1:XmGnBH6pR7MQmvWcJWdiYrLwISJ3TZrdYTE6TfNaR/c=
-github.com/HandyGold75/GOLib/logger v0.0.0-20250417084548-af058cab2747/go.mod h1:epSDoXg2k4SjqCLMb599ktL8ztk/jhnCoeGrH3OEDFw=
-github.com/HandyGold75/GOLib/scheduler v0.0.0-20250417084548-af058cab2747 h1:aFEZrL0ozoKEEkyZpsqIKxYMBXSwna//m4DBxMtn51s=
-github.com/HandyGold75/GOLib/scheduler v0.0.0-20250417084548-af058cab2747/go.mod h1:xsjQedN5Fhsd4ERiVJq01PZq/T/gPPzZaND0DRqvEU0=
+github.com/HandyGold75/GOLib/cfg v0.0.0-20250417113003-b3a4fd136eb5 h1:q7waeLdWnSGRgYd8kfFFCS2P9QBH0XidWhiPC6RV4/M=
+github.com/HandyGold75/GOLib/cfg v0.0.0-20250417113003-b3a4fd136eb5/go.mod h1:kWDXTZDXOhMm05xdOYJ+KIXyHhmof3D7dQUA3+WRcV4=
+github.com/HandyGold75/GOLib/logger v0.0.0-20250417113003-b3a4fd136eb5 h1:wpDSj2F1sJiziIMDMHxTi5Ua8mtne+ElOP7gGLOhG0I=
+github.com/HandyGold75/GOLib/logger v0.0.0-20250417113003-b3a4fd136eb5/go.mod h1:epSDoXg2k4SjqCLMb599ktL8ztk/jhnCoeGrH3OEDFw=
+github.com/HandyGold75/GOLib/scheduler v0.0.0-20250417113003-b3a4fd136eb5 h1:KfaYYsal6TwRlQYPEiS+gEUsPiNaiHUum8jlxnxACog=
+github.com/HandyGold75/GOLib/scheduler v0.0.0-20250417113003-b3a4fd136eb5/go.mod h1:xsjQedN5Fhsd4ERiVJq01PZq/T/gPPzZaND0DRqvEU0=
 github.com/HandyGold75/Gonos v0.1.1 h1:+Y3cWqHjQI4VpzF5VSLlqpFv/FtBwj6c/dmJrrekRJs=
 github.com/HandyGold75/Gonos v0.1.1/go.mod h1:k9je2suL+64WUHPfZZxMZYrecbTbfUATAW5ZHO88MT0=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
