@@ -7,14 +7,17 @@
 The frontend files can be found in `./`.
 The frontend is accessible via [HandyGold75.com](https://HandyGold75.com)
 
+To build the frontend you can use `make && make wasm`.
+Alternatively if you don't want to automatically update the go version and dependencies `make wasm` can be used.
+
 ### Backend
 
 The backend files can be found in `./.server/`.
 The backend is accessible via [go.HandyGold75.com](https://go.HandyGold75.com)
 
 You can also host you're own backend, this can either be done by building the server or using the release files.
-To build the server you can use `cd ./.server && ./build.sh`.
-Alternatively if you don't want to automatically update the go version and dependencies `cd ./.server && go build .` can be used.
+To build the server you can use `make && make build`.
+Alternatively if you don't want to automatically update the go version and dependencies `make build` can be used.
 
 After running the server for the first time `./server/` will be generated relative to the executable location.
 In here this directory the file `config.json` can be used to configure the server.
