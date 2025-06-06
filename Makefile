@@ -31,5 +31,5 @@ run:
 
 clean:
 	cd ./.server ; \
-	rm "$(TARGET)/$(FILE)" ; \
-	rm -r "$(TARGET)/server"
+	rm -f"$(TARGET)/$(FILE)" ; \
+	rm -fr "$(TARGET)/server"
