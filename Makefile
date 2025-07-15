@@ -22,7 +22,7 @@ build:
 	go build -o "$(TARGET)/$(FILE)" .
 
 wasm:
-	env GOOS=js GOARCH=wasm go build -o ./docs/wasm/main .
+	env GOOS=js GOARCH=wasm go build -o ./docs/wasm/main.wasm .
 
 run:
 	cd ./.server ; \
