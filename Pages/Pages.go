@@ -362,8 +362,7 @@ func showMain() error {
 	}
 	el.EventAdd("click", func(el js.Value, evs []js.Value) {
 		if HTTP.IsMaybeAuthenticated() {
-			HTTP.Config.Set("token", "")
-			HTTP.Autocompletes = []string{}
+			HTTP.Deauthenticate()
 
 			if el, err := DOM.GetElement("docker"); err == nil {
 				el.Remove()

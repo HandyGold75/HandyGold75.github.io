@@ -34,7 +34,7 @@ func GetScroll() [2]float64 {
 
 func New(global string, args ...any) js.Value {
 	item := js.Global()
-	for _, part := range strings.Split(global, ".") {
+	for part := range strings.SplitSeq(global, ".") {
 		item = item.Get(part)
 	}
 	return item.New(args...)
@@ -192,7 +192,7 @@ func (db DB) GetAllKeys(onGetCallback func(keys []string), store string) {
 		}
 
 		result := []string{}
-		for i := 0; i < res.Length(); i++ {
+		for i := range res.Length() {
 			result = append(result, res.Index(i).String())
 		}
 

@@ -32,7 +32,7 @@ func (obj Element) InnerAddPrefix(html string) {
 	El.Set("innerHTML", html)
 
 	Els := []any{}
-	for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+	for i := range El.Get("content").Get("children").Length() {
 		Els = append(Els, El.Get("content").Get("children").Index(i))
 	}
 
@@ -44,7 +44,7 @@ func (obj Element) InnerAddSurfix(html string) {
 	El.Set("innerHTML", html)
 
 	Els := []any{}
-	for i := 0; i < El.Get("content").Get("children").Length(); i++ {
+	for i := range El.Get("content").Get("children").Length() {
 		Els = append(Els, El.Get("content").Get("children").Index(i))
 	}
 

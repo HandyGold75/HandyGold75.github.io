@@ -354,7 +354,7 @@ func Stop() {
 		lgr.Log("error", "HTTPS", "Stopping", err)
 	}
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		if !IsRunning {
 			break
 		}

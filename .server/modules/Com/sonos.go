@@ -490,7 +490,7 @@ func play(state bool) (out []byte, contentType string, errCode int, err error) {
 		}
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		curState, err := zp.GetTransitioning()
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err

@@ -42,7 +42,7 @@ func DownloadVideo(URL string, AudioOnly bool, LowQuality bool, ForceType string
 	client := &youtube.Client{}
 
 	vid := &youtube.Video{}
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		v, err := client.GetVideo(URL)
 		if err == nil {
 			vid = v
