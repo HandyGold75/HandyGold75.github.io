@@ -148,7 +148,7 @@ func showContacts() {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	for i := 0; i < els.Els.Length(); i++ {
+	for i := range els.Els.Length() {
 		curEl := els.Els.Index(i)
 		if i%2 == 0 {
 			JS.AfterDelay((i+1)*500, func() { curEl.Get("style").Set("margin-left", "-2vw") })
@@ -162,7 +162,7 @@ func showContacts() {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	for i := 0; i < els.Els.Length(); i++ {
+	for i := range els.Els.Length() {
 		curEl := els.Els.Index(i)
 		JS.AfterDelay(((i+1)*1000)-500, func() { curEl.Get("style").Set("margin-right", "10%") })
 	}
@@ -172,7 +172,7 @@ func showContacts() {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	for i := 0; i < els.Els.Length(); i++ {
+	for i := range els.Els.Length() {
 		curEl := els.Els.Index(i)
 		JS.AfterDelay((i+1)*1000, func() { curEl.Get("style").Set("margin-left", "10%") })
 	}

@@ -46,7 +46,7 @@ func main() {
 	}
 
 	if !HTTP.Config.RememberSignIn {
-		HTTP.Config.Set("Token", "")
+		HTTP.Deauthenticate()
 	}
 
 	Pages.Open(page, true)

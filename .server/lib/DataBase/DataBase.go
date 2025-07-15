@@ -283,7 +283,7 @@ func (sheet *Sheet) Headers() []string {
 // Read all records from sheet.
 func (sheet *Sheet) Read() [][]string {
 	rawSheet := [][]string{}
-	for i := 0; i < len(sheet.records); i++ {
+	for i := range sheet.records {
 		rawSheet = append(rawSheet, sheet.records[i].data)
 	}
 
@@ -317,7 +317,7 @@ func (sheet *Sheet) Delete(index int) error {
 		return ErrDB.ErrIndexNotFound
 	}
 
-	sheet.records = append(sheet.records[:index], sheet.records[index+1:]...)
+	sheet.records = slices.Delete(sheet.records, index, index+1)
 
 	return nil
 }
@@ -329,7 +329,7 @@ func (sheet *Sheet) Move(index1 int, index2 int) error {
 	}
 
 	record := sheet.records[index1]
-	sheet.records = append(sheet.records[:index1], sheet.records[index1+1:]...)
+	sheet.records = slices.Delete(sheet.records, index1, index1+1)
 	sheet.records = slices.Insert(sheet.records, index2, record)
 
 	return nil

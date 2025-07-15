@@ -98,7 +98,7 @@ func Stop() {
 	lgr.Log("info", "CLI", "Stopping", "")
 	StopService = true
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		if !IsRunning {
 			break
 		}
