@@ -180,7 +180,7 @@ func modifyUserCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	for i := 0; i < els.Els.Length(); i++ {
+	for i := range els.Els.Length() {
 		if els.Els.Index(i).Get("innerHTML").String() == oldHash {
 			els.Els.Index(i).Set("innerHTML", HTTP.Sha1(selectedUser.Username+selectedUser.Password))
 			break
@@ -286,7 +286,7 @@ func deletedUserCallback(res string, resBytes []byte, resErr error) {
 		Widget.PopupAlert("Error", err.Error(), func() {})
 		return
 	}
-	for i := 0; i < els.Els.Length(); i++ {
+	for i := range els.Els.Length() {
 		if els.Els.Index(i).Get("innerHTML").String() == oldHash {
 			els.Els.Index(i).Call("remove")
 			break

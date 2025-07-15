@@ -47,7 +47,7 @@ func commandSubmitCallback(res string, resBytes []byte, resErr error) {
 		return
 	}
 
-	for _, line := range strings.Split(strings.ReplaceAll(res, "\r", ""), "\n") {
+	for line := range strings.SplitSeq(strings.ReplaceAll(res, "\r", ""), "\n") {
 		if line == "" {
 			line = " "
 		}

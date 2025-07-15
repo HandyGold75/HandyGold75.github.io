@@ -212,7 +212,7 @@ func setDebug(user Auth.User, args ...string) (out []byte, contentType string, e
 	switch args[0] {
 	case "0":
 		lgr.VerboseToCLI = config.LogLevel
-		for i := 0; i < len(services); i++ {
+		for i := range services {
 			services[i].Logger.VerboseToCLI = config.LogLevel
 		}
 
@@ -220,7 +220,7 @@ func setDebug(user Auth.User, args ...string) (out []byte, contentType string, e
 
 	case "1":
 		lgr.VerboseToCLI = 0
-		for i := 0; i < len(services); i++ {
+		for i := range services {
 			services[i].Logger.VerboseToCLI = 0
 		}
 
@@ -366,7 +366,7 @@ func WeMightBeFucked() {
 
 		fmt.Printf("\nPANIC STOPPING SERVER, SERVICES AND MODULES!\n")
 
-		for i := 0; i < len(services); i++ {
+		for i := range services {
 			services[i].Stop()
 		}
 
@@ -427,7 +427,7 @@ func watchDog() {
 	}
 
 	services = Services{CLIService, HTTPSService, TapoService}
-	for i := 0; i < len(services); i++ {
+	for i := range services {
 		startService(&services[i])
 		defer stopService(&services[i])
 	}

@@ -528,7 +528,7 @@ func deleteEmptyCallback(res string, resBytes []byte, resErr error) {
 
 		JS.Async(func() { HTTP.Send(dbReadCallback, dbName, "read", selectedSheet) })
 
-		Widget.PopupAlert("Error", err.Error(), func() {})
+		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
 

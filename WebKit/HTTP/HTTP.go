@@ -198,11 +198,9 @@ func Authenticate(callback func(error), username string, password string) {
 	go authenticate(callback, username, password)
 }
 
-func deauthenticate(callback func(error), username string, password string) {
+func Deauthenticate() {
 	Config.Set("token", "")
 	Autocompletes = []string{}
-
-	callback(WebKit.ErrWebKit.HTTPUnexpectedResponse)
 }
 
 func IsAuthError(err error) bool {

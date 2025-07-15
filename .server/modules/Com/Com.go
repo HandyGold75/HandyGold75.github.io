@@ -209,7 +209,7 @@ func Init(f Files, log *logger.Logger, cfg Config) {
 			continue
 		}
 
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			tc, err := tapogo.NewTapo(ip, config.TapoUsername, config.TapoPassword, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * time.Duration(100)})
 			if err != nil {
 				if i == 9 {
