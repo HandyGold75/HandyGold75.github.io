@@ -11,12 +11,7 @@ import (
 func showHome() {
 	header := HTML.HTML{Tag: "h1", Inner: "Home"}.String()
 
-	link := HTML.HTML{
-		Tag: "a", Inner: ".python",
-		Attributes: map[string]string{"href": "./.python/"},
-	}.String()
-
-	txt := HTML.HTML{Tag: "p", Inner: "Moving towards GO wasm instead of Python wasm<br><br>For reasons...<br><br>Old site still available at " + link}.String()
+	txt := HTML.HTML{Tag: "p", Inner: "Moving towards GO wasm instead of Python wasm<br>For reasons...<br>Old site no longer available."}.String()
 
 	mp, err := DOM.GetElement("mainpage")
 	if err != nil {

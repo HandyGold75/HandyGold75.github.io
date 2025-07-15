@@ -40,37 +40,3 @@ In here this directory the file `config.json` can be used to configure the serve
 
 The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl` or `/etc/letsencrypt/live/{sub}.{domain}`
 The server will fall back to an insecure connection in case a certificate is not found or valid.
-
-### Frontend (Python Legacy)
-
-The frontend files can be found in `./.python/`.
-The frontend is accessible via [HandyGold75.com/.python](https://HandyGold75.com/.python)
-
-### Backend (Python Legacy)
-
-The backend files can be found in `./.python/.server/`.
-The backend is accessible via [py.HandyGold75.com](WSS://py.HandyGold75.com) and [pydoc.HandyGold75.com](WSS://pydoc.HandyGold75.com)
-
-You can also host you're own backend, this can be done running `python3 Server.py`.
-
-After running the server for the first time `./server/` will be generated relative to the executable location.
-In here this directory the file `config.json` can be used to configure the server.
-
-```jsonc
-{
-  "IP": "0.0.0.0", //  Local IP to bind the server to.
-  "PORT": 17510, //  Local Port to bind the server to.
-  "Domain": "HandyGold75.com", // Domain the server is accessible from.
-  "SonosSubnet": [], // List of ips where Sonos speakers reside for intergartion with Sonos..
-  "TapoPlugIps": [], // List of ips where tapo power plugs reside for intergartion with Tapo.
-  "TapoUsername": "", // Tapo login username.
-  "TapoPassword": "", // Tapo login password; Encrypted during first time setup, do not manualy modify.
-  "LogLevel": 3, // Maximum (inclusive) log level to log; `warning: 0`, `error: 0`, `info: 1`, `high: 2`, `medium: 3`, `low: 4`, `debug: 5`.
-  "Debug": false, // Print debug statements (requires `LogLevel >= 5`).
-  "Modified": 0, // Last modified.
-}
-```
-
-The server expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl/py` or `/etc/letsencrypt/live/py.{domain}`
-The server also expects SSL certificates (`fullchain.pem` and `privkey.pem`) to be present in either `./server/ssl/pydoc` or `/etc/letsencrypt/live/pydoc.{domain}`
-The server will fall back to an insecure connection in case a certificate is not found or valid.
