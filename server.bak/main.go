@@ -96,7 +96,7 @@ var (
 		AuthLogDir:  RootDir + "/server/logs/auth",
 	}
 
-	lgr, _ = logger.NewAbs(files.SrvLogDir)
+	lgr = logger.NewAbs(files.SrvLogDir)
 
 	config = Config{
 		LogLevel:                  1,
@@ -479,7 +479,7 @@ func closeModules() {
 }
 
 func initModules() {
-	comLogger, _ := logger.NewAbs(files.ComLogDir)
+	comLogger := logger.NewAbs(files.ComLogDir)
 	updateLgr(comLogger)
 
 	Com.Init(
@@ -497,7 +497,7 @@ func initModules() {
 		},
 	)
 
-	authLogger, _ := logger.NewAbs(files.AuthLogDir)
+	authLogger := logger.NewAbs(files.AuthLogDir)
 	updateLgr(authLogger)
 
 	Auth.Init(

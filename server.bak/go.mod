@@ -3,9 +3,9 @@ module HG75
 go 1.24.5
 
 require (
-	github.com/HandyGold75/GOLib/cfg v0.0.0-20250723131308-107dc21c820f
-	github.com/HandyGold75/GOLib/logger v0.0.0-20250723131308-107dc21c820f
-	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250723131308-107dc21c820f
+	github.com/HandyGold75/GOLib/cfg v0.0.0-20250724140744-ffdd0424f7ed
+	github.com/HandyGold75/GOLib/logger v0.0.0-20250724140744-ffdd0424f7ed
+	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250724140744-ffdd0424f7ed
 	github.com/HandyGold75/Gonos v0.1.1
 	github.com/achetronic/tapogo v0.2.0
 	github.com/kkdai/youtube/v2 v2.10.4
