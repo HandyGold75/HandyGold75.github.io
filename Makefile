@@ -9,7 +9,7 @@ get:
 	go get -u
 	go mod tidy
 
-	cd ./.server ; \
+	cd ./server ; \
 	go get go@latest ; \
 	go get -u ; \
 	go mod tidy ; \
@@ -18,18 +18,18 @@ get:
 	go mod tidy
 
 build:
-	cd ./.server ; \
+	cd ./server ; \
 	go build -o "$(TARGET)/$(FILE)" .
 
 wasm:
 	env GOOS=js GOARCH=wasm go build -o ./docs/wasm/main.wasm .
 
 run:
-	cd ./.server ; \
-	go build -o "$(TARGET)/$(FILE)" . ; \
-	exec "$(TARGET)/$(FILE)"
+	cd ./server ; \
+	go build -o "$(TARGET)/$(FILE)" . && exec "$(TARGET)/$(FILE)"
 
 clean:
-	cd ./.server ; \
-	rm -f"$(TARGET)/$(FILE)" ; \
-	rm -fr "$(TARGET)/server"
+	cd ./server ; \
+	rm -f "$(TARGET)/$(FILE)" ; \
+	rm -fr "$(TARGET)/server/logs" ; \
+	rm -f "$(TARGET)/server/config.json"

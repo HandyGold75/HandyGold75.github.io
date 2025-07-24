@@ -141,7 +141,7 @@ func main() {
 	logger.VerboseToCLI, logger.VerboseToFile = Config.LogLevel, Config.LogToFileLevel
 	logger.CharCountPerPart, logger.PrepentCLI = 16, "\r"
 	logger.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
-	logger.MessageCLIHook = func(msg string) { _ = fmt.Fprint(srvs.Terminal, "\r") }
+	logger.MessageCLIHook = func(msg string) { _, _ = fmt.Fprint(srvs.Terminal, "\r") }
 	lgr, _ = logger.NewRel("logs/server")
 
 	for !exit {
