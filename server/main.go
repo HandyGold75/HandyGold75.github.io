@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/HandyGold75/GOLib/cfg"
 	"github.com/HandyGold75/GOLib/logger"
+	"github.com/HandyGold75/GOLib/scheduler"
 	"golang.org/x/term"
 )
 
@@ -30,34 +32,44 @@ var (
 	lgr *logger.Logger = nil
 
 	Config = struct {
-		IP                         string
-		Port                       uint16
-		SubDomain, Domain          string
-		SonosIP                    string
-		TapoPlugIPS                []string
-		TapoUsername, TapoPassword string
-		LogLevel, LogToFileLevel   int
-		ModuleMaxRestartPerHour    int
+		IP                       string
+		Port                     uint16
+		SubDomain, Domain        string
+		CLIConfig                srvs.CLIConfig
+		SiteConfig               srvs.SiteConfig
+		TapoConfig               srvs.TapoConfig
+		LogLevel, LogToFileLevel int
+		ModuleMaxRestartPerHour  int
 	}{
 		IP: "0.0.0.0", Port: 17500,
 		SubDomain: "go", Domain: "HandyGold75.com",
-		SonosIP:     "",
-		TapoPlugIPS: []string{}, TapoUsername: "", TapoPassword: "",
+		CLIConfig: srvs.CLIConfig{},
+		SiteConfig: srvs.SiteConfig{
+			SonosIP: "",
+		},
+		TapoConfig: srvs.TapoConfig{
+			PlugIPS:  []string{},
+			Username: "", Password: "",
+			Schedule: scheduler.Schedule{
+				Months:  []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+				Weeks:   []int{1, 2, 3, 4, 5},
+				Days:    []int{0, 1, 2, 3, 4, 5, 6},
+				Hours:   []int{23},
+				Minutes: []int{59},
+			},
+		},
+
 		LogLevel: 1, LogToFileLevel: 3,
 		ModuleMaxRestartPerHour: 3,
 	}
 )
 
 func run() {
-	confTapo := srvs.TapoConfig{TapoPlugIPS: []string{}, TapoUsername: "", TapoPassword: ""}
-	confSite := srvs.SiteConfig{}
-	confCLI := srvs.CLIConfig{}
+	srvsCLI := srvs.NewCLI(Config.CLIConfig)
+	srvsSite := srvs.NewSite(Config.SiteConfig)
+	srvsTapo := srvs.NewTapo(Config.TapoConfig)
 
-	srvsTapo := srvs.NewTapo(confTapo)
-	srvsSite := srvs.NewSite(confSite)
-	srvsCLI := srvs.NewCLI(confCLI)
-
-	for _, service := range []Service{srvsTapo, srvsSite, srvsCLI} {
+	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
 		service.Run()
 	}
 
@@ -81,31 +93,31 @@ func run() {
 		var ok bool
 
 		select {
-		case out, ok = <-srvsTapo.Pipe:
-			if !ok && checkRestarts("tapo") {
-				lgr.Log("debug", "tapo", "restarting")
-				srvsTapo.Stop()
-				srvsTapo = srvs.NewTapo(confTapo)
-				srvsTapo.Run()
-				lgr.Log("high", "tapo", "restarted")
+		case out, ok = <-srvsCLI.Pipe:
+			if !ok && checkRestarts("cli") {
+				lgr.Log("debug", "cli", "restarting")
+				srvsCLI.Stop()
+				srvsCLI = srvs.NewCLI(Config.CLIConfig)
+				srvsCLI.Run()
+				lgr.Log("high", "cli", "restarted")
 			}
 
 		case out, ok = <-srvsSite.Pipe:
 			if !ok && checkRestarts("site") {
 				lgr.Log("debug", "site", "restarting")
 				srvsSite.Stop()
-				srvsSite = srvs.NewSite(confSite)
+				srvsSite = srvs.NewSite(Config.SiteConfig)
 				srvsSite.Run()
 				lgr.Log("high", "site", "restarted")
 			}
 
-		case out, ok = <-srvsCLI.Pipe:
-			if !ok && checkRestarts("cli") {
-				lgr.Log("debug", "cli", "restarting")
-				srvsCLI.Stop()
-				srvsCLI = srvs.NewCLI(confCLI)
-				srvsCLI.Run()
-				lgr.Log("high", "cli", "restarted")
+		case out, ok = <-srvsTapo.Pipe:
+			if !ok && checkRestarts("tapo") {
+				lgr.Log("debug", "tapo", "restarting")
+				srvsTapo.Stop()
+				srvsTapo = srvs.NewTapo(Config.TapoConfig)
+				srvsTapo.Run()
+				lgr.Log("high", "tapo", "restarted")
 			}
 
 		case <-time.After(time.Second):
@@ -119,9 +131,12 @@ func run() {
 		}
 	}
 
-	for _, service := range []Service{srvsTapo, srvsSite, srvsCLI} {
-		service.Stop()
+	wg := sync.WaitGroup{}
+	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
+		wg.Add(1)
+		go func() { service.Stop(); wg.Done() }()
 	}
+	wg.Wait()
 }
 
 func main() {
@@ -142,7 +157,7 @@ func main() {
 	logger.CharCountPerPart, logger.PrepentCLI = 16, "\r"
 	logger.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
 	logger.MessageCLIHook = func(msg string) { _, _ = fmt.Fprint(srvs.Terminal, "\r") }
-	lgr, _ = logger.NewRel("logs/server")
+	lgr, _ = logger.NewRel("data/logs/server")
 
 	for !exit {
 		run()

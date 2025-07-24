@@ -2,7 +2,6 @@ package srvs
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -24,7 +23,7 @@ type (
 )
 
 var (
-	AutoComplete = []string{"testest"}
+	AutoComplete = []string{"restart", "exit"}
 
 	Terminal = func() *term.Terminal {
 		if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -51,11 +50,8 @@ var (
 )
 
 func NewCLI(cfg CLIConfig) *CLI {
-	lgr, _ := logger.NewRel("logs/cli")
+	lgr, _ := logger.NewRel("data/logs/cli")
 	return &CLI{cfg: cfg, Pipe: make(chan string), lgr: lgr}
-}
-
-func (s *CLI) init() {
 }
 
 func (s *CLI) Run() {
@@ -63,9 +59,9 @@ func (s *CLI) Run() {
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
-				s.exit = true
-				s.lgr.Log("error", "cli", fmt.Sprintf("panic:%v; recovering", rec))
+				s.lgr.Log("error", "cli", "panic", rec)
 			}
+			s.exit = true
 			close(s.Pipe)
 		}()
 		s.loop()
@@ -86,16 +82,18 @@ func (s *CLI) loop() {
 		for !s.exit {
 			line, err := Terminal.ReadLine()
 			if err != nil {
-				s.Pipe <- "exit"
-				continue
+				if err == io.EOF {
+					s.Pipe <- "exit"
+				}
+				s.exit = true
+				break
 			} else if line != "" {
-				s.Pipe <- line
+				s.Pipe <- line // Somehow sometimes something gets send here after exit or ctrl_c command
 			}
 		}
 	}()
 
 	for !s.exit {
 		time.Sleep(time.Second)
-		s.lgr.Log("medium", "cli", "TEST")
 	}
 }

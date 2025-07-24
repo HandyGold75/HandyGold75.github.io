@@ -22,8 +22,8 @@ You can also host you're own backend, this can either be done by building the se
 To build the server you can use `make && make build`.
 Alternatively if you don't want to automatically update the go version and dependencies `make build` can be used.
 
-After running the server for the first time `config.json` will be generated relative to the executable location.
-This file can be used to configure the server.
+After running the server for the first time `config.json` and `./data/` will be generated relative to the executable location.
+In `config.json` can be used to configure the server. `./data/` contains server generated data such as logs, users and monitoring.
 
 ```jsonc
 {

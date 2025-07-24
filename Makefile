@@ -31,5 +31,5 @@ run:
 clean:
 	cd ./server ; \
 	rm -f "$(TARGET)/$(FILE)" ; \
-	rm -fr "$(TARGET)/server/logs" ; \
+	rm -fr "$(TARGET)/server/data" ; \
 	rm -f "$(TARGET)/server/config.json"
