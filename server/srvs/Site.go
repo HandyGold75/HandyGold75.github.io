@@ -1,14 +1,15 @@
 package srvs
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/HandyGold75/GOLib/logger"
 )
 
 type (
-	SiteConfig struct{}
+	SiteConfig struct {
+		SonosIP string
+	}
 
 	Site struct {
 		lgr  *logger.Logger
@@ -19,7 +20,7 @@ type (
 )
 
 func NewSite(cfg SiteConfig) *Site {
-	lgr, _ := logger.NewRel("logs/site")
+	lgr, _ := logger.NewRel("data/logs/site")
 	return &Site{cfg: cfg, Pipe: make(chan string), lgr: lgr}
 }
 
@@ -28,9 +29,9 @@ func (s *Site) Run() {
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
-				s.exit = true
-				s.lgr.Log("error", "site", fmt.Sprintf("panic:%v; recovering", rec))
+				s.lgr.Log("error", "site", "panic", rec)
 			}
+			s.exit = true
 			close(s.Pipe)
 		}()
 		s.loop()

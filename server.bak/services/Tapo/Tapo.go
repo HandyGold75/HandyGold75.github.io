@@ -67,7 +67,7 @@ func prepareFolders() error {
 
 func LogTapoStats() (string, error) {
 	for tcName, tc := range *TapoClients {
-		tcLgr := logger.New(files.TapoDir + "/" + tcName)
+		tcLgr := logger.NewAbs(files.TapoDir + "/" + tcName)
 		tcLgr.Verbosities = map[string]int{"error": 2, "info": 1}
 		tcLgr.VerboseToCLI = 9
 		tcLgr.VerboseToFile = 0
@@ -103,7 +103,7 @@ func loop(out chan string) error {
 
 		for !StopService {
 			nextLogging := time.Now()
-			if err := scheduler.SetNextTime(&nextLogging, &schedule); err != nil {
+			if err := scheduler.SetNextTime(&nextLogging, schedule); err != nil {
 				errCh <- err
 				continue
 			}
