@@ -152,7 +152,7 @@ func handleComHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	} else if req.Method != "POST" {
-		lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400 BadRequest: Not a POST request")
+		lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400 BadRequest: Not a POST request")
 		w.Header().Set("x-error", "invalid method "+req.Method)
 		w.WriteHeader(http.StatusBadRequest)
 		return
