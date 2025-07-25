@@ -1,14 +1,10 @@
 package srvs
 
 import (
-	"errors"
 	"io"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/HandyGold75/GOLib/logger"
-	"golang.org/x/term"
 )
 
 type (
@@ -22,36 +18,9 @@ type (
 	}
 )
 
-var (
-	AutoComplete = []string{"restart", "exit"}
-
-	Terminal = func() *term.Terminal {
-		if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
-			panic(errors.New("stdin/stdout should be term"))
-		}
-		terminal := term.NewTerminal(struct {
-			io.Reader
-			io.Writer
-		}{os.Stdin, os.Stdout}, "> ")
-		terminal.SetPrompt(string(terminal.Escape.Red) + "> " + string(terminal.Escape.Reset))
-		terminal.AutoCompleteCallback = func(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
-			if key != 9 || line == "" {
-				return line, pos, false
-			}
-			for _, com := range AutoComplete {
-				if strings.HasPrefix(com, strings.ToLower(line)) {
-					return com, len(com), true
-				}
-			}
-			return line, pos, false
-		}
-		return terminal
-	}()
-)
-
-func NewCLI(cfg CLIConfig) *CLI {
+func NewCLI(conf CLIConfig) *CLI {
 	lgr, _ := logger.NewRel("data/logs/cli")
-	return &CLI{cfg: cfg, Pipe: make(chan string), lgr: lgr}
+	return &CLI{cfg: conf, Pipe: make(chan string), lgr: lgr}
 }
 
 func (s *CLI) Run() {

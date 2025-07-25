@@ -32,20 +32,19 @@ var (
 	lgr *logger.Logger = nil
 
 	Config = struct {
-		IP                       string
-		Port                     uint16
-		SubDomain, Domain        string
 		CLIConfig                srvs.CLIConfig
 		SiteConfig               srvs.SiteConfig
 		TapoConfig               srvs.TapoConfig
 		LogLevel, LogToFileLevel int
 		ModuleMaxRestartPerHour  int
 	}{
-		IP: "0.0.0.0", Port: 17500,
-		SubDomain: "go", Domain: "HandyGold75.com",
 		CLIConfig: srvs.CLIConfig{},
 		SiteConfig: srvs.SiteConfig{
-			SonosIP: "",
+			IP: "0.0.0.0", Port: 17500,
+			SubDomain: "go", Domain: "HandyGold75.com",
+			SonosIP:          "",
+			RequestsLimitCom: 180, RequestsLimitTimoutCom: 1,
+			RequestsLimitAuth: 10, RequestsLimitTimoutAuth: 10,
 		},
 		TapoConfig: srvs.TapoConfig{
 			PlugIPS:  []string{},

@@ -25,18 +25,18 @@ type (
 	}
 )
 
-func NewTapo(cfg TapoConfig) *Tapo {
+func NewTapo(conf TapoConfig) *Tapo {
 	lgr, _ := logger.NewRel("data/logs/tapo")
 	clients := map[string]*tapogo.Tapo{}
 
-	for _, ip := range cfg.PlugIPS {
+	for _, ip := range conf.PlugIPS {
 		var e error
 		for i := range 11 {
 			if i == 10 {
 				lgr.Log("error", "tapo", "failed", "connecting to plug: "+ip+"; error: "+e.Error())
 				break
 			}
-			tc, err := tapogo.NewTapo(ip, cfg.Username, cfg.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
+			tc, err := tapogo.NewTapo(ip, conf.Username, conf.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
 			if err != nil {
 				e = err
 				continue
@@ -58,7 +58,7 @@ func NewTapo(cfg TapoConfig) *Tapo {
 	}
 
 	return &Tapo{
-		cfg: cfg, Pipe: make(chan string), lgr: lgr,
+		cfg: conf, Pipe: make(chan string), lgr: lgr,
 		clients: clients,
 	}
 }
