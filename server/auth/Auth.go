@@ -24,12 +24,18 @@ type (
 	}
 
 	token struct {
-		UserHash string
-		UserData User
-		Expires  time.Time
+		Hash    string
+		User    User
+		Expires time.Time
 	}
 
-	Auth struct{ tokens map[string]token }
+	Config struct {
+		TokenExpiresAfterDays int
+	}
+	Auth struct {
+		cfg    Config
+		tokens map[string]token
+	}
 )
 
 const (
@@ -82,8 +88,8 @@ func sha(s string) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
-func NewAuth() Auth {
-	return Auth{tokens: map[string]token{}}
+func NewAuth(conf Config) Auth {
+	return Auth{cfg: conf, tokens: map[string]token{}}
 }
 
 func (a Auth) GetUser(hash string) (User, error) {
@@ -174,6 +180,18 @@ func (a Auth) DeleleteUser(hash string) error {
 	return nil
 }
 
+func (a Auth) IsAuthenticated(tok string) (User, bool) {
+	t, ok := a.tokens[tok]
+	if !ok {
+		return User{}, false
+	}
+	if time.Until(a.tokens[tok].Expires) < 0 {
+		a.deauthenticateWhenExpired(tok)
+		return User{}, false
+	}
+	return t.User, true
+}
+
 func (a Auth) Authenticate(hash string, password string) (string, error) {
 	user, err := a.GetUser(hash)
 	if err != nil {
@@ -201,18 +219,38 @@ func (a Auth) Authenticate(hash string, password string) (string, error) {
 		tok = genToken()
 	}
 	a.tokens[tok] = token{
-		UserHash: hash,
-		UserData: user,
-		Expires:  time.Now().Add(time.Hour * 24 * 7),
+		Hash:    hash,
+		User:    user,
+		Expires: time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays)),
 	}
-	time.AfterFunc(time.Until(a.tokens[tok].Expires), func() { a.DeauthenticateToken(tok) })
+
+	a.deauthenticateWhenExpired(tok)
 	return tok, nil
 }
 
-func (a Auth) Deauthenticate(hash string) {
-	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.UserHash == hash })
+func (a Auth) Reauthenticate(tok string) (User, error) {
+	user, ok := a.IsAuthenticated(tok)
+	if !ok {
+		return User{}, Errors.AuthFailed
+	}
+	t := a.tokens[tok]
+	t.Expires = time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays))
+	a.tokens[tok] = t
+	return user, nil
 }
 
-func (a Auth) DeauthenticateToken(tok string) {
+func (a Auth) Deauthenticate(hash string) {
+	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.Hash == hash })
+}
+
+func (a Auth) deauthenticateWhenExpired(tok string) {
+	t, ok := a.tokens[tok]
+	if !ok {
+		return
+	}
+	if time.Until(t.Expires) > 0 {
+		time.AfterFunc(time.Until(t.Expires), func() { a.deauthenticateWhenExpired(tok) })
+		return
+	}
 	delete(a.tokens, tok)
 }

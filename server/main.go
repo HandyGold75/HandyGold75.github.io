@@ -1,6 +1,7 @@
 package main
 
 import (
+	"HG75/auth"
 	"HG75/srvs"
 	"errors"
 	"fmt"
@@ -35,6 +36,7 @@ var (
 		CLIConfig                srvs.CLIConfig
 		SiteConfig               srvs.SiteConfig
 		TapoConfig               srvs.TapoConfig
+		AuthConfig               auth.Config
 		LogLevel, LogToFileLevel int
 		ModuleMaxRestartPerHour  int
 	}{
@@ -57,7 +59,9 @@ var (
 				Minutes: []int{59},
 			},
 		},
-
+		AuthConfig: auth.Config{
+			TokenExpiresAfterDays: 7,
+		},
 		LogLevel: 1, LogToFileLevel: 3,
 		ModuleMaxRestartPerHour: 3,
 	}
@@ -65,7 +69,7 @@ var (
 
 func run() {
 	srvsCLI := srvs.NewCLI(Config.CLIConfig)
-	srvsSite := srvs.NewSite(Config.SiteConfig)
+	srvsSite := srvs.NewSite(Config.SiteConfig, Config.AuthConfig)
 	srvsTapo := srvs.NewTapo(Config.TapoConfig)
 
 	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
@@ -105,7 +109,7 @@ func run() {
 			if !ok && checkRestarts("site") {
 				lgr.Log("debug", "site", "restarting")
 				srvsSite.Stop()
-				srvsSite = srvs.NewSite(Config.SiteConfig)
+				srvsSite = srvs.NewSite(Config.SiteConfig, Config.AuthConfig)
 				srvsSite.Run()
 				lgr.Log("high", "site", "restarted")
 			}
