@@ -3,6 +3,7 @@ package srvs
 import (
 	"HG75/auth"
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"slices"
@@ -51,7 +52,7 @@ func getSSLCert(dir string) (string, string, error) {
 	return dir + "/fullchain.pem", dir + "/privkey.pem", nil
 }
 
-func NewSite(conf SiteConfig) *Site {
+func NewSite(conf SiteConfig, confAuth auth.Config) *Site {
 	lgr, _ := logger.NewRel("data/logs/site")
 
 	path, err := os.Executable()
@@ -77,6 +78,7 @@ func NewSite(conf SiteConfig) *Site {
 		cert: cert, key: key,
 		server:        http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux},
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
+		auth: auth.NewAuth(confAuth),
 	}
 }
 
@@ -141,214 +143,195 @@ func (s *Site) sanatize(v string) string {
 	return v
 }
 
-func (s *Site) checkReqsCom(addr string) bool {
+func (s *Site) prossesCom(user auth.User, com string, args ...string) (out []byte, contentType string, errCode int, err error) {
+	// if Com.ServerComs[com].RequiredAuthLevel >= 2 {
+	// 	lgr.Log("high", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
+	// } else if Com.ServerComs[com].RequiredAuthLevel >= 1 {
+	// 	lgr.Log("medium", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
+	// } else {
+	// 	lgr.Log("low", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
+	// }
+
+	// if com == "help" {
+	// 	return []byte(Com.HelpMenu(user, args...)), "text/plain", http.StatusOK, nil
+	// } else if com == "autocomplete" {
+	// 	return Com.AutoComplete(user, args...), "application/json", http.StatusOK, nil
+	// }
+
+	// if _, ok := Com.ServerComs[com]; !ok {
+	// 	return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
+	// }
+
+	// srvCom := Com.ServerComs[com]
+	// if srvCom.RequiredAuthLevel > user.AuthLevel {
+	// 	return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
+	// }
+
+	// for _, role := range srvCom.RequiredRoles {
+	// 	if !slices.Contains(user.Roles, role) {
+	// 		return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
+	// 	}
+	// }
+
+	// return Com.ServerComs[com].Function(user, args...)
+
+	return []byte{}, "", http.StatusNotImplemented, errors.New("not implemented")
+}
+
+func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type,token")
+	w.Header().Add("Access-Control-Expose-Headers", "Content-Type,x-error,retry-after")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST")
+
+	if req.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	} else if req.Method != "POST" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400: Not a POST request")
+		w.Header().Set("x-error", "invalid method "+req.Method)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	s.recentReqsCom = slices.DeleteFunc(s.recentReqsCom, func(rs reqStamp) bool {
 		return -time.Until(rs.date) > time.Minute*time.Duration(s.cfg.RequestsLimitTimoutCom)
 	})
 	c := 0
 	for _, stamp := range s.recentReqsCom {
-		if stamp.addr == addr {
+		if stamp.addr == req.RemoteAddr {
 			c += 1
 		}
 		if c >= s.cfg.RequestsLimitCom {
-			return false
+			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "429: Too many requests")
+			w.Header().Set("retry-after", strconv.Itoa(60))
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
 		}
 	}
-	return true
+	s.recentReqsCom = append(s.recentReqsCom, reqStamp{addr: req.RemoteAddr, date: time.Now()})
+
+	tok := req.Header.Get("token")
+	if tok == "" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400: Missing token")
+		w.Header().Set("x-error", "missing header token")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user, ok := s.auth.IsAuthenticated(tok)
+	if !ok {
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "401: Failed Authentication")
+		w.Header().Set("x-error", "failed auth bad token")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	com := s.sanatize(req.PostFormValue("com"))
+	if com == "" {
+		s.lgr.Log("low", user.Username, "Com Request", "400: Missing com")
+		w.Header().Set("x-error", "missing field com")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	args := strings.Split(s.sanatize(req.PostFormValue("args")), "%20")
+	if len(args) == 1 && args[0] == "" {
+		args = []string{}
+	}
+
+	out, contentType, errCode, err := s.prossesCom(user, com, args...)
+	if err != nil || errCode < 200 || errCode >= 300 {
+		s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+err.Error())
+		w.Header().Set("x-error", err.Error())
+		w.WriteHeader(errCode)
+		return
+	}
+
+	s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+s.sanatize(string(out)))
+	if len(out) != 0 && contentType != "" {
+		w.Header().Set("Content-Type", contentType)
+		w.WriteHeader(errCode)
+		w.Write(out)
+		return
+	}
+	w.WriteHeader(errCode)
 }
 
-func (s *Site) checkReqsAuth(addr string) bool {
+func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Expose-Headers", "token,x-error,retry-after")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST")
+
+	if req.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	} else if req.Method != "POST" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Not a POST request")
+		w.Header().Set("x-error", req.Method)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	s.recentReqsAuth = slices.DeleteFunc(s.recentReqsAuth, func(rs reqStamp) bool {
 		return -time.Until(rs.date) > time.Minute*time.Duration(s.cfg.RequestsLimitTimoutAuth)
 	})
 	c := 0
 	for _, stamp := range s.recentReqsAuth {
-		if stamp.addr == addr {
+		if stamp.addr == req.RemoteAddr {
 			c += 1
 		}
 		if c >= s.cfg.RequestsLimitAuth {
-			return false
+			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "429: Too many requests")
+			w.Header().Set("retry-after", strconv.Itoa(60*10))
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
 		}
 	}
-	return true
+	s.recentReqsAuth = append(s.recentReqsAuth, reqStamp{addr: req.RemoteAddr, date: time.Now()})
+
+	tokCheck := req.PostFormValue("token")
+	if tokCheck != "" {
+		user, err := s.auth.Reauthenticate(tokCheck)
+		if err != nil {
+			s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "401: Token check failed for "+tokCheck)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "200: Token check succeeded for "+user.Username)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	usrHash := req.PostFormValue("usrHash")
+	if usrHash == "" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing usrHash")
+		w.Header().Set("x-error", "missing field usrHash")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	pswHash := req.PostFormValue("pswHash")
+	if pswHash == "" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing pswHash")
+		w.Header().Set("x-error", "missing field pswHash")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	tok, err := s.auth.Authenticate(usrHash, pswHash)
+	if err != nil {
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "401: Failed Authentication")
+		w.Header().Set("x-error", "failed auth bad credentials")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	user, ok := s.auth.IsAuthenticated(tok)
+	if !ok {
+		s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "500: Failed Resloving Token")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	s.lgr.Log("high", user.Username, "Auth Request", "200: Authenticated "+user.Username)
+	w.Header().Set("token", tok)
+	w.WriteHeader(http.StatusOK)
 }
-
-// func (s *Site) prossesCom(user Auth.User, com string, args ...string) (out []byte, contentType string, errCode int, err error) {
-// 	if Com.ServerComs[com].RequiredAuthLevel >= 2 {
-// 		lgr.Log("high", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-// 	} else if Com.ServerComs[com].RequiredAuthLevel >= 1 {
-// 		lgr.Log("medium", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-// 	} else {
-// 		lgr.Log("low", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-// 	}
-
-// 	if com == "help" {
-// 		return []byte(Com.HelpMenu(user, args...)), "text/plain", http.StatusOK, nil
-// 	} else if com == "autocomplete" {
-// 		return Com.AutoComplete(user, args...), "application/json", http.StatusOK, nil
-// 	}
-
-// 	if _, ok := Com.ServerComs[com]; !ok {
-// 		return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-// 	}
-
-// 	srvCom := Com.ServerComs[com]
-// 	if srvCom.RequiredAuthLevel > user.AuthLevel {
-// 		return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-// 	}
-
-// 	for _, role := range srvCom.RequiredRoles {
-// 		if !slices.Contains(user.Roles, role) {
-// 			return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-// 		}
-// 	}
-
-// 	return Com.ServerComs[com].Function(user, args...)
-// }
-
-// func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type,token")
-// 	w.Header().Add("Access-Control-Expose-Headers", "Content-Type,x-error,retry-after")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST")
-
-// 	if req.Method == "OPTIONS" {
-// 		w.WriteHeader(http.StatusOK)
-// 		return
-// 	} else if req.Method != "POST" {
-// 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400 BadRequest: Not a POST request")
-// 		w.Header().Set("x-error", "invalid method "+req.Method)
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	recentComRequests[req.RemoteAddr] = filterTimes(recentComRequests[req.RemoteAddr], time.Minute*time.Duration(1))
-// 	if len(recentComRequests[req.RemoteAddr]) >= 180 {
-// 		s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "429 TooManyRequests")
-// 		w.Header().Set("retry-after", strconv.Itoa(60))
-// 		w.WriteHeader(http.StatusTooManyRequests)
-// 		return
-// 	}
-// 	recentComRequests[req.RemoteAddr] = append(recentComRequests[req.RemoteAddr], time.Now())
-
-// 	token := req.Header.Get("token")
-// 	if token == "" {
-// 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400 BadRequest: Missing token")
-// 		w.Header().Set("x-error", "missing header token")
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	user, err := Auth.IsAuthenticated(token)
-// 	if err != nil {
-// 		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "401 Unauthorized: Failed Authentication")
-// 		w.Header().Set("x-error", "failed auth bad token")
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	com := sanatize(req.PostFormValue("com"))
-// 	if com == "" {
-// 		s.lgr.Log("low", user.Username, "Com Request", "400 BadRequest: Missing com")
-// 		w.Header().Set("x-error", "missing field com")
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	args := strings.Split(sanatize(req.PostFormValue("args")), "%20")
-// 	if len(args) == 1 && args[0] == "" {
-// 		args = []string{}
-// 	}
-
-// 	out, contentType, errCode, err := ProssesCom(user, com, args...)
-
-// 	if err != nil || errCode < 200 || errCode >= 300 {
-// 		s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+err.Error())
-// 		w.Header().Set("x-error", err.Error())
-// 		w.WriteHeader(errCode)
-// 		return
-// 	}
-
-// 	s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+sanatize(string(out)))
-// 	if len(out) != 0 && contentType != "" {
-// 		w.Header().Set("Content-Type", contentType)
-// 		w.WriteHeader(errCode)
-// 		w.Write(out)
-// 		return
-// 	}
-
-// 	w.WriteHeader(errCode)
-// }
-
-// func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Add("Access-Control-Expose-Headers", "token,x-error,retry-after")
-// 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST")
-
-// 	if req.Method == "OPTIONS" {
-// 		w.WriteHeader(http.StatusOK)
-// 		return
-// 	} else if req.Method != "POST" {
-// 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400 BadRequest: Not a POST request")
-// 		w.Header().Set("x-error", req.Method)
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	recentAuthRequests[req.RemoteAddr] = filterTimes(recentAuthRequests[req.RemoteAddr], time.Minute*time.Duration(10))
-// 	if len(recentAuthRequests[req.RemoteAddr]) >= 10 {
-// 		s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "429 TooManyRequests")
-// 		w.Header().Set("retry-after", strconv.Itoa(60*10))
-// 		w.WriteHeader(http.StatusTooManyRequests)
-// 		return
-// 	}
-// 	recentAuthRequests[req.RemoteAddr] = append(recentAuthRequests[req.RemoteAddr], time.Now())
-
-// 	tokenCheck := req.PostFormValue("token")
-// 	if tokenCheck != "" {
-// 		user, err := Auth.IsAuthenticated(tokenCheck)
-// 		if err != nil {
-// 			s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", strconv.Itoa(http.StatusUnauthorized)+": Token check failed for"+tokenCheck)
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", strconv.Itoa(http.StatusOK)+": Token check succeeded for "+user.Username)
-// 		w.WriteHeader(http.StatusOK)
-// 	}
-
-// 	usrHash := req.PostFormValue("usrHash")
-// 	if usrHash == "" {
-// 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400 BadRequest: Missing usrHash")
-// 		w.Header().Set("x-error", "missing field usrHash")
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	pswHash := req.PostFormValue("pswHash")
-// 	if pswHash == "" {
-// 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400 BadRequest: Missing pswHash")
-// 		w.Header().Set("x-error", "missing field pswHash")
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	token, err := Auth.Authenticate(usrHash, pswHash)
-// 	if err != nil {
-// 		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "401 Unauthorized: Failed Authentication")
-// 		w.Header().Set("x-error", "failed auth bad credentials")
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	user, err := Auth.IsAuthenticated(token)
-// 	if err != nil {
-// 		s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", strconv.Itoa(http.StatusInternalServerError)+": Failed Resloving Token")
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	lgr.Log("high", user.Username, "Auth Request", strconv.Itoa(http.StatusOK)+": Authenticated "+user.Username)
-// 	w.Header().Set("token", token)
-// 	w.WriteHeader(http.StatusOK)
-// }
