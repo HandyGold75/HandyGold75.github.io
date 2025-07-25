@@ -14,49 +14,53 @@ import (
 )
 
 type (
+	authLevel uint8
+
 	User struct {
 		Username, Password string
-		AuthLevel          int
+		AuthLevel          authLevel
 		Roles              []string
 		Enabled            bool
 	}
 
-	Token struct {
+	token struct {
 		UserHash string
 		UserData User
 		Expires  time.Time
 	}
 
-	Auth struct{ Tokens map[string]Token }
+	Auth struct{ tokens map[string]token }
 )
 
-var (
-	AuthMap         = map[string]int{"guest": 0, "user": 1, "admin": 2, "owner": 3}
-	AuthMapReversed = map[int]string{0: "guest", 1: "user", 2: "admin", 3: "owner"}
-
-	Errors = struct {
-		InvalidHash, InvalidAuthLevel,
-		UserExists, UserNotExists,
-		PasswordToShort, UsernameToShort,
-		AuthFailed error
-	}{
-		InvalidHash:      errors.New("invalid hash"),
-		InvalidAuthLevel: errors.New("invalid auth level"),
-		UserExists:       errors.New("user exists"),
-		UserNotExists:    errors.New("user not exists"),
-		PasswordToShort:  errors.New("password to short"),
-		UsernameToShort:  errors.New("username to short"),
-		AuthFailed:       errors.New("authentication failed"),
-	}
+const (
+	AuthLevelGuest authLevel = iota
+	AuthLevelUser
+	AuthLevelAdmin
+	AuthLevelOwner
 )
+
+var Errors = struct {
+	InvalidHash, InvalidAuthLevel,
+	UserExists, UserNotExists,
+	PasswordToShort, UsernameToShort,
+	AuthFailed error
+}{
+	InvalidHash:      errors.New("invalid hash"),
+	InvalidAuthLevel: errors.New("invalid auth level"),
+	UserExists:       errors.New("user exists"),
+	UserNotExists:    errors.New("user not exists"),
+	PasswordToShort:  errors.New("password to short"),
+	UsernameToShort:  errors.New("username to short"),
+	AuthFailed:       errors.New("authentication failed"),
+}
 
 func genToken() string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	token := make([]byte, 128)
-	for i := range token {
-		token[i] = charset[rand.IntN(len(charset))]
+	tok := make([]byte, 128)
+	for i := range tok {
+		tok[i] = charset[rand.IntN(len(charset))]
 	}
-	return string(token)
+	return string(tok)
 }
 
 func validateHash(hash string) bool {
@@ -79,7 +83,7 @@ func sha(s string) string {
 }
 
 func NewAuth() Auth {
-	return Auth{Tokens: map[string]Token{}}
+	return Auth{tokens: map[string]token{}}
 }
 
 func (a Auth) GetUser(hash string) (User, error) {
@@ -101,7 +105,7 @@ func (a Auth) CreateUser(user User) (string, error) {
 		return "", Errors.UsernameToShort
 	} else if len(user.Password) < 12 {
 		return "", Errors.PasswordToShort
-	} else if user.AuthLevel < 0 || user.AuthLevel > 3 {
+	} else if user.AuthLevel < AuthLevelGuest || user.AuthLevel > AuthLevelOwner {
 		return "", Errors.InvalidAuthLevel
 	}
 
@@ -123,7 +127,7 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 		return "", Errors.UsernameToShort
 	} else if len(newUser.Password) < 12 {
 		return "", Errors.PasswordToShort
-	} else if newUser.AuthLevel < 0 || newUser.AuthLevel > 3 {
+	} else if newUser.AuthLevel < AuthLevelGuest || newUser.AuthLevel > AuthLevelOwner {
 		return "", Errors.InvalidAuthLevel
 	}
 
@@ -189,26 +193,26 @@ func (a Auth) Authenticate(hash string, password string) (string, error) {
 		return "", Errors.AuthFailed
 	}
 
-	token := genToken()
+	tok := genToken()
 	for {
-		if _, ok := a.Tokens[token]; !ok {
+		if _, ok := a.tokens[tok]; !ok {
 			break
 		}
-		token = genToken()
+		tok = genToken()
 	}
-	a.Tokens[token] = Token{
+	a.tokens[tok] = token{
 		UserHash: hash,
 		UserData: user,
 		Expires:  time.Now().Add(time.Hour * 24 * 7),
 	}
-	time.AfterFunc(time.Until(a.Tokens[token].Expires), func() { a.DeauthenticateToken(token) })
-	return token, nil
+	time.AfterFunc(time.Until(a.tokens[tok].Expires), func() { a.DeauthenticateToken(tok) })
+	return tok, nil
 }
 
 func (a Auth) Deauthenticate(hash string) {
-	maps.DeleteFunc(a.Tokens, func(k string, v Token) bool { return v.UserHash == hash })
+	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.UserHash == hash })
 }
 
-func (a Auth) DeauthenticateToken(token string) {
-	delete(a.Tokens, token)
+func (a Auth) DeauthenticateToken(tok string) {
+	delete(a.tokens, tok)
 }
