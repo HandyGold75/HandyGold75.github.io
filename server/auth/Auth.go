@@ -9,16 +9,17 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/HandyGold75/GOLib/cfg"
 )
 
 type (
-	authLevel uint8
+	AuthLevel uint8
 
 	User struct {
 		Username, Password string
-		AuthLevel          authLevel
+		AuthLevel          AuthLevel
 		Roles              []string
 		Enabled            bool
 	}
@@ -39,26 +40,33 @@ type (
 )
 
 const (
-	AuthLevelGuest authLevel = iota
+	AuthLevelGuest AuthLevel = iota
 	AuthLevelUser
 	AuthLevelAdmin
 	AuthLevelOwner
 )
 
-var Errors = struct {
-	InvalidHash, InvalidAuthLevel,
-	UserExists, UserNotExists,
-	PasswordToShort, UsernameToShort,
-	AuthFailed error
-}{
-	InvalidHash:      errors.New("invalid hash"),
-	InvalidAuthLevel: errors.New("invalid auth level"),
-	UserExists:       errors.New("user exists"),
-	UserNotExists:    errors.New("user not exists"),
-	PasswordToShort:  errors.New("password to short"),
-	UsernameToShort:  errors.New("username to short"),
-	AuthFailed:       errors.New("authentication failed"),
-}
+var (
+	Errors = struct {
+		InvalidHash, InvalidAuthLevel, InvalidUsername,
+		UserExists, UserNotExists,
+		PasswordToShort, PasswordToSimple, PasswordAlreadyHashed, UsernameToShort,
+		AuthFailed error
+	}{
+		InvalidHash:           errors.New("invalid hash"),
+		InvalidAuthLevel:      errors.New("invalid auth level"),
+		InvalidUsername:       errors.New("invalid username"),
+		UserExists:            errors.New("user exists"),
+		UserNotExists:         errors.New("user not exists"),
+		PasswordToShort:       errors.New("password to short"),
+		PasswordToSimple:      errors.New("password to simple"),
+		PasswordAlreadyHashed: errors.New("password is already hashed"),
+		UsernameToShort:       errors.New("username to short"),
+		AuthFailed:            errors.New("authentication failed"),
+	}
+
+	AuthMap = map[string]AuthLevel{"guest": AuthLevelGuest, "user": AuthLevelUser, "admin": AuthLevelAdmin, "owner": AuthLevelOwner}
+)
 
 func genToken() string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -88,8 +96,47 @@ func sha(s string) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
+func hashPass(pass string) (string, error) {
+	switch {
+	case validateHash(pass):
+		return pass, nil
+	case len(pass) < 12:
+		return "", Errors.PasswordToShort
+	case !strings.ContainsFunc(pass, unicode.IsLower):
+		return "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(pass, unicode.IsUpper):
+		return "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(pass, unicode.IsNumber):
+		return "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(pass, unicode.IsPunct):
+		return "", Errors.PasswordToSimple
+	default:
+		return sha(pass), nil
+	}
+}
+
 func NewAuth(conf Config) Auth {
 	return Auth{cfg: conf, tokens: map[string]token{}}
+}
+
+func (a Auth) ListUsers() ([]string, error) {
+	path := cfg.CheckRel("data/users")
+	if path == "" {
+		return []string{}, errors.New("path not found")
+	}
+	items, err := os.ReadDir(path)
+	if err != nil {
+		return []string{}, err
+	}
+
+	hashes := []string{}
+	for _, item := range items {
+		if item.IsDir() || !validateHash(item.Name()) {
+			continue
+		}
+		hashes = append(hashes, item.Name())
+	}
+	return hashes, nil
 }
 
 func (a Auth) GetUser(hash string) (User, error) {
@@ -109,11 +156,21 @@ func (a Auth) GetUser(hash string) (User, error) {
 func (a Auth) CreateUser(user User) (string, error) {
 	if len(user.Username) < 3 {
 		return "", Errors.UsernameToShort
-	} else if len(user.Password) < 12 {
-		return "", Errors.PasswordToShort
 	} else if user.AuthLevel < AuthLevelGuest || user.AuthLevel > AuthLevelOwner {
 		return "", Errors.InvalidAuthLevel
 	}
+
+	for _, name := range []string{"server", "cli", "site", "tapo", "auth", "com", "owner", "admin", "user", "guest"} {
+		if strings.Contains(strings.ToLower(user.Username), name) {
+			return "", Errors.InvalidUsername
+		}
+	}
+
+	pass, err := hashPass(user.Password)
+	if err != nil {
+		return "", err
+	}
+	user.Password = pass
 
 	hash := sha(user.Username + user.Password)
 	if !validateHash(hash) {
@@ -131,8 +188,6 @@ func (a Auth) CreateUser(user User) (string, error) {
 func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 	if len(newUser.Username) < 3 {
 		return "", Errors.UsernameToShort
-	} else if len(newUser.Password) < 12 {
-		return "", Errors.PasswordToShort
 	} else if newUser.AuthLevel < AuthLevelGuest || newUser.AuthLevel > AuthLevelOwner {
 		return "", Errors.InvalidAuthLevel
 	}
@@ -144,6 +199,18 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 	if path == "" {
 		return "", Errors.UserNotExists
 	}
+
+	for _, name := range []string{"server", "cli", "site", "tapo", "auth", "com", "owner", "admin", "user", "guest"} {
+		if strings.Contains(strings.ToLower(newUser.Username), name) {
+			return "", Errors.InvalidUsername
+		}
+	}
+
+	pass, err := hashPass(newUser.Password)
+	if err != nil {
+		return "", err
+	}
+	newUser.Password = pass
 
 	newHash := sha(newUser.Username + newUser.Password)
 	if hash != newHash {
@@ -165,7 +232,7 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 	return newHash, nil
 }
 
-func (a Auth) DeleleteUser(hash string) error {
+func (a Auth) DeleteUser(hash string) error {
 	if !validateHash(hash) {
 		return Errors.InvalidHash
 	}
@@ -241,6 +308,10 @@ func (a Auth) Reauthenticate(tok string) (User, error) {
 
 func (a Auth) Deauthenticate(hash string) {
 	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.Hash == hash })
+}
+
+func (a Auth) DeauthenticateToken(tok string) {
+	delete(a.tokens, tok)
 }
 
 func (a Auth) deauthenticateWhenExpired(tok string) {
