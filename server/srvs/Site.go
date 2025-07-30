@@ -2,8 +2,9 @@ package srvs
 
 import (
 	"HG75/auth"
+	"HG75/coms"
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"slices"
@@ -69,17 +70,20 @@ func NewSite(conf SiteConfig, confAuth auth.Config) *Site {
 		}
 	}
 
-	mux := http.NewServeMux()
-	// mux.HandleFunc("/com", handleComHTTP)
-	// mux.HandleFunc("/auth", handleAuthHTTP)
-
-	return &Site{
+	s := &Site{
 		cfg: conf, Pipe: make(chan string), lgr: lgr,
 		cert: cert, key: key,
-		server:        http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux},
+		server:        http.Server{},
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
 		auth: auth.NewAuth(confAuth),
 	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/com", s.handleComHTTP)
+	mux.HandleFunc("/auth", s.handleAuthHTTP)
+
+	s.server = http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux}
+	return s
 }
 
 func (s *Site) Run() {
@@ -113,6 +117,9 @@ func (s *Site) Stop() {
 }
 
 func (s *Site) loop() {
+	coms.HookAuth = &s.auth
+	coms.HookPipe = s.Pipe
+
 	for !s.exit {
 		if s.cert == "" || s.key == "" {
 			s.lgr.Log("warning", "site", "downgrading", "falling back to http")
@@ -129,6 +136,9 @@ func (s *Site) loop() {
 			}
 		}
 	}
+
+	coms.HookAuth = nil
+	coms.HookPipe = nil
 }
 
 func (s *Site) sanatize(v string) string {
@@ -143,39 +153,42 @@ func (s *Site) sanatize(v string) string {
 	return v
 }
 
-func (s *Site) prossesCom(user auth.User, com string, args ...string) (out []byte, contentType string, errCode int, err error) {
-	// if Com.ServerComs[com].RequiredAuthLevel >= 2 {
-	// 	lgr.Log("high", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-	// } else if Com.ServerComs[com].RequiredAuthLevel >= 1 {
-	// 	lgr.Log("medium", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-	// } else {
-	// 	lgr.Log("low", user.Username, "Executing", com+" ["+strings.Join(args, ", ")+"]")
-	// }
+func (s *Site) ProssesCommand(user auth.User, inp ...string) (out []byte, contentType string, errCode int, err error) {
+	command, args := coms.AllCommands[inp[0]], []string{}
+	for i, p := range inp[1:] {
+		com, ok := command.Commands[p]
+		if !ok {
+			if i == 0 {
+				return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
+			}
+			break
+		}
 
-	// if com == "help" {
-	// 	return []byte(Com.HelpMenu(user, args...)), "text/plain", http.StatusOK, nil
-	// } else if com == "autocomplete" {
-	// 	return Com.AutoComplete(user, args...), "application/json", http.StatusOK, nil
-	// }
+		if com.AuthLevel > user.AuthLevel {
+			return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
+		} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+			return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
+		}
 
-	// if _, ok := Com.ServerComs[com]; !ok {
-	// 	return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-	// }
+		command, args = com, inp[i+2:]
+	}
 
-	// srvCom := Com.ServerComs[com]
-	// if srvCom.RequiredAuthLevel > user.AuthLevel {
-	// 	return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-	// }
+	if len(command.Commands) > 0 || len(args) < command.ArgsLen[0] {
+		return []byte{}, "", http.StatusBadRequest, Errors.MissingArgs
+	} else if len(args) > command.ArgsLen[1] {
+		fmt.Println(args)
+		return []byte{}, "", http.StatusBadRequest, Errors.AdditionalArgs
+	}
 
-	// for _, role := range srvCom.RequiredRoles {
-	// 	if !slices.Contains(user.Roles, role) {
-	// 		return []byte{}, "", http.StatusNotFound, errors.New("unknown command: " + com)
-	// 	}
-	// }
+	if command.AuthLevel < auth.AuthLevelUser {
+		s.lgr.Log("low", user.Username, "Executing", strings.Join(inp, " "))
+	} else if command.AuthLevel == auth.AuthLevelUser {
+		s.lgr.Log("medium", user.Username, "Executing", strings.Join(inp, " "))
+	} else {
+		s.lgr.Log("high", user.Username, "Executing", strings.Join(inp, " "))
+	}
 
-	// return Com.ServerComs[com].Function(user, args...)
-
-	return []byte{}, "", http.StatusNotImplemented, errors.New("not implemented")
+	return command.Exec(user, args...)
 }
 
 func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
@@ -227,19 +240,15 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	com := s.sanatize(req.PostFormValue("com"))
-	if com == "" {
+	inp := strings.Split(s.sanatize(req.PostFormValue("com")), "%20")
+	if len(inp) <= 1 && inp[0] == "" {
 		s.lgr.Log("low", user.Username, "Com Request", "400: Missing com")
 		w.Header().Set("x-error", "missing field com")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	args := strings.Split(s.sanatize(req.PostFormValue("args")), "%20")
-	if len(args) == 1 && args[0] == "" {
-		args = []string{}
-	}
 
-	out, contentType, errCode, err := s.prossesCom(user, com, args...)
+	out, contentType, errCode, err := s.ProssesCommand(user, inp...)
 	if err != nil || errCode < 200 || errCode >= 300 {
 		s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+err.Error())
 		w.Header().Set("x-error", err.Error())
@@ -247,7 +256,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+s.sanatize(string(out)))
+	s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+string(out))
 	if len(out) != 0 && contentType != "" {
 		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(errCode)
@@ -289,7 +298,7 @@ func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	s.recentReqsAuth = append(s.recentReqsAuth, reqStamp{addr: req.RemoteAddr, date: time.Now()})
 
-	tokCheck := req.PostFormValue("token")
+	tokCheck := s.sanatize(req.PostFormValue("token"))
 	if tokCheck != "" {
 		user, err := s.auth.Reauthenticate(tokCheck)
 		if err != nil {
@@ -302,14 +311,14 @@ func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	usrHash := req.PostFormValue("usrHash")
+	usrHash := s.sanatize(req.PostFormValue("usrHash"))
 	if usrHash == "" {
 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing usrHash")
 		w.Header().Set("x-error", "missing field usrHash")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	pswHash := req.PostFormValue("pswHash")
+	pswHash := s.sanatize(req.PostFormValue("pswHash"))
 	if pswHash == "" {
 		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing pswHash")
 		w.Header().Set("x-error", "missing field pswHash")
