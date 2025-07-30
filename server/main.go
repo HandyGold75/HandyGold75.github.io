@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +20,8 @@ import (
 type (
 	Service interface {
 		// Start service loop in a goroutine.
+		//
+		// Should not block for extended time.
 		Run()
 		// Stop service loop.
 		//
@@ -92,29 +95,51 @@ func run() {
 	}
 
 	for !exit {
-		out := ""
-		var ok bool
-
 		select {
-		case out, ok = <-srvsCLI.Pipe:
+		case out, ok := <-srvsCLI.Pipe:
 			if !ok && checkRestarts("cli") {
 				lgr.Log("debug", "cli", "restarting")
 				srvsCLI.Stop()
 				srvsCLI = srvs.NewCLI(Config.CLIConfig)
 				srvsCLI.Run()
 				lgr.Log("high", "cli", "restarted")
+			} else if !ok || out == "" {
+				continue
 			}
 
-		case out, ok = <-srvsSite.Pipe:
+			go func() {
+				comOut, _, _, err := srvsSite.ProssesCommand(auth.User{
+					Username: "owner", Password: "",
+					AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI", "Home"},
+					Enabled: true,
+				}, strings.Split(out, " ")...)
+				if err != nil {
+					lgr.Log("error", "owner", "command", err.Error())
+				} else if len(comOut) > 0 {
+					lgr.Log("low", "owner", "command", string(comOut))
+				}
+			}()
+
+		case out, ok := <-srvsSite.Pipe:
 			if !ok && checkRestarts("site") {
 				lgr.Log("debug", "site", "restarting")
 				srvsSite.Stop()
 				srvsSite = srvs.NewSite(Config.SiteConfig, Config.AuthConfig)
 				srvsSite.Run()
 				lgr.Log("high", "site", "restarted")
+			} else if !ok || out == "" {
+				continue
 			}
 
-		case out, ok = <-srvsTapo.Pipe:
+			switch out {
+			case "exit":
+				exit = true
+			case "restart":
+				exit = true
+				defer func() { exit = false }()
+			}
+
+		case _, ok := <-srvsTapo.Pipe:
 			if !ok && checkRestarts("tapo") {
 				lgr.Log("debug", "tapo", "restarting")
 				srvsTapo.Stop()
@@ -124,13 +149,6 @@ func run() {
 			}
 
 		case <-time.After(time.Second):
-		}
-
-		if out == "restart" {
-			break
-		} else if out == "exit" {
-			exit = true
-			break
 		}
 	}
 
