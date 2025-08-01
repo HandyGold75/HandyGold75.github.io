@@ -120,7 +120,7 @@ func NewAuth(conf Config) Auth {
 }
 
 func (a Auth) ListUsers() ([]string, error) {
-	path := cfg.CheckRel("data/users")
+	path := cfg.CheckDirRel("data/users")
 	if path == "" {
 		return []string{}, errors.New("path not found")
 	}
@@ -128,13 +128,12 @@ func (a Auth) ListUsers() ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-
 	hashes := []string{}
 	for _, item := range items {
-		if item.IsDir() || !validateHash(item.Name()) {
+		if item.IsDir() || !validateHash(strings.TrimSuffix(item.Name(), ".json")) {
 			continue
 		}
-		hashes = append(hashes, item.Name())
+		hashes = append(hashes, strings.TrimSuffix(item.Name(), ".json"))
 	}
 	return hashes, nil
 }
@@ -177,6 +176,20 @@ func (a Auth) CreateUser(user User) (string, error) {
 		return "", Errors.InvalidHash
 	} else if cfg.CheckRel("data/users/"+hash) != "" {
 		return "", Errors.UserExists
+	}
+
+	users, err := a.ListUsers()
+	if err != nil {
+		return "", err
+	}
+	for _, uh := range users {
+		u, err := a.GetUser(uh)
+		if err != nil {
+			continue
+		}
+		if user.Username == u.Username {
+			return "", Errors.UserExists
+		}
 	}
 
 	if err := cfg.DumpRel("data/users/"+hash, user); err != nil {

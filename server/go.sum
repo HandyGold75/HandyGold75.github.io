@@ -1,9 +1,11 @@
-github.com/HandyGold75/GOLib/cfg v0.0.0-20250724140744-ffdd0424f7ed h1:zkrsEBxuYZuH++Rh035MF5hwqKvqhAixkbIeXXZy8eM=
-github.com/HandyGold75/GOLib/cfg v0.0.0-20250724140744-ffdd0424f7ed/go.mod h1:JAdvejsN26a/MT3BmRCrZJdJB7FYVX5QGTMt7vbfMVY=
-github.com/HandyGold75/GOLib/scheduler v0.0.0-20250724140744-ffdd0424f7ed h1:e5JiGBtwzdPoolBFv1+pT15KVKstyP9irUsGXXmzToE=
-github.com/HandyGold75/GOLib/scheduler v0.0.0-20250724140744-ffdd0424f7ed/go.mod h1:LZWk/aW0KaeF5B8+G7zQKYUXlwn1MA2eY3iHTisCSkA=
+github.com/HandyGold75/GOLib/scheduler v0.0.0-20250801120213-c86437b3e10e h1:rhK3FVPN+RZws6zdxvwMy2Yf2KHZV7oYQ+nC3LeRu1A=
+github.com/HandyGold75/GOLib/scheduler v0.0.0-20250801120213-c86437b3e10e/go.mod h1:LZWk/aW0KaeF5B8+G7zQKYUXlwn1MA2eY3iHTisCSkA=
+github.com/HandyGold75/Gonos v0.1.1 h1:+Y3cWqHjQI4VpzF5VSLlqpFv/FtBwj6c/dmJrrekRJs=
+github.com/HandyGold75/Gonos v0.1.1/go.mod h1:k9je2suL+64WUHPfZZxMZYrecbTbfUATAW5ZHO88MT0=
 github.com/achetronic/tapogo v0.2.0 h1:eMyEPdZsEzKwacj43FihDRLJxfNX4YpiWb/eEmMyVTQ=
 github.com/achetronic/tapogo v0.2.0/go.mod h1:DVflSfbePg4SAjRy0aeMYJ0vj4Pjesw5sw6y4yP0f8w=
+github.com/raitonoberu/ytsearch v0.2.0 h1:pOkkBuOiqCyKycWq1AAmhjfB+MlBNMvhHY8YEywP2ck=
+github.com/raitonoberu/ytsearch v0.2.0/go.mod h1:3jxsFXvol6AqYoMmIQ4VmAGWDP0vN7D99Qx863nsLzI=
 golang.org/x/sys v0.34.0 h1:H5Y5sJ2L2JRdyv7ROF1he/lPdvFsd0mJHFw2ThKHxLA=
 golang.org/x/sys v0.34.0/go.mod h1:BJP2sWEmIv4KK5OTEluFJCKSidICx8ciO85XgH3Ak8k=
 golang.org/x/term v0.33.0 h1:NuFncQrRcaRvVmgRkvM3j/F00gWIAlcmlB8ACEKmGIg=

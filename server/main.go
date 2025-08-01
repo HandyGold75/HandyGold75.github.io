@@ -72,12 +72,15 @@ var (
 
 func run() {
 	srvsCLI := srvs.NewCLI(Config.CLIConfig)
-	srvsSite := srvs.NewSite(Config.SiteConfig, Config.AuthConfig)
+	srvsSite := srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
 	srvsTapo := srvs.NewTapo(Config.TapoConfig)
 
+	wg := sync.WaitGroup{}
 	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
-		service.Run()
+		wg.Add(1)
+		go func() { service.Run(); wg.Done() }()
 	}
+	wg.Wait()
 
 	restarts := map[string][]time.Time{}
 	checkRestarts := func(name string) bool {
@@ -115,6 +118,8 @@ func run() {
 				}, strings.Split(out, " ")...)
 				if err != nil {
 					lgr.Log("error", "owner", "command", err.Error())
+				} else if strings.Split(out, " ")[0] == "help" {
+					_, _ = fmt.Fprint(srvs.Terminal, "\r\n"+string(comOut)+"\n\r")
 				} else if len(comOut) > 0 {
 					lgr.Log("low", "owner", "command", string(comOut))
 				}
@@ -124,7 +129,7 @@ func run() {
 			if !ok && checkRestarts("site") {
 				lgr.Log("debug", "site", "restarting")
 				srvsSite.Stop()
-				srvsSite = srvs.NewSite(Config.SiteConfig, Config.AuthConfig)
+				srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
 				srvsSite.Run()
 				lgr.Log("high", "site", "restarted")
 			} else if !ok || out == "" {
@@ -152,7 +157,7 @@ func run() {
 		}
 	}
 
-	wg := sync.WaitGroup{}
+	wg = sync.WaitGroup{}
 	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
 		wg.Add(1)
 		go func() { service.Stop(); wg.Done() }()
