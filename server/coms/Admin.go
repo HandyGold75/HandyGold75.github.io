@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -89,23 +90,24 @@ var adminCommands = Commands{
 				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
 				Description:     "Create user.",
 				AutoComplete:    []string{},
-				ArgsDescription: "[username] [password] [guest|user|admin] [roles,...] [enabled]",
+				ArgsDescription: "[username] [password] [guest|user|admin] [enabled] [roles,...]",
 				ArgsLen:         [2]int{3, 5},
 				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
 					if HookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					roles := []string{}
-					if len(args) > 3 {
-						roles = strings.Split(args[3], ",")
-					}
 					enabled := false
-					if len(args) > 4 {
-						if args[4] != "true" && args[4] != "false" {
+					if len(args) > 3 {
+						if args[3] != "true" && args[3] != "false" {
 							return []byte{}, "", http.StatusBadRequest, Errors.ArgumentNotBool
 						}
-						enabled = args[4] == "true"
+						enabled = args[3] == "true"
 					}
+					roles := []string{}
+					if len(args) > 4 {
+						roles = slices.DeleteFunc(strings.Split(args[4], ","), func(r string) bool { return r == "" })
+					}
+
 					authLevel, ok := auth.AuthMap[args[2]]
 					if !ok {
 						return []byte{}, "", http.StatusBadRequest, auth.Errors.InvalidAuthLevel

@@ -12,11 +12,10 @@ import (
 var (
 	Errors = struct {
 		FullchainNotFound, PrivkeyNotFound,
-		CommandNotFound, MissingArgs, AdditionalArgs error
+		MissingArgs, AdditionalArgs error
 	}{
 		FullchainNotFound: errors.New("fullchain not found"),
 		PrivkeyNotFound:   errors.New("privkey not found"),
-		CommandNotFound:   errors.New("unknown command"),
 		MissingArgs:       errors.New("missing args"),
 		AdditionalArgs:    errors.New("additional args"),
 	}
