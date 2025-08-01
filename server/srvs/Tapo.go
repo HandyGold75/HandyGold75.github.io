@@ -52,7 +52,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 				continue
 			}
 			clients[string(nickname[:])] = tc
-			lgr.Log("medium", "tapo", "connected")
+			lgr.Log("medium", "tapo", "connected", ip)
 			break
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"HG75/auth"
 	"HG75/coms"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +15,8 @@ import (
 	"unicode"
 
 	"github.com/HandyGold75/GOLib/logger"
+	"github.com/HandyGold75/Gonos"
+	"github.com/achetronic/tapogo/pkg/tapogo"
 )
 
 type (
@@ -35,6 +38,7 @@ type (
 		lgr                           *logger.Logger
 		Pipe                          chan string
 		cfg                           SiteConfig
+		tapoCfg                       TapoConfig
 		exit                          bool
 		cert, key                     string
 		server                        http.Server
@@ -53,7 +57,7 @@ func getSSLCert(dir string) (string, string, error) {
 	return dir + "/fullchain.pem", dir + "/privkey.pem", nil
 }
 
-func NewSite(conf SiteConfig, confAuth auth.Config) *Site {
+func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 	lgr, _ := logger.NewRel("data/logs/site")
 
 	path, err := os.Executable()
@@ -71,7 +75,7 @@ func NewSite(conf SiteConfig, confAuth auth.Config) *Site {
 	}
 
 	s := &Site{
-		cfg: conf, Pipe: make(chan string), lgr: lgr,
+		cfg: conf, tapoCfg: tapoConf, Pipe: make(chan string), lgr: lgr,
 		cert: cert, key: key,
 		server:        http.Server{},
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
@@ -88,6 +92,61 @@ func NewSite(conf SiteConfig, confAuth auth.Config) *Site {
 
 func (s *Site) Run() {
 	s.lgr.Log("debug", "site", "starting")
+	coms.HookAuth = &s.auth
+	coms.HookPipe = s.Pipe
+
+	if s.cfg.SonosIP != "" {
+		if zp, err := Gonos.NewZonePlayer(s.cfg.SonosIP); err == nil {
+			coms.HookSonos = zp
+		} else if zps, err := Gonos.DiscoverZonePlayer(1); err == nil {
+			coms.HookSonos = zps[0]
+		} else if zps, err := Gonos.ScanZonePlayer(s.cfg.SonosIP, 1); err == nil {
+			coms.HookSonos = zps[0]
+		} else {
+			coms.HookSonos = &Gonos.ZonePlayer{}
+			s.lgr.Log("error", "site", "failed", "connecting to speaker: "+s.cfg.SonosIP)
+		}
+	}
+
+	tapoPlugs := map[string]*tapogo.Tapo{}
+	for _, ip := range s.tapoCfg.PlugIPS {
+		if ip == "" {
+			s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip)
+			continue
+		}
+
+		for i := range 10 {
+			tc, err := tapogo.NewTapo(ip, s.tapoCfg.Username, s.tapoCfg.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
+			if err != nil {
+				if i == 9 {
+					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+				}
+				continue
+			}
+
+			tcInfo, err := tc.DeviceInfo()
+			if err != nil {
+				if i == 9 {
+					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+				}
+				continue
+			}
+
+			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Result.Nickname)
+			if err != nil {
+				if i == 9 {
+					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+				}
+				continue
+			}
+
+			tapoPlugs[string(nickname[:])] = tc
+			s.lgr.Log("medium", "site", "connected", ip)
+			break
+		}
+	}
+	coms.HookTapo = &tapoPlugs
+
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
@@ -113,32 +172,32 @@ func (s *Site) Stop() {
 
 	for range s.Pipe {
 	}
+
+	coms.HookAuth = nil
+	coms.HookPipe = nil
+	coms.HookSonos = nil
+	coms.HookTapo = nil
+
 	s.lgr.Log("medium", "site", "stopped")
 }
 
 func (s *Site) loop() {
-	coms.HookAuth = &s.auth
-	coms.HookPipe = s.Pipe
-
 	for !s.exit {
 		if s.cert == "" || s.key == "" {
 			s.lgr.Log("warning", "site", "downgrading", "falling back to http")
-			s.lgr.Log("medium", "site", "listening", "https://"+s.cfg.IP+":"+strconv.Itoa(int(s.cfg.Port)))
+			s.lgr.Log("medium", "site", "listening", "http://"+s.cfg.IP+":"+strconv.Itoa(int(s.cfg.Port)))
 			if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				s.lgr.Log("error", "site", "failed", err)
 				break
 			}
 		} else {
-			s.lgr.Log("medium", "site", "listening", "http://"+s.cfg.IP+":"+strconv.Itoa(int(s.cfg.Port)))
+			s.lgr.Log("medium", "site", "listening", "https://"+s.cfg.IP+":"+strconv.Itoa(int(s.cfg.Port)))
 			if err := s.server.ListenAndServeTLS(s.cert, s.key); err != nil && err != http.ErrServerClosed {
 				s.lgr.Log("error", "site", "failed", err)
 				break
 			}
 		}
 	}
-
-	coms.HookAuth = nil
-	coms.HookPipe = nil
 }
 
 func (s *Site) sanatize(v string) string {
@@ -154,23 +213,31 @@ func (s *Site) sanatize(v string) string {
 }
 
 func (s *Site) ProssesCommand(user auth.User, inp ...string) (out []byte, contentType string, errCode int, err error) {
-	command, args := coms.AllCommands[inp[0]], []string{}
+	if len(inp) < 1 {
+		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+	}
+	command, ok := coms.AllCommands[inp[0]]
+	if !ok {
+		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+	}
+	args := inp[1:]
+	if command.AuthLevel > user.AuthLevel {
+		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+	} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+	}
+
 	for i, p := range inp[1:] {
 		com, ok := command.Commands[p]
 		if !ok {
-			if i == 0 {
-				return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
-			}
 			break
 		}
-
-		if com.AuthLevel > user.AuthLevel {
-			return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
-		} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
-			return []byte{}, "", http.StatusNotFound, Errors.CommandNotFound
-		}
-
 		command, args = com, inp[i+2:]
+		if command.AuthLevel > user.AuthLevel {
+			return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+		} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+			return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
+		}
 	}
 
 	if len(command.Commands) > 0 || len(args) < command.ArgsLen[0] {
