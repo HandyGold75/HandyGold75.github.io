@@ -2,55 +2,35 @@ package coms
 
 import (
 	"HG75/auth"
-	"crypto/sha1"
-	"crypto/sha512"
+	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"net/http"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/HandyGold75/GOLib/cfg"
+	"github.com/HandyGold75/GOLib/logger"
 )
 
 var adminCommands = Commands{
-	"exit": {
-		AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-		Description:     "Stop the server.",
-		AutoComplete:    []string{},
-		ArgsDescription: "",
-		ArgsLen:         [2]int{0, 0},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if HookPipe == nil {
-				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
-			}
-			HookPipe <- "exit"
-			return []byte{}, "", http.StatusAccepted, nil
-		},
-	},
-	"restart": {
-		AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-		Description:     "Restart the server.",
-		AutoComplete:    []string{},
-		ArgsDescription: "",
-		ArgsLen:         [2]int{0, 0},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if HookPipe == nil {
-				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
-			}
-			HookPipe <- "restart"
-			return []byte{}, "", http.StatusAccepted, nil
-		},
-	},
 	"users": {
-		AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+		AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 		Description: "Interact with user data.",
 		Commands: Commands{
 			"list": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description:     "List user hashes.",
 				AutoComplete:    []string{},
 				ArgsDescription: "",
 				ArgsLen:         [2]int{0, 0},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					if HookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
@@ -66,12 +46,12 @@ var adminCommands = Commands{
 				},
 			},
 			"get": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description:     "Get user.",
 				AutoComplete:    []string{},
 				ArgsDescription: "[hash]",
 				ArgsLen:         [2]int{1, 1},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					if HookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
@@ -87,32 +67,34 @@ var adminCommands = Commands{
 				},
 			},
 			"create": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description:     "Create user.",
 				AutoComplete:    []string{},
 				ArgsDescription: "[username] [password] [guest|user|admin] [enabled] [roles,...]",
 				ArgsLen:         [2]int{3, 5},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					if HookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
 					enabled := false
 					if len(args) > 3 {
-						if args[3] != "true" && args[3] != "false" {
-							return []byte{}, "", http.StatusBadRequest, Errors.ArgumentNotBool
+						state, err := strconv.ParseBool(args[3])
+						if err != nil {
+							return []byte{}, "", http.StatusBadRequest, err
 						}
-						enabled = args[3] == "true"
+						enabled = state
 					}
 					roles := []string{}
 					if len(args) > 4 {
 						roles = slices.DeleteFunc(strings.Split(args[4], ","), func(r string) bool { return r == "" })
 					}
-
 					authLevel, ok := auth.AuthMap[args[2]]
 					if !ok {
 						return []byte{}, "", http.StatusBadRequest, auth.Errors.InvalidAuthLevel
 					}
-
+					if authLevel > user.AuthLevel {
+						return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
+					}
 					hash, err := HookAuth.CreateUser(auth.User{
 						Username: args[0], Password: args[1],
 						AuthLevel: authLevel, Roles: roles,
@@ -132,14 +114,13 @@ var adminCommands = Commands{
 					return jsonBytes, "application/json", http.StatusOK, nil
 				},
 			},
-
 			"modify": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description:     "Modify user.",
 				AutoComplete:    []string{},
 				ArgsDescription: "[hash] [username|password|authlevel|roles|enabled] [value]",
 				ArgsLen:         [2]int{3, 3},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					if HookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
@@ -147,7 +128,9 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-
+					if userData.AuthLevel > user.AuthLevel {
+						return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
+					}
 					switch strings.ToLower(args[1]) {
 					case "username":
 						userData.Username = args[2]
@@ -158,18 +141,21 @@ var adminCommands = Commands{
 						if !ok {
 							return []byte{}, "", http.StatusBadRequest, auth.Errors.InvalidAuthLevel
 						}
+						if authLevel > user.AuthLevel {
+							return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
+						}
 						userData.AuthLevel = authLevel
 					case "roles":
 						userData.Roles = strings.Split(args[2], ",")
 					case "enabled":
-						if args[2] != "true" && args[2] != "false" {
-							return []byte{}, "", http.StatusBadRequest, Errors.ArgumentNotBool
+						state, err := strconv.ParseBool(args[2])
+						if err != nil {
+							return []byte{}, "", http.StatusBadRequest, err
 						}
-						userData.Enabled = args[2] == "true"
+						userData.Enabled = state
 					default:
 						return []byte{}, "", http.StatusBadRequest, Errors.ArgumentInvalid
 					}
-
 					userHash, err := HookAuth.ModifyUser(args[0], userData)
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
@@ -185,45 +171,48 @@ var adminCommands = Commands{
 					return jsonBytes, "application/json", http.StatusOK, nil
 				},
 			},
-
 			"delete": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description:     "Delete user.",
 				AutoComplete:    []string{},
 				ArgsDescription: "[hash]",
 				ArgsLen:         [2]int{1, 1},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					userData, err := HookAuth.GetUser(args[0])
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					if userData.AuthLevel > user.AuthLevel {
+						return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
+					}
 					if err := HookAuth.DeleteUser(args[0]); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					return []byte(args[1]), "text/plain", http.StatusOK, nil
 				},
 			},
-
 			"deauth": {
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 				Description: "Deauthorize user or token.",
-
 				Commands: Commands{
-					"user": Command{
-						AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+					"user": {
+						AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 						Description:     "Deauthorize user.",
 						AutoComplete:    []string{},
 						ArgsDescription: "[hash]",
 						ArgsLen:         [2]int{1, 1},
-						Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 							HookAuth.Deauthenticate(args[0])
 							return []byte(args[0]), "text/plain", http.StatusOK, nil
 						},
 					},
-
-					"token": Command{
-						AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+					"token": {
+						AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 						Description:     "Deauthorize token.",
 						AutoComplete:    []string{},
 						ArgsDescription: "[token]",
 						ArgsLen:         [2]int{1, 1},
-						Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 							HookAuth.DeauthenticateToken(args[0])
 							return []byte(args[0]), "text/plain", http.StatusOK, nil
 						},
@@ -232,62 +221,183 @@ var adminCommands = Commands{
 			},
 		},
 	},
-	"tools": {
-		AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-		Description: "Generic tools.",
+	"logs": {
+		AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+		Description: "Get logs.",
+		// AutoComplete: func() []string {
+		// 	completes := []string{"list", "get", "listh", "geth"}
+		// 	fs.WalkDir(os.DirFS(files.LogDir), ".", func(path string, dir fs.DirEntry, err error) error {
+		// 		if err != nil || path == "." {
+		// 			return err
+		// 		}
+		// 		completes = append(completes, "get "+strings.ReplaceAll(path, "/", " "))
+		// 		completes = append(completes, "geth "+strings.ReplaceAll(path, "/", " "))
+		// 		return nil
+		// 	})
+		// 	return completes
+		// }(),
+		ArgsLen: [2]int{0, 2},
 		Commands: Commands{
-			"sha1": Command{
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-				Description:     "Get sha1 of a string.",
+			"list": Command{
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "List available logs.",
 				AutoComplete:    []string{},
-				ArgsDescription: "[value]",
-				ArgsLen:         [2]int{1, 1},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-					hasher := sha1.New()
-					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+				ArgsDescription: "",
+				ArgsLen:         [2]int{0, 0},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					path := cfg.CheckDirRel("data/logs")
+					if path == "" {
+						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
+					}
+					tree := map[string][]string{}
+					if err := fs.WalkDir(os.DirFS(path), ".", func(path string, dir fs.DirEntry, err error) error {
+						if err != nil || path == "." {
+							return err
+						}
+						dirSplit := strings.Split(path, "/")
+						if dir.IsDir() {
+							if _, ok := tree[dirSplit[len(dirSplit)-1]]; !ok {
+								tree[dirSplit[len(dirSplit)-1]] = []string{}
+							}
+						} else {
+							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+						}
+						return nil
+					}); err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					jsonBytes, err := json.Marshal(tree)
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, "application/json", http.StatusOK, nil
 				},
 			},
-			"sha512": Command{
-				AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-				Description:     "Get sha512 of a string.",
+			"get": Command{
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "Get log.",
 				AutoComplete:    []string{},
-				ArgsDescription: "[value]",
-				ArgsLen:         [2]int{1, 1},
-				Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-					hasher := sha512.New()
-					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+				ArgsDescription: "[module] [log]",
+				ArgsLen:         [2]int{2, 2},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					path := cfg.CheckDirRel("data/logs")
+					if path == "" {
+						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
+					}
+					relPath := "/" + strings.Join(args[0:2], "/")
+					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
+						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
+					}
+					tree := []string{}
+					file, err := os.Open(path + "/" + relPath)
+					if err != nil {
+						return []byte{}, "", http.StatusInternalServerError, err
+					}
+					defer file.Close()
+					reader := bufio.NewReader(file)
+					for {
+						line, err := reader.ReadString('\n')
+						if err == io.EOF {
+							break
+						}
+						if err != nil {
+							return []byte{}, "", http.StatusInternalServerError, err
+						}
+						tree = append(tree, line)
+					}
+					jsonBytes, err := json.Marshal(tree)
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, "application/json", http.StatusOK, nil
+				},
+			},
+			"listh": Command{
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "List available logs in human readable format.",
+				AutoComplete:    []string{},
+				ArgsDescription: "",
+				ArgsLen:         [2]int{0, 0},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					path := cfg.CheckDirRel("data/logs")
+					if path == "" {
+						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
+					}
+					tree := map[string][]string{}
+					if err := fs.WalkDir(os.DirFS(path), ".", func(path string, dir fs.DirEntry, err error) error {
+						if err != nil || path == "." {
+							return err
+						}
+						dirSplit := strings.Split(path, "/")
+						if dir.IsDir() {
+							if _, ok := tree[dirSplit[len(dirSplit)-1]]; !ok {
+								tree[dirSplit[len(dirSplit)-1]] = []string{}
+							}
+						} else {
+							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+						}
+						return nil
+					}); err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					jsonBytes, err := json.MarshalIndent(tree, "\r", "\t")
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, "application/json", http.StatusOK, nil
+				},
+			},
+			"geth": Command{
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "Get log in human readable format.",
+				AutoComplete:    []string{},
+				ArgsDescription: "[module] [log]",
+				ArgsLen:         [2]int{2, 2},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					path := cfg.CheckDirRel("data/logs")
+					if path == "" {
+						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
+					}
+					relPath := "/" + strings.Join(args[0:2], "/")
+					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
+						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
+					}
+					tree := ""
+					file, err := os.Open(path + "/" + relPath)
+					if err != nil {
+						return []byte{}, "", http.StatusInternalServerError, err
+					}
+					defer file.Close()
+					reader := bufio.NewReader(file)
+					for {
+						line, err := reader.ReadString('\n')
+						if err == io.EOF {
+							break
+						}
+						if err != nil {
+							return []byte{}, "", http.StatusInternalServerError, err
+						}
+						tree += "\r"
+						// TODO: Change logger.* to actual configuration instead of default value.
+						for i, v := range strings.Split(strings.Replace(line, logger.EORSepperator, "", 1), logger.RecordSepperator) {
+							if i == 0 {
+								t, err := time.Parse(time.RFC3339Nano, v)
+								if err == nil {
+									tree += t.Format(time.DateTime) + " "
+									continue
+								}
+							}
+							tree += fmt.Sprintf("%-10v ", v)
+						}
+						tree += "\n"
+					}
+					return []byte(tree), "text/plain", http.StatusOK, nil
 				},
 			},
 		},
 	},
-	// "logs": {
-	// 	AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
-	// 	Description: "Print logs",
-	// 	DetailedDescription: "Print logs of a specific day or print an list of available logs. Usage: logs [list|get|listh|geth] [args?]...\r\n" +
-	// 		"  list\r\n    List available logs.\r\n" +
-	// 		"  get [module] [log]\r\n    Get log.\r\n" +
-	// 		"  listh\r\n    Same as list but human readable.\r\n" +
-	// 		"  geth [module] [log]\r\n    Same as get but human readable.\r\n",
-	// 	AutoComplete: func() []string {
-	// 		completes := []string{"list", "get", "listh", "geth"}
-	// 		fs.WalkDir(os.DirFS(files.LogDir), ".", func(path string, dir fs.DirEntry, err error) error {
-	// 			if err != nil || path == "." {
-	// 				return err
-	// 			}
-	// 			completes = append(completes, "get "+strings.ReplaceAll(path, "/", " "))
-	// 			completes = append(completes, "geth "+strings.ReplaceAll(path, "/", " "))
-	// 			return nil
-	// 		})
-	// 		return completes
-	// 	}(),
-	// 	ArgsLen:  [2]int{0, 2},
-	// 	Exec:     PrintLogs,
-	// 	Commands: Commands{},
-	// },
 	// "debug": {
-	// 	AuthLevel: auth.AuthLevelAdmin, Roles: []string{"CLI"},
+	// 	AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
 	// 	Description:         "Enable/ disable debugging or print debug values.",
 	// 	DetailedDescription: "Enabled or disabled debugging or print debug values. Usage: debug [0|1|server|auth|https]\r\n  Restarting the server will reset the debug state to the orginial value.",
 	// 	AutoComplete:        []string{},

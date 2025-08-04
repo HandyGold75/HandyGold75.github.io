@@ -50,19 +50,17 @@ var (
 	Errors = struct {
 		InvalidHash, InvalidAuthLevel, InvalidUsername,
 		UserExists, UserNotExists,
-		PasswordToShort, PasswordToSimple, PasswordAlreadyHashed, UsernameToShort,
-		AuthFailed error
+		PasswordToShort, PasswordToSimple, UsernameToShort,
+		PasswordAlreadyHashed,
+		AuthFailed,
+		PathNotFound error
 	}{
-		InvalidHash:           errors.New("invalid hash"),
-		InvalidAuthLevel:      errors.New("invalid auth level"),
-		InvalidUsername:       errors.New("invalid username"),
-		UserExists:            errors.New("user exists"),
-		UserNotExists:         errors.New("user not exists"),
-		PasswordToShort:       errors.New("password to short"),
-		PasswordToSimple:      errors.New("password to simple"),
+		InvalidHash: errors.New("invalid hash"), InvalidAuthLevel: errors.New("invalid auth level"), InvalidUsername: errors.New("invalid username"),
+		UserExists: errors.New("user exists"), UserNotExists: errors.New("user not exists"),
+		PasswordToShort: errors.New("password to short"), PasswordToSimple: errors.New("password to simple"), UsernameToShort: errors.New("username to short"),
 		PasswordAlreadyHashed: errors.New("password is already hashed"),
-		UsernameToShort:       errors.New("username to short"),
 		AuthFailed:            errors.New("authentication failed"),
+		PathNotFound:          errors.New("path not found"),
 	}
 
 	AuthMap = map[string]AuthLevel{"guest": AuthLevelGuest, "user": AuthLevelUser, "admin": AuthLevelAdmin, "owner": AuthLevelOwner}
@@ -122,7 +120,7 @@ func NewAuth(conf Config) Auth {
 func (a Auth) ListUsers() ([]string, error) {
 	path := cfg.CheckDirRel("data/users")
 	if path == "" {
-		return []string{}, errors.New("path not found")
+		return []string{}, Errors.PathNotFound
 	}
 	items, err := os.ReadDir(path)
 	if err != nil {
