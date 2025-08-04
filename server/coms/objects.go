@@ -4,7 +4,6 @@ import (
 	"HG75/auth"
 	"crypto/sha1"
 	"crypto/sha512"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -218,36 +217,36 @@ var generalCommands = Commands{
 	},
 }
 
-func setDebug(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-	if len(args) != 1 {
-		return []byte{}, "", http.StatusBadRequest, errors.New("debug requires 1 argument")
-	}
+// func setDebug(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+// 	if len(args) != 1 {
+// 		return []byte{}, "", http.StatusBadRequest, errors.New("debug requires 1 argument")
+// 	}
 
-	switch args[0] {
-	case "0":
-		OutCh <- "debug 0"
-		return []byte{}, "", http.StatusAccepted, nil
+// 	switch args[0] {
+// 	case "0":
+// 		OutCh <- "debug 0"
+// 		return []byte{}, "", http.StatusAccepted, nil
 
-	case "1":
-		OutCh <- "debug 1"
-		return []byte{}, "", http.StatusAccepted, nil
+// 	case "1":
+// 		OutCh <- "debug 1"
+// 		return []byte{}, "", http.StatusAccepted, nil
 
-	case "server":
-		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
+// 	case "server":
+// 		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
 
-	case "auth":
-		jsonBytes, err := json.Marshal(Auth.Debug())
-		if err != nil {
-			return []byte{}, "", http.StatusBadRequest, err
-		}
+// 	case "auth":
+// 		jsonBytes, err := json.Marshal(Auth.Debug())
+// 		if err != nil {
+// 			return []byte{}, "", http.StatusBadRequest, err
+// 		}
 
-		return jsonBytes, "application/json", http.StatusOK, nil
+// 		return jsonBytes, "application/json", http.StatusOK, nil
 
-	case "https":
-		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
+// 	case "https":
+// 		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
 
-	default:
-	}
+// 	default:
+// 	}
 
-	return []byte{}, "", http.StatusBadRequest, errors.New("debug operation should be 0, 1, server, auth or https")
-}
+// 	return []byte{}, "", http.StatusBadRequest, errors.New("debug operation should be 0, 1, server, auth or https")
+// }
