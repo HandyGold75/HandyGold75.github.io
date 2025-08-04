@@ -173,6 +173,15 @@ func (s *Site) Stop() {
 	for range s.Pipe {
 	}
 
+	for name, db := range coms.OpenDataBases {
+		s.lgr.Log("debug", "site", "dumping", name)
+		for _, err := range db.Dump() {
+			s.lgr.Log("error", "site", name, err)
+		}
+		s.lgr.Log("medium", "site", "dumped", name)
+		delete(coms.OpenDataBases, name)
+	}
+
 	coms.HookAuth = nil
 	coms.HookPipe = nil
 	coms.HookSonos = nil
