@@ -14,17 +14,15 @@ import (
 	"time"
 )
 
-var openDataBases = map[string]*DataBase{}
-
 var datebasesCommands = Commands{
-	"db-test": Command{
+	"db-test": {
 		AuthLevel: auth.AuthLevelUser, Roles: []string{},
 		Description:     "Interact with testing DataBase.",
 		AutoComplete:    []string{"header", "read", "add", "delete", "move", "swap", "write", "modify"},
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if _, ok := openDataBases[user.Username+"/TestDB"]; !ok {
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if _, ok := OpenDataBases[user.Username+"/TestDB"]; !ok {
 				err := openDB("TestDB", user, Template{
 					"Sheet1": []string{"Col1"},
 					"Sheet2": []string{"Col1", "Col2"},
@@ -35,17 +33,17 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(openDataBases[user.Username+"/TestDB"], "db-test", user, args...)
+			return dbInterface(OpenDataBases[user.Username+"/TestDB"], "db-test", args...)
 		},
 	},
-	"db-asset": Command{
+	"db-asset": {
 		AuthLevel: auth.AuthLevelUser, Roles: []string{},
 		Description:     "Interact with testing DataBase.",
 		AutoComplete:    []string{"header", "read", "add", "delete", "move", "swap", "write", "modify"},
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if _, ok := openDataBases[user.Username+"/AssetDB"]; !ok {
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if _, ok := OpenDataBases[user.Username+"/AssetDB"]; !ok {
 				err := openDB("AssetDB", user, Template{
 					"Devices": []string{"Name", "Brand", "Device", "Series", "S/N", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Notes"},
 					"Assets":  []string{"Name", "Brand", "Asset", "Series", "S/N", "DOP", "EOL", "Modified", "Notes"},
@@ -56,17 +54,17 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(openDataBases[user.Username+"/AssetDB"], "db-asset", user, args...)
+			return dbInterface(OpenDataBases[user.Username+"/AssetDB"], "db-asset", args...)
 		},
 	},
-	"db-license": Command{
+	"db-license": {
 		AuthLevel: auth.AuthLevelUser, Roles: []string{},
 		Description:     "Interact with license DataBase.",
 		AutoComplete:    []string{"header", "read", "add", "delete", "move", "swap", "write", "modify"},
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if _, ok := openDataBases[user.Username+"/LicenseDB"]; !ok {
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if _, ok := OpenDataBases[user.Username+"/LicenseDB"]; !ok {
 				err := openDB("LicenseDB", user, Template{
 					"Licenses": []string{"Name", "Product", "Key", "URL", "DOP", "EOL", "Cost", "Auto Renew", "Modified", "Notes"},
 				})
@@ -74,17 +72,17 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(openDataBases[user.Username+"/LicenseDB"], "db-license", user, args...)
+			return dbInterface(OpenDataBases[user.Username+"/LicenseDB"], "db-license", args...)
 		},
 	},
-	"db-query": Command{
+	"db-query": {
 		AuthLevel: auth.AuthLevelUser, Roles: []string{},
 		Description:     "Interact with query DataBase.",
 		AutoComplete:    []string{"header", "read", "add", "delete", "move", "swap", "write", "modify"},
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
-		Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-			if _, ok := openDataBases[user.Username+"/QueryDB"]; !ok {
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if _, ok := OpenDataBases[user.Username+"/QueryDB"]; !ok {
 				err := openDB("QueryDB", user, Template{
 					"Links":   []string{"Img", "Text", "Url", "Cat", "Modified"},
 					"Contact": []string{"Img", "Text", "Url", "Modified"},
@@ -93,7 +91,7 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(openDataBases[user.Username+"/QueryDB"], "db-query", user, args...)
+			return dbInterface(OpenDataBases[user.Username+"/QueryDB"], "db-query", args...)
 		},
 	},
 }
@@ -124,20 +122,20 @@ func openDB(name string, user auth.User, template Template) error {
 		fmt.Println("error", user.Username, name, err) // TODO: Log errors or something
 	}
 
-	openDataBases[user.Username+"/"+name] = db
+	OpenDataBases[user.Username+"/"+name] = db
 
 	time.AfterFunc(time.Until(time.Now().Add(time.Minute*time.Duration(30))), func() {
-		for _, err := range openDataBases[user.Username+"/"+name].Dump() {
+		for _, err := range OpenDataBases[user.Username+"/"+name].Dump() {
 			fmt.Println("error", user.Username, name, err) // TODO: Log errors or something
 		}
 
-		delete(openDataBases, user.Username+"/"+name)
+		delete(OpenDataBases, user.Username+"/"+name)
 	})
 
 	return nil
 }
 
-func dbInterface(db *DataBase, com string, user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ string, code int, err error) {
 	if len(args) < 1 {
 		return []byte{}, "", http.StatusBadRequest, errors.New(com + " requires at least 1 arguments")
 	}
@@ -380,15 +378,14 @@ type (
 	Headers []string
 
 	errDB struct {
-		ErrIndexNotFound, ErrSheetNotFound, ErrInvalidDataLenght, ErrInvalidDataContent error
+		ErrIndexNotFound, ErrSheetNotFound,
+		ErrInvalidDataLenght, ErrInvalidDataContent error
 	}
 )
 
-var ErrDB = errDB{
-	ErrSheetNotFound:      errors.New("sheet not found"),
-	ErrIndexNotFound:      errors.New("index not found"),
-	ErrInvalidDataLenght:  errors.New("invalid data lenght"),
-	ErrInvalidDataContent: errors.New("invalid data content"),
+var ErrorsDB = errDB{
+	ErrSheetNotFound: errors.New("sheet not found"), ErrIndexNotFound: errors.New("index not found"),
+	ErrInvalidDataLenght: errors.New("invalid data lenght"), ErrInvalidDataContent: errors.New("invalid data content"),
 }
 
 // Get db name.
@@ -412,7 +409,7 @@ func (db *DataBase) Load() []error {
 	errs := []error{}
 	db.sheets = map[string]*Sheet{}
 
-	err := fs.WalkDir(os.DirFS(db.path+"/"+db.name), ".", func(path string, dir fs.DirEntry, err error) error {
+	if err := fs.WalkDir(os.DirFS(db.path+"/"+db.name), ".", func(path string, dir fs.DirEntry, err error) error {
 		if err != nil || path == "." {
 			return err
 		}
@@ -474,8 +471,7 @@ func (db *DataBase) Load() []error {
 		db.sheets[key] = sheet
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -510,7 +506,7 @@ func (db *DataBase) Dump() []error {
 		}
 	}
 
-	err := fs.WalkDir(os.DirFS(db.path+"/"+db.name), ".", func(path string, dir fs.DirEntry, err error) error {
+	if err := fs.WalkDir(os.DirFS(db.path+"/"+db.name), ".", func(path string, dir fs.DirEntry, err error) error {
 		if err != nil || path == "." {
 			return err
 		}
@@ -560,8 +556,7 @@ func (db *DataBase) Dump() []error {
 		}
 
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -572,7 +567,7 @@ func (db *DataBase) Dump() []error {
 // Does not need to be closed.
 func (db *DataBase) Open(sheet string) (*Sheet, error) {
 	if _, ok := db.sheets[sheet]; !ok {
-		return &Sheet{}, ErrDB.ErrSheetNotFound
+		return &Sheet{}, ErrorsDB.ErrSheetNotFound
 	}
 
 	return db.sheets[sheet], nil
@@ -619,7 +614,7 @@ func (db *DataBase) Has(sheet string) bool {
 // Does not need to be closed.
 func (sheet *Sheet) Open(index int) (*Record, error) {
 	if index < 0 || len(sheet.records)-1 < index {
-		return &Record{}, ErrDB.ErrIndexNotFound
+		return &Record{}, ErrorsDB.ErrIndexNotFound
 	}
 
 	return &sheet.records[index], nil
@@ -643,12 +638,12 @@ func (sheet *Sheet) Read() [][]string {
 // Add record to sheet.
 func (sheet *Sheet) Add(data []string) error {
 	if len(sheet.headers) != len(data) {
-		return ErrDB.ErrInvalidDataLenght
+		return ErrorsDB.ErrInvalidDataLenght
 	}
 
 	for _, s := range data {
 		if strings.Contains(s, sheet.seperator) {
-			return ErrDB.ErrInvalidDataContent
+			return ErrorsDB.ErrInvalidDataContent
 		}
 	}
 
@@ -664,7 +659,7 @@ func (sheet *Sheet) Add(data []string) error {
 // Delete record from sheet.
 func (sheet *Sheet) Delete(index int) error {
 	if index < 0 || len(sheet.records)-1 < index {
-		return ErrDB.ErrIndexNotFound
+		return ErrorsDB.ErrIndexNotFound
 	}
 
 	sheet.records = slices.Delete(sheet.records, index, index+1)
@@ -675,7 +670,7 @@ func (sheet *Sheet) Delete(index int) error {
 // Move record in sheet.
 func (sheet *Sheet) Move(index1 int, index2 int) error {
 	if index1 < 0 || len(sheet.records)-1 < index1 || index2 < 0 || len(sheet.records)-1 < index2 {
-		return ErrDB.ErrIndexNotFound
+		return ErrorsDB.ErrIndexNotFound
 	}
 
 	record := sheet.records[index1]
@@ -688,7 +683,7 @@ func (sheet *Sheet) Move(index1 int, index2 int) error {
 // Swap 2 records in sheet.
 func (sheet *Sheet) Swap(index1 int, index2 int) error {
 	if index1 < 0 || len(sheet.records)-1 < index1 || index2 < 0 || len(sheet.records)-1 < index2 {
-		return ErrDB.ErrIndexNotFound
+		return ErrorsDB.ErrIndexNotFound
 	}
 
 	record := sheet.records[index1]
@@ -716,12 +711,12 @@ func (record *Record) Read() []string {
 // Write new record to record.
 func (record *Record) Write(data []string) error {
 	if len(record.data) != len(data) {
-		return ErrDB.ErrInvalidDataLenght
+		return ErrorsDB.ErrInvalidDataLenght
 	}
 
 	for _, s := range data {
 		if strings.Contains(s, record.seperator) {
-			return ErrDB.ErrInvalidDataContent
+			return ErrorsDB.ErrInvalidDataContent
 		}
 	}
 
@@ -733,11 +728,11 @@ func (record *Record) Write(data []string) error {
 // Modify value in record.
 func (record *Record) Modify(index int, data string) error {
 	if index < 0 || len(record.data)-1 < index {
-		return ErrDB.ErrIndexNotFound
+		return ErrorsDB.ErrIndexNotFound
 	}
 
 	if strings.Contains(data, record.seperator) {
-		return ErrDB.ErrInvalidDataContent
+		return ErrorsDB.ErrInvalidDataContent
 	}
 
 	record.data[index] = data

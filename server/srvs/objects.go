@@ -14,10 +14,8 @@ var (
 		FullchainNotFound, PrivkeyNotFound,
 		MissingArgs, AdditionalArgs error
 	}{
-		FullchainNotFound: errors.New("fullchain not found"),
-		PrivkeyNotFound:   errors.New("privkey not found"),
-		MissingArgs:       errors.New("missing args"),
-		AdditionalArgs:    errors.New("additional args"),
+		FullchainNotFound: errors.New("fullchain not found"), PrivkeyNotFound: errors.New("privkey not found"),
+		MissingArgs: errors.New("missing args"), AdditionalArgs: errors.New("additional args"),
 	}
 
 	AutoComplete = []string{"restart", "exit"}

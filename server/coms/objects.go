@@ -2,6 +2,9 @@ package coms
 
 import (
 	"HG75/auth"
+	"crypto/sha1"
+	"crypto/sha512"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -21,7 +24,7 @@ type (
 		AutoComplete    []string
 		ArgsDescription string
 		ArgsLen         [2]int
-		Exec            func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error)
+		Exec            func(user auth.User, args ...string) (con []byte, typ string, code int, err error)
 		Commands        Commands
 	}
 
@@ -31,15 +34,17 @@ type (
 var (
 	Errors = struct {
 		AuthNotHooked, PipeNotHooked,
-		CommandNotFound,
-		ArgumentInvalid, ArgumentNotBool error
+		CommandNotFound, CommandNotAuthorized,
+		ArgumentInvalid, ArgumentNotBool,
+		PathNotFound error
 	}{
-		AuthNotHooked:   errors.New("auth not hooked"),
-		PipeNotHooked:   errors.New("pipe not hooked"),
-		CommandNotFound: errors.New("unknown command"),
-		ArgumentInvalid: errors.New("argument not valid"),
-		ArgumentNotBool: errors.New("argument not true or false"),
+		AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"),
+		CommandNotFound: errors.New("command not found"), CommandNotAuthorized: errors.New("command not authorized"),
+		ArgumentInvalid: errors.New("argument not valid"), ArgumentNotBool: errors.New("argument not true or false"),
+		PathNotFound: errors.New("path not found"),
 	}
+
+	OpenDataBases = map[string]*DataBase{}
 
 	HookAuth  *auth.Auth  = nil
 	HookPipe  chan string = nil
@@ -58,7 +63,7 @@ var (
 			AutoComplete:    []string{},
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 2},
-			Exec: func(user auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 				if len(args) == 0 {
 					msg := "<command> [args]...\r\n" +
 						"\r\nExecute server commands\r\n" +
@@ -152,4 +157,97 @@ var (
 	}()
 )
 
-var generalCommands = Commands{}
+var generalCommands = Commands{
+	"exit": {
+		AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI"},
+		Description:     "Stop the server.",
+		AutoComplete:    []string{},
+		ArgsDescription: "",
+		ArgsLen:         [2]int{0, 0},
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if HookPipe == nil {
+				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
+			}
+			HookPipe <- "exit"
+			return []byte{}, "", http.StatusAccepted, nil
+		},
+	},
+	"restart": {
+		AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI"},
+		Description:     "Restart the server.",
+		AutoComplete:    []string{},
+		ArgsDescription: "",
+		ArgsLen:         [2]int{0, 0},
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if HookPipe == nil {
+				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
+			}
+			HookPipe <- "restart"
+			return []byte{}, "", http.StatusAccepted, nil
+		},
+	},
+	"tools": {
+		AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+		Description: "Generic tools.",
+		Commands: Commands{
+			"sha1": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "Get sha1 of a string.",
+				AutoComplete:    []string{},
+				ArgsDescription: "[value]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					hasher := sha1.New()
+					hasher.Write([]byte(args[0]))
+					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+				},
+			},
+			"sha512": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "Get sha512 of a string.",
+				AutoComplete:    []string{},
+				ArgsDescription: "[value]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					hasher := sha512.New()
+					hasher.Write([]byte(args[0]))
+					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+				},
+			},
+		},
+	},
+}
+
+func setDebug(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
+	if len(args) != 1 {
+		return []byte{}, "", http.StatusBadRequest, errors.New("debug requires 1 argument")
+	}
+
+	switch args[0] {
+	case "0":
+		OutCh <- "debug 0"
+		return []byte{}, "", http.StatusAccepted, nil
+
+	case "1":
+		OutCh <- "debug 1"
+		return []byte{}, "", http.StatusAccepted, nil
+
+	case "server":
+		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
+
+	case "auth":
+		jsonBytes, err := json.Marshal(Auth.Debug())
+		if err != nil {
+			return []byte{}, "", http.StatusBadRequest, err
+		}
+
+		return jsonBytes, "application/json", http.StatusOK, nil
+
+	case "https":
+		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
+
+	default:
+	}
+
+	return []byte{}, "", http.StatusBadRequest, errors.New("debug operation should be 0, 1, server, auth or https")
+}
