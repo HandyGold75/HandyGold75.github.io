@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/coms/auth"
+	"HG75/auth"
 	"encoding/json"
 	"errors"
 	"fmt"

@@ -12,10 +12,12 @@ import (
 var (
 	Errors = struct {
 		FullchainNotFound, PrivkeyNotFound,
-		MissingArgs, AdditionalArgs error
+		MissingArgs, AdditionalArgs,
+		PathNotFound error
 	}{
 		FullchainNotFound: errors.New("fullchain not found"), PrivkeyNotFound: errors.New("privkey not found"),
 		MissingArgs: errors.New("missing args"), AdditionalArgs: errors.New("additional args"),
+		PathNotFound: errors.New("path not found"),
 	}
 
 	AutoComplete = []string{"restart", "exit"}
@@ -28,7 +30,6 @@ var (
 			io.Reader
 			io.Writer
 		}{os.Stdin, os.Stdout}, "> ")
-		terminal.SetPrompt(string(terminal.Escape.Red) + "> " + string(terminal.Escape.Reset))
 		terminal.AutoCompleteCallback = func(line string, pos int, key rune) (newLine string, newPos int, ok bool) {
 			if key != 9 || line == "" {
 				return line, pos, false

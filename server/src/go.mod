@@ -13,10 +13,6 @@ require (
 	golang.org/x/term v0.33.0
 )
 
-replace github.com/HandyGold75/GOLib/logger => ../../GOLib/logger/
-
-replace github.com/HandyGold75/GOLib/cfg => ../../GOLib/cfg/
-
 require (
 	github.com/bitly/go-simplejson v0.5.1 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect

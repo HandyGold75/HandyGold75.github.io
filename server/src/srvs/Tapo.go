@@ -33,7 +33,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 		var e error
 		for i := range 11 {
 			if i == 10 {
-				lgr.Log("error", "tapo", "failed", "connecting to plug: "+ip+"; error: "+e.Error())
+				lgr.Log("error", "tapo", "failed", "connecting to tapo plug: "+ip+"; error: "+e.Error())
 				break
 			}
 			tc, err := tapogo.NewTapo(ip, conf.Username, conf.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
@@ -52,7 +52,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 				continue
 			}
 			clients[string(nickname[:])] = tc
-			lgr.Log("medium", "tapo", "connected", ip)
+			lgr.Log("medium", "tapo", "connected", "tapo plug: "+ip)
 			break
 		}
 	}
@@ -112,7 +112,7 @@ func (s *Tapo) loop() {
 			if err != nil {
 				failed = true
 				tcLgr.Log("error", err)
-				s.lgr.Log("error", "tapo", "failed", "logging from plug: "+tcName+"; error: "+err.Error())
+				s.lgr.Log("error", "tapo", "failed", "logging from tapo plug: "+tcName+"; error: "+err.Error())
 				continue
 			}
 			tcLgr.Log("info", usage.Result.TodayRuntime, usage.Result.TodayEnergy)

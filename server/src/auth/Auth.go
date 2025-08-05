@@ -48,14 +48,14 @@ const (
 
 var (
 	Errors = struct {
-		InvalidHash, InvalidAuthLevel, InvalidUsername,
+		InvalidHash, InvalidToken, InvalidAuthLevel, InvalidUsername,
 		UserExists, UserNotExists,
 		PasswordToShort, PasswordToSimple, UsernameToShort,
 		PasswordAlreadyHashed,
 		AuthFailed,
 		PathNotFound error
 	}{
-		InvalidHash: errors.New("invalid hash"), InvalidAuthLevel: errors.New("invalid auth level"), InvalidUsername: errors.New("invalid username"),
+		InvalidHash: errors.New("invalid hash"), InvalidToken: errors.New("invalid token"), InvalidAuthLevel: errors.New("invalid auth level"), InvalidUsername: errors.New("invalid username"),
 		UserExists: errors.New("user exists"), UserNotExists: errors.New("user not exists"),
 		PasswordToShort: errors.New("password to short"), PasswordToSimple: errors.New("password to simple"), UsernameToShort: errors.New("username to short"),
 		PasswordAlreadyHashed: errors.New("password is already hashed"),
@@ -148,6 +148,22 @@ func (a Auth) GetUser(hash string) (User, error) {
 		return User{}, err
 	}
 	return user, nil
+}
+
+func (a Auth) ListTokens() []string {
+	toks := []string{}
+	for tok := range a.tokens {
+		toks = append(toks, tok)
+	}
+	return toks
+}
+
+func (a Auth) GetToken(tok string) (token, error) {
+	t, ok := a.tokens[tok]
+	if !ok {
+		return token{}, Errors.InvalidToken
+	}
+	return t, nil
 }
 
 func (a Auth) CreateUser(user User) (string, error) {

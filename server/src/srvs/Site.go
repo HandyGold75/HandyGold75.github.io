@@ -1,8 +1,8 @@
 package srvs
 
 import (
+	"HG75/auth"
 	"HG75/coms"
-	"HG75/coms/auth"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/HandyGold75/GOLib/cfg"
 	"github.com/HandyGold75/GOLib/logger"
 	"github.com/HandyGold75/Gonos"
 	"github.com/achetronic/tapogo/pkg/tapogo"
@@ -59,13 +60,10 @@ func getSSLCert(dir string) (string, string, error) {
 
 func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 	lgr, _ := logger.NewRel("data/logs/site")
-
-	path, err := os.Executable()
-	if err != nil {
-		path = "./"
+	path := cfg.CheckDirRel("data/logs")
+	if path == "" {
+		path = "."
 	}
-	pathSplit := strings.Split(strings.ReplaceAll(path, "\\", "/"), "/")
-	path = strings.Join(pathSplit[:len(pathSplit)-1], "/") + "/data/ssl"
 	cert, key, err := getSSLCert(path)
 	if err != nil {
 		cert, key, err = getSSLCert("/etc/letsencrypt/live/" + strings.ToLower(conf.SubDomain) + "." + strings.ToLower(conf.Domain))
@@ -102,16 +100,17 @@ func (s *Site) Run() {
 			coms.HookSonos = zps[0]
 		} else if zps, err := Gonos.ScanZonePlayer(s.cfg.SonosIP, 1); err == nil {
 			coms.HookSonos = zps[0]
+			s.lgr.Log("medium", "site", "connected", "sonos speaker: "+coms.HookSonos.URL)
 		} else {
 			coms.HookSonos = &Gonos.ZonePlayer{}
-			s.lgr.Log("error", "site", "failed", "connecting to speaker: "+s.cfg.SonosIP)
+			s.lgr.Log("error", "site", "failed", "connecting to sonos speaker: "+s.cfg.SonosIP)
 		}
 	}
 
 	tapoPlugs := map[string]*tapogo.Tapo{}
 	for _, ip := range s.tapoCfg.PlugIPS {
 		if ip == "" {
-			s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip)
+			s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip)
 			continue
 		}
 
@@ -119,7 +118,7 @@ func (s *Site) Run() {
 			tc, err := tapogo.NewTapo(ip, s.tapoCfg.Username, s.tapoCfg.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
 			if err != nil {
 				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
 				}
 				continue
 			}
@@ -127,7 +126,7 @@ func (s *Site) Run() {
 			tcInfo, err := tc.DeviceInfo()
 			if err != nil {
 				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
 				}
 				continue
 			}
@@ -135,13 +134,13 @@ func (s *Site) Run() {
 			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Result.Nickname)
 			if err != nil {
 				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to plug: "+ip+"; error: "+err.Error())
+					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
 				}
 				continue
 			}
 
 			tapoPlugs[string(nickname[:])] = tc
-			s.lgr.Log("medium", "site", "connected", ip)
+			s.lgr.Log("medium", "site", "connected", "tapo plug: "+ip)
 			break
 		}
 	}

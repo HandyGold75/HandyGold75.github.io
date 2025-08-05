@@ -1,3 +1,7 @@
+github.com/HandyGold75/GOLib/cfg v0.0.0-20250801120213-c86437b3e10e h1:BLypUfGZEk8B5+gcQxyinlpDHRGnn8k1YpiAGCGsMv4=
+github.com/HandyGold75/GOLib/cfg v0.0.0-20250801120213-c86437b3e10e/go.mod h1:JAdvejsN26a/MT3BmRCrZJdJB7FYVX5QGTMt7vbfMVY=
+github.com/HandyGold75/GOLib/logger v0.0.0-20250801120213-c86437b3e10e h1:Xz4fzgxOyhc3ZWhLI2K+I9ZJ/Ldw5EMriC8ZGan1mVc=
+github.com/HandyGold75/GOLib/logger v0.0.0-20250801120213-c86437b3e10e/go.mod h1:tf5g//Qyks5PrmFrArW9htSs9RnxizlCe6ZArXztCFE=
 github.com/HandyGold75/GOLib/scheduler v0.0.0-20250724140744-ffdd0424f7ed h1:e5JiGBtwzdPoolBFv1+pT15KVKstyP9irUsGXXmzToE=
 github.com/HandyGold75/GOLib/scheduler v0.0.0-20250724140744-ffdd0424f7ed/go.mod h1:LZWk/aW0KaeF5B8+G7zQKYUXlwn1MA2eY3iHTisCSkA=
 github.com/VividCortex/ewma v1.2.0/go.mod h1:nz4BbCtbLyFDeC9SUHbtcT5644juEuWfUAUnGx7j5l4=

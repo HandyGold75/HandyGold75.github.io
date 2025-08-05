@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/coms/auth"
+	"HG75/auth"
 	"bufio"
 	"encoding/json"
 	"errors"
@@ -230,9 +230,75 @@ var adminCommands = Commands{
 			},
 		},
 	},
+	"tokens": {
+		AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+		Description: "Interact with user data.",
+		Commands: Commands{
+			"list": {
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "List tokens.",
+				AutoComplete:    []string{},
+				ArgsDescription: "",
+				ArgsLen:         [2]int{0, 0},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					if HookAuth == nil {
+						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+					}
+					data := HookAuth.ListTokens()
+					jsonBytes, err := json.Marshal(data)
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, TypeJSON, http.StatusOK, nil
+				},
+			},
+			"get": {
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "Get token.",
+				AutoComplete:    []string{},
+				ArgsDescription: "[token]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					if HookAuth == nil {
+						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+					}
+					data, err := HookAuth.GetToken(args[0])
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					jsonBytes, err := json.Marshal(data)
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, TypeJSON, http.StatusOK, nil
+				},
+			},
+			"geth": {
+				AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
+				Description:     "Get token in human readable format..",
+				AutoComplete:    []string{},
+				ArgsDescription: "[token]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					if HookAuth == nil {
+						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+					}
+					data, err := HookAuth.GetToken(args[0])
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					jsonBytes, err := json.MarshalIndent(data, "\r", "\t")
+					if err != nil {
+						return []byte{}, "", http.StatusBadRequest, err
+					}
+					return jsonBytes, TypeJSON, http.StatusOK, nil
+				},
+			},
+		},
+	},
 	"logs": {
 		AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
-		Description: "Get logs.",
+		Description: "Interact with log data.",
 		// AutoComplete: func() []string {
 		// 	completes := []string{"list", "get", "listh", "geth"}
 		// 	fs.WalkDir(os.DirFS(files.LogDir), ".", func(path string, dir fs.DirEntry, err error) error {
@@ -405,13 +471,4 @@ var adminCommands = Commands{
 			},
 		},
 	},
-	// "debug": {
-	// 	AuthLevel: auth.AuthLevelAdmin, Roles: []string{},
-	// 	Description:         "Enable/ disable debugging or print debug values.",
-	// 	DetailedDescription: "Enabled or disabled debugging or print debug values. Usage: debug [0|1|server|auth|https]\r\n  Restarting the server will reset the debug state to the orginial value.",
-	// 	AutoComplete:        []string{},
-	// 	ArgsLen:             [2]int{1, 1},
-	// 	Exec:                setDebug,
-	// 	Commands:            []Command{},
-	// },
 }
