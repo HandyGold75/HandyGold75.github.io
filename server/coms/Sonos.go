@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/auth"
+	"HG75/coms/auth"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -42,7 +42,7 @@ type (
 
 var sonosCommands = Commands{"sonos": {
 	AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
-	Description: "Interact sonos music boxes.",
+	Description: "Interact with sonos music boxes.",
 	Commands: Commands{
 		"track": {
 			AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
@@ -51,6 +51,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				trackInfo, err := HookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -59,7 +62,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"state": {
@@ -69,11 +72,14 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				sts, err := HookSonos.GetCurrentTransportState()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(sts), "text/plain", http.StatusOK, nil
+				return []byte(sts), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"stop": {
@@ -83,6 +89,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				err = HookSonos.Stop()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -91,7 +100,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(sts), "text/plain", http.StatusOK, nil
+				return []byte(sts), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"play": {
@@ -101,6 +110,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -130,7 +142,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"mute": {
@@ -140,6 +152,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -153,7 +168,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"volume": {
@@ -163,6 +178,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:100|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					volume, err := strconv.Atoi(args[0])
 					if err != nil {
@@ -186,7 +204,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(volume)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(volume)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"seek": {
@@ -196,6 +214,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:X|+X|-X]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				newIndex, err := strconv.Atoi(args[0])
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -213,7 +234,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(trackInfo.Progress), "text/plain", http.StatusOK, nil
+				return []byte(trackInfo.Progress), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"position": {
@@ -223,6 +244,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[1:X|+X|-X]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				newIndex, err := strconv.Atoi(args[0])
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -244,7 +268,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(trackInfo.QuePosition)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"next": {
@@ -254,6 +278,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if err := HookSonos.Next(); err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -261,7 +288,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(trackInfo.QuePosition)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"previous": {
@@ -271,6 +298,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if err := HookSonos.Previous(); err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -278,7 +308,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(trackInfo.QuePosition)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(trackInfo.QuePosition)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"que": {
@@ -292,6 +322,9 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "",
 					ArgsLen:         [2]int{0, 0},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+						if HookSonos == nil {
+							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+						}
 						queInfo, err := HookSonos.GetQue()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
@@ -300,7 +333,7 @@ var sonosCommands = Commands{"sonos": {
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						return jsonBytes, "application/json", http.StatusOK, nil
+						return jsonBytes, TypeJSON, http.StatusOK, nil
 					},
 				},
 				"add": {
@@ -310,6 +343,9 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "[track]",
 					ArgsLen:         [2]int{1, 1},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+						if HookSonos == nil {
+							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+						}
 						return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken") // TODO: Fix
 						// if strings.HasPrefix(args[0], "https://open.spotify.com/") {
 						// 	uri_args := strings.Replace(args[0], "https://open.spotify.com/", "", 1)
@@ -329,7 +365,7 @@ var sonosCommands = Commands{"sonos": {
 						// if err != nil {
 						// 	return []byte{}, "", http.StatusBadRequest, err
 						// }
-						// return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
+						// return []byte(strconv.Itoa(queInfo.TotalCount)), TypeTXT, http.StatusOK, nil
 					},
 				},
 				"remove": {
@@ -339,6 +375,9 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "[index]",
 					ArgsLen:         [2]int{1, 1},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+						if HookSonos == nil {
+							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+						}
 						newIndex, err := strconv.Atoi(args[0])
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
@@ -350,7 +389,7 @@ var sonosCommands = Commands{"sonos": {
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
+						return []byte(strconv.Itoa(queInfo.TotalCount)), TypeTXT, http.StatusOK, nil
 					},
 				},
 				"clear": {
@@ -360,6 +399,9 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "",
 					ArgsLen:         [2]int{0, 0},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+						if HookSonos == nil {
+							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+						}
 						if err := HookSonos.QueClear(); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
@@ -367,7 +409,7 @@ var sonosCommands = Commands{"sonos": {
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						return []byte(strconv.Itoa(queInfo.TotalCount)), "text/plain", http.StatusOK, nil
+						return []byte(strconv.Itoa(queInfo.TotalCount)), TypeTXT, http.StatusOK, nil
 					},
 				},
 			},
@@ -379,6 +421,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:10|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					volume, err := strconv.Atoi(args[0])
 					if err != nil {
@@ -402,7 +447,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(volume)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(volume)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"treble": {
@@ -412,6 +457,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:10|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					volume, err := strconv.Atoi(args[0])
 					if err != nil {
@@ -435,7 +483,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.Itoa(volume)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.Itoa(volume)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"loudness": {
@@ -445,6 +493,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -458,7 +509,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"led": {
@@ -468,6 +519,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0|1|get]",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -481,7 +535,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"playername": {
@@ -491,6 +545,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[name]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 && args[0] != "" {
 					if err := HookSonos.SetZoneName(args[0]); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
@@ -500,7 +557,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(curName), "text/plain", http.StatusOK, nil
+				return []byte(curName), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"shuffle": {
@@ -510,6 +567,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -523,7 +583,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"repeat": {
@@ -533,6 +593,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -546,7 +609,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"repeatone": {
@@ -556,6 +619,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				if len(args) > 0 {
 					state, err := strconv.ParseBool(args[0])
 					if err != nil {
@@ -569,7 +635,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(state)), "text/plain", http.StatusOK, nil
+				return []byte(strconv.FormatBool(state)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"favorites": {
@@ -579,6 +645,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				favInfo, err := HookSonos.GetSonosFavorites()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -587,7 +656,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"radioshows": {
@@ -597,6 +666,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				radInfo, err := HookSonos.GetRadioShows()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -605,7 +677,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"radiostations": {
@@ -615,6 +687,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				radInfo, err := HookSonos.GetRadioStations()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -623,7 +698,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"sync": {
@@ -633,6 +708,9 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+				if HookSonos == nil {
+					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
+				}
 				trackInfo, err := HookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
@@ -669,7 +747,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"yt": {
@@ -697,7 +775,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return jsonBytes, "application/json", http.StatusOK, nil
+				return jsonBytes, TypeJSON, http.StatusOK, nil
 			},
 		},
 		"url2base64": {
@@ -715,7 +793,7 @@ var sonosCommands = Commands{"sonos": {
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(base64.StdEncoding.EncodeToString(body)), "text/plain", http.StatusOK, nil
+				return []byte(base64.StdEncoding.EncodeToString(body)), TypeTXT, http.StatusOK, nil
 			},
 		},
 	},
