@@ -1,7 +1,7 @@
 package main
 
 import (
-	"HG75/auth"
+	"HG75/coms/auth"
 	"HG75/srvs"
 	"errors"
 	"fmt"
@@ -118,10 +118,8 @@ func run() {
 				}, strings.Split(out, " ")...)
 				if err != nil {
 					lgr.Log("error", "owner", "command", err.Error())
-				} else if strings.Split(out, " ")[0] == "help" {
-					_, _ = fmt.Fprint(srvs.Terminal, "\r\n"+string(comOut)+"\n\r")
 				} else if len(comOut) > 0 {
-					lgr.Log("low", "owner", "command", string(comOut))
+					_, _ = fmt.Fprint(srvs.Terminal, "\r\n"+string(comOut)+"\n\r")
 				}
 			}()
 

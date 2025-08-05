@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/auth"
+	"HG75/coms/auth"
 	"bufio"
 	"encoding/json"
 	"errors"
@@ -42,7 +42,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"get": {
@@ -63,7 +63,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"create": {
@@ -111,7 +111,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"modify": {
@@ -168,7 +168,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"delete": {
@@ -178,6 +178,9 @@ var adminCommands = Commands{
 				ArgsDescription: "[hash]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					if HookAuth == nil {
+						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+					}
 					userData, err := HookAuth.GetUser(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
@@ -188,7 +191,7 @@ var adminCommands = Commands{
 					if err := HookAuth.DeleteUser(args[0]); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return []byte(args[1]), "text/plain", http.StatusOK, nil
+					return []byte(args[0]), TypeTXT, http.StatusOK, nil
 				},
 			},
 			"deauth": {
@@ -202,8 +205,11 @@ var adminCommands = Commands{
 						ArgsDescription: "[hash]",
 						ArgsLen:         [2]int{1, 1},
 						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+							if HookAuth == nil {
+								return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+							}
 							HookAuth.Deauthenticate(args[0])
-							return []byte(args[0]), "text/plain", http.StatusOK, nil
+							return []byte(args[0]), TypeTXT, http.StatusOK, nil
 						},
 					},
 					"token": {
@@ -213,8 +219,11 @@ var adminCommands = Commands{
 						ArgsDescription: "[token]",
 						ArgsLen:         [2]int{1, 1},
 						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+							if HookAuth == nil {
+								return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
+							}
 							HookAuth.DeauthenticateToken(args[0])
-							return []byte(args[0]), "text/plain", http.StatusOK, nil
+							return []byte(args[0]), TypeTXT, http.StatusOK, nil
 						},
 					},
 				},
@@ -270,7 +279,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"get": Command{
@@ -284,7 +293,7 @@ var adminCommands = Commands{
 					if path == "" {
 						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 					}
-					relPath := "/" + strings.Join(args[0:2], "/")
+					relPath := "/" + sanatize(strings.Join(args[0:2], "/"))
 					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 					}
@@ -293,7 +302,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusInternalServerError, err
 					}
-					defer file.Close()
+					defer func() { _ = file.Close() }()
 					reader := bufio.NewReader(file)
 					for {
 						line, err := reader.ReadString('\n')
@@ -309,7 +318,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"listh": Command{
@@ -344,7 +353,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					return jsonBytes, "application/json", http.StatusOK, nil
+					return jsonBytes, TypeJSON, http.StatusOK, nil
 				},
 			},
 			"geth": Command{
@@ -358,7 +367,7 @@ var adminCommands = Commands{
 					if path == "" {
 						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 					}
-					relPath := "/" + strings.Join(args[0:2], "/")
+					relPath := "/" + sanatize(strings.Join(args[0:2], "/"))
 					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 					}
@@ -367,7 +376,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusInternalServerError, err
 					}
-					defer file.Close()
+					defer func() { _ = file.Close() }()
 					reader := bufio.NewReader(file)
 					for {
 						line, err := reader.ReadString('\n')
@@ -391,7 +400,7 @@ var adminCommands = Commands{
 						}
 						tree += "\n"
 					}
-					return []byte(tree), "text/plain", http.StatusOK, nil
+					return []byte(tree), TypeTXT, http.StatusOK, nil
 				},
 			},
 		},
