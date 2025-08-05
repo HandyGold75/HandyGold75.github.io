@@ -60,15 +60,15 @@ func getSSLCert(dir string) (string, string, error) {
 
 func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 	lgr, _ := logger.NewRel("data/logs/site")
-	path := cfg.CheckDirRel("data/logs")
+	path := cfg.CheckDirRel("")
 	if path == "" {
-		path = "."
+		path = "./"
 	}
-	cert, key, err := getSSLCert(path)
+	cert, key, err := getSSLCert(path + "ssl")
 	if err != nil {
 		cert, key, err = getSSLCert("/etc/letsencrypt/live/" + strings.ToLower(conf.SubDomain) + "." + strings.ToLower(conf.Domain))
 		if err != nil {
-			lgr.Log("error", "site", "missing", "certificates not found in: \""+path+"\", \""+"/etc/letsencrypt/live/"+strings.ToLower(conf.SubDomain)+"."+strings.ToLower(conf.Domain)+"\"")
+			lgr.Log("error", "site", "missing", "certificates not found in: \""+path+"ssl\", \""+"/etc/letsencrypt/live/"+strings.ToLower(conf.SubDomain)+"."+strings.ToLower(conf.Domain)+"\"")
 		}
 	}
 

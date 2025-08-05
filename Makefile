@@ -32,4 +32,4 @@ clean:
 	cd ./server/src ; \
 	rm -f "$(TARGET)/$(FILE)" ; \
 	rm -fr "$(TARGET)/data" ; \
-	rm -f "$(TARGET)/config.json"
+	# rm -f "$(TARGET)/config.json"
