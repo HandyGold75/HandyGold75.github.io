@@ -1,7 +1,7 @@
 package main
 
 import (
-	"HG75/coms/auth"
+	"HG75/auth"
 	"HG75/srvs"
 	"errors"
 	"fmt"
@@ -42,8 +42,11 @@ var (
 		AuthConfig               auth.Config
 		LogLevel, LogToFileLevel int
 		ModuleMaxRestartPerHour  int
+		Debug                    bool
 	}{
-		CLIConfig: srvs.CLIConfig{},
+		CLIConfig: srvs.CLIConfig{
+			Prefix: string(srvs.Terminal.Escape.Red) + ">" + string(srvs.Terminal.Escape.Reset),
+		},
 		SiteConfig: srvs.SiteConfig{
 			IP: "0.0.0.0", Port: 17500,
 			SubDomain: "go", Domain: "HandyGold75.com",
@@ -67,13 +70,16 @@ var (
 		},
 		LogLevel: 1, LogToFileLevel: 3,
 		ModuleMaxRestartPerHour: 3,
+		Debug:                   false,
 	}
 )
 
 func run() {
+	lgr.Log("debug", "server", "preparing")
 	srvsCLI := srvs.NewCLI(Config.CLIConfig)
 	srvsSite := srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
 	srvsTapo := srvs.NewTapo(Config.TapoConfig)
+	lgr.Log("low", "server", "prepared")
 
 	wg := sync.WaitGroup{}
 	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
@@ -140,6 +146,17 @@ func run() {
 			case "restart":
 				exit = true
 				defer func() { exit = false }()
+			case "debug true":
+				Config.Debug = true
+				_ = cfg.DumpRel("config", &Config)
+				exit = true
+				defer func() { exit = false }()
+
+			case "debug false":
+				Config.Debug = false
+				_ = cfg.DumpRel("config", &Config)
+				exit = true
+				defer func() { exit = false }()
 			}
 
 		case _, ok := <-srvsTapo.Pipe:
@@ -163,6 +180,20 @@ func run() {
 	wg.Wait()
 }
 
+func loadConfig() {
+	_ = cfg.LoadRel("config", &Config)
+	logger.Verbosities = map[string]int{"error": 5, "warning": 4, "high": 3, "medium": 2, "low": 1, "debug": 0}
+	logger.VerboseToCLI, logger.VerboseToFile = Config.LogLevel, Config.LogToFileLevel
+	logger.CharCountPerPart, logger.PrepentCLI = 16, "\r"
+	logger.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
+	logger.MessageCLIHook = func(msg string) { _, _ = fmt.Fprint(srvs.Terminal, "\r") }
+	lgr, _ = logger.NewRel("data/logs/server")
+	if Config.Debug {
+		lgr.VerboseToCLI = 0
+		lgr.Log("medium", "server", "debug", "enabled")
+	}
+}
+
 func main() {
 	if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
 		panic(errors.New("stdin/stdout should be term"))
@@ -174,16 +205,8 @@ func main() {
 	}
 	defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }()
 
-	_ = cfg.LoadRel("config", &Config)
-
-	logger.Verbosities = map[string]int{"error": 5, "warning": 4, "high": 3, "medium": 2, "low": 1, "debug": 0}
-	logger.VerboseToCLI, logger.VerboseToFile = Config.LogLevel, Config.LogToFileLevel
-	logger.CharCountPerPart, logger.PrepentCLI = 16, "\r"
-	logger.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
-	logger.MessageCLIHook = func(msg string) { _, _ = fmt.Fprint(srvs.Terminal, "\r") }
-	lgr, _ = logger.NewRel("data/logs/server")
-
 	for !exit {
+		loadConfig()
 		run()
 	}
 	fmt.Println("\r")

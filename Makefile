@@ -1,5 +1,5 @@
 FILE := HG75.bin
-TARGET := .
+TARGET := ..
 
 get:
 	go get go@latest
@@ -9,7 +9,7 @@ get:
 	go get -u
 	go mod tidy
 
-	cd ./server ; \
+	cd ./server/src ; \
 	go get go@latest ; \
 	go get -u ; \
 	go mod tidy ; \
@@ -18,18 +18,18 @@ get:
 	go mod tidy
 
 build:
-	cd ./server ; \
+	cd ./server/src ; \
 	go build -o "$(TARGET)/$(FILE)" .
 
 wasm:
 	env GOOS=js GOARCH=wasm go build -o ./docs/wasm/main.wasm .
 
 run:
-	cd ./server ; \
+	cd ./server/src ; \
 	go build -o "$(TARGET)/$(FILE)" . && exec "$(TARGET)/$(FILE)"
 
 clean:
-	cd ./server ; \
+	cd ./server/src ; \
 	rm -f "$(TARGET)/$(FILE)" ; \
-	rm -fr "$(TARGET)/server/data" ; \
-	rm -f "$(TARGET)/server/config.json"
+	rm -fr "$(TARGET)/data" ; \
+	rm -f "$(TARGET)/config.json"

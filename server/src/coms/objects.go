@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/coms/auth"
+	"HG75/auth"
 	"crypto/sha1"
 	"crypto/sha512"
 	"errors"
@@ -9,6 +9,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -67,7 +68,6 @@ var (
 		maps.Copy(coms, sonosCommands)
 		maps.Copy(coms, tapoCommands)
 		maps.Copy(coms, ytdlCommands)
-
 		coms["help"] = Command{
 			AuthLevel: auth.AuthLevelGuest, Roles: []string{},
 			Description:     "Help message.",
@@ -75,30 +75,34 @@ var (
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 2},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if len(args) == 0 {
-					msg := "<command> [args]...\r\n" +
-						"\r\nExecute server commands\r\n" +
-						"\r\nAvailable:\r\n"
-					for name, com := range coms {
+				getArgs := func(command Command) string {
+					ret := command.ArgsDescription
+					if ret == "" && len(command.Commands) > 0 {
+						ret = "["
+						for name := range command.Commands {
+							ret += "|" + name
+						}
+						ret = strings.Replace(ret, "[|", "[", 1) + "]"
+					}
+					return ret
+				}
+				getComs := func(commands Commands) string {
+					msg := ""
+					for name, com := range commands {
 						if com.AuthLevel > user.AuthLevel {
 							continue
 						} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
 							continue
 						}
-
-						comArgs := com.ArgsDescription
-						if comArgs == "" && len(com.Commands) > 0 {
-							comArgs = "["
-							for subName := range com.Commands {
-								comArgs += "|" + subName
-							}
-							comArgs = strings.Replace(comArgs, "[|", "[", 1) + "]"
-						}
-
-						msg += fmt.Sprintf("  %-10v %v\r\n", name, comArgs)
+						msg += fmt.Sprintf("  %-10v %v\r\n", name, getArgs(com))
 					}
-
-					return []byte(msg), "", http.StatusOK, nil
+					return msg
+				}
+				if len(args) == 0 {
+					return []byte("<command> [args]...\r\n" +
+						"\r\nExecute server commands.\r\n" +
+						"\r\nAvailable:\r\n" +
+						getComs(coms)), "", http.StatusOK, nil
 				}
 
 				comString := args[0]
@@ -111,7 +115,6 @@ var (
 				} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
 					return coms["help"].Exec(user)
 				}
-
 				for _, p := range args[1:] {
 					com, ok := command.Commands[p]
 					if !ok {
@@ -126,44 +129,14 @@ var (
 					}
 				}
 
-				comArgs := command.ArgsDescription
-				if comArgs == "" && len(command.Commands) > 0 {
-					comArgs = "["
-					for subName := range command.Commands {
-						comArgs += "|" + subName
-					}
-					comArgs = strings.Replace(comArgs, "[|", "[", 1) + "]"
-				}
-
-				msg := comString + " " + comArgs + "\r\n" +
+				msg := comString + " " + getArgs(command) + "\r\n" +
 					"\r\n" + command.Description + "\r\n"
-
 				if len(command.Commands) > 0 {
-					msg += "\r\nArguments:\r\n"
-					for name, com := range command.Commands {
-						if com.AuthLevel > user.AuthLevel {
-							continue
-						} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
-							continue
-						}
-
-						comArgs := com.ArgsDescription
-						if comArgs == "" && len(com.Commands) > 0 {
-							comArgs = "["
-							for subName := range com.Commands {
-								comArgs += "|" + subName
-							}
-							comArgs = strings.Replace(comArgs, "[|", "[", 1) + "]"
-						}
-
-						msg += fmt.Sprintf("  %-10v %v\r\n", name, comArgs)
-					}
+					msg += "\r\nArguments:\r\n" + getComs(command.Commands)
 				}
-
 				return []byte(msg), "", http.StatusOK, nil
 			},
 		}
-
 		return coms
 	}()
 )
@@ -227,41 +200,25 @@ var generalCommands = Commands{
 			},
 		},
 	},
+	"debug": {
+		AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI"},
+		Description:     "Enable or disable debuging.",
+		AutoComplete:    []string{},
+		ArgsDescription: "[true|false]",
+		ArgsLen:         [2]int{1, 1},
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if HookPipe == nil {
+				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
+			}
+			state, err := strconv.ParseBool(args[0])
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+			HookPipe <- "debug " + strconv.FormatBool(state)
+			return []byte{}, "", http.StatusAccepted, nil
+		},
+	},
 }
-
-// func setDebug(user Auth.User, args ...string) (out []byte, contentType string, errCode int, err error) {
-// 	if len(args) != 1 {
-// 		return []byte{}, "", http.StatusBadRequest, errors.New("debug requires 1 argument")
-// 	}
-
-// 	switch args[0] {
-// 	case "0":
-// 		OutCh <- "debug 0"
-// 		return []byte{}, "", http.StatusAccepted, nil
-
-// 	case "1":
-// 		OutCh <- "debug 1"
-// 		return []byte{}, "", http.StatusAccepted, nil
-
-// 	case "server":
-// 		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
-
-// 	case "auth":
-// 		jsonBytes, err := json.Marshal(Auth.Debug())
-// 		if err != nil {
-// 			return []byte{}, "", http.StatusBadRequest, err
-// 		}
-
-// 		return jsonBytes, TypeJSON, http.StatusOK, nil
-
-// 	case "https":
-// 		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
-
-// 	default:
-// 	}
-
-// 	return []byte{}, "", http.StatusBadRequest, errors.New("debug operation should be 0, 1, server, auth or https")
-// }
 
 func sanatize(title string) string {
 	title = strings.Map(func(r rune) rune {

@@ -8,7 +8,9 @@ import (
 )
 
 type (
-	CLIConfig struct{}
+	CLIConfig struct {
+		Prefix string
+	}
 
 	CLI struct {
 		lgr  *logger.Logger
@@ -20,6 +22,7 @@ type (
 
 func NewCLI(conf CLIConfig) *CLI {
 	lgr, _ := logger.NewRel("data/logs/cli")
+	Terminal.SetPrompt(conf.Prefix + " ")
 	return &CLI{cfg: conf, Pipe: make(chan string), lgr: lgr}
 }
 
@@ -50,14 +53,16 @@ func (s *CLI) loop() {
 	go func() {
 		for !s.exit {
 			line, err := Terminal.ReadLine()
-			if err != nil {
+			if s.exit {
+				break
+			} else if err != nil {
 				if err == io.EOF {
 					s.Pipe <- "exit"
 				}
 				s.exit = true
 				break
 			} else if line != "" {
-				s.Pipe <- line // Somehow sometimes something gets send here after exit or ctrl_c command
+				s.Pipe <- line
 			}
 		}
 	}()
