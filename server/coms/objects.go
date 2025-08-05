@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/auth"
+	"HG75/coms/auth"
 	"crypto/sha1"
 	"crypto/sha512"
 	"errors"
@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/HandyGold75/Gonos"
 	"github.com/achetronic/tapogo/pkg/tapogo"
@@ -30,17 +31,26 @@ type (
 	Commands = map[string]Command
 )
 
+const (
+	TypeTXT   = "text/plain"
+	TypeJSON  = "application/json"
+	TypeVideo = "video/"
+	TypeMP4   = "video/mp4"
+)
+
 var (
 	Errors = struct {
-		AuthNotHooked, PipeNotHooked,
+		AuthNotHooked, PipeNotHooked, SonosNotHooked, TapoNotHooked,
 		CommandNotFound, CommandNotAuthorized,
 		ArgumentInvalid, ArgumentNotBool,
-		PathNotFound error
+		PathNotFound,
+		VideoNotFound, PlugNotFound error
 	}{
-		AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"),
+		AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"), SonosNotHooked: errors.New("sonos not hooked"), TapoNotHooked: errors.New("tapo not hooked"),
 		CommandNotFound: errors.New("command not found"), CommandNotAuthorized: errors.New("command not authorized"),
 		ArgumentInvalid: errors.New("argument not valid"), ArgumentNotBool: errors.New("argument not true or false"),
-		PathNotFound: errors.New("path not found"),
+		PathNotFound:  errors.New("path not found"),
+		VideoNotFound: errors.New("video not found"), PlugNotFound: errors.New("plug not found"),
 	}
 
 	OpenDataBases = map[string]*DataBase{}
@@ -55,6 +65,8 @@ var (
 		maps.Copy(coms, adminCommands)
 		maps.Copy(coms, datebasesCommands)
 		maps.Copy(coms, sonosCommands)
+		maps.Copy(coms, tapoCommands)
+		maps.Copy(coms, ytdlCommands)
 
 		coms["help"] = Command{
 			AuthLevel: auth.AuthLevelGuest, Roles: []string{},
@@ -198,7 +210,7 @@ var generalCommands = Commands{
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					hasher := sha1.New()
 					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), TypeTXT, http.StatusOK, nil
 				},
 			},
 			"sha512": {
@@ -210,7 +222,7 @@ var generalCommands = Commands{
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 					hasher := sha512.New()
 					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), "text/plain", http.StatusOK, nil
+					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), TypeTXT, http.StatusOK, nil
 				},
 			},
 		},
@@ -240,7 +252,7 @@ var generalCommands = Commands{
 // 			return []byte{}, "", http.StatusBadRequest, err
 // 		}
 
-// 		return jsonBytes, "application/json", http.StatusOK, nil
+// 		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 // 	case "https":
 // 		return []byte{}, "", http.StatusMethodNotAllowed, errors.New("unsupported from remote")
@@ -250,3 +262,13 @@ var generalCommands = Commands{
 
 // 	return []byte{}, "", http.StatusBadRequest, errors.New("debug operation should be 0, 1, server, auth or https")
 // }
+
+func sanatize(title string) string {
+	title = strings.Map(func(r rune) rune {
+		if unicode.IsLetter(r) || unicode.IsSpace(r) || unicode.IsNumber(r) {
+			return r
+		}
+		return -1
+	}, title)
+	return strings.ReplaceAll(title, "  ", " ")
+}

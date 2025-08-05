@@ -1,8 +1,8 @@
 package srvs
 
 import (
-	"HG75/auth"
 	"HG75/coms"
+	"HG75/coms/auth"
 	"context"
 	"encoding/base64"
 	"fmt"

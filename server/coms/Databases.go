@@ -1,7 +1,7 @@
 package coms
 
 import (
-	"HG75/auth"
+	"HG75/coms/auth"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -156,14 +156,14 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 			if err != nil {
 				return []byte{}, "", http.StatusBadRequest, err
 			}
-			return jsonBytes, "application/json", http.StatusOK, nil
+			return jsonBytes, TypeJSON, http.StatusOK, nil
 		}
 
 		jsonBytes, err := json.Marshal(template)
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "read":
 		if len(args) == 1 {
@@ -172,7 +172,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 				return []byte{}, "", http.StatusBadRequest, err
 			}
 
-			return jsonBytes, "application/json", http.StatusOK, nil
+			return jsonBytes, TypeJSON, http.StatusOK, nil
 		}
 		if len(args) > 3 {
 			return []byte{}, "", http.StatusBadRequest, errors.New(com + " read requires 0, 1 or 2 arguments")
@@ -187,7 +187,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 				return []byte{}, "", http.StatusBadRequest, err
 			}
 
-			return jsonBytes, "application/json", http.StatusOK, nil
+			return jsonBytes, TypeJSON, http.StatusOK, nil
 		}
 		index, err := strconv.Atoi(args[2])
 		if err != nil {
@@ -201,7 +201,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "add":
 		if len(args) < 3 {
@@ -218,7 +218,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "delete":
 		if len(args) != 3 {
@@ -239,7 +239,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "move":
 		if len(args) != 4 {
@@ -264,7 +264,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "swap":
 		if len(args) != 4 {
@@ -289,7 +289,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "write":
 		if len(args) < 4 {
@@ -315,7 +315,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	case "modify":
 		if len(args) != 5 {
@@ -345,7 +345,7 @@ func dbInterface(db *DataBase, com string, args ...string) (con []byte, typ stri
 		if err != nil {
 			return []byte{}, "", http.StatusBadRequest, err
 		}
-		return jsonBytes, "application/json", http.StatusOK, nil
+		return jsonBytes, TypeJSON, http.StatusOK, nil
 
 	default:
 		return []byte{}, "", http.StatusBadRequest, errors.New("db operation should be header, read, add, delete, move, swap, write or modify")
