@@ -88,12 +88,6 @@ func validateHash(hash string) bool {
 	return true
 }
 
-func sha(s string) string {
-	hasher := sha512.New()
-	hasher.Write([]byte(s))
-	return fmt.Sprintf("%x", hasher.Sum(nil))
-}
-
 func hashPass(pass string) (string, error) {
 	switch {
 	case validateHash(pass):
@@ -109,7 +103,7 @@ func hashPass(pass string) (string, error) {
 	case !strings.ContainsFunc(pass, unicode.IsPunct):
 		return "", Errors.PasswordToSimple
 	default:
-		return sha(pass), nil
+		return fmt.Sprintf("%x", sha512.Sum512([]byte(pass))), nil
 	}
 }
 
@@ -185,7 +179,7 @@ func (a Auth) CreateUser(user User) (string, error) {
 	}
 	user.Password = pass
 
-	hash := sha(user.Username + user.Password)
+	hash := fmt.Sprintf("%x", sha512.Sum512([]byte(user.Username+user.Password)))
 	if !validateHash(hash) {
 		return "", Errors.InvalidHash
 	} else if cfg.CheckRel("data/users/"+hash) != "" {
@@ -239,7 +233,7 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 	}
 	newUser.Password = pass
 
-	newHash := sha(newUser.Username + newUser.Password)
+	newHash := fmt.Sprintf("%x", sha512.Sum512([]byte(newUser.Username+newUser.Password)))
 	if hash != newHash {
 		if !validateHash(newHash) {
 			return "", Errors.InvalidHash
@@ -297,9 +291,9 @@ func (a Auth) Authenticate(hash string, password string) (string, error) {
 		return "", Errors.AuthFailed
 	}
 	switch password {
-	case sha(user.Password + time.Now().Format("2006-01-02 15:04")):
-	case sha(user.Password + time.Now().Add(-time.Minute).Format("2006-01-02 15:04")):
-	case sha(user.Password + time.Now().Add(time.Minute).Format("2006-01-02 15:04")):
+	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Format("2006-01-02 15:04")))):
+	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Add(-time.Minute).Format("2006-01-02 15:04")))):
+	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Add(time.Minute).Format("2006-01-02 15:04")))):
 	default:
 		time.Sleep(time.Millisecond * time.Duration(rand.IntN(250)))
 		return "", Errors.AuthFailed
