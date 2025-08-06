@@ -31,10 +31,10 @@ var adminCommands = Commands{
 				ArgsDescription: "",
 				ArgsLen:         [2]int{0, 0},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					hashes, err := HookAuth.ListUsers()
+					hashes, err := hookAuth.ListUsers()
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -52,10 +52,10 @@ var adminCommands = Commands{
 				ArgsDescription: "[hash]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					userData, err := HookAuth.GetUser(args[0])
+					userData, err := hookAuth.GetUser(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -73,7 +73,7 @@ var adminCommands = Commands{
 				ArgsDescription: "[username] [password] [guest|user|admin] [enabled] [roles,...]",
 				ArgsLen:         [2]int{3, 5},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
 					enabled := false
@@ -95,7 +95,7 @@ var adminCommands = Commands{
 					if authLevel > user.AuthLevel {
 						return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
 					}
-					hash, err := HookAuth.CreateUser(auth.User{
+					hash, err := hookAuth.CreateUser(auth.User{
 						Username: args[0], Password: args[1],
 						AuthLevel: authLevel, Roles: roles,
 						Enabled: enabled,
@@ -103,7 +103,7 @@ var adminCommands = Commands{
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					userData, err := HookAuth.GetUser(hash)
+					userData, err := hookAuth.GetUser(hash)
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -121,10 +121,10 @@ var adminCommands = Commands{
 				ArgsDescription: "[hash] [username|password|authlevel|roles|enabled] [value]",
 				ArgsLen:         [2]int{3, 3},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					userData, err := HookAuth.GetUser(args[0])
+					userData, err := hookAuth.GetUser(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -156,11 +156,11 @@ var adminCommands = Commands{
 					default:
 						return []byte{}, "", http.StatusBadRequest, Errors.ArgumentInvalid
 					}
-					userHash, err := HookAuth.ModifyUser(args[0], userData)
+					userHash, err := hookAuth.ModifyUser(args[0], userData)
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					userData, err = HookAuth.GetUser(userHash)
+					userData, err = hookAuth.GetUser(userHash)
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -178,17 +178,17 @@ var adminCommands = Commands{
 				ArgsDescription: "[hash]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					userData, err := HookAuth.GetUser(args[0])
+					userData, err := hookAuth.GetUser(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					if userData.AuthLevel > user.AuthLevel {
 						return []byte{}, "", http.StatusBadRequest, Errors.CommandNotAuthorized
 					}
-					if err := HookAuth.DeleteUser(args[0]); err != nil {
+					if err := hookAuth.DeleteUser(args[0]); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					return []byte(args[0]), TypeTXT, http.StatusOK, nil
@@ -205,10 +205,10 @@ var adminCommands = Commands{
 						ArgsDescription: "[hash]",
 						ArgsLen:         [2]int{1, 1},
 						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-							if HookAuth == nil {
+							if hookAuth == nil {
 								return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 							}
-							HookAuth.Deauthenticate(args[0])
+							hookAuth.Deauthenticate(args[0])
 							return []byte(args[0]), TypeTXT, http.StatusOK, nil
 						},
 					},
@@ -219,10 +219,10 @@ var adminCommands = Commands{
 						ArgsDescription: "[token]",
 						ArgsLen:         [2]int{1, 1},
 						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-							if HookAuth == nil {
+							if hookAuth == nil {
 								return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 							}
-							HookAuth.DeauthenticateToken(args[0])
+							hookAuth.DeauthenticateToken(args[0])
 							return []byte(args[0]), TypeTXT, http.StatusOK, nil
 						},
 					},
@@ -241,10 +241,10 @@ var adminCommands = Commands{
 				ArgsDescription: "",
 				ArgsLen:         [2]int{0, 0},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					data := HookAuth.ListTokens()
+					data := hookAuth.ListTokens()
 					jsonBytes, err := json.Marshal(data)
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
@@ -259,10 +259,10 @@ var adminCommands = Commands{
 				ArgsDescription: "[token]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					data, err := HookAuth.GetToken(args[0])
+					data, err := hookAuth.GetToken(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
@@ -280,10 +280,10 @@ var adminCommands = Commands{
 				ArgsDescription: "[token]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					if HookAuth == nil {
+					if hookAuth == nil {
 						return []byte{}, "", http.StatusInternalServerError, Errors.AuthNotHooked
 					}
-					data, err := HookAuth.GetToken(args[0])
+					data, err := hookAuth.GetToken(args[0])
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}

@@ -4,6 +4,7 @@ import (
 	"HG75/auth"
 	"crypto/sha1"
 	"crypto/sha512"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -13,8 +14,8 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/HandyGold75/GOLib/gapo"
 	"github.com/HandyGold75/Gonos"
-	"github.com/achetronic/tapogo/pkg/tapogo"
 )
 
 type (
@@ -41,13 +42,13 @@ const (
 
 var (
 	Errors = struct {
-		AuthNotHooked, PipeNotHooked, SonosNotHooked, TapoNotHooked,
+		AllCommandsNotHooked, AuthNotHooked, PipeNotHooked, SonosNotHooked, TapoNotHooked,
 		CommandNotFound, CommandNotAuthorized,
 		ArgumentInvalid, ArgumentNotBool,
 		PathNotFound,
 		VideoNotFound, PlugNotFound error
 	}{
-		AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"), SonosNotHooked: errors.New("sonos not hooked"), TapoNotHooked: errors.New("tapo not hooked"),
+		AllCommandsNotHooked: errors.New("all commands not hooked"), AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"), SonosNotHooked: errors.New("sonos not hooked"), TapoNotHooked: errors.New("tapo not hooked"),
 		CommandNotFound: errors.New("command not found"), CommandNotAuthorized: errors.New("command not authorized"),
 		ArgumentInvalid: errors.New("argument not valid"), ArgumentNotBool: errors.New("argument not true or false"),
 		PathNotFound:  errors.New("path not found"),
@@ -56,10 +57,11 @@ var (
 
 	OpenDataBases = map[string]*DataBase{}
 
-	HookAuth  *auth.Auth  = nil
-	HookPipe  chan string = nil
-	HookSonos             = &Gonos.ZonePlayer{}
-	HookTapo              = &map[string]*tapogo.Tapo{}
+	HookAllCommands *Commands              = nil
+	hookAuth        *auth.Auth             = nil
+	hookPipe        chan string            = nil
+	hookSonos       *Gonos.ZonePlayer      = nil
+	hookTapo        *map[string]*gapo.Tapo = nil
 
 	AllCommands = func() Commands {
 		coms := generalCommands
@@ -68,80 +70,121 @@ var (
 		maps.Copy(coms, sonosCommands)
 		maps.Copy(coms, tapoCommands)
 		maps.Copy(coms, ytdlCommands)
-		coms["help"] = Command{
-			AuthLevel: auth.AuthLevelGuest, Roles: []string{},
-			Description:     "Help message.",
-			AutoComplete:    []string{},
-			ArgsDescription: "",
-			ArgsLen:         [2]int{0, 2},
-			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				getArgs := func(command Command) string {
-					ret := command.ArgsDescription
-					if ret == "" && len(command.Commands) > 0 {
-						ret = "["
-						for name := range command.Commands {
-							ret += "|" + name
-						}
-						ret = strings.Replace(ret, "[|", "[", 1) + "]"
-					}
-					return ret
-				}
-				getComs := func(commands Commands) string {
-					msg := ""
-					for name, com := range commands {
-						if com.AuthLevel > user.AuthLevel {
-							continue
-						} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
-							continue
-						}
-						msg += fmt.Sprintf("  %-10v %v\r\n", name, getArgs(com))
-					}
-					return msg
-				}
-				if len(args) == 0 {
-					return []byte("<command> [args]...\r\n" +
-						"\r\nExecute server commands.\r\n" +
-						"\r\nAvailable:\r\n" +
-						getComs(coms)), "", http.StatusOK, nil
-				}
-
-				comString := args[0]
-				command, ok := coms[args[0]]
-				if !ok {
-					return coms["help"].Exec(user)
-				}
-				if command.AuthLevel > user.AuthLevel {
-					return coms["help"].Exec(user)
-				} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
-					return coms["help"].Exec(user)
-				}
-				for _, p := range args[1:] {
-					com, ok := command.Commands[p]
-					if !ok {
-						break
-					}
-					command = com
-					comString += " " + p
-					if command.AuthLevel > user.AuthLevel {
-						return coms["help"].Exec(user)
-					} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
-						return coms["help"].Exec(user)
-					}
-				}
-
-				msg := comString + " " + getArgs(command) + "\r\n" +
-					"\r\n" + command.Description + "\r\n"
-				if len(command.Commands) > 0 {
-					msg += "\r\nArguments:\r\n" + getComs(command.Commands)
-				}
-				return []byte(msg), "", http.StatusOK, nil
-			},
-		}
 		return coms
 	}()
 )
 
 var generalCommands = Commands{
+	"help": {
+		AuthLevel: auth.AuthLevelGuest, Roles: []string{},
+		Description:     "Help message.",
+		AutoComplete:    []string{},
+		ArgsDescription: "",
+		ArgsLen:         [2]int{0, 2},
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if HookAllCommands == nil {
+				return []byte{}, "", http.StatusInternalServerError, Errors.AllCommandsNotHooked
+			}
+			getArgs := func(command Command) string {
+				ret := command.ArgsDescription
+				if ret == "" && len(command.Commands) > 0 {
+					ret = "["
+					for name := range command.Commands {
+						ret += "|" + name
+					}
+					ret = strings.Replace(ret, "[|", "[", 1) + "]"
+				}
+				return ret
+			}
+			getComs := func(commands Commands) string {
+				msg := ""
+				for name, com := range commands {
+					if com.AuthLevel > user.AuthLevel {
+						continue
+					} else if slices.ContainsFunc(com.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+						continue
+					}
+					msg += fmt.Sprintf("  %-10v %v\r\n", name, getArgs(com))
+				}
+				return msg
+			}
+			if len(args) == 0 {
+				return []byte("<command> [args]...\r\n" +
+					"\r\nExecute server commands.\r\n" +
+					"\r\nAvailable:\r\n" +
+					getComs(*HookAllCommands)), "", http.StatusOK, nil
+			}
+			comString := args[0]
+			command, ok := (*HookAllCommands)[args[0]]
+			if !ok {
+				return (*HookAllCommands)["help"].Exec(user)
+			}
+			if command.AuthLevel > user.AuthLevel {
+				return (*HookAllCommands)["help"].Exec(user)
+			} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+				return (*HookAllCommands)["help"].Exec(user)
+			}
+			for _, p := range args[1:] {
+				com, ok := command.Commands[p]
+				if !ok {
+					break
+				}
+				command = com
+				comString += " " + p
+				if command.AuthLevel > user.AuthLevel {
+					return (*HookAllCommands)["help"].Exec(user)
+				} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+					return (*HookAllCommands)["help"].Exec(user)
+				}
+			}
+			msg := comString + " " + getArgs(command) + "\r\n" +
+				"\r\n" + command.Description + "\r\n"
+			if len(command.Commands) > 0 {
+				msg += "\r\nArguments:\r\n" + getComs(command.Commands)
+			}
+			return []byte(msg), TypeTXT, http.StatusOK, nil
+		},
+	},
+	"autocomplete": {
+		AuthLevel: auth.AuthLevelGuest, Roles: []string{},
+		Description:     "Get autocompletes.",
+		AutoComplete:    []string{},
+		ArgsDescription: "",
+		ArgsLen:         [2]int{0, 0},
+		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+			if HookAllCommands == nil {
+				return []byte{}, "", http.StatusInternalServerError, Errors.AllCommandsNotHooked
+			}
+			var getComs func(commands Commands, prefix string) []string
+			getComs = func(commands Commands, prefix string) []string {
+				ret := []string{}
+				for name, command := range commands {
+					if command.AuthLevel > user.AuthLevel {
+						continue
+					} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+						continue
+					}
+					ret = append(ret, prefix+name)
+				}
+				for name, command := range commands {
+					if command.AuthLevel > user.AuthLevel {
+						continue
+					} else if slices.ContainsFunc(command.Roles, func(r string) bool { return !slices.Contains(user.Roles, r) }) {
+						continue
+					}
+					if len(command.Commands) > 0 {
+						ret = append(ret, getComs(command.Commands, prefix+name+" ")...)
+					}
+				}
+				return ret
+			}
+			jsonBytes, err := json.Marshal(getComs(*HookAllCommands, ""))
+			if err != nil {
+				return []byte{}, "", http.StatusBadRequest, err
+			}
+			return jsonBytes, TypeJSON, http.StatusOK, nil
+		},
+	},
 	"exit": {
 		AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI"},
 		Description:     "Stop the server.",
@@ -149,10 +192,10 @@ var generalCommands = Commands{
 		ArgsDescription: "",
 		ArgsLen:         [2]int{0, 0},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if HookPipe == nil {
+			if hookPipe == nil {
 				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
 			}
-			HookPipe <- "exit"
+			hookPipe <- "exit"
 			return []byte{}, "", http.StatusAccepted, nil
 		},
 	},
@@ -163,10 +206,10 @@ var generalCommands = Commands{
 		ArgsDescription: "",
 		ArgsLen:         [2]int{0, 0},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if HookPipe == nil {
+			if hookPipe == nil {
 				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
 			}
-			HookPipe <- "restart"
+			hookPipe <- "restart"
 			return []byte{}, "", http.StatusAccepted, nil
 		},
 	},
@@ -207,18 +250,23 @@ var generalCommands = Commands{
 		ArgsDescription: "[true|false]",
 		ArgsLen:         [2]int{1, 1},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if HookPipe == nil {
+			if hookPipe == nil {
 				return []byte{}, "", http.StatusInternalServerError, Errors.PipeNotHooked
 			}
 			state, err := strconv.ParseBool(args[0])
 			if err != nil {
 				return []byte{}, "", http.StatusBadRequest, err
 			}
-			HookPipe <- "debug " + strconv.FormatBool(state)
+			hookPipe <- "debug " + strconv.FormatBool(state)
 			return []byte{}, "", http.StatusAccepted, nil
 		},
 	},
 }
+
+func Hook(auth *auth.Auth, pipe chan string, sonos *Gonos.ZonePlayer, tapo *map[string]*gapo.Tapo) {
+	HookAllCommands, hookAuth, hookPipe, hookSonos, hookTapo = &AllCommands, auth, pipe, sonos, tapo
+}
+func Unhook() { Hook(nil, nil, nil, nil) }
 
 func sanatize(title string) string {
 	title = strings.Map(func(r rune) rune {

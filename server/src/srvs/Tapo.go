@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"time"
 
+	"github.com/HandyGold75/GOLib/gapo"
 	"github.com/HandyGold75/GOLib/logger"
 	"github.com/HandyGold75/GOLib/scheduler"
-	"github.com/achetronic/tapogo/pkg/tapogo"
 )
 
 type (
@@ -21,14 +21,14 @@ type (
 		Pipe    chan string
 		cfg     TapoConfig
 		exit    bool
-		clients map[string]*tapogo.Tapo
+		clients map[string]*gapo.Tapo
 	}
 )
 
 func NewTapo(conf TapoConfig) *Tapo {
 	lgr, _ := logger.NewRel("data/logs/tapo")
-	clients := map[string]*tapogo.Tapo{}
 
+	clients := map[string]*gapo.Tapo{}
 	for _, ip := range conf.PlugIPS {
 		var e error
 		for i := range 11 {
@@ -36,17 +36,17 @@ func NewTapo(conf TapoConfig) *Tapo {
 				lgr.Log("error", "tapo", "failed", "connecting to tapo plug: "+ip+"; error: "+e.Error())
 				break
 			}
-			tc, err := tapogo.NewTapo(ip, conf.Username, conf.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
+			tc, err := gapo.NewTapo(ip, conf.Username, conf.Password)
 			if err != nil {
 				e = err
 				continue
 			}
-			tcInfo, err := tc.DeviceInfo()
+			tcInfo, err := tc.GetDeviceInfo()
 			if err != nil {
 				e = err
 				continue
 			}
-			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Result.Nickname)
+			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Nickname)
 			if err != nil {
 				e = err
 				continue
@@ -115,7 +115,7 @@ func (s *Tapo) loop() {
 				s.lgr.Log("error", "tapo", "failed", "logging from tapo plug: "+tcName+"; error: "+err.Error())
 				continue
 			}
-			tcLgr.Log("info", usage.Result.TodayRuntime, usage.Result.TodayEnergy)
+			tcLgr.Log("info", usage.TodayRuntime, usage.TodayEnergy)
 			s.lgr.Log("high", "tapo", "logged", tcName)
 		}
 

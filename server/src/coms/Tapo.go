@@ -29,11 +29,11 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
 				names := []string{}
-				for name := range *HookTapo {
+				for name := range *hookTapo {
 					names = append(names, name)
 				}
 				jsonBytes, err := json.Marshal(names)
@@ -50,22 +50,22 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "[plug]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
-				tc, ok := (*HookTapo)[args[0]]
+				tc, ok := (*hookTapo)[args[0]]
 				if !ok {
 					return []byte{}, "", http.StatusBadRequest, Errors.PlugNotFound
 				}
-				_, err = tc.TurnOn()
+				_, err = tc.On()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				res, err := tc.DeviceInfo()
+				res, err := tc.GetDeviceInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(res.Result.DeviceOn)), TypeTXT, http.StatusOK, nil
+				return []byte(strconv.FormatBool(res.DeviceOn)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"off": {
@@ -75,22 +75,22 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "[plug]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
-				tc, ok := (*HookTapo)[args[0]]
+				tc, ok := (*hookTapo)[args[0]]
 				if !ok {
 					return []byte{}, "", http.StatusBadRequest, Errors.PlugNotFound
 				}
-				_, err = tc.TurnOff()
+				_, err = tc.Off()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				res, err := tc.DeviceInfo()
+				res, err := tc.GetDeviceInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				return []byte(strconv.FormatBool(res.Result.DeviceOn)), TypeTXT, http.StatusOK, nil
+				return []byte(strconv.FormatBool(res.DeviceOn)), TypeTXT, http.StatusOK, nil
 			},
 		},
 		"get": {
@@ -100,10 +100,10 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "[plug]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
-				tc, ok := (*HookTapo)[args[0]]
+				tc, ok := (*hookTapo)[args[0]]
 				if !ok {
 					return []byte{}, "", http.StatusBadRequest, errors.New("invalid name")
 				}
@@ -111,7 +111,7 @@ var tapoCommands = Commands{"tapo": Command{
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				jsonBytes, err := json.Marshal(res.Result)
+				jsonBytes, err := json.Marshal(res)
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -125,18 +125,18 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "[plug]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
-				tc, ok := (*HookTapo)[args[0]]
+				tc, ok := (*hookTapo)[args[0]]
 				if !ok {
 					return []byte{}, "", http.StatusBadRequest, errors.New("invalid name")
 				}
-				res, err := tc.DeviceInfo()
+				res, err := tc.GetDeviceInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				jsonBytes, err := json.Marshal(res.Result)
+				jsonBytes, err := json.Marshal(res)
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -306,16 +306,16 @@ var tapoCommands = Commands{"tapo": Command{
 			ArgsDescription: "Get all plug energy usage.",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookTapo == nil {
+				if hookTapo == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.TapoNotHooked
 				}
 				result := map[string]any{}
-				for name, tc := range *HookTapo {
+				for name, tc := range *hookTapo {
 					res, err := tc.GetEnergyUsage()
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					result[name] = res.Result
+					result[name] = res
 				}
 				jsonBytes, err := json.Marshal(result)
 				if err != nil {

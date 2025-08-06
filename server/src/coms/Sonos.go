@@ -51,10 +51,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -72,10 +72,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				sts, err := HookSonos.GetCurrentTransportState()
+				sts, err := hookSonos.GetCurrentTransportState()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -89,14 +89,14 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				err = HookSonos.Stop()
+				err = hookSonos.Stop()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				sts, err := HookSonos.GetCurrentTransportState()
+				sts, err := hookSonos.GetCurrentTransportState()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -110,7 +110,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -119,16 +119,16 @@ var sonosCommands = Commands{"sonos": {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					if state {
-						if err := HookSonos.Play(); err != nil {
+						if err := hookSonos.Play(); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					} else {
-						if err := HookSonos.Pause(); err != nil {
+						if err := hookSonos.Pause(); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					}
 					for i := range 10 {
-						sts, err := HookSonos.GetTransitioning()
+						sts, err := hookSonos.GetTransitioning()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
@@ -138,7 +138,7 @@ var sonosCommands = Commands{"sonos": {
 						}
 					}
 				}
-				state, err := HookSonos.GetPlay()
+				state, err := hookSonos.GetPlay()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -152,7 +152,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -160,11 +160,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetMute(state); err != nil {
+					if err := hookSonos.SetMute(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetMute()
+				state, err := hookSonos.GetMute()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -178,7 +178,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:100|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -187,20 +187,20 @@ var sonosCommands = Commands{"sonos": {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					if strings.HasPrefix(args[0], "+") || strings.HasPrefix(args[0], "-") {
-						volumeOld, err := HookSonos.GetVolume()
+						volumeOld, err := hookSonos.GetVolume()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						if err := HookSonos.SetVolume(volumeOld + volume); err != nil {
+						if err := hookSonos.SetVolume(volumeOld + volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					} else {
-						if err := HookSonos.SetVolume(volume); err != nil {
+						if err := hookSonos.SetVolume(volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					}
 				}
-				volume, err := HookSonos.GetVolume()
+				volume, err := hookSonos.GetVolume()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -214,7 +214,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:X|+X|-X]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				newIndex, err := strconv.Atoi(args[0])
@@ -222,15 +222,15 @@ var sonosCommands = Commands{"sonos": {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
 				if strings.HasPrefix(args[0], "+") || strings.HasPrefix(args[0], "-") {
-					if err := HookSonos.SeekTimeDelta(newIndex); err != nil {
+					if err := hookSonos.SeekTimeDelta(newIndex); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				} else {
-					if err := HookSonos.SeekTime(newIndex); err != nil {
+					if err := hookSonos.SeekTime(newIndex); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -244,7 +244,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[1:X|+X|-X]",
 			ArgsLen:         [2]int{1, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				newIndex, err := strconv.Atoi(args[0])
@@ -252,19 +252,19 @@ var sonosCommands = Commands{"sonos": {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
 				if strings.HasPrefix(args[0], "+") || strings.HasPrefix(args[0], "-") {
-					trackInfo, err := HookSonos.GetTrackInfo()
+					trackInfo, err := hookSonos.GetTrackInfo()
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SeekTrack(trackInfo.QuePosition + newIndex); err != nil {
+					if err := hookSonos.SeekTrack(trackInfo.QuePosition + newIndex); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				} else {
-					if err := HookSonos.SeekTrack(newIndex); err != nil {
+					if err := hookSonos.SeekTrack(newIndex); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -278,13 +278,13 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				if err := HookSonos.Next(); err != nil {
+				if err := hookSonos.Next(); err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -298,13 +298,13 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				if err := HookSonos.Previous(); err != nil {
+				if err := hookSonos.Previous(); err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -322,10 +322,10 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "",
 					ArgsLen:         [2]int{0, 0},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-						if HookSonos == nil {
+						if hookSonos == nil {
 							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 						}
-						queInfo, err := HookSonos.GetQue()
+						queInfo, err := hookSonos.GetQue()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
@@ -343,7 +343,7 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "[track]",
 					ArgsLen:         [2]int{1, 1},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-						if HookSonos == nil {
+						if hookSonos == nil {
 							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 						}
 						return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken") // TODO: Fix
@@ -354,14 +354,14 @@ var sonosCommands = Commands{"sonos": {
 						// 	uri := "spotify%3a" + id_type + "%3a" + id
 						// 	uri = "x-sonos-spotify:" + "spotify%3a" + id_type + "%3a" + id + "?sid=9\u0026flags=8232\u0026sn=3"
 						// }
-						// trackInfo, err := HookSonos.GetTrackInfo()
+						// trackInfo, err := hookSonos.GetTrackInfo()
 						// if err != nil {
 						// 	return []byte{}, "", http.StatusBadRequest, err
 						// }
-						// if err := HookSonos.QueAdd(args[0], trackInfo.QuePosition, true); err != nil {
+						// if err := hookSonos.QueAdd(args[0], trackInfo.QuePosition, true); err != nil {
 						// 	return []byte{}, "", http.StatusBadRequest, err
 						// }
-						// queInfo, err := HookSonos.GetQue()
+						// queInfo, err := hookSonos.GetQue()
 						// if err != nil {
 						// 	return []byte{}, "", http.StatusBadRequest, err
 						// }
@@ -375,17 +375,17 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "[index]",
 					ArgsLen:         [2]int{1, 1},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-						if HookSonos == nil {
+						if hookSonos == nil {
 							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 						}
 						newIndex, err := strconv.Atoi(args[0])
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						if err := HookSonos.QueRemove(newIndex); err != nil {
+						if err := hookSonos.QueRemove(newIndex); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						queInfo, err := HookSonos.GetQue()
+						queInfo, err := hookSonos.GetQue()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
@@ -399,13 +399,13 @@ var sonosCommands = Commands{"sonos": {
 					ArgsDescription: "",
 					ArgsLen:         [2]int{0, 0},
 					Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-						if HookSonos == nil {
+						if hookSonos == nil {
 							return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 						}
-						if err := HookSonos.QueClear(); err != nil {
+						if err := hookSonos.QueClear(); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						queInfo, err := HookSonos.GetQue()
+						queInfo, err := hookSonos.GetQue()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
@@ -421,7 +421,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:10|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -430,20 +430,20 @@ var sonosCommands = Commands{"sonos": {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					if strings.HasPrefix(args[0], "+") || strings.HasPrefix(args[0], "-") {
-						volumeOld, err := HookSonos.GetBass()
+						volumeOld, err := hookSonos.GetBass()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						if err := HookSonos.SetBass(volumeOld + volume); err != nil {
+						if err := hookSonos.SetBass(volumeOld + volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					} else {
-						if err := HookSonos.SetBass(volume); err != nil {
+						if err := hookSonos.SetBass(volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					}
 				}
-				volume, err := HookSonos.GetBass()
+				volume, err := hookSonos.GetBass()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -457,7 +457,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0:10|+X|-X]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -466,20 +466,20 @@ var sonosCommands = Commands{"sonos": {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 					if strings.HasPrefix(args[0], "+") || strings.HasPrefix(args[0], "-") {
-						volumeOld, err := HookSonos.GetTreble()
+						volumeOld, err := hookSonos.GetTreble()
 						if err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
-						if err := HookSonos.SetTreble(volumeOld + volume); err != nil {
+						if err := hookSonos.SetTreble(volumeOld + volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					} else {
-						if err := HookSonos.SetTreble(volume); err != nil {
+						if err := hookSonos.SetTreble(volume); err != nil {
 							return []byte{}, "", http.StatusBadRequest, err
 						}
 					}
 				}
-				volume, err := HookSonos.GetTreble()
+				volume, err := hookSonos.GetTreble()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -493,7 +493,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -501,11 +501,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetLoudness(state); err != nil {
+					if err := hookSonos.SetLoudness(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetLoudness()
+				state, err := hookSonos.GetLoudness()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -519,7 +519,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[0|1|get]",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -527,11 +527,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetLED(state); err != nil {
+					if err := hookSonos.SetLED(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetLED()
+				state, err := hookSonos.GetLED()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -545,15 +545,15 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[name]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 && args[0] != "" {
-					if err := HookSonos.SetZoneName(args[0]); err != nil {
+					if err := hookSonos.SetZoneName(args[0]); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				curName, err := HookSonos.GetZoneName()
+				curName, err := hookSonos.GetZoneName()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -567,7 +567,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -575,11 +575,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetShuffle(state); err != nil {
+					if err := hookSonos.SetShuffle(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetShuffle()
+				state, err := hookSonos.GetShuffle()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -593,7 +593,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -601,11 +601,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetRepeat(state); err != nil {
+					if err := hookSonos.SetRepeat(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetRepeat()
+				state, err := hookSonos.GetRepeat()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -619,7 +619,7 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "[true|false]?",
 			ArgsLen:         [2]int{0, 1},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
 				if len(args) > 0 {
@@ -627,11 +627,11 @@ var sonosCommands = Commands{"sonos": {
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
-					if err := HookSonos.SetRepeatOne(state); err != nil {
+					if err := hookSonos.SetRepeatOne(state); err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
 				}
-				state, err := HookSonos.GetRepeatOne()
+				state, err := hookSonos.GetRepeatOne()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -645,10 +645,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				favInfo, err := HookSonos.GetSonosFavorites()
+				favInfo, err := hookSonos.GetSonosFavorites()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -666,10 +666,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				radInfo, err := HookSonos.GetRadioShows()
+				radInfo, err := hookSonos.GetRadioShows()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -687,10 +687,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				radInfo, err := HookSonos.GetRadioStations()
+				radInfo, err := hookSonos.GetRadioStations()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -708,10 +708,10 @@ var sonosCommands = Commands{"sonos": {
 			ArgsDescription: "",
 			ArgsLen:         [2]int{0, 0},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-				if HookSonos == nil {
+				if hookSonos == nil {
 					return []byte{}, "", http.StatusInternalServerError, Errors.SonosNotHooked
 				}
-				trackInfo, err := HookSonos.GetTrackInfo()
+				trackInfo, err := hookSonos.GetTrackInfo()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
@@ -720,22 +720,22 @@ var sonosCommands = Commands{"sonos": {
 					Duration:    trackInfo.Duration, Progress: trackInfo.Progress,
 					Title: trackInfo.Title, Creator: trackInfo.Creator, Album: trackInfo.Album,
 				}
-				queInfo, err := HookSonos.GetQue()
+				queInfo, err := hookSonos.GetQue()
 				if err != nil { // Assume no que; for cases when 3th party apps have control of que
 					queInfo.Count, queInfo.TotalCount = 0, 0
 				}
 				queInfoMinimal := QueInfoMinimal{
 					Count: queInfo.Count, TotalCount: queInfo.TotalCount,
 				}
-				playing, err := HookSonos.GetPlay()
+				playing, err := hookSonos.GetPlay()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				shuffle, repeat, _, err := HookSonos.GetPlayMode()
+				shuffle, repeat, _, err := hookSonos.GetPlayMode()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
-				volume, err := HookSonos.GetVolume()
+				volume, err := hookSonos.GetVolume()
 				if err != nil {
 					return []byte{}, "", http.StatusBadRequest, err
 				}
