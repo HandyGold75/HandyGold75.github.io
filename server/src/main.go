@@ -76,17 +76,18 @@ var (
 
 func run() {
 	lgr.Log("debug", "server", "preparing")
-	srvsCLI := srvs.NewCLI(Config.CLIConfig)
-	srvsSite := srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
-	srvsTapo := srvs.NewTapo(Config.TapoConfig)
-	lgr.Log("low", "server", "prepared")
-
 	wg := sync.WaitGroup{}
-	for _, service := range []Service{srvsCLI, srvsSite, srvsTapo} {
-		wg.Add(1)
-		go func() { service.Run(); wg.Done() }()
-	}
+	wg.Add(3)
+	srvsCLI, srvsSite, srvsTapo := &srvs.CLI{}, &srvs.Site{}, &srvs.Tapo{}
+	go func() { srvsCLI = srvs.NewCLI(Config.CLIConfig); srvsCLI.Run(); wg.Done() }()
+	go func() {
+		srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
+		srvsSite.Run()
+		wg.Done()
+	}()
+	go func() { srvsTapo = srvs.NewTapo(Config.TapoConfig); srvsTapo.Run(); wg.Done() }()
 	wg.Wait()
+	lgr.Log("low", "server", "prepared")
 
 	restarts := map[string][]time.Time{}
 	checkRestarts := func(name string) bool {
@@ -117,11 +118,7 @@ func run() {
 			}
 
 			go func() {
-				comOut, _, _, err := srvsSite.ProssesCommand(auth.User{
-					Username: "owner", Password: "",
-					AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI", "Home"},
-					Enabled: true,
-				}, strings.Split(out, " ")...)
+				comOut, _, _, err := srvsSite.ProssesCommand(srvs.CLIUser, strings.Split(out, " ")...)
 				if err != nil {
 					lgr.Log("error", "owner", "command", err.Error())
 				} else if len(comOut) > 0 {

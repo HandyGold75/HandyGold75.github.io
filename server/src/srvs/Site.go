@@ -15,9 +15,9 @@ import (
 	"unicode"
 
 	"github.com/HandyGold75/GOLib/cfg"
+	"github.com/HandyGold75/GOLib/gapo"
 	"github.com/HandyGold75/GOLib/logger"
 	"github.com/HandyGold75/Gonos"
-	"github.com/achetronic/tapogo/pkg/tapogo"
 )
 
 type (
@@ -72,6 +72,50 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 		}
 	}
 
+	zonePlayer := &Gonos.ZonePlayer{}
+	if conf.SonosIP != "" {
+		if zp, err := Gonos.NewZonePlayer(conf.SonosIP); err == nil {
+			zonePlayer = zp
+			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+		} else if zps, err := Gonos.DiscoverZonePlayer(1); err == nil {
+			zonePlayer = zps[0]
+			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+		} else if zps, err := Gonos.ScanZonePlayer(conf.SonosIP, 1); err == nil {
+			zonePlayer = zps[0]
+			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+		} else {
+			lgr.Log("error", "site", "failed", "connecting to sonos speaker: "+conf.SonosIP)
+		}
+	}
+	tapoPlugs := map[string]*gapo.Tapo{}
+	for _, ip := range tapoConf.PlugIPS {
+		var e error
+		for i := range 11 {
+			if i == 10 {
+				lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+e.Error())
+				break
+			}
+			tc, err := gapo.NewTapo(ip, tapoConf.Username, tapoConf.Password)
+			if err != nil {
+				e = err
+				continue
+			}
+			tcInfo, err := tc.GetDeviceInfo()
+			if err != nil {
+				e = err
+				continue
+			}
+			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Nickname)
+			if err != nil {
+				e = err
+				continue
+			}
+			tapoPlugs[string(nickname[:])] = tc
+			lgr.Log("medium", "site", "connected", "tapo plug: "+ip)
+			break
+		}
+	}
+
 	s := &Site{
 		cfg: conf, tapoCfg: tapoConf, Pipe: make(chan string), lgr: lgr,
 		cert: cert, key: key,
@@ -79,73 +123,17 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
 		auth: auth.NewAuth(confAuth),
 	}
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/com", s.handleComHTTP)
 	mux.HandleFunc("/auth", s.handleAuthHTTP)
-
 	s.server = http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux}
+
+	coms.Hook(&s.auth, s.Pipe, zonePlayer, &tapoPlugs)
 	return s
 }
 
 func (s *Site) Run() {
 	s.lgr.Log("debug", "site", "starting")
-	coms.HookAuth = &s.auth
-	coms.HookPipe = s.Pipe
-
-	if s.cfg.SonosIP != "" {
-		if zp, err := Gonos.NewZonePlayer(s.cfg.SonosIP); err == nil {
-			coms.HookSonos = zp
-		} else if zps, err := Gonos.DiscoverZonePlayer(1); err == nil {
-			coms.HookSonos = zps[0]
-		} else if zps, err := Gonos.ScanZonePlayer(s.cfg.SonosIP, 1); err == nil {
-			coms.HookSonos = zps[0]
-			s.lgr.Log("medium", "site", "connected", "sonos speaker: "+coms.HookSonos.URL)
-		} else {
-			coms.HookSonos = &Gonos.ZonePlayer{}
-			s.lgr.Log("error", "site", "failed", "connecting to sonos speaker: "+s.cfg.SonosIP)
-		}
-	}
-
-	tapoPlugs := map[string]*tapogo.Tapo{}
-	for _, ip := range s.tapoCfg.PlugIPS {
-		if ip == "" {
-			s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip)
-			continue
-		}
-
-		for i := range 10 {
-			tc, err := tapogo.NewTapo(ip, s.tapoCfg.Username, s.tapoCfg.Password, &tapogo.TapoOptions{HandshakeDelayDuration: time.Millisecond * 100})
-			if err != nil {
-				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
-				}
-				continue
-			}
-
-			tcInfo, err := tc.DeviceInfo()
-			if err != nil {
-				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
-				}
-				continue
-			}
-
-			nickname, err := base64.StdEncoding.DecodeString(tcInfo.Result.Nickname)
-			if err != nil {
-				if i == 9 {
-					s.lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+err.Error())
-				}
-				continue
-			}
-
-			tapoPlugs[string(nickname[:])] = tc
-			s.lgr.Log("medium", "site", "connected", "tapo plug: "+ip)
-			break
-		}
-	}
-	coms.HookTapo = &tapoPlugs
-
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
@@ -181,10 +169,7 @@ func (s *Site) Stop() {
 		delete(coms.OpenDataBases, name)
 	}
 
-	coms.HookAuth = nil
-	coms.HookPipe = nil
-	coms.HookSonos = nil
-	coms.HookTapo = nil
+	coms.Unhook()
 
 	s.lgr.Log("medium", "site", "stopped")
 }
