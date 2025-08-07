@@ -335,7 +335,7 @@ var adminCommands = Commands{
 								tree[dirSplit[len(dirSplit)-1]] = []string{}
 							}
 						} else {
-							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], strings.TrimSuffix(dirSplit[len(dirSplit)-1], ".log"))
 						}
 						return nil
 					}); err != nil {
@@ -359,7 +359,7 @@ var adminCommands = Commands{
 					if path == "" {
 						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 					}
-					relPath := "/" + sanatize(strings.Join(args[0:2], "/"))
+					relPath := "/" + sanatize(args[0]) + "/" + sanatize(args[1]) + ".log"
 					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 					}
@@ -409,7 +409,7 @@ var adminCommands = Commands{
 								tree[dirSplit[len(dirSplit)-1]] = []string{}
 							}
 						} else {
-							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+							tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], strings.TrimSuffix(dirSplit[len(dirSplit)-1], ".log"))
 						}
 						return nil
 					}); err != nil {
@@ -433,7 +433,7 @@ var adminCommands = Commands{
 					if path == "" {
 						return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 					}
-					relPath := "/" + sanatize(strings.Join(args[0:2], "/"))
+					relPath := "/" + sanatize(args[0]) + "/" + sanatize(args[1]) + ".log"
 					if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 						return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 					}

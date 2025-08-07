@@ -22,7 +22,7 @@ var datebasesCommands = Commands{
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if _, ok := OpenDataBases[user.Username+"/TestDB"]; !ok {
+			if _, ok := OpenDataBases[user.UID+"/TestDB"]; !ok {
 				err := openDB("TestDB", user, Template{
 					"Sheet1": []string{"Col1"},
 					"Sheet2": []string{"Col1", "Col2"},
@@ -33,7 +33,7 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(OpenDataBases[user.Username+"/TestDB"], "db-test", args...)
+			return dbInterface(OpenDataBases[user.UID+"/TestDB"], "db-test", args...)
 		},
 	},
 	"db-asset": {
@@ -43,7 +43,7 @@ var datebasesCommands = Commands{
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if _, ok := OpenDataBases[user.Username+"/AssetDB"]; !ok {
+			if _, ok := OpenDataBases[user.UID+"/AssetDB"]; !ok {
 				err := openDB("AssetDB", user, Template{
 					"Devices": []string{"Name", "Brand", "Device", "Series", "S/N", "MAC-WiFi", "MAC-Eth", "DOP", "EOL", "Modified", "Notes"},
 					"Assets":  []string{"Name", "Brand", "Asset", "Series", "S/N", "DOP", "EOL", "Modified", "Notes"},
@@ -54,7 +54,7 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(OpenDataBases[user.Username+"/AssetDB"], "db-asset", args...)
+			return dbInterface(OpenDataBases[user.UID+"/AssetDB"], "db-asset", args...)
 		},
 	},
 	"db-license": {
@@ -64,7 +64,7 @@ var datebasesCommands = Commands{
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if _, ok := OpenDataBases[user.Username+"/LicenseDB"]; !ok {
+			if _, ok := OpenDataBases[user.UID+"/LicenseDB"]; !ok {
 				err := openDB("LicenseDB", user, Template{
 					"Licenses": []string{"Name", "Product", "Key", "URL", "DOP", "EOL", "Cost", "Auto Renew", "Modified", "Notes"},
 				})
@@ -72,7 +72,7 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(OpenDataBases[user.Username+"/LicenseDB"], "db-license", args...)
+			return dbInterface(OpenDataBases[user.UID+"/LicenseDB"], "db-license", args...)
 		},
 	},
 	"db-query": {
@@ -82,7 +82,7 @@ var datebasesCommands = Commands{
 		ArgsDescription: "[header|read|add|delete|move|swap|write|modify] [args?]...",
 		ArgsLen:         [2]int{1, 5},
 		Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-			if _, ok := OpenDataBases[user.Username+"/QueryDB"]; !ok {
+			if _, ok := OpenDataBases[user.UID+"/QueryDB"]; !ok {
 				err := openDB("QueryDB", user, Template{
 					"Links":   []string{"Img", "Text", "Url", "Cat", "Modified"},
 					"Contact": []string{"Img", "Text", "Url", "Modified"},
@@ -91,7 +91,7 @@ var datebasesCommands = Commands{
 					return []byte{}, "", http.StatusInternalServerError, err
 				}
 			}
-			return dbInterface(OpenDataBases[user.Username+"/QueryDB"], "db-query", args...)
+			return dbInterface(OpenDataBases[user.UID+"/QueryDB"], "db-query", args...)
 		},
 	},
 }
@@ -102,7 +102,7 @@ func openDB(name string, user auth.User, template Template) error {
 		return errors.New("path not found")
 	}
 	fileSplit := strings.Split(strings.ReplaceAll(dir, "\\", "/"), "/")
-	path := strings.Join(fileSplit[:len(fileSplit)-1], "/") + "/data/db/" + user.Username
+	path := strings.Join(fileSplit[:len(fileSplit)-1], "/") + "/data/db/" + user.UID
 
 	f, err := os.Stat(path)
 	if err != nil || !f.IsDir() {
@@ -122,14 +122,14 @@ func openDB(name string, user auth.User, template Template) error {
 		fmt.Println("error", user.Username, name, err) // TODO: Log errors or something
 	}
 
-	OpenDataBases[user.Username+"/"+name] = db
+	OpenDataBases[user.UID+"/"+name] = db
 
 	time.AfterFunc(time.Until(time.Now().Add(time.Minute*time.Duration(30))), func() {
-		for _, err := range OpenDataBases[user.Username+"/"+name].Dump() {
+		for _, err := range OpenDataBases[user.UID+"/"+name].Dump() {
 			fmt.Println("error", user.Username, name, err) // TODO: Log errors or something
 		}
 
-		delete(OpenDataBases, user.Username+"/"+name)
+		delete(OpenDataBases, user.UID+"/"+name)
 	})
 
 	return nil
