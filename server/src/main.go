@@ -56,7 +56,7 @@ var (
 		},
 		TapoConfig: srvs.TapoConfig{
 			PlugIPS:  []string{},
-			Username: "", Password: "",
+			AuthHash: "",
 			Schedule: scheduler.Schedule{
 				Months:  []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 				Weeks:   []int{1, 2, 3, 4, 5},
@@ -146,6 +146,7 @@ func run() {
 			case "debug true":
 				Config.Debug = true
 				_ = cfg.DumpRel("config", &Config)
+				lgr.Log("debug", "server", "debug", "enabled")
 				exit = true
 				defer func() { exit = false }()
 
@@ -153,6 +154,7 @@ func run() {
 				Config.Debug = false
 				_ = cfg.DumpRel("config", &Config)
 				exit = true
+				lgr.Log("debug", "server", "debug", "disabled")
 				defer func() { exit = false }()
 			}
 
@@ -180,15 +182,15 @@ func run() {
 func loadConfig() {
 	_ = cfg.LoadRel("config", &Config)
 	logger.Verbosities = map[string]int{"error": 5, "warning": 4, "high": 3, "medium": 2, "low": 1, "debug": 0}
+	logger.VerbositiesColors = map[string]logger.Color{"error": logger.BrightRed, "warning": logger.Red, "high": logger.BrightWhite, "medium": logger.White, "low": logger.BrightBlack, "debug": logger.BrightYellow}
 	logger.VerboseToCLI, logger.VerboseToFile = Config.LogLevel, Config.LogToFileLevel
 	logger.CharCountPerPart, logger.PrepentCLI = 16, "\r"
-	logger.DynamicFileName = func() string { return time.Now().Format("2006-01") + ".log" }
+	logger.DynamicFileName = func() string { return time.Now().Format("200601") + ".log" }
 	logger.MessageCLIHook = func(msg string) { _, _ = fmt.Fprint(srvs.Terminal, "\r") }
-	lgr, _ = logger.NewRel("data/logs/server")
 	if Config.Debug {
-		lgr.VerboseToCLI = 0
-		lgr.Log("medium", "server", "debug", "enabled")
+		logger.VerboseToCLI = 0
 	}
+	lgr, _ = logger.NewRel("data/logs/server")
 }
 
 func main() {

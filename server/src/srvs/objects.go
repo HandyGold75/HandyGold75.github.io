@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 
 	"golang.org/x/term"
@@ -37,7 +36,7 @@ var (
 			if key == 55302 && line != "" && len([]rune(line)) >= pos+1 { // 55302 represents Unknown Key which includes DEL
 				return string(slices.Delete([]rune(line), pos, pos+1)), pos, true
 			} else if key != '	' || line == "" {
-				_, _ = fmt.Fprint(terminal, "<"+strconv.Itoa(int(key))+">\n\r")
+				// _, _ = fmt.Fprint(terminal, "<"+strconv.Itoa(int(key))+">\n\r")
 				return line, pos, false
 			}
 

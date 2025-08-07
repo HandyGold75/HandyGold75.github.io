@@ -24,6 +24,7 @@ type (
 )
 
 var CLIUser = auth.User{
+	UID:      "OwnerG20C26TUZqKaCq1JNvsV7JaMyAM",
 	Username: "owner", Password: "",
 	AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI", "Home"},
 	Enabled: true,
@@ -56,7 +57,7 @@ func (s *CLI) Run() {
 		}()
 		s.loop()
 	}()
-	s.lgr.Log("medium", "cli", "started")
+	s.lgr.Log("low", "cli", "started")
 }
 
 func (s *CLI) Stop() {
@@ -64,11 +65,12 @@ func (s *CLI) Stop() {
 	s.exit = true
 	for range s.Pipe {
 	}
-	s.lgr.Log("medium", "cli", "stopped")
+	s.lgr.Log("low", "cli", "stopped")
 }
 
 func (s *CLI) loop() {
 	go func() {
+		s.lgr.Log("medium", "cli", "listening", "stdin/stdout")
 		for !s.exit {
 			line, err := Terminal.ReadLine()
 			if s.exit {

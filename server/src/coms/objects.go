@@ -3,7 +3,9 @@ package coms
 import (
 	"HG75/auth"
 	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/HandyGold75/GOLib/gapo"
@@ -112,7 +115,7 @@ var generalCommands = Commands{
 				return []byte("<command> [args]...\r\n" +
 					"\r\nExecute server commands.\r\n" +
 					"\r\nAvailable:\r\n" +
-					getComs(*HookAllCommands)), "", http.StatusOK, nil
+					getComs(*HookAllCommands)), TypeTXT, http.StatusOK, nil
 			}
 			comString := args[0]
 			command, ok := (*HookAllCommands)[args[0]]
@@ -219,26 +222,72 @@ var generalCommands = Commands{
 		Commands: Commands{
 			"sha1": {
 				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
-				Description:     "Get sha1 of a string.",
+				Description:     "base16(sha1(value))",
 				AutoComplete:    []string{},
 				ArgsDescription: "[value]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					hasher := sha1.New()
-					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), TypeTXT, http.StatusOK, nil
+					hash := sha1.Sum([]byte(args[0]))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
+				},
+			},
+			"sha256": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "base16(sha256(value))",
+				AutoComplete:    []string{},
+				ArgsDescription: "[value]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					hash := sha256.Sum256([]byte(args[0]))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
 				},
 			},
 			"sha512": {
 				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
-				Description:     "Get sha512 of a string.",
+				Description:     "base16(sha512(value))",
 				AutoComplete:    []string{},
 				ArgsDescription: "[value]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					hasher := sha512.New()
-					hasher.Write([]byte(args[0]))
-					return fmt.Appendf([]byte{}, "%x", hasher.Sum(nil)), TypeTXT, http.StatusOK, nil
+					hash := sha512.Sum512([]byte(args[0]))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
+				},
+			},
+			"shaUserHash": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "base16(sha1(username+sha512(password)))",
+				AutoComplete:    []string{},
+				ArgsDescription: "[username] [password]",
+				ArgsLen:         [2]int{2, 2},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					pass := sha512.Sum512([]byte(args[1]))
+					hash := sha1.Sum(append([]byte(args[0]), pass[:]...))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
+				},
+			},
+			"shaAuthHash": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "base16(sha1(sha512(password)+time.Now().Format(\"2006-01-02 15:04\")))",
+				AutoComplete:    []string{},
+				ArgsDescription: "[password]",
+				ArgsLen:         [2]int{1, 1},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					pass := sha512.Sum512([]byte(args[0]))
+					hash := sha1.Sum(append(pass[:], []byte(time.Now().Format("2006-01-02 15:04"))...))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
+				},
+			},
+			"shaTapo": {
+				AuthLevel: auth.AuthLevelUser, Roles: []string{"CLI"},
+				Description:     "base16(sha256(sha1(email)+sha1(password)))",
+				AutoComplete:    []string{},
+				ArgsDescription: "[email] [password]",
+				ArgsLen:         [2]int{2, 2},
+				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
+					email := sha1.Sum([]byte(args[0]))
+					pass := sha1.Sum([]byte(args[1]))
+					hash := sha256.Sum256(append(email[:], pass[:]...))
+					return []byte(hex.EncodeToString(hash[:])), TypeTXT, http.StatusOK, nil
 				},
 			},
 		},

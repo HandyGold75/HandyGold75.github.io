@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"crypto/sha1"
 	"crypto/sha512"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"maps"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -18,10 +21,10 @@ type (
 	AuthLevel uint8
 
 	User struct {
-		Username, Password string
-		AuthLevel          AuthLevel
-		Roles              []string
-		Enabled            bool
+		UID, Username, Password string
+		AuthLevel               AuthLevel
+		Roles                   []string
+		Enabled                 bool
 	}
 
 	token struct {
@@ -66,49 +69,48 @@ var (
 	AuthMap = map[string]AuthLevel{"guest": AuthLevelGuest, "user": AuthLevelUser, "admin": AuthLevelAdmin, "owner": AuthLevelOwner}
 )
 
-func genToken() string {
-	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	tok := make([]byte, 128)
-	for i := range tok {
-		tok[i] = charset[rand.IntN(len(charset))]
-	}
-	return string(tok)
-}
-
 func validateHash(hash string) bool {
-	if len(hash) != 128 {
+	if len(hash) != 128 && len(hash) != 64 && len(hash) != 40 {
 		return false
 	}
-	charset := "abcdef0123456789"
-	for _, char := range hash {
-		if !strings.ContainsRune(charset, char) {
-			return false
-		}
-	}
-	return true
+	_, err := hex.DecodeString(hash)
+	return err == nil
 }
 
-func hashPass(pass string) (string, error) {
+func hashUser(user User) (User, string, error) {
 	switch {
-	case validateHash(pass):
-		return pass, nil
-	case len(pass) < 12:
-		return "", Errors.PasswordToShort
-	case !strings.ContainsFunc(pass, unicode.IsLower):
-		return "", Errors.PasswordToSimple
-	case !strings.ContainsFunc(pass, unicode.IsUpper):
-		return "", Errors.PasswordToSimple
-	case !strings.ContainsFunc(pass, unicode.IsNumber):
-		return "", Errors.PasswordToSimple
-	case !strings.ContainsFunc(pass, unicode.IsPunct):
-		return "", Errors.PasswordToSimple
+	case validateHash(user.Password):
+	case len(user.Password) < 12:
+		return User{}, "", Errors.PasswordToShort
+	case !strings.ContainsFunc(user.Password, unicode.IsLower):
+		return User{}, "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(user.Password, unicode.IsUpper):
+		return User{}, "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(user.Password, unicode.IsNumber):
+		return User{}, "", Errors.PasswordToSimple
+	case !strings.ContainsFunc(user.Password, unicode.IsPunct):
+		return User{}, "", Errors.PasswordToSimple
 	default:
-		return fmt.Sprintf("%x", sha512.Sum512([]byte(pass))), nil
+		hash := sha512.Sum512([]byte(user.Password))
+		user.Password = hex.EncodeToString(hash[:])
 	}
+
+	pass, err := hex.DecodeString(user.Password)
+	if err != nil {
+		return User{}, "", err
+	}
+	hash := sha1.Sum(append([]byte(user.Username), pass...))
+	hashStr := hex.EncodeToString(hash[:])
+	if !validateHash(hashStr) {
+		return User{}, "", Errors.InvalidHash
+	}
+	return user, hashStr, nil
 }
 
 func NewAuth(conf Config) Auth {
-	return Auth{cfg: conf, tokens: map[string]token{}}
+	toks := map[string]token{}
+	_ = cfg.LoadRel("data/cache/tokens", &toks)
+	return Auth{cfg: conf, tokens: toks}
 }
 
 func (a Auth) ListUsers() ([]string, error) {
@@ -173,21 +175,16 @@ func (a Auth) CreateUser(user User) (string, error) {
 		}
 	}
 
-	pass, err := hashPass(user.Password)
+	user, hash, err := hashUser(user)
 	if err != nil {
 		return "", err
 	}
-	user.Password = pass
-
-	hash := fmt.Sprintf("%x", sha512.Sum512([]byte(user.Username+user.Password)))
-	if !validateHash(hash) {
-		return "", Errors.InvalidHash
-	} else if cfg.CheckRel("data/users/"+hash) != "" {
+	if cfg.CheckRel("data/users/"+hash) != "" {
 		return "", Errors.UserExists
 	}
 
 	users, err := a.ListUsers()
-	if err != nil {
+	if err != nil && err != Errors.PathNotFound {
 		return "", err
 	}
 	for _, uh := range users {
@@ -199,6 +196,8 @@ func (a Auth) CreateUser(user User) (string, error) {
 			return "", Errors.UserExists
 		}
 	}
+
+	user.UID = a.genUID()
 
 	if err := cfg.DumpRel("data/users/"+hash, user); err != nil {
 		return "", err
@@ -227,28 +226,24 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 		}
 	}
 
-	pass, err := hashPass(newUser.Password)
+	newUser, newHash, err := hashUser(newUser)
 	if err != nil {
 		return "", err
 	}
-	newUser.Password = pass
-
-	newHash := fmt.Sprintf("%x", sha512.Sum512([]byte(newUser.Username+newUser.Password)))
-	if hash != newHash {
-		if !validateHash(newHash) {
-			return "", Errors.InvalidHash
-		} else if cfg.CheckRel("data/users/"+newHash) != "" {
-			return "", Errors.UserExists
-		}
+	if hash != newHash && cfg.CheckRel("data/users/"+newHash) != "" {
+		return "", Errors.UserExists
 	}
 
 	if err := cfg.DumpRel("data/users/"+newHash, newUser); err != nil {
 		return "", err
 	}
 	if hash != newHash {
+		a.Deauthenticate(hash)
 		if err := os.Remove(path); err != nil {
 			return "", err
 		}
+	} else {
+		// a.Deauthenticate(hash) => do reauthenticate if hash is the same
 	}
 	return newHash, nil
 }
@@ -261,7 +256,7 @@ func (a Auth) DeleteUser(hash string) error {
 	if path == "" {
 		return Errors.UserNotExists
 	}
-
+	a.Deauthenticate(hash)
 	if err := os.Remove(path); err != nil {
 		return err
 	}
@@ -280,8 +275,10 @@ func (a Auth) IsAuthenticated(tok string) (User, bool) {
 	return t.User, true
 }
 
-func (a Auth) Authenticate(hash string, password string) (string, error) {
-	user, err := a.GetUser(hash)
+// userHash: base16(sha1(username+sha512(password)))
+// authHash: base16(sha1(sha512(password)+time.Now().Format("2006-01-02 15:04")))
+func (a Auth) Authenticate(userHash string, authHash string) (string, error) {
+	user, err := a.GetUser(userHash)
 	if err != nil {
 		time.Sleep(time.Millisecond * time.Duration(rand.IntN(250)))
 		return "", Errors.AuthFailed
@@ -290,28 +287,32 @@ func (a Auth) Authenticate(hash string, password string) (string, error) {
 		time.Sleep(time.Millisecond * time.Duration(rand.IntN(250)))
 		return "", Errors.AuthFailed
 	}
-	switch password {
-	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Format("2006-01-02 15:04")))):
-	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Add(-time.Minute).Format("2006-01-02 15:04")))):
-	case fmt.Sprintf("%x", sha512.Sum512([]byte(user.Password+time.Now().Add(time.Minute).Format("2006-01-02 15:04")))):
-	default:
+
+	pass, err := hex.DecodeString(user.Password)
+	if err != nil {
+		return "", err
+	}
+	authSuccess := false
+	for i := range []int{0, -1, 1} {
+		hash := sha1.Sum(append(pass, []byte(time.Now().Add(time.Minute*time.Duration(i-1)).Format("2006-01-02 15:04"))...))
+		fmt.Print("\r\n" + authHash + " == " + hex.EncodeToString(hash[:]) + "\r\n")
+		if authHash == hex.EncodeToString(hash[:]) {
+			authSuccess = true
+			break
+		}
+	}
+	if !authSuccess {
 		time.Sleep(time.Millisecond * time.Duration(rand.IntN(250)))
 		return "", Errors.AuthFailed
 	}
 
-	tok := genToken()
-	for {
-		if _, ok := a.tokens[tok]; !ok {
-			break
-		}
-		tok = genToken()
-	}
+	tok := a.genToken()
 	a.tokens[tok] = token{
-		Hash:    hash,
+		Hash:    userHash,
 		User:    user,
 		Expires: time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays)),
 	}
-
+	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
 	a.deauthenticateWhenExpired(tok)
 	return tok, nil
 }
@@ -321,18 +322,27 @@ func (a Auth) Reauthenticate(tok string) (User, error) {
 	if !ok {
 		return User{}, Errors.AuthFailed
 	}
+
 	t := a.tokens[tok]
 	t.Expires = time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays))
+	u, err := a.GetUser(t.Hash)
+	if err != nil {
+		user = u
+	}
+	t.User = user
 	a.tokens[tok] = t
+	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
 	return user, nil
 }
 
 func (a Auth) Deauthenticate(hash string) {
 	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.Hash == hash })
+	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
 }
 
 func (a Auth) DeauthenticateToken(tok string) {
 	delete(a.tokens, tok)
+	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
 }
 
 func (a Auth) deauthenticateWhenExpired(tok string) {
@@ -345,4 +355,35 @@ func (a Auth) deauthenticateWhenExpired(tok string) {
 		return
 	}
 	delete(a.tokens, tok)
+	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+}
+
+func (a Auth) genToken() string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for {
+		tok := make([]byte, 32)
+		for i := range tok {
+			tok[i] = charset[rand.IntN(len(charset))]
+		}
+		if _, ok := a.tokens[string(tok)]; !ok {
+			return string(tok)
+		}
+	}
+}
+
+func (a Auth) genUID() string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for {
+		uid := make([]byte, 32)
+		for i := range uid {
+			uid[i] = charset[rand.IntN(len(charset))]
+		}
+		users, err := a.ListUsers()
+		if err != nil {
+			return string(uid)
+		}
+		if slices.IndexFunc(users, func(user string) bool { u, _ := a.GetUser(user); return u.UID == string(uid) }) < 0 {
+			return string(uid)
+		}
+	}
 }
