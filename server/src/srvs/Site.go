@@ -76,13 +76,13 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 	if conf.SonosIP != "" {
 		if zp, err := Gonos.NewZonePlayer(conf.SonosIP); err == nil {
 			zonePlayer = zp
-			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+			lgr.Log("low", "site", "connected", "sonos speaker: "+zonePlayer.URL)
 		} else if zps, err := Gonos.DiscoverZonePlayer(1); err == nil {
 			zonePlayer = zps[0]
-			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+			lgr.Log("low", "site", "connected", "sonos speaker: "+zonePlayer.URL)
 		} else if zps, err := Gonos.ScanZonePlayer(conf.SonosIP, 1); err == nil {
 			zonePlayer = zps[0]
-			lgr.Log("medium", "site", "connected", "sonos speaker: "+zonePlayer.URL)
+			lgr.Log("low", "site", "connected", "sonos speaker: "+zonePlayer.URL)
 		} else {
 			lgr.Log("error", "site", "failed", "connecting to sonos speaker: "+conf.SonosIP)
 		}
@@ -95,7 +95,7 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 				lgr.Log("error", "site", "failed", "connecting to tapo plug: "+ip+"; error: "+e.Error())
 				break
 			}
-			tc, err := gapo.NewTapo(ip, tapoConf.Username, tapoConf.Password)
+			tc, err := gapo.NewTapoHash(ip, tapoConf.AuthHash)
 			if err != nil {
 				e = err
 				continue
@@ -111,7 +111,7 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 				continue
 			}
 			tapoPlugs[string(nickname[:])] = tc
-			lgr.Log("medium", "site", "connected", "tapo plug: "+ip)
+			lgr.Log("low", "site", "connected", "tapo plug: "+ip)
 			break
 		}
 	}
@@ -144,7 +144,7 @@ func (s *Site) Run() {
 		}()
 		s.loop()
 	}()
-	s.lgr.Log("medium", "site", "started")
+	s.lgr.Log("low", "site", "started")
 }
 
 func (s *Site) Stop() {
@@ -165,13 +165,13 @@ func (s *Site) Stop() {
 		for _, err := range db.Dump() {
 			s.lgr.Log("error", "site", name, err)
 		}
-		s.lgr.Log("medium", "site", "dumped", name)
+		s.lgr.Log("low", "site", "dumped", name)
 		delete(coms.OpenDataBases, name)
 	}
 
 	coms.Unhook()
 
-	s.lgr.Log("medium", "site", "stopped")
+	s.lgr.Log("low", "site", "stopped")
 }
 
 func (s *Site) loop() {
@@ -261,7 +261,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	} else if req.Method != "POST" {
-		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400: Not a POST request")
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "ComReq", "400: Not a POST request")
 		w.Header().Set("x-error", "invalid method "+req.Method)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -276,7 +276,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 			c += 1
 		}
 		if c >= s.cfg.RequestsLimitCom {
-			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "429: Too many requests")
+			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "ComReq", "429: Too many requests")
 			w.Header().Set("retry-after", strconv.Itoa(60))
 			w.WriteHeader(http.StatusTooManyRequests)
 			return
@@ -286,7 +286,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 
 	tok := req.Header.Get("token")
 	if tok == "" {
-		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "400: Missing token")
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "ComReq", "400: Missing token")
 		w.Header().Set("x-error", "missing header token")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -294,7 +294,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 
 	user, ok := s.auth.IsAuthenticated(tok)
 	if !ok {
-		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Com Request", "401: Failed Authentication")
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "ComReq", "401: Failed Authentication")
 		w.Header().Set("x-error", "failed auth bad token")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -302,7 +302,7 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 
 	inp := strings.Split(s.sanatize(req.PostFormValue("com")), "%20")
 	if len(inp) <= 1 && inp[0] == "" {
-		s.lgr.Log("low", user.Username, "Com Request", "400: Missing com")
+		s.lgr.Log("low", user.Username, "ComReq", "400: Missing com")
 		w.Header().Set("x-error", "missing field com")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -310,17 +310,17 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 
 	out, contentType, errCode, err := s.ProssesCommand(user, inp...)
 	if err != nil || errCode < 200 || errCode >= 300 {
-		s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+err.Error())
+		s.lgr.Log("debug", user.Username, "ComReq", strconv.Itoa(errCode)+": "+err.Error())
 		w.Header().Set("x-error", err.Error())
 		w.WriteHeader(errCode)
 		return
 	}
 
-	s.lgr.Log("debug", user.Username, "Com Request", strconv.Itoa(errCode)+": "+string(out))
+	s.lgr.Log("debug", user.Username, "ComReq", strconv.Itoa(errCode)+": "+string(out))
 	if len(out) != 0 && contentType != "" {
 		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(errCode)
-		w.Write(out)
+		_, _ = w.Write(out)
 		return
 	}
 	w.WriteHeader(errCode)
@@ -328,14 +328,14 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Expose-Headers", "token,x-error,retry-after")
+	w.Header().Add("Access-Control-Expose-Headers", "x-error,retry-after")
 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS,POST")
 
 	if req.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
 	} else if req.Method != "POST" {
-		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Not a POST request")
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "400: Not a POST request")
 		w.Header().Set("x-error", req.Method)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -350,7 +350,7 @@ func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
 			c += 1
 		}
 		if c >= s.cfg.RequestsLimitAuth {
-			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "429: Too many requests")
+			s.lgr.Log("medium", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "429: Too many requests")
 			w.Header().Set("retry-after", strconv.Itoa(60*10))
 			w.WriteHeader(http.StatusTooManyRequests)
 			return
@@ -362,45 +362,48 @@ func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
 	if tokCheck != "" {
 		user, err := s.auth.Reauthenticate(tokCheck)
 		if err != nil {
-			s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "401: Token check failed for "+tokCheck)
+			s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "401: Token check failed for "+tokCheck)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "200: Token check succeeded for "+user.Username)
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "200: Token check succeeded for "+user.Username)
+		w.Header().Set("Content-Type", coms.TypeTXT)
 		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(tokCheck))
 		return
 	}
 
-	usrHash := s.sanatize(req.PostFormValue("usrHash"))
-	if usrHash == "" {
-		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing usrHash")
-		w.Header().Set("x-error", "missing field usrHash")
+	userHash := s.sanatize(req.PostFormValue("userHash"))
+	if userHash == "" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "400: Missing userHash")
+		w.Header().Set("x-error", "missing field userHash")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	pswHash := s.sanatize(req.PostFormValue("pswHash"))
-	if pswHash == "" {
-		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "400: Missing pswHash")
-		w.Header().Set("x-error", "missing field pswHash")
+	authHash := s.sanatize(req.PostFormValue("authHash"))
+	if authHash == "" {
+		s.lgr.Log("low", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "400: Missing authHash")
+		w.Header().Set("x-error", "missing field authHash")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	tok, err := s.auth.Authenticate(usrHash, pswHash)
+	tok, err := s.auth.Authenticate(userHash, authHash)
 	if err != nil {
-		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "401: Failed Authentication")
+		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "401: Failed Authentication")
 		w.Header().Set("x-error", "failed auth bad credentials")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	user, ok := s.auth.IsAuthenticated(tok)
 	if !ok {
-		s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "Auth Request", "500: Failed Resloving Token")
+		s.lgr.Log("error", strings.Split(req.RemoteAddr, ":")[0], "AuthReq", "500: Failed Resloving Token")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.lgr.Log("high", user.Username, "Auth Request", "200: Authenticated "+user.Username)
-	w.Header().Set("token", tok)
+	s.lgr.Log("high", user.Username, "AuthReq", "200: Authenticated "+user.Username)
+	w.Header().Set("Content-Type", coms.TypeTXT)
 	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(tok))
 }

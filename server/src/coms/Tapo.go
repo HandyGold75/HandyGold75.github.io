@@ -165,7 +165,7 @@ var tapoCommands = Commands{"tapo": Command{
 							tree[dirSplit[len(dirSplit)-1]] = []string{}
 						}
 					} else {
-						tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+						tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], strings.TrimSuffix(dirSplit[len(dirSplit)-1], ".log"))
 					}
 					return nil
 				}); err != nil {
@@ -182,14 +182,14 @@ var tapoCommands = Commands{"tapo": Command{
 			AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
 			Description:     "Get plug energy usage history.",
 			AutoComplete:    []string{},
-			ArgsDescription: "[plug] [history]",
+			ArgsDescription: "[plug] [log]",
 			ArgsLen:         [2]int{2, 2},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 				path := cfg.CheckDirRel("data/tapo")
 				if path == "" {
 					return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 				}
-				relPath := "/" + sanatize(strings.Join(args[0:2], "/"))
+				relPath := "/" + sanatize(args[0]) + "/" + sanatize(args[1]) + ".log"
 				if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 					return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 				}
@@ -239,7 +239,7 @@ var tapoCommands = Commands{"tapo": Command{
 							tree[dirSplit[len(dirSplit)-1]] = []string{}
 						}
 					} else {
-						tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], dirSplit[len(dirSplit)-1])
+						tree[dirSplit[len(dirSplit)-2]] = append(tree[dirSplit[len(dirSplit)-2]], strings.TrimSuffix(dirSplit[len(dirSplit)-1], ".log"))
 					}
 					return nil
 				}); err != nil {
@@ -256,14 +256,14 @@ var tapoCommands = Commands{"tapo": Command{
 			AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
 			Description:     "Same as histget but human readable.",
 			AutoComplete:    []string{},
-			ArgsDescription: "[module] [log]",
+			ArgsDescription: "[plug] [log]",
 			ArgsLen:         [2]int{2, 2},
 			Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
 				path := cfg.CheckDirRel("data/tapo")
 				if path == "" {
 					return []byte{}, "", http.StatusBadRequest, Errors.PathNotFound
 				}
-				relPath := "/" + sanatize(strings.Join(args[1:3], "/"))
+				relPath := "/" + sanatize(args[0]) + "/" + sanatize(args[1]) + ".log"
 				if fileInfo, err := os.Stat(path + "/" + relPath); os.IsNotExist(err) || fileInfo.IsDir() {
 					return []byte{}, "", http.StatusNotFound, errors.New("file does not exists")
 				}

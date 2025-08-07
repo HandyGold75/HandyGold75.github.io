@@ -38,6 +38,7 @@ In `config.json` can be used to configure the server. `./data/` contains server 
   "LogLevel": 1, // Minimal (inclusive) log level to CLI; `warning: 5`, `error: 5`, `info: 4`, `high: 3`, `medium: 2`, `low: 1`, `debug: 0`.
   "LogToFileLevel": 3, // Minimal log level to log file; `warning: 5`, `error: 5`, `info: 4`, `high: 3`, `medium: 2`, `low: 1`, `debug: 0`.
   "ModuleMaxRestartPerMinute": 3, // Maximum number of restarts a module may get in a minute before the watchdog gives up..
+}
 ```
 
 ### Backend (bak)

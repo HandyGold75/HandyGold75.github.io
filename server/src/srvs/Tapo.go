@@ -11,9 +11,9 @@ import (
 
 type (
 	TapoConfig struct {
-		PlugIPS            []string
-		Username, Password string
-		Schedule           scheduler.Schedule
+		PlugIPS  []string
+		AuthHash string
+		Schedule scheduler.Schedule
 	}
 
 	Tapo struct {
@@ -36,7 +36,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 				lgr.Log("error", "tapo", "failed", "connecting to tapo plug: "+ip+"; error: "+e.Error())
 				break
 			}
-			tc, err := gapo.NewTapo(ip, conf.Username, conf.Password)
+			tc, err := gapo.NewTapoHash(ip, conf.AuthHash)
 			if err != nil {
 				e = err
 				continue
@@ -52,7 +52,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 				continue
 			}
 			clients[string(nickname[:])] = tc
-			lgr.Log("medium", "tapo", "connected", "tapo plug: "+ip)
+			lgr.Log("low", "tapo", "connected", "tapo plug: "+ip)
 			break
 		}
 	}
@@ -75,7 +75,7 @@ func (s *Tapo) Run() {
 		}()
 		s.loop()
 	}()
-	s.lgr.Log("medium", "tapo", "started")
+	s.lgr.Log("low", "tapo", "started")
 }
 
 func (s *Tapo) Stop() {
@@ -83,7 +83,7 @@ func (s *Tapo) Stop() {
 	s.exit = true
 	for range s.Pipe {
 	}
-	s.lgr.Log("medium", "tapo", "stopped")
+	s.lgr.Log("low", "tapo", "stopped")
 }
 
 func (s *Tapo) loop() {
