@@ -77,9 +77,9 @@ const (
 	TypeMP4   = "video/mp4"
 )
 
-func NewComs(conf Config, hooks Hooks) Coms {
+func NewComs(conf Config, hooks Hooks) *Coms {
 	lgr, _ := logger.NewRel("data/logs/coms")
-	c := Coms{
+	c := &Coms{
 		lgr: lgr, cfg: conf,
 		hooks:    hooks,
 		Commands: Commands{},
@@ -97,7 +97,7 @@ func NewComs(conf Config, hooks Hooks) Coms {
 	return c
 }
 
-func (c Coms) Stop() {
+func (c *Coms) Stop() {
 	for name, db := range c.dbs {
 		c.lgr.Log("debug", "coms", "dumping", name)
 		for _, err := range db.Dump() {
@@ -108,7 +108,7 @@ func (c Coms) Stop() {
 	}
 }
 
-func (c Coms) general() Commands {
+func (c *Coms) general() Commands {
 	return Commands{
 		"help": {
 			AuthLevel: auth.AuthLevelGuest, Roles: []string{},

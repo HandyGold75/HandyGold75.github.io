@@ -44,8 +44,8 @@ type (
 		cert, key                     string
 		server                        http.Server
 		recentReqsCom, recentReqsAuth []reqStamp
-		auth                          auth.Auth
-		coms                          coms.Coms
+		auth                          *auth.Auth
+		coms                          *coms.Coms
 	}
 )
 
@@ -123,14 +123,13 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config, confCom
 		server:        http.Server{},
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
 		auth: auth.NewAuth(confAuth),
-		coms: coms.Coms{},
+		coms: &coms.Coms{},
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/com", s.handleComHTTP)
 	mux.HandleFunc("/auth", s.handleAuthHTTP)
 	s.server = http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux}
-	s.coms = coms.NewComs(confComs, coms.Hooks{Auth: &s.auth, Pipe: s.Pipe, Sonos: zonePlayer, Tapo: &tapoPlugs})
-
+	s.coms = coms.NewComs(confComs, coms.Hooks{Auth: s.auth, Pipe: s.Pipe, Sonos: zonePlayer, Tapo: &tapoPlugs})
 	return s
 }
 
