@@ -22,7 +22,7 @@ var (
 		PathNotFound: errors.New("path not found"),
 	}
 
-	autoComplete = []string{}
+	AutoComplete = []string{}
 
 	Terminal = func() *term.Terminal {
 		if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -40,7 +40,7 @@ var (
 				return line, pos, false
 			}
 
-			options := slices.DeleteFunc(slices.Clone(autoComplete), func(v string) bool {
+			options := slices.DeleteFunc(slices.Clone(AutoComplete), func(v string) bool {
 				return !strings.HasPrefix(v, line) || strings.Contains(strings.TrimSpace(strings.Replace(v, line, "", 1)), " ")
 			})
 			if len(options) < 1 {
