@@ -15,28 +15,31 @@ import (
 	"unicode"
 
 	"github.com/HandyGold75/GOLib/cfg"
+	"github.com/HandyGold75/GOLib/logger"
 )
 
 type (
 	AuthLevel uint8
 
 	User struct {
-		UID, Username, Password string
-		AuthLevel               AuthLevel
-		Roles                   []string
-		Enabled                 bool
+		UID,
+		Username, Password string
+		AuthLevel AuthLevel
+		Roles     []string
+		Enabled   bool
 	}
 
 	token struct {
-		Hash    string
-		User    User
-		Expires time.Time
+		UserHash string
+		User     User
+		Expires  time.Time
 	}
 
 	Config struct {
 		TokenExpiresAfterDays int
 	}
 	Auth struct {
+		lgr    *logger.Logger
 		cfg    Config
 		tokens map[string]token
 	}
@@ -67,6 +70,31 @@ var (
 	}
 
 	AuthMap = map[string]AuthLevel{"guest": AuthLevelGuest, "user": AuthLevelUser, "admin": AuthLevelAdmin, "owner": AuthLevelOwner}
+
+	UserOwner = User{
+		UID:      "Ownerf9osYAEb26Ui9gy9C1TecfV2Ucp",
+		Username: "owner", Password: "",
+		AuthLevel: AuthLevelOwner, Roles: []string{"CLI", "Home"},
+		Enabled: true,
+	}
+	// UserAdmin = User{
+	// 	UID:      "AdminsWjuZbON5IfuqC7MA2bvP5FQgXF",
+	// 	Username: "admin", Password: "",
+	// 	AuthLevel: AuthLevelAdmin, Roles: []string{},
+	// 	Enabled: true,
+	// }
+	// UserUser = User{
+	// 	UID:      "UserKnC2MPxytitV3uGKQXZl37Hyfxfc",
+	// 	Username: "user", Password: "",
+	// 	AuthLevel: AuthLevelUser, Roles: []string{},
+	// 	Enabled: true,
+	// }
+	UserGuest = User{
+		UID:      "GuesthwG03h6PrdP0WU5NEO3qWTGs5Hw",
+		Username: "guest", Password: "",
+		AuthLevel: AuthLevelGuest, Roles: []string{},
+		Enabled: true,
+	}
 )
 
 func validateHash(hash string) bool {
@@ -108,9 +136,16 @@ func hashUser(user User) (User, string, error) {
 }
 
 func NewAuth(conf Config) Auth {
+	lgr, _ := logger.NewRel("data/logs/auth")
 	toks := map[string]token{}
-	_ = cfg.LoadRel("data/cache/tokens", &toks)
-	return Auth{cfg: conf, tokens: toks}
+	if err := cfg.LoadRel("data/cache/tokens", &toks); err != nil {
+		lgr.Log("error", "auth", "failed", "loading cache; error: "+err.Error())
+	}
+	a := Auth{lgr: lgr, cfg: conf, tokens: toks}
+	for tok := range toks {
+		a.deauthenticateWhenExpired(tok)
+	}
+	return a
 }
 
 func (a Auth) ListUsers() ([]string, error) {
@@ -178,8 +213,7 @@ func (a Auth) CreateUser(user User) (string, error) {
 	user, hash, err := hashUser(user)
 	if err != nil {
 		return "", err
-	}
-	if cfg.CheckRel("data/users/"+hash) != "" {
+	} else if cfg.CheckRel("data/users/"+hash) != "" {
 		return "", Errors.UserExists
 	}
 
@@ -191,8 +225,7 @@ func (a Auth) CreateUser(user User) (string, error) {
 		u, err := a.GetUser(uh)
 		if err != nil {
 			continue
-		}
-		if user.Username == u.Username {
+		} else if user.Username == u.Username {
 			return "", Errors.UserExists
 		}
 	}
@@ -229,8 +262,7 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 	newUser, newHash, err := hashUser(newUser)
 	if err != nil {
 		return "", err
-	}
-	if hash != newHash && cfg.CheckRel("data/users/"+newHash) != "" {
+	} else if hash != newHash && cfg.CheckRel("data/users/"+newHash) != "" {
 		return "", Errors.UserExists
 	}
 
@@ -238,13 +270,21 @@ func (a Auth) ModifyUser(hash string, newUser User) (string, error) {
 		return "", err
 	}
 	if hash != newHash {
-		a.Deauthenticate(hash)
 		if err := os.Remove(path); err != nil {
 			return "", err
 		}
-	} else {
-		// a.Deauthenticate(hash) => do reauthenticate if hash is the same
 	}
+
+	for tok, t := range a.tokens {
+		if t.UserHash == hash {
+			t.UserHash = newHash
+			if _, err = a.Reauthenticate(tok); err != nil {
+				a.lgr.Log("error", "auth", "failed", "reauthenticating", tok)
+			}
+
+		}
+	}
+
 	return newHash, nil
 }
 
@@ -269,7 +309,7 @@ func (a Auth) IsAuthenticated(tok string) (User, bool) {
 		return User{}, false
 	}
 	if time.Until(a.tokens[tok].Expires) < 0 {
-		a.deauthenticateWhenExpired(tok)
+		a.DeauthenticateToken(tok)
 		return User{}, false
 	}
 	return t.User, true
@@ -293,14 +333,17 @@ func (a Auth) Authenticate(userHash string, authHash string) (string, error) {
 		return "", err
 	}
 	authSuccess := false
-	for i := range []int{0, -1, 1} {
+	for _, i := range []int{0, -1, 1} {
 		hash := sha1.Sum(append(pass, []byte(time.Now().Add(time.Minute*time.Duration(i-1)).Format("2006-01-02 15:04"))...))
-		fmt.Print("\r\n" + authHash + " == " + hex.EncodeToString(hash[:]) + "\r\n")
+		fmt.Print("\r\n" + authHash + " == " + hex.EncodeToString(hash[:]))
 		if authHash == hex.EncodeToString(hash[:]) {
 			authSuccess = true
 			break
 		}
 	}
+
+	fmt.Print("\r\n")
+
 	if !authSuccess {
 		time.Sleep(time.Millisecond * time.Duration(rand.IntN(250)))
 		return "", Errors.AuthFailed
@@ -308,11 +351,13 @@ func (a Auth) Authenticate(userHash string, authHash string) (string, error) {
 
 	tok := a.genToken()
 	a.tokens[tok] = token{
-		Hash:    userHash,
-		User:    user,
-		Expires: time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays)),
+		UserHash: userHash,
+		User:     user,
+		Expires:  time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays)),
 	}
-	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+	if err = cfg.DumpRel("data/cache/tokens", &a.tokens); err != nil {
+		a.lgr.Log("error", "auth", "failed", "dumping cache; error: "+err.Error())
+	}
 	a.deauthenticateWhenExpired(tok)
 	return tok, nil
 }
@@ -325,24 +370,31 @@ func (a Auth) Reauthenticate(tok string) (User, error) {
 
 	t := a.tokens[tok]
 	t.Expires = time.Now().Add(time.Hour * 24 * time.Duration(a.cfg.TokenExpiresAfterDays))
-	u, err := a.GetUser(t.Hash)
+	u, err := a.GetUser(t.UserHash)
 	if err != nil {
 		user = u
 	}
 	t.User = user
 	a.tokens[tok] = t
-	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+	if err := cfg.DumpRel("data/cache/tokens", &a.tokens); err != nil {
+		a.lgr.Log("error", "auth", "failed", "dumping cache; error: "+err.Error())
+	}
+
 	return user, nil
 }
 
 func (a Auth) Deauthenticate(hash string) {
-	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.Hash == hash })
-	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+	maps.DeleteFunc(a.tokens, func(k string, v token) bool { return v.UserHash == hash })
+	if err := cfg.DumpRel("data/cache/tokens", &a.tokens); err != nil {
+		a.lgr.Log("error", "auth", "failed", "dumping cache; error: "+err.Error())
+	}
 }
 
 func (a Auth) DeauthenticateToken(tok string) {
 	delete(a.tokens, tok)
-	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+	if err := cfg.DumpRel("data/cache/tokens", &a.tokens); err != nil {
+		a.lgr.Log("error", "auth", "failed", "dumping cache; error: "+err.Error())
+	}
 }
 
 func (a Auth) deauthenticateWhenExpired(tok string) {
@@ -355,7 +407,9 @@ func (a Auth) deauthenticateWhenExpired(tok string) {
 		return
 	}
 	delete(a.tokens, tok)
-	_ = cfg.DumpRel("data/cache/tokens", &a.tokens)
+	if err := cfg.DumpRel("data/cache/tokens", &a.tokens); err != nil {
+		a.lgr.Log("error", "auth", "failed", "dumping cache; error: "+err.Error())
+	}
 }
 
 func (a Auth) genToken() string {

@@ -37,14 +37,15 @@ type (
 
 	Site struct {
 		lgr                           *logger.Logger
-		Pipe                          chan string
 		cfg                           SiteConfig
+		Pipe                          chan string
 		tapoCfg                       TapoConfig
 		exit                          bool
 		cert, key                     string
 		server                        http.Server
 		recentReqsCom, recentReqsAuth []reqStamp
 		auth                          auth.Auth
+		coms                          coms.Coms
 	}
 )
 
@@ -58,7 +59,7 @@ func getSSLCert(dir string) (string, string, error) {
 	return dir + "/fullchain.pem", dir + "/privkey.pem", nil
 }
 
-func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
+func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config, confComs coms.Config) *Site {
 	lgr, _ := logger.NewRel("data/logs/site")
 	path := cfg.CheckDirRel("")
 	if path == "" {
@@ -117,18 +118,19 @@ func NewSite(conf SiteConfig, tapoConf TapoConfig, confAuth auth.Config) *Site {
 	}
 
 	s := &Site{
-		cfg: conf, tapoCfg: tapoConf, Pipe: make(chan string), lgr: lgr,
+		lgr: lgr, cfg: conf, tapoCfg: tapoConf, Pipe: make(chan string),
 		cert: cert, key: key,
 		server:        http.Server{},
 		recentReqsCom: []reqStamp{}, recentReqsAuth: []reqStamp{},
 		auth: auth.NewAuth(confAuth),
+		coms: coms.Coms{},
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/com", s.handleComHTTP)
 	mux.HandleFunc("/auth", s.handleAuthHTTP)
 	s.server = http.Server{Addr: conf.IP + ":" + strconv.Itoa(int(conf.Port)), Handler: mux}
+	s.coms = coms.NewComs(confComs, coms.Hooks{Auth: &s.auth, Pipe: s.Pipe, Sonos: zonePlayer, Tapo: &tapoPlugs})
 
-	coms.Hook(&s.auth, s.Pipe, zonePlayer, &tapoPlugs)
 	return s
 }
 
@@ -160,16 +162,7 @@ func (s *Site) Stop() {
 	for range s.Pipe {
 	}
 
-	for name, db := range coms.OpenDataBases {
-		s.lgr.Log("debug", "site", "dumping", name)
-		for _, err := range db.Dump() {
-			s.lgr.Log("error", "site", name, err)
-		}
-		s.lgr.Log("low", "site", "dumped", name)
-		delete(coms.OpenDataBases, name)
-	}
-
-	coms.Unhook()
+	s.coms.Stop()
 
 	s.lgr.Log("low", "site", "stopped")
 }
@@ -209,7 +202,7 @@ func (s *Site) ProssesCommand(user auth.User, inp ...string) (out []byte, conten
 	if len(inp) < 1 {
 		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
 	}
-	command, ok := coms.AllCommands[inp[0]]
+	command, ok := s.coms.Commands[inp[0]]
 	if !ok {
 		return []byte{}, "", http.StatusNotFound, coms.Errors.CommandNotFound
 	}
@@ -293,7 +286,9 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	user, ok := s.auth.IsAuthenticated(tok)
-	if !ok {
+	if !ok && tok == "guest" {
+		user = auth.UserGuest
+	} else if !ok {
 		s.lgr.Log("high", strings.Split(req.RemoteAddr, ":")[0], "ComReq", "401: Failed Authentication")
 		w.Header().Set("x-error", "failed auth bad token")
 		w.WriteHeader(http.StatusUnauthorized)
