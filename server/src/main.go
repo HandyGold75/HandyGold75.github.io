@@ -2,7 +2,9 @@ package main
 
 import (
 	"HG75/auth"
+	"HG75/coms"
 	"HG75/srvs"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -40,6 +42,7 @@ var (
 		SiteConfig               srvs.SiteConfig
 		TapoConfig               srvs.TapoConfig
 		AuthConfig               auth.Config
+		ComsConfig               coms.Config
 		LogLevel, LogToFileLevel int
 		ModuleMaxRestartPerHour  int
 		Debug                    bool
@@ -68,6 +71,9 @@ var (
 		AuthConfig: auth.Config{
 			TokenExpiresAfterDays: 7,
 		},
+		ComsConfig: coms.Config{
+			DataBaseOpenTimeout: 30,
+		},
 		LogLevel: 1, LogToFileLevel: 3,
 		ModuleMaxRestartPerHour: 3,
 		Debug:                   false,
@@ -81,12 +87,19 @@ func run() {
 	srvsCLI, srvsSite, srvsTapo := &srvs.CLI{}, &srvs.Site{}, &srvs.Tapo{}
 	go func() { srvsCLI = srvs.NewCLI(Config.CLIConfig); srvsCLI.Run(); wg.Done() }()
 	go func() {
-		srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
+		srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig, Config.ComsConfig)
 		srvsSite.Run()
 		wg.Done()
 	}()
 	go func() { srvsTapo = srvs.NewTapo(Config.TapoConfig); srvsTapo.Run(); wg.Done() }()
 	wg.Wait()
+
+	if con, _, _, err := srvsSite.ProssesCommand(auth.UserOwner, "autocomplete"); err != nil {
+		lgr.Log("error", "server", "failed", "fetching autocomplete; error: "+err.Error())
+	} else if err := json.Unmarshal(con, &srvs.AutoComplete); err != nil {
+		lgr.Log("error", "server", "failed", "fetching autocomplete; error: "+err.Error())
+	}
+
 	lgr.Log("low", "server", "prepared")
 
 	restarts := map[string][]time.Time{}
@@ -118,7 +131,7 @@ func run() {
 			}
 
 			go func() {
-				comOut, _, _, err := srvsSite.ProssesCommand(srvs.CLIUser, strings.Split(out, " ")...)
+				comOut, _, _, err := srvsSite.ProssesCommand(auth.UserOwner, strings.Split(out, " ")...)
 				if err != nil {
 					lgr.Log("error", "owner", "command", err.Error())
 				} else if len(comOut) > 0 {
@@ -130,7 +143,7 @@ func run() {
 			if !ok && checkRestarts("site") {
 				lgr.Log("debug", "site", "restarting")
 				srvsSite.Stop()
-				srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig)
+				srvsSite = srvs.NewSite(Config.SiteConfig, Config.TapoConfig, Config.AuthConfig, Config.ComsConfig)
 				srvsSite.Run()
 				lgr.Log("high", "site", "restarted")
 			} else if !ok || out == "" {

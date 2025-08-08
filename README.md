@@ -27,17 +27,41 @@ In `config.json` can be used to configure the server. `./data/` contains server 
 
 ```jsonc
 {
-  "IP": "0.0.0.0", // Local IP to bind the server to.
-  "Port": 17500, // Local Port to bind the server to.
-  "Domain": "HandyGold75.com", // Domain the server is accessible from.
-  "SubDomain": "go", // Sub domain the server is accessible from.
-  "SonosIP": "", // CIDR ip network where a Sonos speaker may reside for intergartion with Sonos.
-  "TapoPlugIps": [], // List of ips where tapo power plugs reside for intergartion with Tapo.
-  "TapoUsername": "", // Tapo login username.
-  "TapoPassword": "", // Tapo login password.
+  "CLIConfig": {
+    "Prefix": "\u001b[31m\u003e\u001b[0m", // CLI promt prefix.
+  },
+  "SiteConfig": {
+    "IP": "0.0.0.0", // Local IP to bind the server to.
+    "Port": 17500, // Local Port to bind the server to.
+    "SubDomain": "go", // Sub domain the server is accessible from.
+    "Domain": "HandyGold75.com", // Domain the server is accessible from.
+    "SonosIP": "", // CIDR ip network where a Sonos speaker may reside for intergartion with Sonos.
+    "RequestsLimitCom": 180, // Maximum number of com requests from a single IP within timeout limit.
+    "RequestsLimitTimoutCom": 1, // Time in minutes com requests timeout from the limit que.
+    "RequestsLimitAuth": 10, // Maximum number of auth requests from a single IP within timeout limit.
+    "RequestsLimitTimoutAuth": 10, // Time in minutes auth requests timeout from the limit que.
+  },
+  "TapoConfig": {
+    "PlugIPS": [], // List of ips where tapo power plugs reside for intergartion with Tapo.
+    "AuthHash": "", // Tapo authentication hash, calculated as base16(sha256(sha1(email)+sha1(password))).
+    "Schedule": {
+      "Months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Months of the year: `1 - 12`
+      "Weeks": [1, 2, 3, 4, 5], // Weeks of the month: `1 - 5`
+      "Days": [0, 1, 2, 3, 4, 5, 6], // Days of the week: `0 - 6` (Sunday first day of the week)
+      "Hours": [23], // Hours of the day: `0 - 23`
+      "Minutes": [59], // Minutes of the hour: `0 - 59`
+    },
+  },
+  "AuthConfig": {
+    "TokenExpiresAfterDays": 7, // Maximum number of days a auth token may be valid.
+  },
+  "ComsConfig": {
+    "DataBaseOpenTimeout": 30, // Maxmimum number of minutes a database file will stay open.
+  },
   "LogLevel": 1, // Minimal (inclusive) log level to CLI; `warning: 5`, `error: 5`, `info: 4`, `high: 3`, `medium: 2`, `low: 1`, `debug: 0`.
   "LogToFileLevel": 3, // Minimal log level to log file; `warning: 5`, `error: 5`, `info: 4`, `high: 3`, `medium: 2`, `low: 1`, `debug: 0`.
-  "ModuleMaxRestartPerMinute": 3, // Maximum number of restarts a module may get in a minute before the watchdog gives up..
+  "ModuleMaxRestartPerHour": 3, // Maximum number of restarts a services may get in a hour before giving up.
+  "Debug": false, // Enables debug logs to CLI.
 }
 ```
 

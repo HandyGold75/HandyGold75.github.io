@@ -18,8 +18,8 @@ type (
 
 	Tapo struct {
 		lgr     *logger.Logger
-		Pipe    chan string
 		cfg     TapoConfig
+		Pipe    chan string
 		exit    bool
 		clients map[string]*gapo.Tapo
 	}
@@ -58,7 +58,7 @@ func NewTapo(conf TapoConfig) *Tapo {
 	}
 
 	return &Tapo{
-		cfg: conf, Pipe: make(chan string), lgr: lgr,
+		lgr: lgr, cfg: conf, Pipe: make(chan string),
 		clients: clients,
 	}
 }

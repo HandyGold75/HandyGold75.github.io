@@ -1,9 +1,6 @@
 package srvs
 
 import (
-	"HG75/auth"
-	"HG75/coms"
-	"encoding/json"
 	"io"
 	"time"
 
@@ -17,32 +14,18 @@ type (
 
 	CLI struct {
 		lgr  *logger.Logger
-		Pipe chan string
 		cfg  CLIConfig
+		Pipe chan string
 		exit bool
 	}
 )
-
-var CLIUser = auth.User{
-	UID:      "OwnerG20C26TUZqKaCq1JNvsV7JaMyAM",
-	Username: "owner", Password: "",
-	AuthLevel: auth.AuthLevelOwner, Roles: []string{"CLI", "Home"},
-	Enabled: true,
-}
 
 func NewCLI(conf CLIConfig) *CLI {
 	lgr, _ := logger.NewRel("data/logs/cli")
 
 	Terminal.SetPrompt(conf.Prefix + " ")
 
-	coms.HookAllCommands = &coms.AllCommands
-	if con, _, _, err := coms.AllCommands["autocomplete"].Exec(CLIUser); err != nil {
-		lgr.Log("error", "cli", "failed", "fetching autocomplete; error: "+err.Error())
-	} else if err := json.Unmarshal(con, &autoComplete); err != nil {
-		lgr.Log("error", "cli", "failed", "fetching autocomplete; error: "+err.Error())
-	}
-
-	return &CLI{cfg: conf, Pipe: make(chan string), lgr: lgr}
+	return &CLI{lgr: lgr, cfg: conf, Pipe: make(chan string)}
 }
 
 func (s *CLI) Run() {
