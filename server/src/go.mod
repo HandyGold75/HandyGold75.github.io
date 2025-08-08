@@ -3,14 +3,14 @@ module HG75
 go 1.24.6
 
 require (
-	github.com/HandyGold75/GOLib/cfg v0.0.0-20250807125014-07e9d1fb75c5
-	github.com/HandyGold75/GOLib/gapo v0.0.0-20250807105619-485c12162569
-	github.com/HandyGold75/GOLib/logger v0.0.0-20250807125014-07e9d1fb75c5
-	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250807105619-485c12162569
+	github.com/HandyGold75/GOLib/cfg v0.0.0-20250808134112-99093662ad62
+	github.com/HandyGold75/GOLib/gapo v0.0.0-20250808134112-99093662ad62
+	github.com/HandyGold75/GOLib/logger v0.0.0-20250808134112-99093662ad62
+	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250807125014-07e9d1fb75c5
 	github.com/HandyGold75/Gonos v0.1.1
 	github.com/kkdai/youtube/v2 v2.10.4
 	github.com/raitonoberu/ytsearch v0.2.0
-	golang.org/x/term v0.33.0
+	golang.org/x/term v0.34.0
 )
 
 require (
@@ -20,5 +20,5 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 )
