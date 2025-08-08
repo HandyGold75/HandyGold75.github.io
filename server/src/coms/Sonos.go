@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raitonoberu/ytsearch"
+	"github.com/HandyGold75/GOLib/yts"
 )
 
 type (
@@ -680,8 +680,8 @@ func (c Coms) sonos() Commands {
 				ArgsDescription: "[query]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					search := ytsearch.VideoSearch(args[0])
-					results, err := search.Next()
+					sc := yts.NewSearchVideo(args[0])
+					results, err := sc.Next()
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
 					}
