@@ -1,6 +1,6 @@
 module HG75
 
-go 1.24.5
+go 1.24.6
 
 require (
 	github.com/HandyGold75/GOLib/cfg v0.0.0-20250724140744-ffdd0424f7ed
