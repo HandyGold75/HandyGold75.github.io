@@ -7,6 +7,7 @@ import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"HandyGold75/WebKit/Widget"
 	"strings"
 )
 
@@ -14,9 +15,6 @@ func main() {
 	page := JS.CacheGet("page")
 	if page == "" {
 		page = "Home"
-	}
-	if strings.HasPrefix(JS.Href(), "https://www.handygold75.com/spotify_auth_callback") {
-		page = "SpotifyAuthCallback"
 	}
 
 	HTTP.Config.Load()
@@ -54,5 +52,14 @@ func main() {
 	}
 
 	Pages.Open(page, true)
+
+	if strings.HasPrefix(strings.ToLower(JS.Href()), "https://www.handygold75.com/spotify_auth_callback") {
+		JS.Async(func() {
+			url := strings.Split(JS.Href(), "/")
+			Widget.PopupAlert("Spotify Token", url[len(url)-1], func() {})
+			JS.SetUrl("")
+		})
+	}
+
 	<-make(chan bool)
 }
