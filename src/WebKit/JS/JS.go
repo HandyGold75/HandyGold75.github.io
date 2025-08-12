@@ -252,6 +252,10 @@ func Href() string {
 	return js.Global().Get("window").Get("location").Get("href").String()
 }
 
+func SetUrl(url string) {
+	js.Global().Get("window").Get("history").Call("pushState", nil, "", "/"+url)
+}
+
 func OnResizeAdd(key string, f func()) {
 	onResizeMapping[key] = f
 

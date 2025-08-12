@@ -9,7 +9,6 @@ import (
 	"HandyGold75/Pages/Links"
 	"HandyGold75/Pages/Login"
 	"HandyGold75/Pages/Sheets"
-	"HandyGold75/Pages/SpotifyAuthCallback"
 	"HandyGold75/Pages/Tools"
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTML"
@@ -37,7 +36,6 @@ var (
 		{Name: "Links", Entry: Links.Page, RequiredComs: []string{}, Hidden: false},
 		{Name: "Contact", Entry: Contact.Page, RequiredComs: []string{}, Hidden: false},
 		{Name: "Login", Entry: Login.Page, RequiredComs: []string{}, Hidden: true},
-		{Name: "SpotifyAuthCallback", Entry: SpotifyAuthCallback.Page, RequiredComs: []string{}, Hidden: true},
 		{Name: "Admin:Users", Entry: Admin.PageUsers, RequiredComs: []string{}, Hidden: false},
 		{Name: "Admin:Config", Entry: Admin.PageConfig, RequiredComs: []string{}, Hidden: false},
 		{Name: "Admin:Monitor", Entry: Admin.PageMonitor, RequiredComs: []string{}, Hidden: false},
