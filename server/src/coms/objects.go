@@ -59,7 +59,8 @@ var Errors = struct {
 	ArgumentInvalid, ArgumentNotBool,
 	PathNotFound,
 	SheetNotFound, IndexNotFound, InvalidDataLenght, InvalidDataContent,
-	VideoNotFound, PlugNotFound error
+	VideoNotFound, PlugNotFound,
+	InvalidSharelink error
 }{
 	AllCommandsNotHooked: errors.New("all commands not hooked"), AuthNotHooked: errors.New("auth not hooked"), PipeNotHooked: errors.New("pipe not hooked"), SonosNotHooked: errors.New("sonos not hooked"), TapoNotHooked: errors.New("tapo not hooked"),
 	CommandNotFound: errors.New("command not found"), CommandNotAuthorized: errors.New("command not authorized"),
@@ -68,6 +69,7 @@ var Errors = struct {
 	SheetNotFound: errors.New("sheet not found"), IndexNotFound: errors.New("index not found"),
 	InvalidDataLenght: errors.New("invalid data lenght"), InvalidDataContent: errors.New("invalid data content"),
 	VideoNotFound: errors.New("video not found"), PlugNotFound: errors.New("plug not found"),
+	InvalidSharelink: errors.New("invalid sharelink"),
 }
 
 const (

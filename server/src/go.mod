@@ -3,17 +3,17 @@ module HG75
 go 1.24.6
 
 require (
-	github.com/HandyGold75/GOLib/cfg v0.0.0-20250808150236-6155e6c56a1e
-	github.com/HandyGold75/GOLib/gapo v0.0.0-20250808151012-b11e2c34d3d8
-	github.com/HandyGold75/GOLib/logger v0.0.0-20250808151012-b11e2c34d3d8
-	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250808151012-b11e2c34d3d8
-	github.com/HandyGold75/GOLib/yts v0.0.0-20250808150236-6155e6c56a1e
-	github.com/HandyGold75/Gonos v0.1.1
+	github.com/HandyGold75/GOLib/cfg v0.0.0-20250811113011-5289eea2834f
+	github.com/HandyGold75/GOLib/gapo v0.0.0-20250811113011-5289eea2834f
+	github.com/HandyGold75/GOLib/logger v0.0.0-20250811113011-5289eea2834f
+	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250811113011-5289eea2834f
+	github.com/HandyGold75/GOLib/yts v0.0.0-20250811113011-5289eea2834f
+	github.com/HandyGold75/Gonos v0.1.2
 	github.com/kkdai/youtube/v2 v2.10.4
 	golang.org/x/term v0.34.0
 )
 
-replace github.com/HandyGold75/GOLib/yts => ../../../GOLib/yts
+replace github.com/HandyGold75/Gonos => ../../../Gonos/
 
 require (
 	github.com/bitly/go-simplejson v0.5.1 // indirect

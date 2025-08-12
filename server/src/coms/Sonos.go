@@ -4,7 +4,6 @@ import (
 	"HG75/auth"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -306,36 +305,38 @@ func (c Coms) sonos() Commands {
 					},
 					"add": {
 						AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
-						Description:     "Set que.",
+						Description:     "Add to que.",
 						AutoComplete:    []string{},
-						ArgsDescription: "[track]",
+						ArgsDescription: "[sharelink]",
 						ArgsLen:         [2]int{1, 1},
 						Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-							return []byte{}, "", http.StatusInternalServerError, errors.New("sonos add is broken") // TODO: Fix
-							// if strings.HasPrefix(args[0], "https://open.spotify.com/") {
-							// 	uri_args := strings.Replace(args[0], "https://open.spotify.com/", "", 1)
-							// 	id_type := strings.Split(uri_args, "/")[0]
-							// 	id := strings.Split(strings.Replace(uri_args, id_type+"/", "", 1), "?")[0]
-							// 	uri := "spotify%3a" + id_type + "%3a" + id
-							// 	uri = "x-sonos-spotify:" + "spotify%3a" + id_type + "%3a" + id + "?sid=9\u0026flags=8232\u0026sn=3"
-							// }
-							// trackInfo, err := c.hooks.Sonos.GetTrackInfo()
-							// if err != nil {
-							// 	return []byte{}, "", http.StatusBadRequest, err
-							// }
-							// if err := c.hooks.Sonos.QueAdd(args[0], trackInfo.QuePosition, true); err != nil {
-							// 	return []byte{}, "", http.StatusBadRequest, err
-							// }
-							// queInfo, err := c.hooks.Sonos.GetQue()
-							// if err != nil {
-							// 	return []byte{}, "", http.StatusBadRequest, err
-							// }
-							// return []byte(strconv.Itoa(queInfo.TotalCount)), TypeTXT, http.StatusOK, nil
+							uri := ""
+							if strings.HasPrefix(args[0], "https://open.spotify.com/") {
+								uri_args := strings.Replace(args[0], "https://open.spotify.com/", "", 1)
+								id_type := strings.Split(uri_args, "/")[0]
+								id := strings.Split(strings.Replace(uri_args, id_type+"/", "", 1), "?")[0]
+								uri = "spotify%3a" + id_type + "%3a" + id
+							} else {
+								return []byte{}, "", http.StatusBadRequest, Errors.InvalidSharelink
+							}
+
+							trackInfo, err := c.hooks.Sonos.GetTrackInfo()
+							if err != nil {
+								return []byte{}, "", http.StatusBadRequest, err
+							}
+							if err := c.hooks.Sonos.QueAdd(uri, trackInfo.QuePosition, true); err != nil {
+								return []byte{}, "", http.StatusBadRequest, err
+							}
+							queInfo, err := c.hooks.Sonos.GetQue()
+							if err != nil {
+								return []byte{}, "", http.StatusBadRequest, err
+							}
+							return []byte(strconv.Itoa(queInfo.TotalCount)), TypeTXT, http.StatusOK, nil
 						},
 					},
 					"remove": {
 						AuthLevel: auth.AuthLevelUser, Roles: []string{"Home"},
-						Description:     "Remove que.",
+						Description:     "Remove from que.",
 						AutoComplete:    []string{},
 						ArgsDescription: "[index]",
 						ArgsLen:         [2]int{1, 1},
@@ -680,7 +681,7 @@ func (c Coms) sonos() Commands {
 				ArgsDescription: "[query]",
 				ArgsLen:         [2]int{1, 1},
 				Exec: func(user auth.User, args ...string) (con []byte, typ string, code int, err error) {
-					sc := yts.NewSearchVideo(args[0])
+					sc := yts.NewSearch(args[0], yts.FilterAll, yts.OrderRelevance)
 					results, err := sc.Next()
 					if err != nil {
 						return []byte{}, "", http.StatusBadRequest, err
