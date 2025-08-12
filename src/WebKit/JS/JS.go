@@ -248,6 +248,10 @@ func Title(title string) {
 	js.Global().Get("document").Set("title", title)
 }
 
+func Href() string {
+	return js.Global().Get("window").Get("location").Get("href").String()
+}
+
 func OnResizeAdd(key string, f func()) {
 	onResizeMapping[key] = f
 

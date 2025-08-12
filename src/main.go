@@ -7,12 +7,16 @@ import (
 	"HandyGold75/WebKit/DOM"
 	"HandyGold75/WebKit/HTTP"
 	"HandyGold75/WebKit/JS"
+	"strings"
 )
 
 func main() {
 	page := JS.CacheGet("page")
 	if page == "" {
 		page = "Home"
+	}
+	if strings.HasPrefix(JS.Href(), "https://www.handygold75.com/spotify_auth_callback") {
+		page = "SpotifyAuthCallback"
 	}
 
 	HTTP.Config.Load()
