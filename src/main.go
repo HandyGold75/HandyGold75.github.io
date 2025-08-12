@@ -54,11 +54,8 @@ func main() {
 	Pages.Open(page, true)
 
 	if strings.HasPrefix(strings.ToLower(JS.Href()), "https://www.handygold75.com/spotify_auth_callback") {
-		JS.Async(func() {
-			url := strings.Split(JS.Href(), "/")
-			Widget.PopupAlert("Spotify Token", url[len(url)-1], func() {})
-			JS.SetUrl("")
-		})
+		url := strings.Split(JS.Href(), "/")
+		JS.AfterDelay(250, func() { JS.SetUrl(""); Widget.PopupAlert("Spotify Token", url[len(url)-1], func() {}) })
 	}
 
 	<-make(chan bool)
