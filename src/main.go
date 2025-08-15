@@ -55,7 +55,7 @@ func main() {
 
 	if strings.HasPrefix(strings.ToLower(JS.Href()), "https://www.handygold75.com/spotify_auth_callback") {
 		url := strings.Split(JS.Href(), "/")
-		JS.AfterDelay(250, func() { JS.SetUrl(""); Widget.PopupAlert("Spotify Token", url[len(url)-1], func() {}) })
+		JS.AfterDelay(500, func() { JS.SetUrl(""); Widget.PopupAlert("Spotify Token", url[len(url)-1], func() {}) })
 	}
 
 	<-make(chan bool)
