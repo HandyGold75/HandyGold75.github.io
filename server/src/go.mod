@@ -3,11 +3,11 @@ module HG75
 go 1.25.0
 
 require (
-	github.com/HandyGold75/GOLib/cfg v0.0.0-20250814144813-eecc74fa49ca
-	github.com/HandyGold75/GOLib/gapo v0.0.0-20250814144813-eecc74fa49ca
-	github.com/HandyGold75/GOLib/logger v0.0.0-20250814144813-eecc74fa49ca
-	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250814144813-eecc74fa49ca
-	github.com/HandyGold75/GOLib/yts v0.0.0-20250814144813-eecc74fa49ca
+	github.com/HandyGold75/GOLib/cfg v0.0.0-20250815154836-7245371ebd38
+	github.com/HandyGold75/GOLib/gapo v0.0.0-20250815154836-7245371ebd38
+	github.com/HandyGold75/GOLib/logger v0.0.0-20250815154836-7245371ebd38
+	github.com/HandyGold75/GOLib/scheduler v0.0.0-20250815153300-0fcf986b1e36
+	github.com/HandyGold75/GOLib/yts v0.0.0-20250815154836-7245371ebd38
 	github.com/HandyGold75/Gonos v0.1.2
 	github.com/kkdai/youtube/v2 v2.10.4
 	golang.org/x/term v0.34.0
