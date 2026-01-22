@@ -1,6 +1,6 @@
 go 1.25.6
 
 use (
-	./server.bak
+	./server/src
 	./src
 )
