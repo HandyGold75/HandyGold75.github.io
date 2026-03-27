@@ -772,6 +772,10 @@ func syncCallbackSonos(res string, resBytes []byte, resErr error) {
 			JS.AfterDelay(5000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
 			return
 		}
+		if strings.HasPrefix(resErr.Error(), "400: ") && strings.Contains(resErr.Error(), "tag not found in response") {
+			JS.AfterDelay(5000, func() { HTTP.Send(syncCallbackSonos, "sonos", "sync") })
+			return
+		}
 		Widget.PopupAlert("Error", resErr.Error(), func() {})
 		return
 	}
