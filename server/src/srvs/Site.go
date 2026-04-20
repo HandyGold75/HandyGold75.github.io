@@ -30,10 +30,10 @@ type (
 		IP                                         string
 		Port                                       uint16
 		SubDomain, Domain                          string
+		CORSEnabled                                bool
 		SonosIP                                    string
 		RequestsLimitCom, RequestsLimitTimoutCom   int
 		RequestsLimitAuth, RequestsLimitTimoutAuth int
-		CORSEnabled                                bool
 	}
 
 	Site struct {
