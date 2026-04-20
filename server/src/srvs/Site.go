@@ -33,7 +33,7 @@ type (
 		SonosIP                                    string
 		RequestsLimitCom, RequestsLimitTimoutCom   int
 		RequestsLimitAuth, RequestsLimitTimoutAuth int
-		CORSEnabled                               bool
+		CORSEnabled                                bool
 	}
 
 	Site struct {
@@ -245,9 +245,9 @@ func (s *Site) ProssesCommand(user auth.User, inp ...string) (out []byte, conten
 }
 
 func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
-	corsOrigin := "https://" + s.cfg.SubDomain + "." + s.cfg.Domain
-	if !s.cfg.CORSEnabled {
-		corsOrigin = "*"
+	corsOrigin := "*"
+	if s.cfg.CORSEnabled {
+		corsOrigin = "https://" + s.cfg.SubDomain + "." + s.cfg.Domain
 	}
 	w.Header().Set("Access-Control-Allow-Origin", corsOrigin)
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type,token")
@@ -326,9 +326,9 @@ func (s *Site) handleComHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Site) handleAuthHTTP(w http.ResponseWriter, req *http.Request) {
-	corsOrigin := "https://" + s.cfg.SubDomain + "." + s.cfg.Domain
-	if !s.cfg.CORSEnabled {
-		corsOrigin = "*"
+	corsOrigin := "*"
+	if s.cfg.CORSEnabled {
+		corsOrigin = "https://" + s.cfg.SubDomain + "." + s.cfg.Domain
 	}
 	w.Header().Set("Access-Control-Allow-Origin", corsOrigin)
 	w.Header().Add("Access-Control-Expose-Headers", "x-error,retry-after")
