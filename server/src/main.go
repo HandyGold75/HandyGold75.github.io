@@ -53,6 +53,7 @@ var (
 		SiteConfig: srvs.SiteConfig{
 			IP: "0.0.0.0", Port: 17500,
 			SubDomain: "go", Domain: "HandyGold75.com",
+			CORSEnabled:      true,
 			SonosIP:          "",
 			RequestsLimitCom: 180, RequestsLimitTimoutCom: 1,
 			RequestsLimitAuth: 10, RequestsLimitTimoutAuth: 10,
