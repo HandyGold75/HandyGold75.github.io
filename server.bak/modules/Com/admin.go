@@ -96,7 +96,7 @@ var AdminComs = Commands{
 		Function: PrintLogs,
 	},
 	"debug": Command{
-		RequiredAuthLevel:   Auth.AuthMap["admin"],
+		RequiredAuthLevel:   Auth.AuthMap["owner"],
 		RequiredRoles:       []string{"CLI"},
 		Description:         "Enable/ disable debugging or print debug values.",
 		DetailedDescription: "Enabled or disabled debugging or print debug values. Usage: debug [0|1|server|auth|https]\r\n  Restarting the server will reset the debug state to the orginial value.",
