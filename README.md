@@ -36,6 +36,7 @@ In `config.json` can be used to configure the server. `./data/` contains server 
     "SubDomain": "go", // Sub domain the server is accessible from.
     "Domain": "HandyGold75.com", // Domain the server is accessible from.
     "SonosIP": "", // CIDR ip network where a Sonos speaker may reside for intergartion with Sonos.
+    "CORSEnabled": true, // When true, CORS uses https://{SubDomain}.{Domain}; when false, uses * (wildcard).
     "RequestsLimitCom": 180, // Maximum number of com requests from a single IP within timeout limit.
     "RequestsLimitTimoutCom": 1, // Time in minutes com requests timeout from the limit que.
     "RequestsLimitAuth": 10, // Maximum number of auth requests from a single IP within timeout limit.
