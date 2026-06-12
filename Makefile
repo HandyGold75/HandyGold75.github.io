@@ -19,6 +19,10 @@ get:
 	go mod tidy
 
 build:
+	cd ./server.bak ; \
+	go build -o "$(TARGET)/$(FILE)" .
+
+build_new:
 	cd ./server/src ; \
 	go build -o "$(TARGET)/$(FILE)" .
 
